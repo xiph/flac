@@ -80,6 +80,7 @@ unsigned FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[
 			__m128i err0, err1;
 			err0 = _mm_cvtsi32_si128(data[i]);								// 0   0   0   e0
 			err1 = _mm_shuffle_epi32(err0, _MM_SHUFFLE(0,0,0,0));			// e0  e0  e0  e0
+#if 1 /* OPT_SSE */
 			err1 = _mm_sub_epi32(err1, last_error);
 			last_error = _mm_srli_si128(last_error, 4);						// 0   le0 le1 le2
 			err1 = _mm_sub_epi32(err1, last_error);
@@ -87,7 +88,11 @@ unsigned FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[
 			err1 = _mm_sub_epi32(err1, last_error);
 			last_error = _mm_srli_si128(last_error, 4);						// 0   0   0   le0
 			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
-
+#else
+			last_error = _mm_add_epi32(last_error, _mm_srli_si128(last_error, 8));	// le0  le1  le2+le0  le3+le1
+			last_error = _mm_add_epi32(last_error, _mm_srli_si128(last_error, 4));	// le0  le1+le0  le2+le0+le1  le3+le1+le2+le0
+			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
+#endif
 			last_error = _mm_alignr_epi8(err0, err1, 4);					// e0  e1  e2  e3
 
 			err0 = _mm_abs_epi32(err0);
@@ -166,6 +171,7 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 
 			__m128i err0, err1;
 			err0 = _mm_cvtsi32_si128(data[i]);								// 0   0   0   e0
 			err1 = _mm_shuffle_epi32(err0, _MM_SHUFFLE(0,0,0,0));			// e0  e0  e0  e0
+#if 1 /* OPT_SSE */
 			err1 = _mm_sub_epi32(err1, last_error);
 			last_error = _mm_srli_si128(last_error, 4);						// 0   le0 le1 le2
 			err1 = _mm_sub_epi32(err1, last_error);
@@ -173,7 +179,11 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 
 			err1 = _mm_sub_epi32(err1, last_error);
 			last_error = _mm_srli_si128(last_error, 4);						// 0   0   0   le0
 			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
-
+#else
+			last_error = _mm_add_epi32(last_error, _mm_srli_si128(last_error, 8));	// le0  le1  le2+le0  le3+le1
+			last_error = _mm_add_epi32(last_error, _mm_srli_si128(last_error, 4));	// le0  le1+le0  le2+le0+le1  le3+le1+le2+le0
+			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
+#endif
 			last_error = _mm_alignr_epi8(err0, err1, 4);					// e0  e1  e2  e3
 			
 			err0 = _mm_abs_epi32(err0);
