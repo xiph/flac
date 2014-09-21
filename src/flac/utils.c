@@ -391,7 +391,7 @@ FLAC__bool flac__utils_set_channel_mask_tag(FLAC__StreamMetadata *object, FLAC__
 
 	FLAC__ASSERT(object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
-	FLAC__ASSERT(strlen(CHANNEL_MASK_TAG+1+2+16+1) <= sizeof(tag)); /* +1 for =, +2 for 0x, +16 for digits, +1 for NUL */
+	FLAC__ASSERT(strlen(CHANNEL_MASK_TAG)+1+2+16+1 <= sizeof(tag)); /* +1 for =, +2 for 0x, +16 for digits, +1 for NUL */
 	entry.entry = (FLAC__byte*)tag;
 	if((entry.length = flac_snprintf(tag, sizeof(tag), "%s=0x%04X", CHANNEL_MASK_TAG, (unsigned)channel_mask)) >= sizeof(tag))
 		return false;
