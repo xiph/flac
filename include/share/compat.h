@@ -188,10 +188,12 @@
  *
  * This function wraps the MS version to behave more like the the ISO version.
  */
+#include <stdarg.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
 int flac_snprintf(char *str, size_t size, const char *fmt, ...);
+int flac_vsnprintf(char *str, size_t size, const char *fmt, va_list va);
 #ifdef __cplusplus
 };
 #endif

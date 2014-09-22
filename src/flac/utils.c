@@ -247,12 +247,8 @@ void stats_print_info(int level, const char *format, ...)
 	if (flac__utils_verbosity_ >= level) {
 		va_list args;
 		va_start(args, format);
-		len = vsnprintf(tmp, sizeof(tmp), format, args);
+		len = flac_vsnprintf(tmp, sizeof(tmp), format, args);
 		va_end(args);
-		if (len < 0 || len == sizeof(tmp)) {
-			tmp[sizeof(tmp)-1] = '\0';
-			len = sizeof(tmp)-1;
-		}
 		stats_clear();
 		if (len >= console_chars_left) {
 			clear_len = console_chars_left;

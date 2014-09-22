@@ -3201,13 +3201,18 @@ static int
 local_snprintf(char *str, size_t size, const char *fmt, ...)
 {
 	va_list va;
-	int rc ;
+	int rc;
 
 	va_start (va, fmt);
 
-#ifdef _MSC_VER
+#if defined _MSC_VER
+	if (size == 0)
+		return 1024;
 	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
-	rc = (rc > 0) ? rc : (size == 0 ? 1024 : size * 2);
+	if (rc < 0)
+		rc = size - 1;
+#elif defined __MINGW32__
+	rc = __mingw_vsnprintf (str, size, fmt, va);
 #else
 	rc = vsnprintf (str, size, fmt, va);
 #endif

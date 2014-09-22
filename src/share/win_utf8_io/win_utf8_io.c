@@ -45,6 +45,28 @@
 
 #include "share/win_utf8_io.h"
 
+#define UTF8_BUFFER_SIZE 32768
+
+static
+int local_vsnprintf(char *str, size_t size, const char *fmt, va_list va)
+{
+	int rc;
+
+#if defined _MSC_VER
+	if (size == 0)
+		return 1024;
+	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
+	if (rc < 0)
+		rc = size - 1;
+#elif defined __MINGW32__
+	rc = __mingw_vsnprintf (str, size, fmt, va);
+#else
+	rc = vsnprintf (str, size, fmt, va);
+#endif
+
+	return rc;
+}
+
 static UINT win_utf8_io_codepage = CP_ACP;
 
 /* convert WCHAR stored Unicode string to UTF-8. Caller is responsible for freeing memory */
@@ -177,9 +199,9 @@ int printf_utf8(const char *format, ...)
 
 	while (1) {
 		va_list argptr;
-		if (!(utmp = (char *)malloc(32768*sizeof(char)))) break;
+		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE*sizeof(char)))) break;
 		va_start(argptr, format);
-		ret = vsnprintf_s(utmp, 32768, _TRUNCATE, format, argptr);
+		ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr);
 		va_end(argptr);
 		if (ret < 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
@@ -203,9 +225,9 @@ int fprintf_utf8(FILE *stream, const char *format, ...)
 
 	while (1) {
 		va_list argptr;
-		if (!(utmp = (char *)malloc(32768*sizeof(char)))) break;
+		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE*sizeof(char)))) break;
 		va_start(argptr, format);
-		ret = vsnprintf_s(utmp, 32768, _TRUNCATE, format, argptr);
+		ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr);
 		va_end(argptr);
 		if (ret < 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
@@ -228,8 +250,8 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 	int ret = -1;
 
 	while (1) {
-		if (!(utmp = (char *)malloc(32768*sizeof(char)))) break;
-		if ((ret = vsnprintf_s(utmp, 32768, _TRUNCATE, format, argptr)) < 0) break;
+		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE*sizeof(char)))) break;
+		if ((ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr)) < 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
 			ret = -1;
 			break;
