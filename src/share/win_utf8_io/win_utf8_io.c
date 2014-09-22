@@ -101,6 +101,7 @@ int get_utf8_argv(int *argc, char ***argv)
 	if ((handle = LoadLibrary("msvcrt.dll")) == NULL) return 1;
 	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) return 1;
 	i = 0;
+	/* if __wgetmainargs expands wildcards then it also erroneously converts \\?\c:\path\to\file.flac to \\file.flac */
 	if (wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) return 1;
 	if ((utf8argv = (char **)calloc(wargc, sizeof(char*))) == NULL) return 1;
 	ret = 0;
