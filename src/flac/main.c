@@ -1455,11 +1455,9 @@ void show_explain(void)
 	printf("                               output in parallel and comparing to the\n");
 	printf("                               original\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
-#if 0 /*@@@ currently undocumented */
 	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files;\n");
 	printf("                               useful when piping data from programs which\n");
 	printf("                               generate bogus data chunk sizes.\n");
-#endif
 	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
 	printf("                               on sector boundaries.  This option is DEPRECATED\n");
 	printf("                               and may not exist in future versions of flac.\n");
@@ -1661,9 +1659,7 @@ void show_explain(void)
 	printf("      --no-qlp-coeff-prec-search\n");
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
-#if 0 /*@@@ currently undocumented */
 	printf("      --no-ignore-chunk-sizes\n");
-#endif
 	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
