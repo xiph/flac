@@ -140,7 +140,9 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	info->ia32._3dnow = false;
 	info->ia32.ext3dnow = false;
 	info->ia32.extmmx = false;
-	if(info->ia32.cpuid) {
+	if(info->ia32.cpuid == false)
+		return;
+	{
 		/* http://www.sandpile.org/x86/cpuid.htm */
 		FLAC__uint32 flags_edx, flags_ecx;
 #ifdef FLAC__HAS_NASM
@@ -166,138 +168,138 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #else
 		info->ia32._3dnow = info->ia32.ext3dnow = info->ia32.extmmx = false;
 #endif
-
+	}
 #ifdef DEBUG
-		fprintf(stderr, "CPU info (IA-32):\n");
-		fprintf(stderr, "  CPUID ...... %c\n", info->ia32.cpuid   ? 'Y' : 'n');
-		fprintf(stderr, "  BSWAP ...... %c\n", info->ia32.bswap   ? 'Y' : 'n');
-		fprintf(stderr, "  CMOV ....... %c\n", info->ia32.cmov    ? 'Y' : 'n');
-		fprintf(stderr, "  MMX ........ %c\n", info->ia32.mmx     ? 'Y' : 'n');
-		fprintf(stderr, "  FXSR ....... %c\n", info->ia32.fxsr    ? 'Y' : 'n');
-		fprintf(stderr, "  SSE ........ %c\n", info->ia32.sse     ? 'Y' : 'n');
-		fprintf(stderr, "  SSE2 ....... %c\n", info->ia32.sse2    ? 'Y' : 'n');
-		fprintf(stderr, "  SSE3 ....... %c\n", info->ia32.sse3    ? 'Y' : 'n');
-		fprintf(stderr, "  SSSE3 ...... %c\n", info->ia32.ssse3   ? 'Y' : 'n');
-		fprintf(stderr, "  SSE41 ...... %c\n", info->ia32.sse41   ? 'Y' : 'n');
-		fprintf(stderr, "  SSE42 ...... %c\n", info->ia32.sse42   ? 'Y' : 'n');
-		fprintf(stderr, "  3DNow! ..... %c\n", info->ia32._3dnow  ? 'Y' : 'n');
-		fprintf(stderr, "  3DNow!-ext . %c\n", info->ia32.ext3dnow? 'Y' : 'n');
-		fprintf(stderr, "  3DNow!-MMX . %c\n", info->ia32.extmmx  ? 'Y' : 'n');
+	fprintf(stderr, "CPU info (IA-32):\n");
+	fprintf(stderr, "  CPUID ...... %c\n", info->ia32.cpuid   ? 'Y' : 'n');
+	fprintf(stderr, "  BSWAP ...... %c\n", info->ia32.bswap   ? 'Y' : 'n');
+	fprintf(stderr, "  CMOV ....... %c\n", info->ia32.cmov    ? 'Y' : 'n');
+	fprintf(stderr, "  MMX ........ %c\n", info->ia32.mmx     ? 'Y' : 'n');
+	fprintf(stderr, "  FXSR ....... %c\n", info->ia32.fxsr    ? 'Y' : 'n');
+	fprintf(stderr, "  SSE ........ %c\n", info->ia32.sse     ? 'Y' : 'n');
+	fprintf(stderr, "  SSE2 ....... %c\n", info->ia32.sse2    ? 'Y' : 'n');
+	fprintf(stderr, "  SSE3 ....... %c\n", info->ia32.sse3    ? 'Y' : 'n');
+	fprintf(stderr, "  SSSE3 ...... %c\n", info->ia32.ssse3   ? 'Y' : 'n');
+	fprintf(stderr, "  SSE41 ...... %c\n", info->ia32.sse41   ? 'Y' : 'n');
+	fprintf(stderr, "  SSE42 ...... %c\n", info->ia32.sse42   ? 'Y' : 'n');
+	fprintf(stderr, "  3DNow! ..... %c\n", info->ia32._3dnow  ? 'Y' : 'n');
+	fprintf(stderr, "  3DNow!-ext . %c\n", info->ia32.ext3dnow? 'Y' : 'n');
+	fprintf(stderr, "  3DNow!-MMX . %c\n", info->ia32.extmmx  ? 'Y' : 'n');
 #endif
 
-		/*
-		 * now have to check for OS support of SSE instructions
-		 */
-		if(info->ia32.sse) {
+	/*
+	 * now have to check for OS support of SSE instructions
+	 */
+	if(info->ia32.sse) {
 #if defined FLAC__NO_SSE_OS
-			/* assume user knows better than us; turn it off */
-			disable_sse(info);
+		/* assume user knows better than us; turn it off */
+		disable_sse(info);
 #elif defined FLAC__SSE_OS
-			/* assume user knows better than us; leave as detected above */
+		/* assume user knows better than us; leave as detected above */
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
-			int sse = 0;
-			size_t len;
-			/* at least one of these must work: */
-			len = sizeof(sse); sse = sse || (sysctlbyname("hw.instruction_sse", &sse, &len, NULL, 0) == 0 && sse);
-			len = sizeof(sse); sse = sse || (sysctlbyname("hw.optional.sse"   , &sse, &len, NULL, 0) == 0 && sse); /* __APPLE__ ? */
-			if(!sse)
-				disable_sse(info);
+		int sse = 0;
+		size_t len;
+		/* at least one of these must work: */
+		len = sizeof(sse); sse = sse || (sysctlbyname("hw.instruction_sse", &sse, &len, NULL, 0) == 0 && sse);
+		len = sizeof(sse); sse = sse || (sysctlbyname("hw.optional.sse"   , &sse, &len, NULL, 0) == 0 && sse); /* __APPLE__ ? */
+		if(!sse)
+			disable_sse(info);
 #elif defined(__NetBSD__) || defined (__OpenBSD__)
 # if __NetBSD_Version__ >= 105250000 || (defined __OpenBSD__)
-			int val = 0, mib[2] = { CTL_MACHDEP, CPU_SSE };
-			size_t len = sizeof(val);
-			if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val)
-				disable_sse(info);
-			else { /* double-check SSE2 */
-				mib[1] = CPU_SSE2;
-				len = sizeof(val);
-				if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val) {
-					disable_sse(info);
-					info->ia32.fxsr = info->ia32.sse = true;
-				}
-			}
-# else
+		int val = 0, mib[2] = { CTL_MACHDEP, CPU_SSE };
+		size_t len = sizeof(val);
+		if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val)
 			disable_sse(info);
+		else { /* double-check SSE2 */
+			mib[1] = CPU_SSE2;
+			len = sizeof(val);
+			if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val) {
+				disable_sse(info);
+				info->ia32.fxsr = info->ia32.sse = true;
+			}
+		}
+# else
+		disable_sse(info);
 # endif
 #elif defined(__linux__)
-			int sse = 0;
-			struct sigaction sigill_save;
-			struct sigaction sigill_sse;
-			sigill_sse.sa_sigaction = sigill_handler_sse_os;
-			__sigemptyset(&sigill_sse.sa_mask);
-			sigill_sse.sa_flags = SA_SIGINFO | SA_RESETHAND; /* SA_RESETHAND just in case our SIGILL return jump breaks, so we don't get stuck in a loop */
-			if(0 == sigaction(SIGILL, &sigill_sse, &sigill_save))
-			{
-				/* http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html */
-				/* see sigill_handler_sse_os() for an explanation of the following: */
-				asm volatile (
-					"xorps %%xmm0,%%xmm0\n\t" /* will cause SIGILL if unsupported by OS */
-					"incl %0\n\t"             /* SIGILL handler will jump over this */
-					/* landing zone */
-					"nop\n\t" /* SIGILL jump lands here if "inc" is 9 bytes */
-					"nop\n\t"
-					"nop\n\t"
-					"nop\n\t"
-					"nop\n\t"
-					"nop\n\t"
-					"nop\n\t" /* SIGILL jump lands here if "inc" is 3 bytes (expected) */
-					"nop\n\t"
-					"nop"     /* SIGILL jump lands here if "inc" is 1 byte */
-					: "=r"(sse)
-					: "0"(sse)
-				);
+		int sse = 0;
+		struct sigaction sigill_save;
+		struct sigaction sigill_sse;
+		sigill_sse.sa_sigaction = sigill_handler_sse_os;
+		__sigemptyset(&sigill_sse.sa_mask);
+		sigill_sse.sa_flags = SA_SIGINFO | SA_RESETHAND; /* SA_RESETHAND just in case our SIGILL return jump breaks, so we don't get stuck in a loop */
+		if(0 == sigaction(SIGILL, &sigill_sse, &sigill_save))
+		{
+			/* http://www.ibiblio.org/gferg/ldp/GCC-Inline-Assembly-HOWTO.html */
+			/* see sigill_handler_sse_os() for an explanation of the following: */
+			asm volatile (
+				"xorps %%xmm0,%%xmm0\n\t" /* will cause SIGILL if unsupported by OS */
+				"incl %0\n\t"             /* SIGILL handler will jump over this */
+				/* landing zone */
+				"nop\n\t" /* SIGILL jump lands here if "inc" is 9 bytes */
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t"
+				"nop\n\t" /* SIGILL jump lands here if "inc" is 3 bytes (expected) */
+				"nop\n\t"
+				"nop"     /* SIGILL jump lands here if "inc" is 1 byte */
+				: "=r"(sse)
+				: "0"(sse)
+			);
 
-				sigaction(SIGILL, &sigill_save, NULL);
-			}
+			sigaction(SIGILL, &sigill_save, NULL);
+		}
 
-			if(!sse)
-				disable_sse(info);
-#elif defined(_MSC_VER)
-			__try {
-				__asm {
-					xorps xmm0,xmm0
-				}
-			}
-			__except(EXCEPTION_EXECUTE_HANDLER) {
-				if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION)
-					disable_sse(info);
-			}
-#elif defined(__GNUC__) /* MinGW goes here */
-			int sse = 0;
-			/* Based on the idea described in Agner Fog's manual "Optimizing subroutines in assembly language" */
-			/* In theory, not guaranteed to detect lack of OS SSE support on some future Intel CPUs, but in practice works (see the aforementioned manual) */
-			if (info->ia32.fxsr) {
-				struct {
-					FLAC__uint32 buff[128];
-				} __attribute__((aligned(16))) fxsr;
-				FLAC__uint32 old_val, new_val;
-
-				asm volatile ("fxsave %0"  : "=m" (fxsr) : "m" (fxsr));
-				old_val = fxsr.buff[50];
-				fxsr.buff[50] ^= 0x0013c0de;                             /* change value in the buffer */
-				asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* try to change SSE register */
-				fxsr.buff[50] = old_val;                                 /* restore old value in the buffer */
-				asm volatile ("fxsave %0 " : "=m" (fxsr) : "m" (fxsr));  /* old value will be overwritten if SSE register was changed */
-				new_val = fxsr.buff[50];                                 /* == old_val if FXRSTOR didn't change SSE register and (old_val ^ 0x0013c0de) otherwise */
-				fxsr.buff[50] = old_val;                                 /* again restore old value in the buffer */
-				asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* restore old values of registers */
-
-				if ((old_val^new_val) == 0x0013c0de)
-					sse = 1;
-			}
-			if(!sse)
-				disable_sse(info);
-#else
-			/* no way to test, disable to be safe */
+		if(!sse)
 			disable_sse(info);
+#elif defined(_MSC_VER)
+		__try {
+			__asm {
+				xorps xmm0,xmm0
+			}
+		}
+		__except(EXCEPTION_EXECUTE_HANDLER) {
+			if (_exception_code() == STATUS_ILLEGAL_INSTRUCTION)
+				disable_sse(info);
+		}
+#elif defined(__GNUC__) /* MinGW goes here */
+		int sse = 0;
+		/* Based on the idea described in Agner Fog's manual "Optimizing subroutines in assembly language" */
+		/* In theory, not guaranteed to detect lack of OS SSE support on some future Intel CPUs, but in practice works (see the aforementioned manual) */
+		if (info->ia32.fxsr) {
+			struct {
+				FLAC__uint32 buff[128];
+			} __attribute__((aligned(16))) fxsr;
+			FLAC__uint32 old_val, new_val;
+
+			asm volatile ("fxsave %0"  : "=m" (fxsr) : "m" (fxsr));
+			old_val = fxsr.buff[50];
+			fxsr.buff[50] ^= 0x0013c0de;                             /* change value in the buffer */
+			asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* try to change SSE register */
+			fxsr.buff[50] = old_val;                                 /* restore old value in the buffer */
+			asm volatile ("fxsave %0 " : "=m" (fxsr) : "m" (fxsr));  /* old value will be overwritten if SSE register was changed */
+			new_val = fxsr.buff[50];                                 /* == old_val if FXRSTOR didn't change SSE register and (old_val ^ 0x0013c0de) otherwise */
+			fxsr.buff[50] = old_val;                                 /* again restore old value in the buffer */
+			asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* restore old values of registers */
+
+			if ((old_val^new_val) == 0x0013c0de)
+				sse = 1;
+		}
+		if(!sse)
+			disable_sse(info);
+#else
+		/* no way to test, disable to be safe */
+		disable_sse(info);
 #endif
 #ifdef DEBUG
-			fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse     ? 'Y' : 'n');
+		fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse     ? 'Y' : 'n');
 #endif
-		}
-		else /* info->ia32.sse == false */
-			disable_sse(info);
 	}
+	else /* info->ia32.sse == false */
+		disable_sse(info);
+
 #else
 	info->use_asm = false;
 #endif
