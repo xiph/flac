@@ -1288,6 +1288,8 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 	if(file == stdout)
 		file = get_binary_stdout_(); /* just to be safe */
 
+	setvbuf(file, NULL, _IOFBF, 10*1024*1024); /* 10MB output buffer to help reduce disk fragmentation */
+
 	encoder->private_->file = file;
 
 	encoder->private_->progress_callback = progress_callback;
