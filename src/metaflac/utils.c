@@ -167,7 +167,7 @@ void print_error_with_chain_status(FLAC__Metadata_Chain *chain, const char *form
 	}
 	else if(status == FLAC__METADATA_CHAIN_STATUS_BAD_METADATA) {
 		flac_fprintf(stderr, "\n"
-			"The metadata to be writted does not conform to the FLAC metadata\n"
+			"The metadata to be written does not conform to the FLAC metadata\n"
 			"specifications.\n"
 		);
 	}
