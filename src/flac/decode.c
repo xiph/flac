@@ -263,6 +263,23 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 {
 	if(0 != d->fout && d->fout != stdout) {
+#ifdef _WIN32
+		if(!error_occurred) {
+			FLAC__off_t written_size = ftello(d->fout);
+			if(written_size > 0) {
+				HANDLE fh = CreateFile_utf8(d->outfilename, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+				if(fh != INVALID_HANDLE_VALUE) {
+					if(GetFileType(fh) == FILE_TYPE_DISK) {
+						LARGE_INTEGER size;
+						size.QuadPart = written_size;
+						if(SetFilePointerEx(fh, size, NULL, FILE_CURRENT)) /* correct the file size */
+							SetEndOfFile(fh); 
+					}
+					CloseHandle(fh);
+				}
+			}
+		}
+#endif
 		fclose(d->fout);
 		if(error_occurred)
 			flac_unlink(d->outfilename);
@@ -363,6 +380,32 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			d->channel_mask = 0x063f;
 		}
 	}
+
+#ifdef _WIN32
+	if(!d->analysis_mode && !d->test_only && d->total_samples > 0 && d->fout != stdout) {
+		HANDLE fh = CreateFile_utf8(d->outfilename, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		if(fh != INVALID_HANDLE_VALUE) {
+			if (GetFileType(fh) == FILE_TYPE_DISK) {
+				LARGE_INTEGER size;
+				size.QuadPart = d->total_samples * d->channels * ((d->bps+7)/8);
+				if(d->format != FORMAT_RAW) {
+					size.QuadPart += 512;
+					if(d->foreign_metadata) {
+						size_t i;
+						for(i = d->format==FORMAT_RF64?2:1; i < d->foreign_metadata->num_blocks; i++) {
+							if(i != d->foreign_metadata->format_block && i != d->foreign_metadata->audio_block)
+								size.QuadPart += d->foreign_metadata->blocks[i].size;
+						}
+					}
+				}
+
+				if(SetFilePointerEx(fh, size, NULL, FILE_CURRENT)) /* tell filesystem the expected filesize to eliminate fragmentation */
+					SetEndOfFile(fh); 
+			}
+			CloseHandle(fh);
+		}
+	}
+#endif
 
 	/* write the WAVE/AIFF headers if necessary */
 	if(!d->analysis_mode && !d->test_only && d->format != FORMAT_RAW) {
