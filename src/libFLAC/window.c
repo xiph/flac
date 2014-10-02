@@ -215,7 +215,7 @@ void FLAC__window_partial_tukey(FLAC__real *window, const FLAC__int32 L, const F
 	FLAC__int32 Np, n, i;
 
 	if (p <= 0.0)
-		FLAC__window_partial_tukey(window, L, 0.01, start, end);
+		FLAC__window_partial_tukey(window, L, 0.01f, start, end);
 	else if (p >= 1.0)
 		FLAC__window_partial_tukey(window, L, 1, start, end);
 
@@ -240,7 +240,7 @@ void FLAC__window_punchout_tukey(FLAC__real *window, const FLAC__int32 L, const 
 	FLAC__int32 Ns, Ne, n, i;
 
 	if (p <= 0.0)
-		FLAC__window_partial_tukey(window, L, 0.01, start, end);
+		FLAC__window_partial_tukey(window, L, 0.01f, start, end);
 	else if (p >= 1.0)
 		FLAC__window_partial_tukey(window, L, 1, start, end);
 
