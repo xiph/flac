@@ -36,14 +36,22 @@
 
 #include "private/cpu.h"
 #include <stdlib.h>
-#include <stdio.h>
+#include <memory.h>
+#ifdef DEBUG
+# include <stdio.h>
+#endif
 
 #if defined FLAC__CPU_IA32
 # include <signal.h>
 
 static void disable_sse(FLAC__CPUInfo *info)
 {
-	info->ia32.fxsr = info->ia32.sse = info->ia32.sse2 = info->ia32.sse3 = info->ia32.ssse3 = info->ia32.sse41 = info->ia32.sse42 = false;
+	info->ia32.sse   = false;
+	info->ia32.sse2  = false;
+	info->ia32.sse3  = false;
+	info->ia32.ssse3 = false;
+	info->ia32.sse41 = false;
+	info->ia32.sse42 = false;
 }
 
 #endif
@@ -71,6 +79,7 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_FXSR = 0x01000000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE = 0x02000000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE2 = 0x04000000;
 #endif
+
 /* these are flags in ECX of CPUID AX=00000001 */
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE3 = 0x00000001;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSSE3 = 0x00000200;
@@ -113,37 +122,30 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
  * IA32-specific
  */
 #ifdef FLAC__CPU_IA32
+	FLAC__bool ia32_fxsr = false;
+	(void) ia32_fxsr; /* to avoid warnings about unused variables */
+	memset(info, 0, sizeof(*info));
 	info->type = FLAC__CPUINFO_TYPE_IA32;
 #if !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || defined FLAC__HAS_X86INTRIN)
 	info->use_asm = true; /* we assume a minimum of 80386 with FLAC__CPU_IA32 */
-#ifdef FLAC__HAS_NASM
-	info->ia32.cpuid = FLAC__cpu_have_cpuid_asm_ia32()? true : false;
-#else
-	info->ia32.cpuid = FLAC__cpu_have_cpuid_x86()? true : false;
-#endif
-	info->ia32.bswap = info->ia32.cpuid; /* CPUID => BSWAP since it came after */
-	info->ia32.cmov = false;
-	info->ia32.mmx = false;
-	info->ia32.fxsr = false;
-	info->ia32.sse = false;
-	info->ia32.sse2 = false;
-	info->ia32.sse3 = false;
-	info->ia32.ssse3 = false;
-	info->ia32.sse41 = false;
-	info->ia32.sse42 = false;
-	if(info->ia32.cpuid == false)
+#ifdef FLAC__HAS_X86INTRIN
+	if(!FLAC__cpu_have_cpuid_x86())
 		return;
+#else
+	if(!FLAC__cpu_have_cpuid_asm_ia32())
+		return;
+#endif
 	{
 		/* http://www.sandpile.org/x86/cpuid.htm */
 		FLAC__uint32 flags_edx, flags_ecx;
-#ifdef FLAC__HAS_NASM
-		FLAC__cpu_info_asm_ia32(&flags_edx, &flags_ecx);
-#else
+#ifdef FLAC__HAS_X86INTRIN
 		FLAC__cpu_info_x86(&flags_edx, &flags_ecx);
+#else
+		FLAC__cpu_info_asm_ia32(&flags_edx, &flags_ecx);
 #endif
 		info->ia32.cmov  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_CMOV )? true : false;
 		info->ia32.mmx   = (flags_edx & FLAC__CPUINFO_IA32_CPUID_MMX  )? true : false;
-		info->ia32.fxsr  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_FXSR )? true : false;
+		      ia32_fxsr  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_FXSR )? true : false;
 		info->ia32.sse   = (flags_edx & FLAC__CPUINFO_IA32_CPUID_SSE  )? true : false;
 		info->ia32.sse2  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_SSE2 )? true : false;
 		info->ia32.sse3  = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE3 )? true : false;
@@ -151,13 +153,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		info->ia32.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
 		info->ia32.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
 	}
+
 #ifdef DEBUG
 	fprintf(stderr, "CPU info (IA-32):\n");
-	fprintf(stderr, "  CPUID ...... %c\n", info->ia32.cpuid   ? 'Y' : 'n');
-	fprintf(stderr, "  BSWAP ...... %c\n", info->ia32.bswap   ? 'Y' : 'n');
 	fprintf(stderr, "  CMOV ....... %c\n", info->ia32.cmov    ? 'Y' : 'n');
 	fprintf(stderr, "  MMX ........ %c\n", info->ia32.mmx     ? 'Y' : 'n');
-	fprintf(stderr, "  FXSR ....... %c\n", info->ia32.fxsr    ? 'Y' : 'n');
 	fprintf(stderr, "  SSE ........ %c\n", info->ia32.sse     ? 'Y' : 'n');
 	fprintf(stderr, "  SSE2 ....... %c\n", info->ia32.sse2    ? 'Y' : 'n');
 	fprintf(stderr, "  SSE3 ....... %c\n", info->ia32.sse3    ? 'Y' : 'n');
@@ -194,7 +194,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			len = sizeof(val);
 			if(sysctl(mib, 2, &val, &len, NULL, 0) < 0 || !val) {
 				disable_sse(info);
-				info->ia32.fxsr = info->ia32.sse = true;
+				info->ia32.sse = true;
 			}
 		}
 # else
@@ -247,7 +247,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		int sse = 0;
 		/* Based on the idea described in Agner Fog's manual "Optimizing subroutines in assembly language" */
 		/* In theory, not guaranteed to detect lack of OS SSE support on some future Intel CPUs, but in practice works (see the aforementioned manual) */
-		if (info->ia32.fxsr) {
+		if (ia32_fxsr) {
 			struct {
 				FLAC__uint32 buff[128];
 			} __attribute__((aligned(16))) fxsr;
@@ -273,7 +273,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		disable_sse(info);
 #endif
 #ifdef DEBUG
-		fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse     ? 'Y' : 'n');
+		fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse ? 'Y' : 'n');
 #endif
 	}
 	else /* info->ia32.sse == false */
@@ -287,6 +287,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
  * x86-64-specific
  */
 #elif defined FLAC__CPU_X86_64
+	memset(info, 0, sizeof(*info));
 	info->type = FLAC__CPUINFO_TYPE_X86_64;
 #if !defined FLAC__NO_ASM && defined FLAC__HAS_X86INTRIN
 	info->use_asm = true;
@@ -294,17 +295,17 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		/* http://www.sandpile.org/x86/cpuid.htm */
 		FLAC__uint32 flags_edx, flags_ecx;
 		FLAC__cpu_info_x86(&flags_edx, &flags_ecx);
-		info->x86_64.sse3  = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE3 )? true : false;
-		info->x86_64.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;
-		info->x86_64.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
-		info->x86_64.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
+		info->x86.sse3  = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE3 )? true : false;
+		info->x86.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;
+		info->x86.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
+		info->x86.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
 	}
 #ifdef DEBUG
 	fprintf(stderr, "CPU info (x86-64):\n");
-	fprintf(stderr, "  SSE3 ....... %c\n", info->x86_64.sse3    ? 'Y' : 'n');
-	fprintf(stderr, "  SSSE3 ...... %c\n", info->x86_64.ssse3   ? 'Y' : 'n');
-	fprintf(stderr, "  SSE41 ...... %c\n", info->x86_64.sse41   ? 'Y' : 'n');
-	fprintf(stderr, "  SSE42 ...... %c\n", info->x86_64.sse42   ? 'Y' : 'n');
+	fprintf(stderr, "  SSE3 ....... %c\n", info->x86.sse3    ? 'Y' : 'n');
+	fprintf(stderr, "  SSSE3 ...... %c\n", info->x86.ssse3   ? 'Y' : 'n');
+	fprintf(stderr, "  SSE41 ...... %c\n", info->x86.sse41   ? 'Y' : 'n');
+	fprintf(stderr, "  SSE42 ...... %c\n", info->x86.sse42   ? 'Y' : 'n');
 #endif
 
 #else

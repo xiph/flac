@@ -90,13 +90,11 @@ typedef enum {
 
 #if defined FLAC__CPU_IA32
 typedef struct {
-	FLAC__bool cpuid;
-	FLAC__bool bswap;
 	FLAC__bool cmov;
 	FLAC__bool mmx;
-	FLAC__bool fxsr;
 	FLAC__bool sse;
 	FLAC__bool sse2;
+
 	FLAC__bool sse3;
 	FLAC__bool ssse3;
 	FLAC__bool sse41;
@@ -108,7 +106,7 @@ typedef struct {
 	FLAC__bool ssse3;
 	FLAC__bool sse41;
 	FLAC__bool sse42;
-} FLAC__CPUInfo_x86_64;
+} FLAC__CPUInfo_x86;
 #endif
 
 typedef struct {
@@ -117,24 +115,21 @@ typedef struct {
 #if defined FLAC__CPU_IA32
 	FLAC__CPUInfo_IA32 ia32;
 #elif defined FLAC__CPU_X86_64
-	FLAC__CPUInfo_x86_64 x86_64;
+	FLAC__CPUInfo_x86 x86;
 #endif
 } FLAC__CPUInfo;
 
 void FLAC__cpu_info(FLAC__CPUInfo *info);
 
 #ifndef FLAC__NO_ASM
-
-#if defined FLAC__CPU_IA32 && defined FLAC__HAS_NASM
+# if defined FLAC__CPU_IA32 && defined FLAC__HAS_NASM
 FLAC__uint32 FLAC__cpu_have_cpuid_asm_ia32(void);
 void         FLAC__cpu_info_asm_ia32(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
-#endif
-
-#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
+# endif
+# if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 FLAC__uint32 FLAC__cpu_have_cpuid_x86(void);
-void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
-#endif
-
+void         FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
+# endif
 #endif
 
 #endif

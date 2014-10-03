@@ -978,13 +978,13 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSE2_SUPPORTED
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
 #     ifdef FLAC__SSE4_1_SUPPORTED
-		if(encoder->private_->cpuinfo.x86_64.sse41) {
+		if(encoder->private_->cpuinfo.x86.sse41) {
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41;
 		}
 #     endif
 
 #     ifdef FLAC__SSSE3_SUPPORTED
-		if (encoder->private_->cpuinfo.x86_64.ssse3) {
+		if (encoder->private_->cpuinfo.x86.ssse3) {
 			encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_intrin_ssse3;
 			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_ssse3;
 		}
@@ -1015,7 +1015,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 # elif defined FLAC__CPU_X86_64
 #  ifdef FLAC__SSE2_SUPPORTED
 #   ifdef FLAC__SSSE3_SUPPORTED
-		if(encoder->private_->cpuinfo.x86_64.ssse3)
+		if(encoder->private_->cpuinfo.x86.ssse3)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
 		else
 #   endif
