@@ -49,6 +49,13 @@
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
   #endif
+  #if (__INTEL_COMPILER >= 1110) /* Intel C++ Compiler 11.1 */
+    #define FLAC__AVX_SUPPORTED 1
+  #endif
+  #if (__INTEL_COMPILER >= 1300) /* Intel C++ Compiler 13.0 */
+    #define FLAC__AVX2_SUPPORTED 1
+    #define FLAC__FMA_SUPPORTED 1
+  #endif
 #elif defined _MSC_VER
   #define FLAC__SSE_TARGET(x)
   #define FLAC__SSE_SUPPORTED 1
@@ -57,6 +64,13 @@
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
   #endif
+  #if (_MSC_FULL_VER >= 160040219) /* MS Visual Studio 2010 SP1 */
+    #define FLAC__AVX_SUPPORTED 1
+  #endif
+  #if (_MSC_VER >= 1700) /* MS Visual Studio 2012 */
+    #define FLAC__AVX2_SUPPORTED 1
+    #define FLAC__FMA_SUPPORTED 1
+  #endif
 #elif defined __GNUC__
   #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* since GCC 4.9 -msse.. compiler options aren't necessary */
     #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
@@ -64,6 +78,9 @@
     #define FLAC__SSE2_SUPPORTED 1
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
+    #define FLAC__AVX_SUPPORTED 1
+    #define FLAC__AVX2_SUPPORTED 1
+    #define FLAC__FMA_SUPPORTED 1
   #else /* for GCC older than 4.9 */
     #define FLAC__SSE_TARGET(x)
     #ifdef __SSE__
@@ -77,6 +94,15 @@
     #endif
     #ifdef __SSE4_1__
       #define FLAC__SSE4_1_SUPPORTED 1
+    #endif
+    #ifdef __AVX__
+      #define FLAC__AVX_SUPPORTED 1
+    #endif
+    #ifdef __AVX2__
+      #define FLAC__AVX2_SUPPORTED 1
+    #endif
+    #ifdef __FMA__
+      #define FLAC__FMA_SUPPORTED 1
     #endif
   #endif /* GCC version */
 #endif /* compiler version */
@@ -99,6 +125,9 @@ typedef struct {
 	FLAC__bool ssse3;
 	FLAC__bool sse41;
 	FLAC__bool sse42;
+	FLAC__bool avx;
+	FLAC__bool avx2;
+	FLAC__bool fma;
 } FLAC__CPUInfo_IA32;
 #elif defined FLAC__CPU_X86_64
 typedef struct {
@@ -106,6 +135,9 @@ typedef struct {
 	FLAC__bool ssse3;
 	FLAC__bool sse41;
 	FLAC__bool sse42;
+	FLAC__bool avx;
+	FLAC__bool avx2;
+	FLAC__bool fma;
 } FLAC__CPUInfo_x86;
 #endif
 
@@ -128,7 +160,8 @@ void         FLAC__cpu_info_asm_ia32(FLAC__uint32 *flags_edx, FLAC__uint32 *flag
 # endif
 # if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 FLAC__uint32 FLAC__cpu_have_cpuid_x86(void);
-void         FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
+void         FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx);
+FLAC__uint32 FLAC__cpu_xgetbv_x86(void);
 # endif
 #endif
 

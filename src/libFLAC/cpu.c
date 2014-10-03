@@ -54,6 +54,21 @@ static void disable_sse(FLAC__CPUInfo *info)
 	info->ia32.sse42 = false;
 }
 
+static void disable_avx(FLAC__CPUInfo *info)
+{
+	info->ia32.avx     = false;
+	info->ia32.avx2    = false;
+	info->ia32.fma     = false;
+}
+
+#elif defined FLAC__CPU_X86_64
+
+static void disable_avx(FLAC__CPUInfo *info)
+{
+	info->x86.avx     = false;
+	info->x86.avx2    = false;
+	info->x86.fma     = false;
+}
 #endif
 
 #if defined (__NetBSD__) || defined(__OpenBSD__)
@@ -85,6 +100,15 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE3 = 0x00000001;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSSE3 = 0x00000200;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE41 = 0x00080000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE42 = 0x00100000;
+
+#if defined FLAC__AVX_SUPPORTED
+/* these are flags in ECX of CPUID AX=00000001 */
+static const unsigned FLAC__CPUINFO_IA32_CPUID_OSXSAVE = 0x08000000;
+static const unsigned FLAC__CPUINFO_IA32_CPUID_AVX = 0x10000000;
+static const unsigned FLAC__CPUINFO_IA32_CPUID_FMA = 0x00001000;
+/* these are flags in EBX of CPUID AX=00000007 */
+static const unsigned FLAC__CPUINFO_IA32_CPUID_AVX2 = 0x00000020;
+#endif
 
 /*
  * Extra stuff needed for detection of OS support for SSE on IA-32
@@ -123,7 +147,8 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
  */
 #ifdef FLAC__CPU_IA32
 	FLAC__bool ia32_fxsr = false;
-	(void) ia32_fxsr; /* to avoid warnings about unused variables */
+	FLAC__bool ia32_osxsave = false;
+	(void) ia32_fxsr; (void) ia32_osxsave; /* to avoid warnings about unused variables */
 	memset(info, 0, sizeof(*info));
 	info->type = FLAC__CPUINFO_TYPE_IA32;
 #if !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || defined FLAC__HAS_X86INTRIN)
@@ -137,10 +162,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #endif
 	{
 		/* http://www.sandpile.org/x86/cpuid.htm */
-		FLAC__uint32 flags_edx, flags_ecx;
 #ifdef FLAC__HAS_X86INTRIN
-		FLAC__cpu_info_x86(&flags_edx, &flags_ecx);
+		FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
+		FLAC__cpu_info_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 #else
+		FLAC__uint32 flags_ecx, flags_edx;
 		FLAC__cpu_info_asm_ia32(&flags_edx, &flags_ecx);
 #endif
 		info->ia32.cmov  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_CMOV )? true : false;
@@ -152,6 +178,13 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		info->ia32.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;
 		info->ia32.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
 		info->ia32.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
+#if defined FLAC__HAS_X86INTRIN && defined FLAC__AVX_SUPPORTED
+		    ia32_osxsave = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_OSXSAVE)? true : false;
+		info->ia32.avx   = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_AVX    )? true : false;
+		info->ia32.fma   = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_FMA    )? true : false;
+		FLAC__cpu_info_x86(7, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+		info->ia32.avx2  = (flags_ebx & FLAC__CPUINFO_IA32_CPUID_AVX2   )? true : false;
+#endif
 	}
 
 #ifdef DEBUG
@@ -164,6 +197,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	fprintf(stderr, "  SSSE3 ...... %c\n", info->ia32.ssse3   ? 'Y' : 'n');
 	fprintf(stderr, "  SSE41 ...... %c\n", info->ia32.sse41   ? 'Y' : 'n');
 	fprintf(stderr, "  SSE42 ...... %c\n", info->ia32.sse42   ? 'Y' : 'n');
+# if defined FLAC__HAS_X86INTRIN && defined FLAC__AVX_SUPPORTED
+	fprintf(stderr, "  AVX ........ %c\n", info->ia32.avx     ? 'Y' : 'n');
+	fprintf(stderr, "  FMA ........ %c\n", info->ia32.fma     ? 'Y' : 'n');
+	fprintf(stderr, "  AVX2 ....... %c\n", info->ia32.avx2    ? 'Y' : 'n');
+# endif
 #endif
 
 	/*
@@ -279,6 +317,19 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	else /* info->ia32.sse == false */
 		disable_sse(info);
 
+	/*
+	 * now have to check for OS support of AVX instructions
+	 */
+	if(info->ia32.avx && ia32_osxsave) {
+		FLAC__uint32 ecr = FLAC__cpu_xgetbv_x86();
+		if ((ecr & 0x6) != 0x6)
+			disable_avx(info);
+#ifdef DEBUG
+		fprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
+#endif
+	}
+	else /* no OS AVX support*/
+		disable_avx(info);
 #else
 	info->use_asm = false;
 #endif
@@ -287,27 +338,54 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
  * x86-64-specific
  */
 #elif defined FLAC__CPU_X86_64
+	FLAC__bool x86_osxsave = false;
+	(void) x86_osxsave; /* to avoid warnings about unused variables */
 	memset(info, 0, sizeof(*info));
 	info->type = FLAC__CPUINFO_TYPE_X86_64;
 #if !defined FLAC__NO_ASM && defined FLAC__HAS_X86INTRIN
 	info->use_asm = true;
 	{
 		/* http://www.sandpile.org/x86/cpuid.htm */
-		FLAC__uint32 flags_edx, flags_ecx;
-		FLAC__cpu_info_x86(&flags_edx, &flags_ecx);
+		FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
+		FLAC__cpu_info_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 		info->x86.sse3  = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE3 )? true : false;
 		info->x86.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;
 		info->x86.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
 		info->x86.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
+#if defined FLAC__AVX_SUPPORTED
+		    x86_osxsave = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_OSXSAVE)? true : false;
+		info->x86.avx   = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_AVX    )? true : false;
+		info->x86.fma   = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_FMA    )? true : false;
+		FLAC__cpu_info_x86(7, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+		info->x86.avx2  = (flags_ebx & FLAC__CPUINFO_IA32_CPUID_AVX2   )? true : false;
+#endif
 	}
 #ifdef DEBUG
 	fprintf(stderr, "CPU info (x86-64):\n");
-	fprintf(stderr, "  SSE3 ....... %c\n", info->x86.sse3    ? 'Y' : 'n');
-	fprintf(stderr, "  SSSE3 ...... %c\n", info->x86.ssse3   ? 'Y' : 'n');
-	fprintf(stderr, "  SSE41 ...... %c\n", info->x86.sse41   ? 'Y' : 'n');
-	fprintf(stderr, "  SSE42 ...... %c\n", info->x86.sse42   ? 'Y' : 'n');
+	fprintf(stderr, "  SSE3 ....... %c\n", info->x86.sse3  ? 'Y' : 'n');
+	fprintf(stderr, "  SSSE3 ...... %c\n", info->x86.ssse3 ? 'Y' : 'n');
+	fprintf(stderr, "  SSE41 ...... %c\n", info->x86.sse41 ? 'Y' : 'n');
+	fprintf(stderr, "  SSE42 ...... %c\n", info->x86.sse42 ? 'Y' : 'n');
+# if defined FLAC__AVX_SUPPORTED
+	fprintf(stderr, "  AVX ........ %c\n", info->x86.avx   ? 'Y' : 'n');
+	fprintf(stderr, "  FMA ........ %c\n", info->x86.fma   ? 'Y' : 'n');
+	fprintf(stderr, "  AVX2 ....... %c\n", info->x86.avx2  ? 'Y' : 'n');
+# endif
 #endif
 
+	/*
+	 * now have to check for OS support of AVX instructions
+	 */
+	if(info->x86.avx && x86_osxsave) {
+		FLAC__uint32 ecr = FLAC__cpu_xgetbv_x86();
+		if ((ecr & 0x6) != 0x6)
+			disable_avx(info);
+#ifdef DEBUG
+		fprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
+#endif
+	}
+	else /* no OS AVX support*/
+		disable_avx(info);
 #else
 	info->use_asm = false;
 #endif
@@ -324,7 +402,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 
 #if defined _MSC_VER
-#include <intrin.h> /* for __cpuid() */
+#include <intrin.h> /* for __cpuid() and _xgetbv() */
 #elif defined __GNUC__ && defined HAVE_CPUID_H
 #include <cpuid.h> /* for __get_cpuid() and __get_cpuid_max() */
 #endif
@@ -364,24 +442,45 @@ FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
 #endif
 }
 
-void FLAC__cpu_info_x86(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx)
+void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx)
 {
 #if defined _MSC_VER || defined __INTEL_COMPILER
 	int cpuinfo[4];
-	__cpuid(cpuinfo, 0);
-	if(cpuinfo[0] < 1) {
-		*flags_ecx = *flags_edx = 0;
+	int ext = level & 0x80000000;
+	__cpuid(cpuinfo, ext);
+	if((unsigned)cpuinfo[0] < level) {
+		*eax = *ebx = *ecx = *edx = 0;
 		return;
 	}
-	__cpuid(cpuinfo, 1);
-	*flags_ecx = cpuinfo[2];
-	*flags_edx = cpuinfo[3];
-#elif defined __GNUC__ && defined HAVE_CPUID_H
-	FLAC__uint32 flags_eax, flags_ebx;
-	if (0 == __get_cpuid(1, &flags_eax, &flags_ebx, flags_ecx, flags_edx))
-		*flags_ecx = *flags_edx = 0;
+#if defined FLAC__AVX_SUPPORTED
+	__cpuidex(cpuinfo, level, 0); /* for AVX2 detection */
 #else
-	*flags_ecx = *flags_edx = 0;
+	__cpuid(cpuinfo, level); /* some old compilers don't support __cpuidex */
+#endif
+	*eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
+#elif defined __GNUC__ && defined HAVE_CPUID_H
+	FLAC__uint32 ext = level & 0x80000000;
+	__cpuid(ext, *eax, *ebx, *ecx, *edx);
+	if (*eax < level) {
+		*eax = *ebx = *ecx = *edx = 0;
+		return;
+	}
+	__cpuid_count(level, 0, *eax, *ebx, *ecx, *edx);
+#else
+	*eax = *ebx = *ecx = *edx = 0;
+#endif
+}
+
+FLAC__uint32 FLAC__cpu_xgetbv_x86(void)
+{
+#if (defined _MSC_VER || defined __INTEL_COMPILER) && defined FLAC__AVX_SUPPORTED
+	return (FLAC__uint32)_xgetbv(0);
+#elif defined __GNUC__
+	FLAC__uint32 lo, hi;
+	asm volatile (".byte 0x0f, 0x01, 0xd0" : "=a"(lo), "=d"(hi) : "c" (0));
+	return lo;
+#else
+	return 0;
 #endif
 }
 
