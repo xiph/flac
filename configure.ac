@@ -213,19 +213,6 @@ AC_DEFINE(FLAC__SSE_OS)
 AH_TEMPLATE(FLAC__SSE_OS, [define if your operating system supports SSE instructions])
 fi
 
-AC_ARG_ENABLE(3dnow,
-AC_HELP_STRING([--disable-3dnow], [Disable 3DNOW! optimizations]),
-[case "${enableval}" in
-	yes) use_3dnow=true ;;
-	no)  use_3dnow=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-3dnow) ;;
-esac],[use_3dnow=true])
-AM_CONDITIONAL(FLaC__USE_3DNOW, test "x$use_3dnow" = xtrue)
-if test "x$use_3dnow" = xtrue ; then
-AC_DEFINE(FLAC__USE_3DNOW)
-AH_TEMPLATE(FLAC__USE_3DNOW, [define to enable use of 3Dnow! instructions])
-fi
-
 AC_ARG_ENABLE(altivec,
 AC_HELP_STRING([--disable-altivec], [Disable Altivec optimizations]),
 [case "${enableval}" in

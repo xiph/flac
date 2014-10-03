@@ -37,7 +37,6 @@
 
 cglobal FLAC__cpu_have_cpuid_asm_ia32
 cglobal FLAC__cpu_info_asm_ia32
-cglobal FLAC__cpu_info_extended_amd_asm_ia32
 
 	code_section
 
@@ -92,25 +91,6 @@ cident FLAC__cpu_info_asm_ia32
 	mov	[ebx], eax
 	mov	ebx, [esp + 12]
 	mov	[ebx], eax
-.end:
-	pop	ebx
-	ret
-
-cident FLAC__cpu_info_extended_amd_asm_ia32
-	push	ebx
-	call	FLAC__cpu_have_cpuid_asm_ia32
-	test	eax, eax
-	jz	.no_cpuid
-	mov	eax, 0x80000000
-	cpuid
-	cmp	eax, 0x80000001
-	jb	.no_cpuid
-	mov	eax, 0x80000001
-	cpuid
-	mov	eax, edx
-	jmp	.end
-.no_cpuid:
-	xor	eax, eax
 .end:
 	pop	ebx
 	ret

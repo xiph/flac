@@ -77,7 +77,6 @@ void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4(const FLAC__real data[
 void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
 void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
 void FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
-void FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[]);
 #    endif
 #  endif
 #  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN

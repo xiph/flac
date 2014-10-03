@@ -76,12 +76,6 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE3 = 0x00000001;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSSE3 = 0x00000200;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE41 = 0x00080000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_SSE42 = 0x00100000;
-#ifdef FLAC__CPU_IA32
-/* these are flags in EDX of CPUID AX=80000001 */
-static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_3DNOW = 0x80000000;
-static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXT3DNOW = 0x40000000;
-static const unsigned FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX = 0x00400000;
-#endif
 
 /*
  * Extra stuff needed for detection of OS support for SSE on IA-32
@@ -137,9 +131,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	info->ia32.ssse3 = false;
 	info->ia32.sse41 = false;
 	info->ia32.sse42 = false;
-	info->ia32._3dnow = false;
-	info->ia32.ext3dnow = false;
-	info->ia32.extmmx = false;
 	if(info->ia32.cpuid == false)
 		return;
 	{
@@ -159,15 +150,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		info->ia32.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;
 		info->ia32.sse41 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE41)? true : false;
 		info->ia32.sse42 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE42)? true : false;
-
-#if defined FLAC__HAS_NASM && defined FLAC__USE_3DNOW
-		flags_edx = FLAC__cpu_info_extended_amd_asm_ia32();
-		info->ia32._3dnow   = (flags_edx & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_3DNOW   )? true : false;
-		info->ia32.ext3dnow = (flags_edx & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXT3DNOW)? true : false;
-		info->ia32.extmmx   = (flags_edx & FLAC__CPUINFO_IA32_CPUID_EXTENDED_AMD_EXTMMX  )? true : false;
-#else
-		info->ia32._3dnow = info->ia32.ext3dnow = info->ia32.extmmx = false;
-#endif
 	}
 #ifdef DEBUG
 	fprintf(stderr, "CPU info (IA-32):\n");
@@ -182,9 +164,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	fprintf(stderr, "  SSSE3 ...... %c\n", info->ia32.ssse3   ? 'Y' : 'n');
 	fprintf(stderr, "  SSE41 ...... %c\n", info->ia32.sse41   ? 'Y' : 'n');
 	fprintf(stderr, "  SSE42 ...... %c\n", info->ia32.sse42   ? 'Y' : 'n');
-	fprintf(stderr, "  3DNow! ..... %c\n", info->ia32._3dnow  ? 'Y' : 'n');
-	fprintf(stderr, "  3DNow!-ext . %c\n", info->ia32.ext3dnow? 'Y' : 'n');
-	fprintf(stderr, "  3DNow!-MMX . %c\n", info->ia32.extmmx  ? 'Y' : 'n');
 #endif
 
 	/*

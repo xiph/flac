@@ -906,8 +906,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			else
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 		}
-		else if(encoder->private_->cpuinfo.ia32._3dnow)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_3dnow; /* obsolete instruction set */
 		else
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 
