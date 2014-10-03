@@ -112,6 +112,7 @@ libFLAC_sources = \
 	lpc_intrin_sse.c \
 	lpc_intrin_sse2.c \
 	lpc_intrin_sse41.c \
+	lpc_intrin_avx2.c \
 	md5.c \
 	memory.c \
 	metadata_iterators.c \
@@ -120,6 +121,7 @@ libFLAC_sources = \
 	stream_encoder.c \
 	stream_encoder_intrin_sse2.c \
 	stream_encoder_intrin_ssse3.c \
+	stream_encoder_intrin_avx2.c \
 	stream_encoder_framing.c \
 	window.c \
 	$(extra_ogg_sources)

@@ -157,6 +157,9 @@
     <ClCompile Include="lpc_intrin_sse41.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="lpc_intrin_avx2.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="md5.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -194,6 +197,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="stream_encoder_intrin_ssse3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="stream_encoder_intrin_avx2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="window.c">

@@ -950,6 +950,13 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41;
 		}
 #    endif
+#    ifdef FLAC__AVX2_SUPPORTED
+		if(encoder->private_->cpuinfo.ia32.avx2) {
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_avx2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_avx2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2;
+		}
+#    endif
 
 #    ifdef FLAC__SSE2_SUPPORTED
 		if (encoder->private_->cpuinfo.ia32.sse2) {
@@ -986,6 +993,13 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41;
 		}
 #    endif
+#    ifdef FLAC__AVX2_SUPPORTED
+		if(encoder->private_->cpuinfo.x86.avx2) {
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_avx2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_avx2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2;
+		}
+#    endif
 
 #    ifdef FLAC__SSE2_SUPPORTED
 		encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
@@ -1013,6 +1027,10 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		if(encoder->private_->cpuinfo.ia32.ssse3)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
 #  endif
+#  ifdef FLAC__AVX2_SUPPORTED
+		if(encoder->private_->cpuinfo.ia32.avx2)
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_avx2;
+#  endif
 # elif defined FLAC__CPU_X86_64
 #  ifdef FLAC__SSE2_SUPPORTED
 		encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
@@ -1020,6 +1038,10 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.x86.ssse3)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
+#  endif
+#  ifdef FLAC__AVX2_SUPPORTED
+		if(encoder->private_->cpuinfo.x86.avx2)
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_avx2;
 #  endif
 # endif /* FLAC__CPU_... */
 	}

@@ -221,6 +221,12 @@
     <ClCompile Include="float.c" />
     <ClCompile Include="format.c" />
     <ClCompile Include="lpc.c" />
+    <ClCompile Include="lpc_intrin_avx2.c">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="lpc_intrin_sse.c" />
     <ClCompile Include="lpc_intrin_sse2.c" />
     <ClCompile Include="lpc_intrin_sse41.c" />
@@ -235,6 +241,12 @@
     <ClCompile Include="stream_decoder.c" />
     <ClCompile Include="stream_encoder.c" />
     <ClCompile Include="stream_encoder_framing.c" />
+    <ClCompile Include="stream_encoder_intrin_avx2.c">
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+      <AdditionalOptions Condition="'$(Configuration)|$(Platform)'=='Release|x64'">/arch:AVX %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
     <ClCompile Include="stream_encoder_intrin_sse2.c" />
     <ClCompile Include="stream_encoder_intrin_ssse3.c" />
     <ClCompile Include="window.c" />
