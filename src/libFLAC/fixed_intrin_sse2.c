@@ -94,7 +94,7 @@ unsigned FLAC__fixed_compute_best_predictor_intrin_sse2(const FLAC__int32 data[]
 			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
 #endif
 			tmp = _mm_slli_si128(err0, 12);									// e0   0   0   0
-			last_error = _mm_srli_si128(err1, 4);							//  0  e0  e1  e2
+			last_error = _mm_srli_si128(err1, 4);							//  0  e1  e2  e3
 			last_error = _mm_or_si128(last_error, tmp);						// e0  e1  e2  e3
 
 			tmp = _mm_srai_epi32(err0, 31);
@@ -191,7 +191,7 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_sse2(const FLAC__int32 d
 			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
 #endif
 			tmp = _mm_slli_si128(err0, 12);									// e0   0   0   0
-			last_error = _mm_srli_si128(err1, 4);							//  0  e0  e1  e2
+			last_error = _mm_srli_si128(err1, 4);							//  0  e1  e2  e3
 			last_error = _mm_or_si128(last_error, tmp);						// e0  e1  e2  e3
 
 			tmp = _mm_srai_epi32(err0, 31);
