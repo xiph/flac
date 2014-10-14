@@ -106,16 +106,18 @@ static struct CompressionLevels {
 	unsigned min_residual_partition_order;
 	unsigned max_residual_partition_order;
 	unsigned rice_parameter_search_dist;
+	const char *apodization;
 } compression_levels_[] = {
-	{ false, false,  0, 0, false, false, false, 0, 3, 0 },
-	{ true , true ,  0, 0, false, false, false, 0, 3, 0 },
-	{ true , false,  0, 0, false, false, false, 0, 3, 0 },
-	{ false, false,  6, 0, false, false, false, 0, 4, 0 },
-	{ true , true ,  8, 0, false, false, false, 0, 4, 0 },
-	{ true , false,  8, 0, false, false, false, 0, 5, 0 },
-	{ true , false,  8, 0, false, false, false, 0, 6, 0 },
-	{ true , false,  8, 0, false, false, true , 0, 6, 0 },
-	{ true , false, 12, 0, false, false, true , 0, 6, 0 }
+	{ false, false,  0, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
+	{ true , true ,  0, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
+	{ true , false,  0, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
+	{ false, false,  6, 0, false, false, false, 0, 4, 0, "tukey(5e-1)" },
+	{ true , true ,  8, 0, false, false, false, 0, 4, 0, "tukey(5e-1)" },
+	{ true , false,  8, 0, false, false, false, 0, 5, 0, "tukey(5e-1)" },
+	{ true , false,  8, 0, false, false, false, 0, 6, 0, "tukey(5e-1)" },
+	{ true , false,  8, 0, false, false, true , 0, 6, 0, "tukey(5e-1)" },
+	{ true , false, 12, 0, false, false, true , 0, 6, 0, "tukey(5e-1)" }
+	/* here we use locale-independent 5e-1 instead of 0.5 or 0,5 */
 };
 
 
@@ -1583,11 +1585,10 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncod
 	ok &= FLAC__stream_encoder_set_do_mid_side_stereo          (encoder, compression_levels_[value].do_mid_side_stereo);
 	ok &= FLAC__stream_encoder_set_loose_mid_side_stereo       (encoder, compression_levels_[value].loose_mid_side_stereo);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-#if 0
-	/* was: */
+#if 1
 	ok &= FLAC__stream_encoder_set_apodization                 (encoder, compression_levels_[value].apodization);
-	/* but it's too hard to specify the string in a locale-specific way */
 #else
+	/* equivalent to -A tukey(0.5) */
 	encoder->protected_->num_apodizations = 1;
 	encoder->protected_->apodizations[0].type = FLAC__APODIZATION_TUKEY;
 	encoder->protected_->apodizations[0].parameters.tukey.p = 0.5;
