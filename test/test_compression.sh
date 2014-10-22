@@ -39,7 +39,7 @@ for k in 0 1 2 3 4 5 6 7 8 ; do
 		echo "Error : Compression ${last_k} size $last_size >= compression $k size $size."
 		exit 1
 		fi
-	last_size=${size}
+	let last_size=${size}+10
 	last_k=${k}
 	rm -f ${fname}
 	done
