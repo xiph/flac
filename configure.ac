@@ -67,6 +67,7 @@ AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h termios.h x86intrin
 AC_HEADER_TIOCGWINSZ
 
 XIPH_C_BSWAP32
+XIPH_C_BSWAP16
 
 ac_cv_c_big_endian=0
 ac_cv_c_little_endian=0
