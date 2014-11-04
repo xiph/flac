@@ -37,21 +37,21 @@ dnl is likely to be present for most versions of GCC as well as Clang.
 
 AC_DEFUN([XIPH_C_BSWAP32],
 [AC_CACHE_CHECK(for bswap32 instrinsic,
-	ac_cv_c_bswap32,
+  ac_cv_c_bswap32,
 
-	# Initialize to no
-	ac_cv_c_bswap32=no
-	HAVE_BSWAP32=0
+  # Initialize to no
+  ac_cv_c_bswap32=no
+  HAVE_BSWAP32=0
 
-	[AC_TRY_LINK([],
-		return __builtin_bswap32 (0) ;,
-			ac_cv_c_bswap32=yes
-			HAVE_BSWAP32=1
-			)]
-	AC_DEFINE_UNQUOTED(HAVE_BSWAP32, ${HAVE_BSWAP32},
-					[Compiler has the __builtin_bswap32 intrinsic])
+  [AC_TRY_LINK([],
+    return __builtin_bswap32 (0) ;,
+    ac_cv_c_bswap32=yes
+    HAVE_BSWAP32=1
+  )]
+  AC_DEFINE_UNQUOTED(HAVE_BSWAP32, ${HAVE_BSWAP32},
+    [Compiler has the __builtin_bswap32 intrinsic])
 
-	)]
+  )]
 )# XIPH_C_BSWAP32
 
 
