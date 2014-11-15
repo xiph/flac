@@ -763,8 +763,10 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Meta
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(0 != block);
 
-	if(!iterator->is_writable)
+	if(!iterator->is_writable) {
+		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
 		return false;
+	}
 
 	if(block->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT;
