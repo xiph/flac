@@ -261,13 +261,13 @@ Synonymous with -l 8 -b 4096 -M -r 4
 Synonymous with -l 8 -b 4096 -m -r 5
 .TP
 \fB-6, --compression-level-6\fR
-Synonymous with -l 8 -b 4096 -m -r 6
+Synonymous with -l 8 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)
 .TP
 \fB-7, --compression-level-7\fR
-Synonymous with -l 8 -b 4096 -m -e -r 6
+Synonymous with -l 8 -b 4096 -m -e -r 6 -A tukey(0.5) -A partial_tukey(2)
 .TP
 \fB-8, --compression-level-8\fR
-Synonymous with -l 12 -b 4096 -m -e -r 6
+Synonymous with -l 12 -b 4096 -m -e -r 6 -A tukey(0.5) -A partial_tukey(2) -A punchout_tukey(3)
 .RE
 .TP
 \fB--fast\fR

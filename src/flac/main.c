@@ -1274,8 +1274,11 @@ void show_help(void)
 	printf("  -4, --compression-level-4          Synonymous with -l 8 -b 4096 -M -r 4\n");
 	printf("  -5, --compression-level-5          Synonymous with -l 8 -b 4096 -m -r 5\n");
 	printf("  -6, --compression-level-6          Synonymous with -l 8 -b 4096 -m -r 6\n");
+	printf("                                        -A tukey(0.5) -A partial_tukey(2)\n");
 	printf("  -7, --compression-level-7          Synonymous with -l 12 -b 4096 -m -r 6\n");
+	printf("                                         -A tukey(0.5) -A partial_tukey(2)\n");
 	printf("  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4096 -m -r 6\n");
+	printf("                    -A tukey(0.5) -A partial_tukey(2) -A punchout_tukey(3)\n");
 	printf("  -b, --blocksize=#                  Specify blocksize in samples\n");
 	printf("  -m, --mid-side                     Try mid-side coding for each frame\n");
 	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");
@@ -1577,8 +1580,11 @@ void show_explain(void)
 	printf("  -5, --compression-level-5          Synonymous with -l 8 -b 4096 -m -r 5\n");
 	printf("                                     -5 is the default setting\n");
 	printf("  -6, --compression-level-6          Synonymous with -l 8 -b 4096 -m -r 6\n");
+	printf("                                        -A tukey(0.5) -A partial_tukey(2)\n");
 	printf("  -7, --compression-level-7          Synonymous with -l 12 -b 4096 -m -r 6\n");
+	printf("                                         -A tukey(0.5) -A partial_tukey(2)\n");
 	printf("  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4096 -m -r 6\n");
+	printf("                    -A tukey(0.5) -A partial_tukey(2) -A punchout_tukey(3)\n");
 	printf("  -m, --mid-side                     Try mid-side coding for each frame\n");
 	printf("                                     (stereo only)\n");
 	printf("  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames\n");

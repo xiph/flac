@@ -559,7 +559,7 @@
 		<term><option>-6</option>, <option>--compression-level-6</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4096 -m -r 6</para>
+		  <para>Synonymous with -l 8 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)</para>
 		</listitem>
 	      </varlistentry>
 
@@ -567,7 +567,7 @@
 		<term><option>-7</option>, <option>--compression-level-7</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 8 -b 4096 -m -e -r 6</para>
+		  <para>Synonymous with -l 8 -b 4096 -m -e -r 6 -A tukey(0.5) -A partial_tukey(2)</para>
 		</listitem>
 	      </varlistentry>
 
@@ -575,7 +575,7 @@
 		<term><option>-8</option>, <option>--compression-level-8</option></term>
 
 		<listitem>
-		  <para>Synonymous with -l 12 -b 4096 -m -e -r 6</para>
+		  <para>Synonymous with -l 12 -b 4096 -m -e -r 6 -A tukey(0.5) -A partial_tukey(2) -A punchout_tukey(3)</para>
 		</listitem>
 	      </varlistentry>
 	    </variablelist>
