@@ -215,9 +215,9 @@ void FLAC__window_partial_tukey(FLAC__real *window, const FLAC__int32 L, const F
 	FLAC__int32 Np, n, i;
 
 	if (p <= 0.0f)
-		FLAC__window_partial_tukey(window, L, 0.01f, start, end);
+		FLAC__window_partial_tukey(window, L, 0.05f, start, end);
 	else if (p >= 1.0f)
-		FLAC__window_partial_tukey(window, L, 1.0f, start, end);
+		FLAC__window_partial_tukey(window, L, 0.95f, start, end);
 	else {
 
 		Np = (FLAC__int32)(p / 2.0f * N);
@@ -242,9 +242,9 @@ void FLAC__window_punchout_tukey(FLAC__real *window, const FLAC__int32 L, const 
 	FLAC__int32 Ns, Ne, n, i;
 
 	if (p <= 0.0f)
-		FLAC__window_partial_tukey(window, L, 0.01f, start, end);
+		FLAC__window_punchout_tukey(window, L, 0.05f, start, end);
 	else if (p >= 1.0f)
-		FLAC__window_partial_tukey(window, L, 1.0f, start, end);
+		FLAC__window_punchout_tukey(window, L, 0.95f, start, end);
 	else {
 
 		Ns = (FLAC__int32)(p / 2.0f * start_n);
