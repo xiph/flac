@@ -71,7 +71,7 @@ FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC =
  *
  ***********************************************************************/
 
-static FLAC__byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
+static const FLAC__byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
 
 /***********************************************************************
  *
@@ -1361,6 +1361,10 @@ FLAC__bool find_metadata_(FLAC__StreamDecoder *decoder)
 			id = 0;
 			continue;
 		}
+
+		if(id >= 3)
+			return false;
+
 		if(x == ID3V2_TAG_[id]) {
 			id++;
 			i = 0;
