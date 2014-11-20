@@ -125,6 +125,18 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		fprintf(stderr, "ERROR: this example only supports 16bit stereo streams\n");
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
+	if(frame->header.channels != 2) {
+		fprintf(stderr, "ERROR: This frame contains %d channels (should be 2)\n", frame->header.channels);
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	if(buffer [0] == NULL) {
+		fprintf(stderr, "ERROR: buffer [0] is NULL\n");
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	if(buffer [1] == NULL) {
+		fprintf(stderr, "ERROR: buffer [1] is NULL\n");
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
 
 	/* write WAVE header before we write the first frame */
 	if(frame->header.number.sample_number == 0) {
