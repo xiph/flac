@@ -54,12 +54,12 @@
 			<li>
 				General:
 				<ul>
-					<li>Improved decoding efficiency of all bit depths but especially so for 24 bits (a series of patches from lvqcl).</li>
-					<li>Faster encoding using SSE and AVX (many separate patches from lvqcl).</li>
+					<li>Improved decoding efficiency of all bit depths but especially so for 24 bits (lvqcl).</li>
+					<li>Faster encoding using SSE and AVX (lvqcl).</li>
 					<li>Fixed bartlett, bartlett_hann and triangle functions.</li>
-					<li>New apodization functions partial_tukey and punchout_tukey for improved compression.</li>
-					<li>Retuned compression presets to incorporate new apodization functions.</li>
-					<li>Fix -Wcast-align warnings on armhf architecture.</li>
+					<li>New apodization functions partial_tukey and punchout_tukey for improved compression (Martijn van Beurden).</li>
+					<li>Retuned compression presets to incorporate new apodization functions (Martijn van Beurden).</li>
+					<li>Fix -Wcast-align warnings on armhf architecture (Erik de Castro Lopo).</li>
 				</ul>
 			</li>
 			<li>
@@ -97,7 +97,7 @@
 			<li>
 				build system:
 				<ul>
-					<li>Many fixes and improvements across all the buiuld systems.</li>
+					<li>Many fixes and improvements across all the build systems.</li>
 				</ul>
 			</li>
 
@@ -110,7 +110,7 @@
 			<li>
 				libraries:
 				<ul>
-					<li>Fix CVE-2014-9028 (heap write overflow) and CVE-2014-8962 (heap read overflow).</li>
+					<li>Fix CVE-2014-9028 (heap write overflow) and CVE-2014-8962 (heap read overflow) (Erik de Castro Lopo).</li>
 				</ul>
 			</li>
 			<li>
