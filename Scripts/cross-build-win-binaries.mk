@@ -39,8 +39,10 @@ flac-$(flac_version)-win//AUTHORS : win-build/.stamp-flac-win32-install win-buil
 	mkdir -p flac-$(flac_version)-win/win32  flac-$(flac_version)-win/win64
 	cp $(win_build)/flac32/bin/flac.exe flac-$(flac_version)-win/win32/
 	cp $(win_build)/flac32/bin/metaflac.exe flac-$(flac_version)-win/win32/
+	$(win32_name)-strip flac-$(flac_version)-win/win32/*.exe
 	cp $(win_build)/flac64/bin/flac.exe flac-$(flac_version)-win/win64/
 	cp $(win_build)/flac64/bin/metaflac.exe flac-$(flac_version)-win/win64/
+	$(win64_name)-strip flac-$(flac_version)-win/win64/*.exe
 	cp -r doc/html flac-$(flac_version)-win/
 	rm -rf flac-$(flac_version)-win/html/api
 	find flac-$(flac_version)-win/ -name Makefile\* -exec rm -f {} \;
