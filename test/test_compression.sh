@@ -36,10 +36,12 @@ for k in 0 1 2 3 4 5 6 7 8 ; do
 	size=$(wc -c < ${fname})
 	echo "Compression level ${k}, file size ${size} bytes."
 	if test ${last_size} -lt ${size} ; then
-		echo "Error : Compression ${last_k} size $last_size >= compression $k size $size."
+		echo "Error : Compression ${last_k} size ${last_size} >= compression ${k} size ${size}."
 		exit 1
 		fi
-	let last_size=${size}+10
+	# Need this string interpolation because OSX's 'wc -c' returns a number with
+	# leading whitespace.
+	let last_size="${size}+10"
 	last_k=${k}
 	rm -f ${fname}
 	done
