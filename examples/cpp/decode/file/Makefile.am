@@ -31,3 +31,5 @@ example_cpp_decode_file_LDADD = \
 	-lm
 
 example_cpp_decode_file_SOURCES = main.cpp
+
+CLEANFILES = example_cpp_decode_file.exe

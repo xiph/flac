@@ -30,3 +30,5 @@ example_c_encode_file_LDADD = \
 	-lm
 
 example_c_encode_file_SOURCES = main.c
+
+CLEANFILES = example_c_encode_file.exe

@@ -28,3 +28,5 @@ example_c_decode_file_LDADD = \
 	$(top_builddir)/src/libFLAC/libFLAC.la
 
 example_c_decode_file_SOURCES = main.c
+
+CLEANFILES = example_c_decode_file.exe
