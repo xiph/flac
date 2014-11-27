@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2002-2009  Josh Coalson
@@ -18,7 +18,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-source common.sh
+. ./common.sh
 
 PATH=../src/test_libFLAC++:$PATH
 PATH=../objs/$BUILD/bin:$PATH

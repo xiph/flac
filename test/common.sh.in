@@ -56,12 +56,14 @@ fi
 
 # Functions
 
-function die {
+die ()
+{
 	echo $* 1>&2
 	exit 1
 }
 
-function make_streams {
+make_streams ()
+{
 	echo "Generating streams..."
 	if [ ! -f wacky1.wav ] ; then
 		test_streams${EXE} || die "ERROR during test_streams"

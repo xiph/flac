@@ -1,4 +1,4 @@
-#!/bin/bash -e
+#!/bin/sh -e
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
@@ -18,7 +18,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-source common.sh
+. ./common.sh
 
 # we use '.' as decimal separator in --skip/--until tests
 export LANG=C LC_ALL=C
