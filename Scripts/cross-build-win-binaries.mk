@@ -117,3 +117,5 @@ win-build/libogg-$(ogg_version).tar.gz :
 configure : configure.ac autogen.sh
 	./autogen.sh
 
+clean :
+	rm -rf $(win_build) flac-$(flac_version)-win
