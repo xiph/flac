@@ -2744,7 +2744,8 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 		if(partition_samples < predictor_order) {
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-			return true;
+			/* We have received a potentially malicious bit stream. All we can do is error out to avoid a heap overflow. */
+			return false;
 		}
 	}
 
