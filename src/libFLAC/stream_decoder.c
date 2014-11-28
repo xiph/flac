@@ -1728,6 +1728,11 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 			return false; /* read_callback_ sets the state for us */
 
 		/* read comments */
+		if (obj->num_comments > 100000) {
+			/* Possibly malicious file. */
+			obj->num_comments = 0;
+			return false;
+		}
 		if (obj->num_comments > 0) {
 			if (0 == (obj->comments = safe_malloc_mul_2op_p(obj->num_comments, /*times*/sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
