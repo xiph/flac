@@ -348,11 +348,10 @@ fi
 
 if test "x$debug" = xtrue; then
 	CPPFLAGS="-DDEBUG $CPPFLAGS"
-	CFLAGS=$(echo "$CFLAGS" | sed 's/-g//')
 	CFLAGS="-g $CFLAGS"
 else
 	CPPFLAGS="-DNDEBUG $CPPFLAGS"
-	CFLAGS=$(echo "$CFLAGS" | sed 's/-O2//;s/-g//')
+	CFLAGS=$(echo "$CFLAGS" | sed 's/-O2//')
 	CFLAGS="-O3 -funroll-loops $CFLAGS"
 fi
 
