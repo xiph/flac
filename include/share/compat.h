@@ -186,7 +186,7 @@
  * snprintf as well as Microsoft Visual Studio which has an non-standards
  * conformant snprint_s function.
  *
- * This function wraps the MS version to behave more like the the ISO version.
+ * This function wraps the MS version to behave more like the ISO version.
  */
 #include <stdarg.h>
 #ifdef __cplusplus

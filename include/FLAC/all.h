@@ -176,7 +176,7 @@
  * #endif
  * \endcode
  *
- * The the source will work for multiple versions and the legacy code can
+ * The source will work for multiple versions and the legacy code can
  * easily be removed when the transition is complete.
  *
  * Another available symbol is FLAC_API_SUPPORTS_OGG_FLAC (defined in

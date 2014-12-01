@@ -31,7 +31,7 @@
 
 #include <errno.h>
 
-/* FLAC_CHECK_RETURN : Check the return value of of the provided function and
+/* FLAC_CHECK_RETURN : Check the return value of the provided function and
  * print and error message if it fails (ie returns a value < 0).
  */
 
