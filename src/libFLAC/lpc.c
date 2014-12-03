@@ -1308,7 +1308,7 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__double lp
 
 	FLAC__ASSERT(total_samples > 0);
 
-	error_scale = 0.5 * M_LN2 * M_LN2 / (FLAC__double)total_samples;
+	error_scale = 0.5 / (FLAC__double)total_samples;
 
 	return FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error, error_scale);
 }
@@ -1338,7 +1338,7 @@ unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned m
 	FLAC__ASSERT(max_order > 0);
 	FLAC__ASSERT(total_samples > 0);
 
-	error_scale = 0.5 * M_LN2 * M_LN2 / (FLAC__double)total_samples;
+	error_scale = 0.5 / (FLAC__double)total_samples;
 
 	best_index = 0;
 	best_bits = (unsigned)(-1);
