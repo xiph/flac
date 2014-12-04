@@ -273,7 +273,7 @@ void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 						LARGE_INTEGER size;
 						size.QuadPart = written_size;
 						if(SetFilePointerEx(fh, size, NULL, FILE_CURRENT)) /* correct the file size */
-							SetEndOfFile(fh); 
+							SetEndOfFile(fh);
 					}
 					CloseHandle(fh);
 				}
@@ -400,7 +400,7 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 				}
 
 				if(SetFilePointerEx(fh, size, NULL, FILE_CURRENT)) /* tell filesystem the expected filesize to eliminate fragmentation */
-					SetEndOfFile(fh); 
+					SetEndOfFile(fh);
 			}
 			CloseHandle(fh);
 		}

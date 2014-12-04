@@ -68,7 +68,7 @@ FLAC__bool FLAC_plugin__tags_add_tag_utf8(FLAC__StreamMetadata *tags, const char
  * already contains a tag or tags for 'name', then they will be replaced
  * according to 'replace_all': if 'replace_all' is false, only the first such
  * tag will be replaced; if true, all matching tags will be replaced by the one
- * new tag. 
+ * new tag.
  */
 FLAC__bool FLAC_plugin__tags_set_tag_ucs2(FLAC__StreamMetadata *tags, const char *name, const FLAC__uint16 *value, FLAC__bool replace_all);
 

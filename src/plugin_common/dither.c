@@ -128,7 +128,7 @@ size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const F
 		const FLAC__int32 MAX = ~MIN; /*(1L << (source_bps-1)) - 1 */
 
 		for(channel = 0; channel < channels; channel++) {
-			
+
 			samples = wide_samples;
 			data = start + bytes_per_sample * channel;
 			input_ = input[channel];
@@ -209,7 +209,7 @@ size_t FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, cons
 		const FLAC__int32 MAX = ~MIN; /*(1L << (source_bps-1)) - 1 */
 
 		for(channel = 0; channel < channels; channel++) {
-			
+
 			samples = wide_samples;
 			data = start + bytes_per_sample * channel;
 			input_ = input[channel];

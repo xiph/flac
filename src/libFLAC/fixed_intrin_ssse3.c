@@ -102,7 +102,7 @@ unsigned FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[
 			total_err1 = _mm_add_epi32(total_err1, err1);					// te1 te2 te3 te4
 		}
 	}
-	
+
 	total_error_0 = _mm_cvtsi128_si32(total_err0);
 	total_err2 = total_err1;											// te1  te2  te3  te4
 	total_err1 = _mm_srli_si128(total_err1, 8);							//  0    0   te1  te2
@@ -154,7 +154,7 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 
 	{
 		FLAC__int32 itmp;
 		__m128i last_error, zero = _mm_setzero_si128();
-		
+
 		last_error = _mm_cvtsi32_si128(data[-1]);							// 0   0   0   le0
 		itmp = data[-2];
 		last_error = _mm_shuffle_epi32(last_error, _MM_SHUFFLE(2,1,0,0));
@@ -185,7 +185,7 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 
 			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
 #endif
 			last_error = _mm_alignr_epi8(err0, err1, 4);					// e0  e1  e2  e3
-			
+
 			err0 = _mm_abs_epi32(err0);
 			err1 = _mm_abs_epi32(err1);										// |e1| |e2| |e3| |e4|
 
@@ -196,7 +196,7 @@ unsigned FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 
 			total_err1 = _mm_add_epi64(total_err1, err1);					//       te1      te2
 		}
 	}
-	
+
 	m128i_to_i64(total_error_0, total_err0);
 	m128i_to_i64(total_error_4, total_err3);
 	m128i_to_i64(total_error_2, total_err1);

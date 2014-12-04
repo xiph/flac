@@ -134,7 +134,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	movq	mm5, mm6			; mm5 = error_1:error_0
 	movq	mm7, mm6			; mm7 = error_1:error_0
 	psubd	mm5, mm3			; mm5 = error_2:
-	movq	mm3, mm6			; mm3 = error_1:error_0	
+	movq	mm3, mm6			; mm3 = error_1:error_0
 	psrad	mm6, 31
 	pxor	mm7, mm6
 	psubd	mm7, mm6			; mm7 = abs(error_1):abs(error_0)
@@ -155,7 +155,7 @@ cident FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov
 	pxor	mm6, mm5
 	psubd	mm6, mm5			; mm6 = :abs(error_4)
 	paddd	mm2, mm6			; mm2 = :total_error_4
-	
+
 	dec	ecx
 	jnz	short .loop
 

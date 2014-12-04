@@ -34,7 +34,7 @@ typedef struct {
 	struct {
 		gint http_buffer_size;
 		gint http_prebuffer;
-		gboolean use_proxy; 
+		gboolean use_proxy;
 		gchar *proxy_host;
 		gint proxy_port;
 		gboolean proxy_use_auth;
