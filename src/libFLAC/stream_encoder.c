@@ -898,13 +898,13 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #   ifdef FLAC__HAS_NASM
 		if(encoder->private_->cpuinfo.ia32.sse) {
 			if(encoder->protected_->max_lpc_order < 4)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4;
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4_old;
 			else if(encoder->protected_->max_lpc_order < 8)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8;
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8_old;
 			else if(encoder->protected_->max_lpc_order < 12)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12;
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12_old;
 			else if(encoder->protected_->max_lpc_order < 16)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16;
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16_old;
 			else
 				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_asm_ia32;
 		}
@@ -927,16 +927,30 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #   ifdef FLAC__HAS_X86INTRIN
 #    if defined FLAC__SSE_SUPPORTED
 		if(encoder->private_->cpuinfo.ia32.sse) {
-			if(encoder->protected_->max_lpc_order < 4)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4;
-			else if(encoder->protected_->max_lpc_order < 8)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8;
-			else if(encoder->protected_->max_lpc_order < 12)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12;
-			else if(encoder->protected_->max_lpc_order < 16)
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16;
-			else
-				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+			if(encoder->private_->cpuinfo.ia32.sse42 || !encoder->private_->cpuinfo.ia32.intel) { /* use new autocorrelation functions */
+				if(encoder->protected_->max_lpc_order < 4)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_new;
+				else if(encoder->protected_->max_lpc_order < 8)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_new;
+				else if(encoder->protected_->max_lpc_order < 12)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_new;
+				else if(encoder->protected_->max_lpc_order < 16)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new;
+				else
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+			}
+			else { /* use old autocorrelation functions */
+				if(encoder->protected_->max_lpc_order < 4)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_old;
+				else if(encoder->protected_->max_lpc_order < 8)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_old;
+				else if(encoder->protected_->max_lpc_order < 12)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_old;
+				else if(encoder->protected_->max_lpc_order < 16)
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_old;
+				else
+					encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+			}
 		}
 #    endif
 
@@ -977,14 +991,26 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
 #   ifdef FLAC__HAS_X86INTRIN
 #    ifdef FLAC__SSE_SUPPORTED
-		if(encoder->protected_->max_lpc_order < 4)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4;
-		else if(encoder->protected_->max_lpc_order < 8)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8;
-		else if(encoder->protected_->max_lpc_order < 12)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12;
-		else if(encoder->protected_->max_lpc_order < 16)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16;
+		if(encoder->private_->cpuinfo.x86.sse42 || !encoder->private_->cpuinfo.x86.intel) { /* use new autocorrelation functions */
+			if(encoder->protected_->max_lpc_order < 4)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_new;
+			else if(encoder->protected_->max_lpc_order < 8)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_new;
+			else if(encoder->protected_->max_lpc_order < 12)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_new;
+			else if(encoder->protected_->max_lpc_order < 16)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new;
+		}
+		else {
+			if(encoder->protected_->max_lpc_order < 4)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_old;
+			else if(encoder->protected_->max_lpc_order < 8)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_old;
+			else if(encoder->protected_->max_lpc_order < 12)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_old;
+			else if(encoder->protected_->max_lpc_order < 16)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_old;
+		}
 #    endif
 
 #    ifdef FLAC__SSE2_SUPPORTED

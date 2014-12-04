@@ -45,11 +45,15 @@
 
 #include <xmmintrin.h> /* SSE */
 
-#if 1
-/* Faster on current Intel (starting from Core i aka Nehalem) and all AMD CPUs */
+/*   new routines: more unaligned loads, less shuffle
+ *   old routines: less unaligned loads, more shuffle
+ *   these *_old routines are equivalent to the ASM routines in ia32/lpc_asm.nasm
+ */
+
+/* new routines: faster on current Intel (starting from Core i aka Nehalem) and all AMD CPUs */
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_new(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	int i;
 	int limit = data_len - 4;
@@ -85,7 +89,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[],
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_new(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	int i;
 	int limit = data_len - 8;
@@ -129,7 +133,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[],
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_new(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	int i;
 	int limit = data_len - 12;
@@ -181,7 +185,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[]
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	int i;
 	int limit = data_len - 16;
@@ -240,11 +244,10 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[]
 	_mm_storeu_ps(autoc+12,sum3);
 }
 
-#else
-/* Faster on older Intel CPUs (up to Core 2) */
+/* old routines: faster on older Intel CPUs (up to Core 2) */
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_old(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm2, xmm5;
 
@@ -281,7 +284,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4(const FLAC__real data[],
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_old(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm5, xmm6;
 
@@ -327,7 +330,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8(const FLAC__real data[],
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_old(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
 
@@ -381,7 +384,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12(const FLAC__real data[]
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_old(const FLAC__real data[], unsigned data_len, unsigned lag, FLAC__real autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9;
 
@@ -443,7 +446,6 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16(const FLAC__real data[]
 	_mm_storeu_ps(autoc+8, xmm8);
 	_mm_storeu_ps(autoc+12,xmm9);
 }
-#endif
 
 #endif /* FLAC__SSE_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */

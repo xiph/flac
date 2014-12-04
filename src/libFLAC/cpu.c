@@ -164,6 +164,8 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		/* http://www.sandpile.org/x86/cpuid.htm */
 #ifdef FLAC__HAS_X86INTRIN
 		FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
+		FLAC__cpu_info_x86(0, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+		info->ia32.intel = (flags_ebx == 0x756E6547 && flags_edx == 0x49656E69 && flags_ecx == 0x6C65746E)? true : false; /* GenuineIntel */
 		FLAC__cpu_info_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 #else
 		FLAC__uint32 flags_ecx, flags_edx;
@@ -347,6 +349,8 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	{
 		/* http://www.sandpile.org/x86/cpuid.htm */
 		FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
+		FLAC__cpu_info_x86(0, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
+		info->x86.intel = (flags_ebx == 0x756E6547 && flags_edx == 0x49656E69 && flags_ecx == 0x6C65746E)? true : false; /* GenuineIntel */
 		FLAC__cpu_info_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 		info->x86.sse3  = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSE3 )? true : false;
 		info->x86.ssse3 = (flags_ecx & FLAC__CPUINFO_IA32_CPUID_SSSE3)? true : false;

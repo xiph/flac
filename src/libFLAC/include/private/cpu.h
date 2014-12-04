@@ -116,6 +116,8 @@ typedef enum {
 
 #if defined FLAC__CPU_IA32
 typedef struct {
+	FLAC__bool intel;
+
 	FLAC__bool cmov;
 	FLAC__bool mmx;
 	FLAC__bool sse;
@@ -131,6 +133,8 @@ typedef struct {
 } FLAC__CPUInfo_IA32;
 #elif defined FLAC__CPU_X86_64
 typedef struct {
+	FLAC__bool intel;
+
 	FLAC__bool sse3;
 	FLAC__bool ssse3;
 	FLAC__bool sse41;

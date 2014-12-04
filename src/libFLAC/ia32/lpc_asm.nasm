@@ -36,10 +36,10 @@
 	data_section
 
 cglobal FLAC__lpc_compute_autocorrelation_asm_ia32
-cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
-cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
-cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
-cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4_old
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8_old
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12_old
+cglobal FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16_old
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx
 cglobal FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32
@@ -443,7 +443,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4_old
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
@@ -490,7 +490,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_4
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8_old
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
@@ -549,7 +549,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_8
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12_old
 	;[esp + 16] == autoc[]
 	;[esp + 12] == lag
 	;[esp + 8] == data_len
@@ -623,7 +623,7 @@ cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_12
 	ret
 
 	ALIGN 16
-cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16
+cident FLAC__lpc_compute_autocorrelation_asm_ia32_sse_lag_16_old
 	;[ebp + 20] == autoc[]
 	;[ebp + 16] == lag
 	;[ebp + 12] == data_len
