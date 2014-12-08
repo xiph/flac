@@ -194,7 +194,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 			 * our previous parsing has already established that the field
 			 * name is OK, so it must be the field value
 			 */
-			*violation = "tag value for is not valid UTF-8";
+			*violation = "tag value is not valid UTF-8";
 			return false;
 		}
 
