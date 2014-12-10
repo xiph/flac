@@ -1281,6 +1281,9 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 	unsigned i;
 	FLAC__int32 *tmp;
 
+	/* Make sure size is some sensible minimum value. Plumb through predictor_order maybe? */
+	size = size < FLAC__MAX_LPC_ORDER ? FLAC__MAX_LPC_ORDER : size ;
+
 	if(size <= decoder->private_->output_capacity && channels <= decoder->private_->output_channels)
 		return true;
 
@@ -2741,16 +2744,14 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 		if(decoder->private_->frame.header.blocksize < predictor_order) {
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-			/* We have received a potentially malicious bit stream. All we can do is error out to avoid a heap overflow. */
-			return false;
+			return true;
 		}
 	}
 	else {
 		if(partition_samples < predictor_order) {
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-			/* We have received a potentially malicious bit stream. All we can do is error out to avoid a heap overflow. */
-			return false;
+			return true;
 		}
 	}
 
