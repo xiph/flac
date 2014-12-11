@@ -1742,6 +1742,10 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 				return false;
 			}
 			for (i = 0; i < obj->num_comments; i++) {
+				/* Initialize here just to make sure. */
+				obj->comments[i].length = 0;
+				obj->comments[i].entry = 0;
+
 				FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN == 32);
 				if (length < 4) {
 					obj->num_comments = i;
@@ -1753,8 +1757,6 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 					return false; /* read_callback_ sets the state for us */
 				if (obj->comments[i].length > 0) {
 					if (length < obj->comments[i].length) {
-						obj->comments[i].length = 0;
-						obj->comments[i].entry = 0;
 						obj->num_comments = i;
 						goto skip;
 					}
@@ -1764,8 +1766,11 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 						return false;
 					}
-					if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->comments[i].entry, obj->comments[i].length))
-						return false; /* read_callback_ sets the state for us */
+					memset (obj->comments[i].entry, 0, obj->comments[i].length) ;
+					if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->comments[i].entry, obj->comments[i].length)) {
+						obj->num_comments = i;
+						goto skip;
+					}
 					obj->comments[i].entry[obj->comments[i].length] = '\0';
 				}
 				else
