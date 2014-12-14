@@ -581,8 +581,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 	const FLAC__bool is_waveformatextensible =
 		(format == FORMAT_WAVE || format == FORMAT_WAVE64 || format == FORMAT_RF64) &&
 		(
-			decoder_session->channel_mask == 2 ||
-			decoder_session->channel_mask > 3 ||
+			(decoder_session->channel_mask != 0 && decoder_session->channel_mask != 0x0004 && decoder_session->channel_mask != 0x0003) ||
 			decoder_session->bps%8 ||
 			decoder_session->channels > 2
 		);
