@@ -1281,9 +1281,6 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, unsigned size, unsigne
 	unsigned i;
 	FLAC__int32 *tmp;
 
-	/* Make sure size is some sensible minimum value. Plumb through predictor_order maybe? */
-	size = size < FLAC__MAX_LPC_ORDER ? FLAC__MAX_LPC_ORDER : size ;
-
 	if(size <= decoder->private_->output_capacity && channels <= decoder->private_->output_channels)
 		return true;
 
@@ -2596,6 +2593,11 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, unsigned channel, 
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2:
 			if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
 				return false; /* read_callback_ sets the state for us */
+			if(decoder->private_->frame.header.blocksize >> u32 < order) {
+				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+				return true;
+			}
 			subframe->entropy_coding_method.data.partitioned_rice.order = u32;
 			subframe->entropy_coding_method.data.partitioned_rice.contents = &decoder->private_->partitioned_rice_contents[channel];
 			break;
@@ -2675,6 +2677,11 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, unsigned channel, un
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2:
 			if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &u32, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
 				return false; /* read_callback_ sets the state for us */
+			if(decoder->private_->frame.header.blocksize >> u32 < order) {
+				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+				return true;
+			}
 			subframe->entropy_coding_method.data.partitioned_rice.order = u32;
 			subframe->entropy_coding_method.data.partitioned_rice.contents = &decoder->private_->partitioned_rice_contents[channel];
 			break;
@@ -2746,21 +2753,8 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, unsigne
 	const unsigned plen = is_extended? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
 	const unsigned pesc = is_extended? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 
-	/* sanity checks */
-	if(partition_order == 0) {
-		if(decoder->private_->frame.header.blocksize < predictor_order) {
-			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
-			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-			return true;
-		}
-	}
-	else {
-		if(partition_samples < predictor_order) {
-			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
-			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-			return true;
-		}
-	}
+	/* invalid predictor and partition orders mush be handled in the callers */
+	FLAC__ASSERT(partition_order > 0? partition_samples >= predictor_order : decoder->private_->frame.header.blocksize >= predictor_order);
 
 	if(!FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, flac_max(6u, partition_order))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
