@@ -1753,8 +1753,10 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 				}
 				else
 					length -= 4;
-				if (!FLAC__bitreader_read_uint32_little_endian(decoder->private_->input, &obj->comments[i].length))
+				if (!FLAC__bitreader_read_uint32_little_endian(decoder->private_->input, &obj->comments[i].length)) {
+					obj->num_comments = i;
 					return false; /* read_callback_ sets the state for us */
+				}
 				if (obj->comments[i].length > 0) {
 					if (length < obj->comments[i].length) {
 						obj->num_comments = i;
