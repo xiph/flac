@@ -867,24 +867,62 @@ foo:
 	return false;
 }
 
+static FLAC__bool write_simple_wavex_header (FILE * f, unsigned samplerate, unsigned channels, unsigned bytespersample, unsigned frames)
+{
+	unsigned datalen = channels * bytespersample * frames ;
+
+	if (fwrite("RIFF", 1, 4, f) != 4)
+		return false;
+	if (!write_little_endian_uint32(f, 40 + 4 + 4 + datalen))
+		return false;
+
+	if (fwrite("WAVEfmt ", 8, 1, f) != 1)
+		return false;
+	if (!write_little_endian_uint32(f, 40))
+		return false;
+
+	if(!write_little_endian_uint16(f, 65534)) /* WAVEFORMATEXTENSIBLE tag */
+		return false;
+	if(!write_little_endian_uint16(f, channels))
+		return false;
+	if(!write_little_endian_uint32(f, samplerate))
+		return false;
+	if(!write_little_endian_uint32(f, samplerate * channels * bytespersample))
+		return false;
+	if(!write_little_endian_uint16(f, channels * bytespersample)) /* block align */
+		return false;
+	if(!write_little_endian_uint16(f, bytespersample * 8))
+		return false;
+
+	if(!write_little_endian_uint16(f, 22)) /* cbSize */
+		return false;
+	if(!write_little_endian_uint16(f, bytespersample * 8)) /* validBitsPerSample */
+		return false;
+	if(!write_little_endian_uint32(f, 0)) /* channelMask */
+		return false;
+	/* GUID = {0x00000001, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} */
+	if(fwrite("\x01\x00\x00\x00\x00\x00\x10\x00\x80\x00\x00\xaa\x00\x38\x9b\x71", 1, 16, f) != 16)
+		return false;
+
+	if (fwrite("data", 1, 4, f) != 4)
+		return false;
+	if (!write_little_endian_uint32(f, datalen))
+		return false;
+
+	return true;
+}
+
 static FLAC__bool generate_noisy_sine(void)
 {
 	FILE *f;
-	FLAC__byte wav[] = {
-		'R', 'I', 'F', 'F',  76,   0,   0,   0,
-		'W', 'A', 'V', 'E', 'f', 'm', 't', ' ',
-		 16,   0,   0,   0,   1,   0,   1,   0,
-		0x44,0xAC,  0,   0,0x88,0x58,0x01,   0,
-		  2,   0,  16,   0, 'd', 'a', 't', 'a',
-		0xa8,   0xba,   0x6,   0
-	};
 	int32_t randstate = 0x1243456;
 	double sample, last_val = 0.0;
 	int k;
 
 	if(0 == (f = flac_fopen("noisy-sine.wav", "wb")))
 		return false;
-	if(fwrite(wav, 1, sizeof (wav), f) < sizeof (wav))
+
+	if(!write_simple_wavex_header (f, 44100, 1, 2, 220500))
 		goto foo;
 
 	for (k = 0 ; k < 5 * 44100 ; k++) {
