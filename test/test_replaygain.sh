@@ -73,7 +73,7 @@ check_flac ()
 
 echo "Generating stream..."
 bytes=80000
-if dd if=/dev/zero ibs=1 count=$bytes | flac${EXE} --force --verify -0 --input-size=$bytes --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=8000 - ; then
+if dd if=/dev/zero ibs=1 count=$bytes 2>/dev/null | flac${EXE} --silent --force --verify -0 --input-size=$bytes --output-name=$flacfile --force-raw-format --endian=big --sign=signed --channels=1 --bps=8 --sample-rate=8000 - ; then
 	chmod +w $flacfile
 else
 	die "ERROR during generation"
@@ -128,7 +128,8 @@ tonegenerator ()
             }
 
     }' /dev/null |
-    flac${EXE} --silent --no-error-on-compression-fail --force-raw-format \
+    flac${EXE}  --force --output-name=$2 \
+		--silent --no-seektable --no-error-on-compression-fail --force-raw-format \
         --endian=big --channels=1 --bps=24 --sample-rate=$1 --sign=unsigned -
 }
 
@@ -168,7 +169,7 @@ for ACTION in $REPLAYGAIN_FREQ ; do
     RATE=$(($MULTIPLE * FREQ))
     [ $MULTIPLE -eq 1 -o -n "${REPLAYGAIN_FREQ##* $RATE/*}" ] || break
     echo -n "Testing FLAC replaygain $RATE ($FREQ x $MULTIPLE) ... "
-    tonegenerator $RATE > $flacfile
+    tonegenerator $RATE $flacfile
     run_metaflac --add-replay-gain $flacfile
     run_metaflac --list $flacfile | grep REPLAYGAIN.*GAIN= |
     while read -r REPLAYGAIN ; do
