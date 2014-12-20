@@ -1043,6 +1043,41 @@ foo:
 	return false;
 }
 
+static FLAC__bool generate_replaygain_tone (unsigned samplerate)
+{
+	FILE *f;
+	char fname [256] ;
+	double pi, tone, sample, samplerange;
+	int k;
+
+	snprintf(fname, sizeof(fname), "rpg-tone-%u.wav", samplerate);
+
+	if(0 == (f = flac_fopen(fname, "wb")))
+		return false;
+
+	if(!write_simple_wavex_header (f, samplerate, 1, 3, 220500))
+		goto foo;
+
+
+	samplerange = 0x7fffff; /* Largest sample value allowed for a 24 bit PCM file. */
+	tone = 1000.0; /* 1 kHz */
+	pi = 4 * atan2(1,1);
+
+	for (k = 0 ; k < 5 * 44100 ; k++) {
+		sample = sin(2 * pi * tone * k / samplerate);
+		sample *= samplerange;
+		if (!write_little_endian_uint24(f, (FLAC__int32) sample))
+			goto foo;
+	};
+
+	fclose(f);
+
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
 int main(int argc, char *argv[])
 {
 	FLAC__uint32 test = 1;
@@ -1155,6 +1190,22 @@ int main(int argc, char *argv[])
 	if(!generate_sine24_2("sine24-17.raw", 44100.0, 200000, 441.0, 0.50, 882.0, 0.49, 0.7)) return 1;
 	if(!generate_sine24_2("sine24-18.raw", 44100.0, 200000, 441.0, 0.50, 4410.0, 0.49, 1.3)) return 1;
 	if(!generate_sine24_2("sine24-19.raw", 44100.0, 200000, 8820.0, 0.70, 4410.0, 0.29, 0.1)) return 1;
+
+	if(!generate_replaygain_tone(8000)) return 1;
+	if(!generate_replaygain_tone(11025)) return 1;
+	if(!generate_replaygain_tone(12000)) return 1;
+	if(!generate_replaygain_tone(16000)) return 1;
+	if(!generate_replaygain_tone(18900)) return 1;
+	if(!generate_replaygain_tone(22050)) return 1;
+	if(!generate_replaygain_tone(24000)) return 1;
+	if(!generate_replaygain_tone(28000)) return 1;
+	if(!generate_replaygain_tone(32000)) return 1;
+	if(!generate_replaygain_tone(36000)) return 1;
+	if(!generate_replaygain_tone(37800)) return 1;
+	if(!generate_replaygain_tone(44100)) return 1;
+	if(!generate_replaygain_tone(48000)) return 1;
+	if(!generate_replaygain_tone(96000)) return 1;
+	if(!generate_replaygain_tone(192000)) return 1;
 
 	/* WATCHOUT: the size of noise.raw is hardcoded into test/test_flac.sh */
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;

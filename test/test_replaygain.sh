@@ -81,66 +81,22 @@ fi
 
 check_flac
 
-
-if mawk ; then
-	AWK=mawk
-else
-	# Really hope awk is not gawk, because the following AWK script doesn't
-	# work correctly with gawk 4.0.1 but did with earlier versions.
-	AWK=awk
-	fi
-
 # Replay gain tests - Test the rates which have specific filter table entries
 # and verify that harmonics can be processed correctly.
 
 tonegenerator ()
 {
-	# When using GAWK, use --lint=posix to identify non-POSIX awk usages.
-    $AWK -- '
-    BEGIN {
-            samplerate = '$1';
-
-            tone = 1000;
-            duration = 1;
-            bitspersample = 24;
-
-            samplemidpoint = 1;
-			for (sps = 0 ; sps < bitspersample - 1 ; sps++) {
-				samplemidpoint *= 2;
-			}
-
-            samplerange = samplemidpoint - 1;
-
-            pi = 4 * atan2(1,1);
-
-            for (ix = 0; ix < duration * samplerate; ++ix) {
-                    sample = sin(2 * pi * tone * ix / samplerate);
-                    sample *= samplerange;
-                    sample += samplemidpoint;
-                    sample = int(sample);
-                    for (bx = 0; bx < bitspersample/8; ++bx) {
-                            byte[bx] = sample % 256;
-                            sample /= 256;
-                    }
-                    while (bx--) {
-                            printf("%c", byte[bx]);
-                    }
-            }
-
-    }' /dev/null |
-    flac${EXE}  --force --output-name=$2 \
-		--silent --no-seektable --no-error-on-compression-fail --force-raw-format \
-        --endian=big --channels=1 --bps=24 --sample-rate=$1 --sign=unsigned -
+    flac${EXE} --force --output-name=$2 --silent --no-seektable --no-error-on-compression-fail rpg-tone-$1.wav
 }
 
 REPLAYGAIN_FREQ=
-REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ  8000/-12.76"
-REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 11025/-12.93"
-REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 12000/-13.00"
-REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 16000/-13.29"
-REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 18900/-13.43"
+REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ  8000/-12.73"
+REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 11025/-12.91"
+REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 12000/-12.98"
+REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 16000/-13.27"
+REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 18900/-13.41"
 REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 22050/-13.77"
-REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 24000/-13.83"
+REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 24000/-13.82"
 REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 28000/-14.06"
 REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 32000/-14.08"
 REPLAYGAIN_FREQ="$REPLAYGAIN_FREQ 36000/-14.12"
