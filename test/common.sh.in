@@ -45,6 +45,11 @@ export LD_LIBRARY_PATH
 
 EXE=@EXEEXT@
 
+# Needed for bulding out-of-tree where source files are in the $top_srcdir tree
+# and build products in the $top_builddir tree.
+top_srcdir=@top_srcdir@
+top_builddir=@top_builddir@
+
 # change to 'false' to show all flac/metaflac output (useful for debugging)
 if true ; then
 	SILENT='--silent'
