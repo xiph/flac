@@ -37,28 +37,13 @@ check: $(check_SCRIPTS)
 if FLaC__WITH_CPPLIBS
 	$(TESTS_ENVIRONMENT) $(srcdir)/test_libFLAC++.sh
 endif
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_grabbag.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_flac.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_metaflac.sh
+	$(TESTS_ENVIRONMENT) $(srcdir)/test_replaygain.sh
 	$(TESTS_ENVIRONMENT) $(srcdir)/test_seeking.sh
 	$(TESTS_ENVIRONMENT) $(srcdir)/test_streams.sh
 	$(TESTS_ENVIRONMENT) $(srcdir)/test_compression.sh
-	@echo "----------------"
-	@echo "All tests passed"
-	@echo "----------------"
-
-# This is the full test suite, but only works correctly in-tree.
-# In particular test_grabbag.sh, test_flac.sh and test_metaflac.sh will not
-# run correctly out-of-tree.
-fullcheck: $(check_SCRIPTS)
-	$(TESTS_ENVIRONMENT) ./test_libFLAC.sh
-if FLaC__WITH_CPPLIBS
-	$(TESTS_ENVIRONMENT) ./test_libFLAC++.sh
-endif
-	$(TESTS_ENVIRONMENT) ./test_grabbag.sh
-	$(TESTS_ENVIRONMENT) ./test_flac.sh
-	$(TESTS_ENVIRONMENT) ./test_metaflac.sh
-	$(TESTS_ENVIRONMENT) ./test_replaygain.sh
-	$(TESTS_ENVIRONMENT) ./test_seeking.sh
-	$(TESTS_ENVIRONMENT) ./test_streams.sh
-	$(TESTS_ENVIRONMENT) ./test_compression.sh
 	@echo "----------------"
 	@echo "All tests passed"
 	@echo "----------------"
