@@ -104,7 +104,7 @@ AC_CHECK_SIZEOF(void*,1)
 
 asm_optimisation=no
 case "$host_cpu" in
-	x86_64)
+	amd64|x86_64)
 		if test $ac_cv_sizeof_voidp = 4 ; then
 			# This must be a 32 bit user space running on 64 bit kernel so treat
 			# this as ia32.
