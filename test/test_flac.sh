@@ -36,9 +36,9 @@ run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_flac.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} --no-error-on-compression-fail $* 4>>test_flac.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} $TOTALLY_SILENT --no-error-on-compression-fail $* 4>>test_flac.valgrind.log
 	else
-		flac${EXE} --no-error-on-compression-fail $*
+		flac${EXE} $TOTALLY_SILENT --no-error-on-compression-fail $*
 	fi
 }
 
@@ -65,7 +65,7 @@ else
 fi
 
 echo "Checking for --ogg support in flac..."
-if flac${EXE} --ogg $SILENT --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
+if flac${EXE} --ogg $TOTTALY_SILENT --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
 	has_ogg=yes;
 	echo "flac --ogg works"
 else
@@ -85,28 +85,28 @@ fi
 echo "Try encoding to a file that exists; should fail"
 cp wacky1.wav exist.wav
 touch exist.flac
-if run_flac $TOTALLY_SILENT -0 exist.wav ; then
+if run_flac -0 exist.wav ; then
 	die "ERROR: it should have failed but didn't"
 else
 	echo "OK, it failed as it should"
 fi
 
 echo "Try encoding with -f to a file that exists; should succeed"
-if run_flac $TOTALLY_SILENT -0 --force exist.wav ; then
+if run_flac -0 --force exist.wav ; then
 	echo "OK, it succeeded as it should"
 else
 	die "ERROR: it should have succeeded but didn't"
 fi
 
 echo "Try decoding to a file that exists; should fail"
-if run_flac $TOTALLY_SILENT -d exist.flac ; then
+if run_flac -d exist.flac ; then
 	die "ERROR: it should have failed but didn't"
 else
 	echo "OK, it failed as it should"
 fi
 
 echo "Try decoding with -f to a file that exists; should succeed"
-if run_flac $TOTALLY_SILENT -d -f exist.flac ; then
+if run_flac -d -f exist.flac ; then
 	echo "OK, it succeeded as it should"
 else
 	die "ERROR: it should have succeeded but didn't"
@@ -124,9 +124,9 @@ test_fractional ()
 	samples=$2
 	dd if=noise.raw ibs=4 count=$samples of=pbs.raw 2>/dev/null || $dddie
 	echo -n "fractional block size test (blocksize=$blocksize samples=$samples) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=$blocksize --no-padding --lax -o pbs.flac pbs.raw || die "ERROR"
+	run_flac --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=$blocksize --no-padding --lax -o pbs.flac pbs.raw || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o pbs.cmp pbs.flac || die "ERROR"
+	run_flac --force --decode --force-raw-format --endian=little --sign=signed -o pbs.cmp pbs.flac || die "ERROR"
 	echo -n "compare... "
 	cmp pbs.raw pbs.cmp || die "ERROR: file mismatch"
 	echo "OK"
@@ -163,9 +163,9 @@ rt_test_raw ()
 	channels=`echo $f | awk -F- '{print $2}'`
 	bps=`echo $f | awk -F- '{print $3}'`
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw $extra rt.flac || die "ERROR"
+	run_flac --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.raw || die "ERROR: file mismatch"
 	echo "OK"
@@ -177,9 +177,9 @@ rt_test_wav ()
 	f="$1"
 	extra="$2"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav $extra rt.flac || die "ERROR"
+	run_flac --force --decode --channel-map=none -o rt.wav $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
@@ -191,9 +191,9 @@ rt_test_w64 ()
 	f="$1"
 	extra="$2"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.w64 $extra rt.flac || die "ERROR"
+	run_flac --force --decode --channel-map=none -o rt.w64 $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.w64 || die "ERROR: file mismatch"
 	echo "OK"
@@ -205,9 +205,9 @@ rt_test_rf64 ()
 	f="$1"
 	extra="$2"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.rf64 $extra rt.flac || die "ERROR"
+	run_flac --force --decode --channel-map=none -o rt.rf64 $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.rf64 || die "ERROR: file mismatch"
 	echo "OK"
@@ -219,9 +219,9 @@ rt_test_aiff ()
 	f="$1"
 	extra="$2"
 	echo -n "round-trip test ($f) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.aiff $extra rt.flac || die "ERROR"
+	run_flac --force --decode --channel-map=none -o rt.aiff $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.aiff || die "ERROR: file mismatch"
 	echo "OK"
@@ -234,11 +234,11 @@ rt_test_flac ()
 	f="$1"
 	extra="$2"
 	echo -n "round-trip test ($f->flac->flac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "re-encode... "
-	run_flac $SILENT --force --verify --lax -o rt2.flac rt.flac || die "ERROR"
+	run_flac --force --verify --lax -o rt2.flac rt.flac || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav $extra rt2.flac || die "ERROR"
+	run_flac --force --decode --channel-map=none -o rt.wav $extra rt2.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
@@ -251,11 +251,11 @@ rt_test_ogg_flac ()
 	f="$1"
 	extra="$2"
 	echo -n "round-trip test ($f->oggflac->oggflac->wav) encode... "
-	run_flac $SILENT --force --verify --channel-map=none --no-padding --lax -o rt.oga --ogg $extra $f || die "ERROR"
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.oga --ogg $extra $f || die "ERROR"
 	echo -n "re-encode... "
-	run_flac $SILENT --force --verify --lax -o rt2.oga --ogg rt.oga || die "ERROR"
+	run_flac --force --verify --lax -o rt2.oga --ogg rt.oga || die "ERROR"
 	echo -n "decode... "
-	run_flac $SILENT --force --decode --channel-map=none -o rt.wav $extra rt2.oga || die "ERROR"
+	run_flac --force --decode --channel-map=none -o rt.wav $extra rt2.oga || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.wav || die "ERROR: file mismatch"
 	echo "OK"
@@ -311,8 +311,8 @@ dd if=master.raw ibs=1 skip=10 count=30 of=50c.skip10.until40.raw 2>/dev/null ||
 dd if=master.raw ibs=1 skip=20 count=10 of=50c.skip20.until30.raw 2>/dev/null || $dddie
 dd if=master.raw ibs=1 skip=20 count=20 of=50c.skip20.until40.raw 2>/dev/null || $dddie
 
-wav_eopt="$SILENT --force --verify --no-padding --lax"
-wav_dopt="$SILENT --force --decode"
+wav_eopt="--force --verify --no-padding --lax"
+wav_dopt="--force --decode"
 
 raw_eopt="$wav_eopt --force-raw-format --endian=big --sign=signed --sample-rate=10 --bps=8 --channels=1"
 raw_dopt="$wav_dopt --force-raw-format --endian=big --sign=signed"
@@ -429,6 +429,7 @@ test_skip_until ()
 
 	echo -n "testing --skip=mm:ss (encode) $desc... "
 	run_flac $eopt --skip=0:01 -o z50c.skip0_01.$out_fmt 50c.$in_fmt || die "ERROR generating FLAC file $desc"
+
 	[ $in_fmt = $out_fmt ] || run_flac $dopt -o z50c.skip0_01.$in_fmt z50c.skip0_01.$out_fmt || die "ERROR decoding FLAC file $desc"
 	$CMP 50c.skip10.$in_fmt z50c.skip0_01.$in_fmt || die "ERROR: file mismatch for --skip=0:01 (encode) $desc"
 	rm -f z50c.skip0_01.$out_fmt z50c.skip0_01.$in_fmt
@@ -690,7 +691,7 @@ fi
 
 echo "testing seek extremes:"
 
-run_flac --verify --force $SILENT --no-padding --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
+run_flac --verify --force --no-padding --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
 
 if [ $is_win = no ] ; then
 	total_noise_cdda_samples=`run_metaflac --show-total-samples noise.flac`
@@ -714,7 +715,6 @@ for delta in 2 1 ; do
 done
 
 rm noise.flac z.wav
-
 
 ############################################################################
 # test --input-size
@@ -983,10 +983,10 @@ echo "Generating multiple input files from noise..."
 multifile_format_decode="--endian=big --sign=signed"
 multifile_format_encode="$multifile_format_decode --sample-rate=44100 --bps=16 --channels=2 --no-padding"
 short_noise_cdda_samples=`expr $total_noise_cdda_samples / 8`
-run_flac --verify --force $SILENT --force-raw-format $multifile_format_encode --until=$short_noise_cdda_samples -o shortnoise.flac noise.raw || die "ERROR generating FLAC file"
-run_flac --decode --force $SILENT shortnoise.flac -o shortnoise.raw --force-raw-format $multifile_format_decode || die "ERROR generating RAW file"
-run_flac --decode --force $SILENT shortnoise.flac || die "ERROR generating WAVE file"
-run_flac --decode --force $SILENT shortnoise.flac -o shortnoise.aiff || die "ERROR generating AIFF file"
+run_flac --verify --force --force-raw-format $multifile_format_encode --until=$short_noise_cdda_samples -o shortnoise.flac noise.raw || die "ERROR generating FLAC file"
+run_flac --decode --force shortnoise.flac -o shortnoise.raw --force-raw-format $multifile_format_decode || die "ERROR generating RAW file"
+run_flac --decode --force shortnoise.flac || die "ERROR generating WAVE file"
+run_flac --decode --force shortnoise.flac -o shortnoise.aiff || die "ERROR generating AIFF file"
 cp shortnoise.flac file0.flac
 cp shortnoise.flac file1.flac
 cp shortnoise.flac file2.flac
@@ -1166,7 +1166,7 @@ flac2flac ()
 	args="$3"
 	expect="$case-expect.meta"
 	echo -n "$case... "
-	run_flac $SILENT -f -o out.flac $args $file || die "ERROR encoding FLAC file"
+	run_flac -f -o out.flac $args $file || die "ERROR encoding FLAC file"
 	run_metaflac --list out.flac | filter > out.meta || die "ERROR listing metadata of output FLAC file"
 	diff -q -w $expect out.meta 2>/dev/null || die "ERROR: metadata does not match expected $expect"
 	echo OK
@@ -1192,13 +1192,13 @@ flac2flac input-SCPAP.flac case02a ""
 # case 02b: on file with no VORBIS_COMMENT block and --tag, add new VORBIS_COMMENT with tags
 flac2flac input-SCPAP.flac case02b "--tag=artist=0"
 # case 02c: on file with VORBIS_COMMENT block and --tag, replace existing VORBIS_COMMENT with new tags
-flac2flac input-SCVAUP.flac case02c "$TOTALLY_SILENT --tag=artist=0"
+flac2flac input-SCVAUP.flac case02c "--tag=artist=0"
 # case 03a: on file with no CUESHEET block and --cuesheet specified, add it
 flac2flac input-SVAUP.flac case03a "--cuesheet=input0.cue"
 # case 03b: on file with CUESHEET block and --cuesheet specified, overwrite existing CUESHEET
-flac2flac input-SCVAUP.flac case03b "$TOTALLY_SILENT --cuesheet=input0.cue"
+flac2flac input-SCVAUP.flac case03b "--cuesheet=input0.cue"
 # case 03c: on file with CUESHEET block and size-changing option specified, drop existing CUESHEET
-flac2flac input-SCVAUP.flac case03c "$TOTALLY_SILENT --skip=1"
+flac2flac input-SCVAUP.flac case03c "--skip=1"
 # case 04a: on file with no SEEKTABLE block and --no-seektable specified, no SEEKTABLE
 flac2flac input-VA.flac case04a "--no-padding --no-seektable"
 # case 04b: on file with no SEEKTABLE block and -S specified, new SEEKTABLE
@@ -1208,7 +1208,7 @@ flac2flac input-VA.flac case04c "--no-padding"
 # case 04d: on file with SEEKTABLE block and --no-seektable specified, drop existing SEEKTABLE
 flac2flac input-SCVA.flac case04d "--no-padding --no-seektable"
 # case 04e: on file with SEEKTABLE block and -S specified, overwrite existing SEEKTABLE
-flac2flac input-SCVA.flac case04e "$TOTALLY_SILENT --no-padding -S 5x"
+flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
 
