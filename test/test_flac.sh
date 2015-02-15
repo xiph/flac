@@ -1151,7 +1151,8 @@ rt_test_rf64 wacky2.rf64 '--keep-foreign-metadata'
 
 echo "Testing the metadata-handling properties of flac-to-flac encoding..."
 
-testdir="flac-to-flac-metadata-test-files"
+testdatadir=${top_srcdir}/test/flac-to-flac-metadata-test-files
+
 filter ()
 {
 	# minor danger, changing vendor strings might change the length of the
@@ -1161,11 +1162,11 @@ filter ()
 }
 flac2flac ()
 {
-	file="$1"
-	case="$2"
+	file="$testdatadir/$1"
+	case="$testdatadir/$2"
 	args="$3"
 	expect="$case-expect.meta"
-	echo -n "$case... "
+	echo -n "$2... "
 	run_flac -f -o out.flac $args $file || die "ERROR encoding FLAC file"
 	run_metaflac --list out.flac | filter > out.meta || die "ERROR listing metadata of output FLAC file"
 	diff -q -w $expect out.meta 2>/dev/null || die "ERROR: metadata does not match expected $expect"
@@ -1173,7 +1174,6 @@ flac2flac ()
 }
 
 #filter=', stream_offset.*|^  vendor string: |^  length: |^  m..imum .....size: '
-cd $testdir || die "ERROR changing to directory $testdir"
 
 # case 00a: no alterations on a file with all metadata types, keep all metadata, in same order
 flac2flac input-SCVAUP.flac case00a ""
@@ -1194,9 +1194,9 @@ flac2flac input-SCPAP.flac case02b "--tag=artist=0"
 # case 02c: on file with VORBIS_COMMENT block and --tag, replace existing VORBIS_COMMENT with new tags
 flac2flac input-SCVAUP.flac case02c "--tag=artist=0"
 # case 03a: on file with no CUESHEET block and --cuesheet specified, add it
-flac2flac input-SVAUP.flac case03a "--cuesheet=input0.cue"
+flac2flac input-SVAUP.flac case03a "--cuesheet=$testdatadir/input0.cue"
 # case 03b: on file with CUESHEET block and --cuesheet specified, overwrite existing CUESHEET
-flac2flac input-SCVAUP.flac case03b "--cuesheet=input0.cue"
+flac2flac input-SCVAUP.flac case03b "--cuesheet=$testdatadir/input0.cue"
 # case 03c: on file with CUESHEET block and size-changing option specified, drop existing CUESHEET
 flac2flac input-SCVAUP.flac case03c "--skip=1"
 # case 04a: on file with no SEEKTABLE block and --no-seektable specified, no SEEKTABLE
