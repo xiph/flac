@@ -60,7 +60,7 @@ fi
 ########################################################################
 
 log=picture.log
-picture_dir=pictures
+picture_dir=${top_srcdir}/test/pictures
 
 echo "Running test_picture..."
 
@@ -69,9 +69,9 @@ rm -f $log
 run_test_picture $picture_dir >> $log 2>&1
 
 if [ $is_win = yes ] ; then
-	diff -w picture.ok $log > picture.diff || die "Error: .log file does not match .ok file, see picture.diff"
+	diff -w ${top_srcdir}/test/picture.ok $log > picture.diff || die "Error: .log file does not match .ok file, see picture.diff"
 else
-	diff picture.ok $log > picture.diff || die "Error: .log file does not match .ok file, see picture.diff"
+	diff ${top_srcdir}/test/picture.ok $log > picture.diff || die "Error: .log file does not match .ok file, see picture.diff"
 fi
 
 echo "PASSED (results are in $log)"
@@ -83,8 +83,8 @@ echo "PASSED (results are in $log)"
 ########################################################################
 
 log=cuesheet.log
-bad_cuesheets=cuesheets/bad.*.cue
-good_cuesheets=cuesheets/good.*.cue
+bad_cuesheets=${top_srcdir}/test/cuesheets/bad.*.cue
+good_cuesheets=${top_srcdir}/test/cuesheets/good.*.cue
 good_leadout=`expr 80 \* 60 \* 44100`
 bad_leadout=`expr $good_leadout + 1`
 
@@ -96,7 +96,7 @@ rm -f $log
 # negative tests
 #
 for cuesheet in $bad_cuesheets ; do
-	echo "NEGATIVE $cuesheet" >> $log 2>&1
+	echo "NEGATIVE $cuesheet" | sed "s|${top_srcdir}/test/||" >> $log 2>&1
 	run_test_cuesheet $cuesheet $good_leadout 44100 cdda >> $log 2>&1 || exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
 		die "Error: test script is broken"
@@ -110,7 +110,7 @@ done
 # positve tests
 #
 for cuesheet in $good_cuesheets ; do
-	echo "POSITIVE $cuesheet" >> $log 2>&1
+	echo "POSITIVE $cuesheet" | sed "s|${top_srcdir}/test/||" >> $log 2>&1
 	run_test_cuesheet $cuesheet $good_leadout 44100 cdda >> $log 2>&1
 	exit_code=$?
 	if [ "$exit_code" = 255 ] ; then
@@ -125,9 +125,9 @@ for cuesheet in $good_cuesheets ; do
 done
 
 if [ $is_win = yes ] ; then
-	diff -w cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+	diff -w ${top_srcdir}/test/cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
 else
-	diff cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+	diff ${top_srcdir}/test/cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
 fi
 
 echo "PASSED (results are in $log)"

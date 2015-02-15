@@ -261,22 +261,61 @@ static FLAC__bool local__extract_resolution_color_info_(FLAC__StreamMetadata_Pic
 	return false;
 }
 
+static const char *error_messages[] = {
+	"memory allocation error",
+	"invalid picture specification",
+	"invalid picture specification: can't parse resolution/color part",
+	"unable to extract resolution and color info from URL, user must set explicitly",
+	"unable to extract resolution and color info from file, user must set explicitly",
+	"error opening picture file",
+	"error reading picture file",
+	"invalid picture type",
+	"unable to guess MIME type from file, user must set explicitly",
+	"type 1 icon must be a 32x32 pixel PNG",
+	"file not found"
+};
+
+static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj)
+{
+	const FLAC__off_t size = grabbag__file_get_filesize(filepath);
+	FLAC__byte *buffer;
+	FILE *file;
+	const char *error_message=NULL;
+
+	if (size < 0)
+		return error_messages[5];
+
+	if ((buffer = safe_malloc_(size)) == NULL)
+		return error_messages[0];
+
+	if ((file = flac_fopen(filepath, "rb")) == NULL) {
+		free(buffer);
+		return error_messages[5];
+	}
+
+	if (fread(buffer, 1, size, file) != (size_t) size) {
+		fclose(file);
+		free(buffer);
+		return error_messages[6];
+	}
+	fclose(file);
+
+	if (!FLAC__metadata_object_picture_set_data(obj, buffer, size, /*copy=*/false))
+		error_message = error_messages[6];
+	/* try to extract MIME type if user left it blank */
+	else if (*obj->data.picture.mime_type == '\0' && !local__extract_mime_type_(obj))
+		error_message = error_messages[8];
+	/* try to extract resolution/color info if user left it blank */
+	else if ((obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0) && !local__extract_resolution_color_info_(&obj->data.picture))
+		error_message = error_messages[4];
+
+	return error_message;
+}
+
 FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, const char **error_message)
 {
 	FLAC__StreamMetadata *obj;
 	int state = 0;
-	static const char *error_messages[] = {
-		"memory allocation error",
-		"invalid picture specification",
-		"invalid picture specification: can't parse resolution/color part",
-		"unable to extract resolution and color info from URL, user must set explicitly",
-		"unable to extract resolution and color info from file, user must set explicitly",
-		"error opening picture file",
-		"error reading picture file",
-		"invalid picture type",
-		"unable to guess MIME type from file, user must set explicitly",
-		"type 1 icon must be a 32x32 pixel PNG"
-	};
 
 	FLAC__ASSERT(0 != spec);
 	FLAC__ASSERT(0 != error_message);
@@ -358,39 +397,7 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 					*error_message = error_messages[3];
 			}
 			else { /* regular picture file */
-				const FLAC__off_t size = grabbag__file_get_filesize(spec);
-				if(size < 0)
-					*error_message = error_messages[5];
-				else {
-					FLAC__byte *buffer = safe_malloc_(size);
-					if(0 == buffer)
-						*error_message = error_messages[0];
-					else {
-						FILE *f = flac_fopen(spec, "rb");
-						if(0 == f) {
-							*error_message = error_messages[5];
-							free(buffer);
-						}
-						else {
-							if(fread(buffer, 1, size, f) != (size_t)size)
-								*error_message = error_messages[6];
-							fclose(f);
-							if(0 == *error_message) {
-								if(!FLAC__metadata_object_picture_set_data(obj, buffer, size, /*copy=*/false))
-									*error_message = error_messages[6];
-								/* try to extract MIME type if user left it blank */
-								else if(*obj->data.picture.mime_type == '\0' && !local__extract_mime_type_(obj))
-									*error_message = error_messages[8];
-								/* try to extract resolution/color info if user left it blank */
-								else if((obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0) && !local__extract_resolution_color_info_(&obj->data.picture))
-									*error_message = error_messages[4];
-							}
-							else {
-								free(buffer);
-							}
-						}
-					}
-				}
+				*error_message = read_file (spec, obj);
 			}
 		}
 	}
@@ -408,6 +415,83 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 	}
 
 	if(*error_message && obj) {
+		FLAC__metadata_object_delete(obj);
+		obj = 0;
+	}
+
+	return obj;
+}
+
+FLAC__StreamMetadata *grabbag__picture_from_specification(int type, const char *mime_type_in, const char * description,
+		const PictureResolution * res, const char * filepath, const char **error_message)
+{
+
+	FLAC__StreamMetadata *obj;
+	char mime_type [64] ;
+
+	if (error_message == 0)
+		return 0;
+
+	strncpy (mime_type, mime_type_in, sizeof (mime_type));
+
+	*error_message = 0;
+
+	if ((obj = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE)) == 0) {
+		*error_message = error_messages[0];
+		return obj;
+	}
+
+	/* Picture type if known. */
+	obj->data.picture.type = type >= 0 ? type : FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;
+
+	/* Mime type if known. */
+	if (mime_type_in && ! FLAC__metadata_object_picture_set_mime_type(obj, mime_type, /*copy=*/true)) {
+		*error_message = error_messages[0];
+		return obj;
+	}
+
+	/* Description if present. */
+	if (description && ! FLAC__metadata_object_picture_set_description(obj, (FLAC__byte*) description, /*copy=*/true)) {
+		*error_message = error_messages[0];
+		return obj;
+	}
+
+	if (res == NULL) {
+		obj->data.picture.width = 0;
+		obj->data.picture.height = 0;
+		obj->data.picture.depth = 0;
+		obj->data.picture.colors = 0;
+	}
+	else {
+		obj->data.picture.width = res->width;
+		obj->data.picture.height = res->height;
+		obj->data.picture.depth = res->depth;
+		obj->data.picture.colors = res->colors;
+	}
+
+	if (strcmp(obj->data.picture.mime_type, "-->") == 0) { /* magic MIME type means URL */
+		if (!FLAC__metadata_object_picture_set_data(obj, (FLAC__byte*)filepath, strlen(filepath), /*copy=*/true))
+			*error_message = error_messages[0];
+		else if (obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0)
+			*error_message = error_messages[3];
+	}
+	else {
+		*error_message = read_file (filepath, obj);
+	}
+
+	if (*error_message == NULL) {
+		if (
+			obj->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD &&
+			(
+				(strcmp(obj->data.picture.mime_type, "image/png") && strcmp(obj->data.picture.mime_type, "-->")) ||
+				obj->data.picture.width != 32 ||
+				obj->data.picture.height != 32
+			)
+		)
+			*error_message = error_messages[9];
+	}
+
+	if (*error_message && obj) {
 		FLAC__metadata_object_delete(obj);
 		obj = 0;
 	}
