@@ -116,14 +116,14 @@ const int FLAC_ENCODE__DEFAULT_PADDING = 8192;
 
 static FLAC__bool is_big_endian_host_;
 
-static FLAC__int8 static_buffer[CHUNK_OF_SAMPLES*FLAC__MAX_CHANNELS*((FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE+7)/8)];
+#define UBUFFER_INT8_SIZE 0x10000
 
 static union {
-	FLAC__int8 *s8;
-	FLAC__uint8 *u8;
-	FLAC__int16 *s16;
-	FLAC__uint16 *u16;
-} ubuffer = { static_buffer };
+	FLAC__int8 s8[UBUFFER_INT8_SIZE];
+	FLAC__uint8 u8[UBUFFER_INT8_SIZE];
+	FLAC__int16 s16[UBUFFER_INT8_SIZE/2];
+	FLAC__uint16 u16[UBUFFER_INT8_SIZE/2];
+} ubuffer;
 
 
 static FLAC__int32 in_[FLAC__MAX_CHANNELS][CHUNK_OF_SAMPLES];
@@ -1385,10 +1385,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			case FORMAT_AIFF:
 			case FORMAT_AIFF_C:
 				while(encoder_session.fmt.iff.data_bytes > 0) {
-					const size_t bytes_to_read = (size_t)min(
-						encoder_session.fmt.iff.data_bytes,
-						(FLAC__uint64)CHUNK_OF_SAMPLES * (FLAC__uint64)encoder_session.info.bytes_per_wide_sample
-					);
+					const size_t bytes_to_read =
+						min (sizeof (ubuffer.u8),
+							min ((size_t)encoder_session.fmt.iff.data_bytes,
+								CHUNK_OF_SAMPLES * (size_t)encoder_session.info.bytes_per_wide_sample));
 					size_t bytes_read = fread(ubuffer.u8, sizeof(unsigned char), bytes_to_read, infile);
 					if(bytes_read == 0) {
 						if(ferror(infile)) {
@@ -1875,7 +1875,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 						}
 						existing_cuesheet_is_bad = true;
 					}
-					else if(e->total_samples_to_encode != cs->tracks[cs->num_tracks-1].offset) {
+					else if(cs->num_tracks > 0 && e->total_samples_to_encode != cs->tracks[cs->num_tracks-1].offset) {
 						flac__utils_printf(stderr, 1, "%s: WARNING, lead-out offset of cuesheet in input FLAC file does not match input length, dropping existing cuesheet...\n", e->inbasefilename);
 						if(e->treat_warnings_as_errors) {
 							static_metadata_clear(&static_metadata);
