@@ -69,6 +69,8 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 						const double sec = atof(pt);
 						if(sec > 0.0) {
 							unsigned samples = (unsigned)(sec * (double)sample_rate);
+							/* Restrict seekpoints to two per second of audio. */
+							samples = samples < sample_rate / 2 ? sample_rate / 2 : samples;
 							if(samples > 0) {
 								/* +1 for the initial point at sample 0 */
 								if(!FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(seektable_template, samples, total_samples_to_encode))
