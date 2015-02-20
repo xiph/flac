@@ -1128,7 +1128,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 		if(total_samples % samples == 0)
 			num--;
 
-		/* Put a strict upper bound on he number of allows seekpoints. */
+		/* Put a strict upper bound on the number of allowed seek points. */
 		if (num > 32768) {
 			/* Set the bound and recalculate samples accordingly. */
 			num = 32786;
