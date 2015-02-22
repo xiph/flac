@@ -1050,6 +1050,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		FLAC__uint64 total_samples_in_input; /* WATCHOUT: may be 0 to mean "unknown" */
 		FLAC__uint64 skip;
 		FLAC__uint64 until; /* a value of 0 mean end-of-stream (i.e. --until=-0) */
+		unsigned consecutive_eos_count = 0;
 		unsigned align_remainder = 0;
 
 		switch(options.format) {
@@ -1428,13 +1429,25 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				break;
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:
+				consecutive_eos_count = 0;
 				while(!encoder_session.fmt.flac.client_data.fatal_error && encoder_session.fmt.flac.client_data.samples_left_to_process > 0) {
+					FLAC__StreamDecoderState decoder_state;
 					/* We can also hit the end of stream without samples_left_to_process
 					 * going to 0 if there are errors and continue_through_decode_errors
 					 * is on, so we want to break in that case too:
 					 */
-					if(encoder_session.continue_through_decode_errors && FLAC__stream_decoder_get_state(encoder_session.fmt.flac.decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
+					decoder_state = FLAC__stream_decoder_get_state(encoder_session.fmt.flac.decoder);
+					if(encoder_session.continue_through_decode_errors && decoder_state == FLAC__STREAM_DECODER_END_OF_STREAM)
 						break;
+
+					consecutive_eos_count = decoder_state == FLAC__STREAM_DECODER_END_OF_STREAM ? consecutive_eos_count + 1 : 0;
+
+					/* Exit loop if we get two or more consecutive FLAC__STREAM_DECODER_END_OF_STREAM events. */
+					if(consecutive_eos_count >= 2) {
+						flac__utils_printf(stderr, 1, "%s: ERROR: %d consecutive FLAC__STREAM_DECODER_END_OF_STREAM events.\n", encoder_session.inbasefilename, consecutive_eos_count);
+						break;
+					}
+
 					if(!FLAC__stream_decoder_process_single(encoder_session.fmt.flac.decoder)) {
 						flac__utils_printf(stderr, 1, "%s: ERROR: while decoding FLAC input, state = %s\n", encoder_session.inbasefilename, FLAC__stream_decoder_get_resolved_state_string(encoder_session.fmt.flac.decoder));
 						return EncoderSession_finish_error(&encoder_session);
