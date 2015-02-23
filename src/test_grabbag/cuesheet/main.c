@@ -32,7 +32,7 @@
 static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FILE *fin, *fout;
-	const char *error_message;
+	const char *error_message, *tmpfilenamebase;
 	char tmpfilename[4096];
 	unsigned last_line_read;
 	FLAC__StreamMetadata *cuesheet;
@@ -64,7 +64,11 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 		FLAC__metadata_object_delete(cuesheet);
 		return 1;
 	}
-	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.1", infilename);
+
+	tmpfilenamebase = strstr(infilename, "cuesheets/");
+	tmpfilenamebase = tmpfilenamebase == NULL ? infilename : tmpfilenamebase;
+
+	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.1", tmpfilenamebase);
 	if(0 == (fout = flac_fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);
@@ -96,7 +100,7 @@ static int do_cuesheet(const char *infilename, unsigned sample_rate, FLAC__bool 
 		FLAC__metadata_object_delete(cuesheet);
 		return 1;
 	}
-	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.2", infilename);
+	flac_snprintf(tmpfilename, sizeof (tmpfilename), "%s.2", tmpfilenamebase);
 	if(0 == (fout = flac_fopen(tmpfilename, "w"))) {
 		fprintf(stderr, "can't open file %s for writing: %s\n", tmpfilename, strerror(errno));
 		FLAC__metadata_object_delete(cuesheet);

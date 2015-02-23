@@ -118,8 +118,9 @@ for cuesheet in $good_cuesheets ; do
 	elif [ "$exit_code" != 0 ] ; then
 		die "Error: good cuesheet is broken"
 	fi
-	cuesheet_pass1=${cuesheet}.1
-	cuesheet_pass2=${cuesheet}.2
+	cuesheet_out=$(echo $cuesheet | sed "s|${top_srcdir}/test/||")
+	cuesheet_pass1=${cuesheet_out}.1
+	cuesheet_pass2=${cuesheet_out}.2
 	diff $cuesheet_pass1 $cuesheet_pass2 >> $log 2>&1 || die "Error: pass1 and pass2 output differ"
 	rm -f $cuesheet_pass1 $cuesheet_pass2
 done
