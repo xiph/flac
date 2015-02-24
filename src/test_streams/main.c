@@ -1050,7 +1050,7 @@ static FLAC__bool generate_replaygain_tone (unsigned samplerate)
 	double pi, tone, sample, samplerange;
 	int k;
 
-	snprintf(fname, sizeof(fname), "rpg-tone-%u.wav", samplerate);
+	flac_snprintf(fname, sizeof(fname), "rpg-tone-%u.wav", samplerate);
 
 	if(0 == (f = flac_fopen(fname, "wb")))
 		return false;
