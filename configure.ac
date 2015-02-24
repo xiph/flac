@@ -143,7 +143,9 @@ AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
-AC_DEFINE_UNQUOTED([FLAC__HAS_X86INTRIN],${HAVE_X86INTRIN_H}, [Set to 1 if <x86intrin.h> is available.])
+if test "x$ac_cv_header_x86intrin_h" = xyes; then
+AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
+fi
 
 case "$host" in
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
@@ -208,7 +210,7 @@ AC_HELP_STRING([--disable-sse], [Disable SSE if the OS does not support SSE inst
 	no)  sse_os=no ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
 esac],[sse_os=yes])
-AM_CONDITIONAL(FLaC__SSE_OS, test "x$sse_os" = xtrue)
+AM_CONDITIONAL(FLaC__SSE_OS, test "x$sse_os" = xyes)
 if test "x$sse_os" = xyes ; then
 AC_DEFINE(FLAC__SSE_OS)
 AH_TEMPLATE(FLAC__SSE_OS, [define if your operating system supports SSE instructions])
