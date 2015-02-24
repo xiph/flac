@@ -11,4 +11,7 @@ set -x
 ./configure
 
 # Should do 'distcheck' here instead of 'check', but 'distcheck' is currently busted.
-V=1 make clean check
+V=1 make clean distcheck
+
+# Since we're doing 'make distcheck' we remove the generated source tarball.
+rm -f flac-*.tar.xz
