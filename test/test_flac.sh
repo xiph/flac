@@ -1167,6 +1167,8 @@ flac2flac ()
 	args="$3"
 	expect="$case-expect.meta"
 	echo -n "$2... "
+	# The 'make distcheck' target needs this.
+	chmod u+w $file
 	run_flac -f -o out.flac $args $file || die "ERROR encoding FLAC file"
 	run_metaflac --list out.flac | filter > out.meta || die "ERROR listing metadata of output FLAC file"
 	diff -q -w $expect out.meta 2>/dev/null || die "ERROR: metadata does not match expected $expect"
