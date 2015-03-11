@@ -105,19 +105,30 @@ AC_CHECK_SIZEOF(void*,1)
 asm_optimisation=no
 case "$host_cpu" in
 	amd64|x86_64)
-		if test $ac_cv_sizeof_voidp = 4 ; then
-			# This must be a 32 bit user space running on 64 bit kernel so treat
-			# this as ia32.
-			cpu_ia32=true
-			AC_DEFINE(FLAC__CPU_IA32)
-			AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
-		else
-			# x86_64 user space and kernel.
-			cpu_x86_64=true
-			AC_DEFINE(FLAC__CPU_X86_64)
-			AH_TEMPLATE(FLAC__CPU_X86_64, [define if building for x86_64])
-			fi
-		asm_optimisation=$asm_opt
+		case "$host" in
+			*gnux32)
+				# x32 user space and 64 bit kernel.
+				cpu_x86_64=true
+				AC_DEFINE(FLAC__CPU_X86_64)
+				AH_TEMPLATE(FLAC__CPU_X86_64, [define if building for x86_64])
+				asm_optimisation=$asm_opt
+				;;
+			*)
+				if test $ac_cv_sizeof_voidp = 4 ; then
+					# This must be a 32 bit user space running on 64 bit kernel so treat
+					# this as ia32.
+					cpu_ia32=true
+					AC_DEFINE(FLAC__CPU_IA32)
+					AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
+			else
+					# x86_64 user space and kernel.
+					cpu_x86_64=true
+					AC_DEFINE(FLAC__CPU_X86_64)
+					AH_TEMPLATE(FLAC__CPU_X86_64, [define if building for x86_64])
+				fi
+				asm_optimisation=$asm_opt
+				;;
+		esac
 		;;
 	i*86)
 		cpu_ia32=true
