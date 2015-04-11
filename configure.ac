@@ -399,10 +399,16 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 
 	if test "x$asm_optimisation$sse_os" = "xyesyes" ; then
 		XIPH_ADD_CFLAGS([-msse2])
-		XIPH_ADD_CFLAGS([-mstackrealign])
 		fi
 
 	fi
+
+case "$host_os" in
+	"mingw32"|"os2")
+	if test "$host_cpu" = "i686"; then
+		XIPH_ADD_CFLAGS([-mstackrealign])
+		fi
+	esac
 
 XIPH_ADD_CFLAGS([-Wextra])
 
