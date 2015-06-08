@@ -397,6 +397,10 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 		XIPH_ADD_CFLAGS([-fgnu89-inline])
 		fi
 
+	if test "x$GCC_MAJOR_VERSION$GCC_MINOR_VERSION" = "x47" ; then
+		XIPH_ADD_CFLAGS([-fno-inline-small-functions])
+		fi
+
 	if test "x$asm_optimisation$sse_os" = "xyesyes" ; then
 		XIPH_ADD_CFLAGS([-msse2])
 		fi
