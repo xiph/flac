@@ -28,6 +28,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include "share/compat.h"
+#include "share/safe_str.h"
 
 /* slightly different that strndup(): this always copies 'size' bytes starting from s into a NUL-terminated string. */
 static char *local__strndup_(const char *s, size_t size)
@@ -432,7 +433,7 @@ FLAC__StreamMetadata *grabbag__picture_from_specification(int type, const char *
 	if (error_message == 0)
 		return 0;
 
-	strncpy (mime_type, mime_type_in, sizeof (mime_type));
+	safe_strncpy(mime_type, mime_type_in, sizeof (mime_type));
 
 	*error_message = 0;
 
