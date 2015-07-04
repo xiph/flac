@@ -2203,10 +2203,11 @@ const char *get_decoded_outfilename(const char *infilename)
 const char *get_outfilename(const char *infilename, const char *suffix)
 {
 	if(0 == option_values.cmdline_forced_outfilename) {
-		static char buffer[4096]; /* @@@ bad MAGIC NUMBER */
+		static char buffer[4096];
 
 		if(0 == strcmp(infilename, "-") || option_values.force_to_stdout) {
-			safe_strncpy(buffer, "-", sizeof(buffer));
+			buffer [0] = '-';
+			buffer [1] = 0;
 		}
 		else {
 			char *p;
