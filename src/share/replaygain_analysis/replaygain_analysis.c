@@ -359,7 +359,6 @@ ResetSampleFrequency ( long samplefreq ) {
     if ( ! replaygainfilter)
         return INIT_GAIN_ANALYSIS_ERROR;
 
-    sampleWindow = (int) ceil ((double)samplefreq * (double)RMS_WINDOW_TIME / 1000.0);
     sampleWindow =
         (replaygainfilter->rate * RMS_WINDOW_TIME + 1000-1) / 1000;
 
