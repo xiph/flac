@@ -87,8 +87,7 @@ static FLAC__bool free_copy_bytes_(FLAC__byte **to, const FLAC__byte *from, unsi
 	FLAC__byte *copy;
 	FLAC__ASSERT(0 != to);
 	if(copy_bytes_(&copy, from, bytes)) {
-		if(*to)
-			free(*to);
+		free(*to);
 		*to = copy;
 		return true;
 	}
@@ -120,8 +119,7 @@ static FLAC__bool copy_cstring_(char **to, const char *from)
 	char *copy = strdup(from);
 	FLAC__ASSERT(to);
 	if(copy) {
-		if(*to)
-			free(*to);
+		free(*to);
 		*to = copy;
 		return true;
 	}
@@ -222,11 +220,9 @@ static void vorbiscomment_entry_array_delete_(FLAC__StreamMetadata_VorbisComment
 	FLAC__ASSERT(0 != object_array && num_comments > 0);
 
 	for(i = 0; i < num_comments; i++)
-		if(0 != object_array[i].entry)
-			free(object_array[i].entry);
+		free(object_array[i].entry);
 
-	if(0 != object_array)
-		free(object_array);
+	free(object_array);
 }
 
 static FLAC__StreamMetadata_VorbisComment_Entry *vorbiscomment_entry_array_copy_(const FLAC__StreamMetadata_VorbisComment_Entry *object_array, unsigned num_comments)
@@ -291,8 +287,7 @@ static FLAC__bool vorbiscomment_set_entry_(FLAC__StreamMetadata *object, FLAC__S
 		*dest = *src;
 	}
 
-	if(0 != save)
-		free(save);
+	free(save);
 
 	vorbiscomment_calculate_length_(object);
 	return true;
@@ -374,8 +369,7 @@ static void cuesheet_track_array_delete_(FLAC__StreamMetadata_CueSheet_Track *ob
 		}
 	}
 
-	if(0 != object_array)
-		free(object_array);
+	free(object_array);
 }
 
 static FLAC__StreamMetadata_CueSheet_Track *cuesheet_track_array_copy_(const FLAC__StreamMetadata_CueSheet_Track *object_array, unsigned num_tracks)
@@ -422,8 +416,7 @@ static FLAC__bool cuesheet_set_track_(FLAC__StreamMetadata *object, FLAC__Stream
 		*dest = *src;
 	}
 
-	if(0 != save)
-		free(save);
+	free(save);
 
 	cuesheet_calculate_length_(object);
 	return true;
@@ -509,8 +502,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 					return 0;
 				}
 				if(!copy_cstring_((char**)(&object->data.picture.description), "")) {
-					if(object->data.picture.mime_type)
-						free(object->data.picture.mime_type);
+					free(object->data.picture.mime_type);
 					free(object);
 					return 0;
 				}
@@ -925,8 +917,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetad
 		object->data.application.data = data;
 	}
 
-	if(0 != save)
-		free(save);
+	free(save);
 
 	object->length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN / 8 + length;
 	return true;
@@ -1315,8 +1306,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_delete_comment(FLAC__Str
 	vc = &object->data.vorbis_comment;
 
 	/* free the comment at comment_num */
-	if(0 != vc->comments[comment_num].entry)
-		free(vc->comments[comment_num].entry);
+	free(vc->comments[comment_num].entry);
 
 	/* move all comments > comment_num backward one space */
 	memmove(&vc->comments[comment_num], &vc->comments[comment_num+1], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(vc->num_comments-comment_num-1));
@@ -1595,8 +1585,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 		if(new_num_tracks < object->data.cue_sheet.num_tracks) {
 			unsigned i;
 			for(i = new_num_tracks; i < object->data.cue_sheet.num_tracks; i++)
-				if(0 != object->data.cue_sheet.tracks[i].indices)
-					free(object->data.cue_sheet.tracks[i].indices);
+				free(object->data.cue_sheet.tracks[i].indices);
 		}
 
 		if(new_size == 0) {
@@ -1664,8 +1653,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_delete_track(FLAC__StreamMeta
 	cs = &object->data.cue_sheet;
 
 	/* free the track at track_num */
-	if(0 != cs->tracks[track_num].indices)
-		free(cs->tracks[track_num].indices);
+	free(cs->tracks[track_num].indices);
 
 	/* move all tracks > track_num backward one space */
 	memmove(&cs->tracks[track_num], &cs->tracks[track_num+1], sizeof(FLAC__StreamMetadata_CueSheet_Track)*(cs->num_tracks-track_num-1));
@@ -1754,8 +1742,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_mime_type(FLAC__StreamMeta
 		object->data.picture.mime_type = mime_type;
 	}
 
-	if(0 != old)
-		free(old);
+	free(old);
 
 	object->length -= old_length;
 	object->length += new_length;
@@ -1786,8 +1773,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_description(FLAC__StreamMe
 		object->data.picture.description = description;
 	}
 
-	if(0 != old)
-		free(old);
+	free(old);
 
 	object->length -= old_length;
 	object->length += new_length;
@@ -1813,8 +1799,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata 
 		object->data.picture.data = data;
 	}
 
-	if(0 != old)
-		free(old);
+	free(old);
 
 	object->length -= object->data.picture.data_length;
 	object->data.picture.data_length = length;
