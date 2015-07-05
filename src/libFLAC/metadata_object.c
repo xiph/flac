@@ -574,6 +574,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 					FLAC__ASSERT(0 != object->data.vorbis_comment.comments);
 					to->data.vorbis_comment.comments = vorbiscomment_entry_array_copy_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
 					if(0 == to->data.vorbis_comment.comments) {
+						to->data.vorbis_comment.num_comments = 0;
 						FLAC__metadata_object_delete(to);
 						return 0;
 					}
@@ -1195,8 +1196,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 			free(object->data.vorbis_comment.comments);
 			object->data.vorbis_comment.comments = 0;
 		}
-		else if(0 == (object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size)))
+		else if(0 == (object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size))) {
+			object->data.vorbis_comment.num_comments = 0;
 			return false;
+		}
 
 		/* if growing, zero all the length/pointers of new elements */
 		if(new_size > old_size)
