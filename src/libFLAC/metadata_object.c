@@ -567,6 +567,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 					return 0;
 				}
 				if(object->data.vorbis_comment.num_comments == 0) {
+					FLAC__ASSERT(0 == object->data.vorbis_comment.comments);
 					to->data.vorbis_comment.comments = 0;
 				}
 				else {

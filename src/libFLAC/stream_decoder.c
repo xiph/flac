@@ -1776,13 +1776,15 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 					obj->comments[i].entry = 0;
 			}
 		}
-		else
-			obj->comments = 0;
 	}
 
   skip:
 	if (length > 0) {
-		/* This will only happen on files with invalid data in comments */
+		/* length > 0 can only happen on files with invalid data in comments */
+		if(obj->num_comments < 1) {
+			free(obj->comments);
+			obj->comments = NULL;
+		}
 		if(!FLAC__bitreader_skip_byte_block_aligned_no_crc(decoder->private_->input, length))
 			return false; /* read_callback_ sets the state for us */
 	}
