@@ -655,12 +655,16 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 			if(0 != object->data.vorbis_comment.comments) {
 				FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
 				vorbiscomment_entry_array_delete_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
+				object->data.vorbis_comment.comments = 0;
+				object->data.vorbis_comment.num_comments = 0;
 			}
 			break;
 		case FLAC__METADATA_TYPE_CUESHEET:
 			if(0 != object->data.cue_sheet.tracks) {
 				FLAC__ASSERT(object->data.cue_sheet.num_tracks > 0);
 				cuesheet_track_array_delete_(object->data.cue_sheet.tracks, object->data.cue_sheet.num_tracks);
+				object->data.cue_sheet.tracks = 0;
+				object->data.cue_sheet.num_tracks = 0;
 			}
 			break;
 		case FLAC__METADATA_TYPE_PICTURE:
