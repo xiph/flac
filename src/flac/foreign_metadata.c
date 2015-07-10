@@ -198,8 +198,11 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 	}
 	if(!append_block_(fm, offset, 12, error))
 		return false;
-	if(!fm->is_rf64 || unpack32le_(buffer+4) != 0xffffffffu)
+	if(!fm->is_rf64 || unpack32le_(buffer+4) != 0xffffffffu) {
 		eof_offset = (FLAC__off_t)8 + (FLAC__off_t)unpack32le_(buffer+4);
+		if(eof_offset & 1) /* fix odd RIFF size */
+			eof_offset++;
+	}
 	while(!feof(f)) {
 		FLAC__uint32 size;
 		if((offset = ftello(f)) < 0) {
