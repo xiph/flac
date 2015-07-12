@@ -240,6 +240,8 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 # else
 		disable_sse(info);
 # endif
+#elif defined(__ANDROID__) || defined(ANDROID)
+		/* no need to check OS SSE support */
 #elif defined(__linux__)
 		int sse = 0;
 		struct sigaction sigill_save;
