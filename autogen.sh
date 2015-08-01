@@ -1,11 +1,11 @@
-#!/bin/bash
+#!/bin/sh
 # Run this to set up the build system: configure, makefiles, etc.
 # We trust that the user has a recent enough autoconf & automake setup
 # (not older than a few years...)
 
 test_program_errors=0
 
-function test_program {
+test_program () {
 	if ! command -v $1 >/dev/null 2>&1 ; then
 		echo "Missing program '$1'."
 		test_program_errors=1
