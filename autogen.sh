@@ -3,6 +3,18 @@
 # We trust that the user has a recent enough autoconf & automake setup
 # (not older than a few years...)
 
+use_symlinks=" --symlink"
+
+case $1 in
+	--no-symlink*)
+		use_symlinks=""
+		echo "Copying autotool files instead of using symlinks."
+		;;
+	*)
+		echo "Using symlinks to autotool files (use --no-symlinks to copy instead)."
+		;;
+	esac
+
 test_program_errors=0
 
 test_program () {
@@ -40,5 +52,5 @@ test -n "$srcdir" && cd "$srcdir"
 echo "Updating build configuration files for FLAC, please wait...."
 
 touch config.rpath
-autoreconf --install --symlink --force
+autoreconf --install $use_symlinks --force
 #./configure "$@" && echo
