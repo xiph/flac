@@ -121,13 +121,22 @@ int get_utf8_argv(int *argc, char ***argv)
 	int ret, i;
 
 	if ((handle = LoadLibrary("msvcrt.dll")) == NULL) return 1;
-	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) return 1;
+	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) {
+		FreeLibrary(handle);
+		return 1;
+	}
 	i = 0;
 	/* if __wgetmainargs expands wildcards then it also erroneously converts \\?\c:\path\to\file.flac to \\file.flac */
-	if (wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) return 1;
-	if ((utf8argv = (char **)calloc(wargc, sizeof(char*))) == NULL) return 1;
-	ret = 0;
+	if (wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) {
+		FreeLibrary(handle);
+		return 1;
+	}
+	if ((utf8argv = (char **)calloc(wargc, sizeof(char*))) == NULL) {
+		FreeLibrary(handle);
+		return 1;
+	}
 
+	ret = 0;
 	for (i=0; i<wargc; i++) {
 		if ((utf8argv[i] = utf8_from_wchar(wargv[i])) == NULL) {
 			ret = 1;
@@ -135,7 +144,7 @@ int get_utf8_argv(int *argc, char ***argv)
 		}
 	}
 
-	FreeLibrary(handle);
+	FreeLibrary(handle); /* do not free it when wargv or wenv are still in use */
 
 	if (ret == 0) {
 		win_utf8_io_codepage = CP_UTF8;
