@@ -409,7 +409,7 @@ FLAC__bool flac__utils_get_channel_mask_tag(const FLAC__StreamMetadata *object, 
 		return false;
 	if(0 == (p = strchr((const char *)object->data.vorbis_comment.comments[offset].entry, '='))) /* should never happen, but just in case */
 		return false;
-	if(strncmp(p, "=0x", 3))
+	if(FLAC__STRNCASECMP(p, "=0x", 3))
 		return false;
 	if(sscanf(p+3, "%x", &val) != 1)
 		return false;

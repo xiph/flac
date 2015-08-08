@@ -1023,7 +1023,7 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 				if(strlen(r) == sizeof (out->entries[entry].application_id)) {
 					memcpy(out->entries[entry].application_id, r, sizeof (out->entries[entry].application_id));
 				}
-				else if(strlen(r) == 10 && strncmp(r, "0x", 2) == 0 && strspn(r+2, "0123456789ABCDEFabcdef") == 8) {
+				else if(strlen(r) == 10 && FLAC__STRNCASECMP(r, "0x", 2) == 0 && strspn(r+2, "0123456789ABCDEFabcdef") == 8) {
 					FLAC__uint32 x = strtoul(r+2, 0, 16);
 					out->entries[entry].application_id[3] = (FLAC__byte)(x & 0xff);
 					out->entries[entry].application_id[2] = (FLAC__byte)((x>>=8) & 0xff);
