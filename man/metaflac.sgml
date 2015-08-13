@@ -380,6 +380,16 @@ manpage.1: manpage.sgml
         </listitem>
       </varlistentry>
       <varlistentry>
+	<term><option>--scan-replay-gain</option></term>
+        <listitem>
+	  <para>
+            
+	    Like --add-replay-gain, but only analyzes the files rather
+	    than writing them to the tags.
+	  </para>
+        </listitem>
+      </varlistentry>
+      <varlistentry>
 	<term><option>--remove-replay-gain</option></term>
         <listitem>
 	  <para>

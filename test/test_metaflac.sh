@@ -274,6 +274,10 @@ run_metaflac --remove-replay-gain $flacfile
 check_flac
 metaflac_test case42 "--remove-replay-gain" "--list"
 
+run_metaflac --scan-replay-gain $flacfile
+check_flac
+metaflac_test case42 "--scan-replay-gain" "--list"
+
 # CUESHEET blocks
 cs_in=${top_srcdir}/test/cuesheets/good.000.cue
 cs_out=metaflac.cue
