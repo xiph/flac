@@ -126,6 +126,7 @@ for ACTION in $REPLAYGAIN_FREQ ; do
     [ $MULTIPLE -eq 1 -o -n "${REPLAYGAIN_FREQ##* $RATE/*}" ] || break
     echo -n "Testing FLAC replaygain $RATE ($FREQ x $MULTIPLE) ... "
     tonegenerator $RATE $flacfile
+    run_metaflac --scan-replay-gain $flacfile
     run_metaflac --add-replay-gain $flacfile
     run_metaflac --list $flacfile | grep REPLAYGAIN.*GAIN= |
     while read -r REPLAYGAIN ; do

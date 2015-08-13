@@ -79,6 +79,7 @@ struct share__option long_options_[] = {
 	{ "export-picture-to", 1, 0, 0 },
 	{ "add-seekpoint", 1, 0, 0 },
 	{ "add-replay-gain", 0, 0, 0 },
+	{ "scan-replay-gain", 0, 0, 0 },
 	{ "remove-replay-gain", 0, 0, 0 },
 	{ "add-padding", 1, 0, 0 },
 	/* major operations */
@@ -611,6 +612,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	}
 	else if(0 == strcmp(opt, "add-replay-gain")) {
 		(void) append_shorthand_operation(options, OP__ADD_REPLAY_GAIN);
+	}
+	else if(0 == strcmp(opt, "scan-replay-gain")) {
+		(void) append_shorthand_operation(options, OP__SCAN_REPLAY_GAIN);
 	}
 	else if(0 == strcmp(opt, "remove-replay-gain")) {
 		const FLAC__byte * const tags[5] = {

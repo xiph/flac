@@ -44,7 +44,7 @@ static FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, co
 static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
-static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime);
+static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime, FLAC__bool scan);
 static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
 
 static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number);
@@ -266,7 +266,9 @@ FLAC__bool do_shorthand_operations(const CommandLineOptions *options)
 	if(ok && options->num_files > 0) {
 		for(i = 0; i < options->ops.num_operations; i++) {
 			if(options->ops.operations[i].type == OP__ADD_REPLAY_GAIN)
-				ok = do_shorthand_operation__add_replay_gain(options->filenames, options->num_files, options->preserve_modtime);
+				ok = do_shorthand_operation__add_replay_gain(options->filenames, options->num_files, options->preserve_modtime, false);
+			else if(options->ops.operations[i].type == OP__SCAN_REPLAY_GAIN)
+				ok = do_shorthand_operation__add_replay_gain(options->filenames, options->num_files, options->preserve_modtime, true);
 		}
 	}
 
@@ -375,7 +377,8 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 			ok = do_shorthand_operation__add_seekpoints(filename, chain, operation->argument.add_seekpoint.specification, needs_write);
 			break;
 		case OP__ADD_REPLAY_GAIN:
-			/* this command is always executed last */
+		case OP__SCAN_REPLAY_GAIN:
+			/* these commands are always executed last */
 			ok = true;
 			break;
 		case OP__ADD_PADDING:
@@ -390,7 +393,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime)
+FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime, FLAC__bool scan)
 {
 	FLAC__StreamMetadata streaminfo;
 	float *title_gains = 0, *title_peaks = 0;
@@ -465,11 +468,15 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 	grabbag__replaygain_get_album(&album_gain, &album_peak);
 
 	for(i = 0; i < num_files; i++) {
-		if(0 != (error = grabbag__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
-			flac_fprintf(stderr, "%s: ERROR: writing tags (%s)\n", filenames[i], error);
-			free(title_gains);
-			free(title_peaks);
-			return false;
+		if(!scan) {
+			if(0 != (error = grabbag__replaygain_store_to_file(filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i], preserve_modtime))) {
+				flac_fprintf(stderr, "%s: ERROR: writing tags (%s)\n", filenames[i], error);
+				free(title_gains);
+				free(title_peaks);
+				return false;
+			}
+		} else {
+			flac_fprintf(stdout, "%s: %f %f %f %f\n", filenames[i], album_gain, album_peak, title_gains[i], title_peaks[i]);
 		}
 	}
 
