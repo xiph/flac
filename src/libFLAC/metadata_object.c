@@ -1200,9 +1200,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 			free(object->data.vorbis_comment.comments);
 			object->data.vorbis_comment.comments = 0;
 		}
-		else if(0 == (object->data.vorbis_comment.comments = safe_realloc_(object->data.vorbis_comment.comments, new_size))) {
-			object->data.vorbis_comment.num_comments = 0;
-			return false;
+		else {
+			FLAC__StreamMetadata_VorbisComment_Entry *oldptr = object->data.vorbis_comment.comments;
+			if(0 == (object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size))) {
+				vorbiscomment_entry_array_delete_(oldptr, object->data.vorbis_comment.num_comments);
+				object->data.vorbis_comment.num_comments = 0;
+				return false;
+			}
 		}
 
 		/* if growing, zero all the length/pointers of new elements */
