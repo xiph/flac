@@ -39,6 +39,7 @@
 #include <string.h> /* for memset() */
 #include "FLAC/assert.h"
 #include "FLAC/format.h"
+#include "share/alloc.h"
 #include "share/compat.h"
 #include "private/format.h"
 #include "private/macros.h"
@@ -573,17 +574,10 @@ FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_s
 	FLAC__ASSERT(object->capacity_by_order > 0 || (0 == object->parameters && 0 == object->raw_bits));
 
 	if(object->capacity_by_order < max_partition_order) {
-		void *oldptr;
-		oldptr = object->parameters;
-		if(0 == (object->parameters = realloc(object->parameters, sizeof(unsigned)*(1 << max_partition_order)))) {
-			free(oldptr);
+		if(0 == (object->parameters = safe_realloc_(object->parameters, sizeof(unsigned)*(1 << max_partition_order))))
 			return false;
-		}
-		oldptr = object->raw_bits;
-		if(0 == (object->raw_bits = realloc(object->raw_bits, sizeof(unsigned)*(1 << max_partition_order)))) {
-			free(oldptr);
+		if(0 == (object->raw_bits = safe_realloc_(object->raw_bits, sizeof(unsigned)*(1 << max_partition_order))))
 			return false;
-		}
 		memset(object->raw_bits, 0, sizeof(unsigned)*(1 << max_partition_order));
 		object->capacity_by_order = max_partition_order;
 	}

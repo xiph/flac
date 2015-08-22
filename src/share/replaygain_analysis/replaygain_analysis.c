@@ -97,6 +97,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "share/alloc.h"
 #include "share/compat.h"
 #include "share/replaygain_analysis.h"
 
@@ -339,13 +340,8 @@ CreateGainFilter ( long samplefreq )
 static void*
 ReallocateWindowBuffer(unsigned window_size, flac_float_t **window_buffer)
 {
-    void *p = realloc(
-        *window_buffer, sizeof(**window_buffer) * (window_size + MAX_ORDER));
-
-    if (p)
-        *window_buffer = p;
-
-    return p;
+    *window_buffer = safe_realloc_(*window_buffer, sizeof(**window_buffer) * (window_size + MAX_ORDER));
+    return *window_buffer;
 }
 
 static int
