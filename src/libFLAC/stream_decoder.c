@@ -2115,7 +2115,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 #if 1
 						mid = decoder->private_->output[0][i];
 						side = decoder->private_->output[1][i];
-						mid <<= 1;
+						mid = ((uint32_t) mid) << 1;
 						mid |= (side & 1); /* i.e. if 'side' is odd... */
 						decoder->private_->output[0][i] = (mid + side) >> 1;
 						decoder->private_->output[1][i] = (mid - side) >> 1;
@@ -2541,8 +2541,10 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, unsigned channel, unsign
 
 	if(wasted_bits && do_full_decode) {
 		x = decoder->private_->frame.subframes[channel].wasted_bits;
-		for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
-			decoder->private_->output[channel][i] <<= x;
+		for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+			uint32_t val = decoder->private_->output[channel][i];
+			decoder->private_->output[channel][i] = (val << x);
+		}
 	}
 
 	return true;
