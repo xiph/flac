@@ -338,7 +338,7 @@ FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture
 		printf("FAILED, data_length mismatch, expected %u, got %u\n", block->data_length, blockcopy->data_length);
 		return false;
 	}
-	if(memcmp(blockcopy->data, block->data, block->data_length)) {
+	if(block->data_length > 0 && memcmp(blockcopy->data, block->data, block->data_length)) {
 		printf("FAILED, data mismatch\n");
 		return false;
 	}

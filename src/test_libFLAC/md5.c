@@ -167,8 +167,7 @@ static FLAC__byte target_digests [8][4][16] =
 static FLAC__bool test_md5_codec(void)
 {
 	FLAC__int32 arrays[MAX_CHANNEL_COUNT][MD5_SAMPLE_COUNT], *pointer[MAX_CHANNEL_COUNT], **signal;
-	FLAC__int32 seed = 0x12345679;
-	unsigned chan, byte_size;
+	unsigned chan, byte_size, seed = 0x12345679;
 
 	/* Set up signal data using a trival Linear Congruent PRNG. */
 	signal = &pointer[0];
