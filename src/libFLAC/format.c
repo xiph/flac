@@ -275,6 +275,9 @@ FLAC_API unsigned FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *se
 
 	FLAC__ASSERT(0 != seek_table);
 
+	if (seek_table->num_points == 0)
+		return 0;
+
 	/* sort the seekpoints */
 	qsort(seek_table->points, seek_table->num_points, sizeof(FLAC__StreamMetadata_SeekPoint), (int (*)(const void *, const void *))seekpoint_compare_);
 
