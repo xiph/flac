@@ -349,27 +349,15 @@ void FLAC__fixed_compute_residual(const FLAC__int32 data[], unsigned data_len, u
 			break;
 		case 2:
 			for(i = 0; i < idata_len; i++)
-#if 1 /* OPT: may be faster with some compilers on some systems */
-				residual[i] = data[i] - (data[i-1] << 1) + data[i-2];
-#else
 				residual[i] = data[i] - 2*data[i-1] + data[i-2];
-#endif
 			break;
 		case 3:
 			for(i = 0; i < idata_len; i++)
-#if 1 /* OPT: may be faster with some compilers on some systems */
-				residual[i] = data[i] - (((data[i-1]-data[i-2])<<1) + (data[i-1]-data[i-2])) - data[i-3];
-#else
 				residual[i] = data[i] - 3*data[i-1] + 3*data[i-2] - data[i-3];
-#endif
 			break;
 		case 4:
 			for(i = 0; i < idata_len; i++)
-#if 1 /* OPT: may be faster with some compilers on some systems */
-				residual[i] = data[i] - ((data[i-1]+data[i-3])<<2) + ((data[i-2]<<2) + (data[i-2]<<1)) + data[i-4];
-#else
 				residual[i] = data[i] - 4*data[i-1] + 6*data[i-2] - 4*data[i-3] + data[i-4];
-#endif
 			break;
 		default:
 			FLAC__ASSERT(0);
@@ -391,27 +379,15 @@ void FLAC__fixed_restore_signal(const FLAC__int32 residual[], unsigned data_len,
 			break;
 		case 2:
 			for(i = 0; i < idata_len; i++)
-#if 1 /* OPT: may be faster with some compilers on some systems */
-				data[i] = residual[i] + (data[i-1]<<1) - data[i-2];
-#else
 				data[i] = residual[i] + 2*data[i-1] - data[i-2];
-#endif
 			break;
 		case 3:
 			for(i = 0; i < idata_len; i++)
-#if 1 /* OPT: may be faster with some compilers on some systems */
-				data[i] = residual[i] + (((data[i-1]-data[i-2])<<1) + (data[i-1]-data[i-2])) + data[i-3];
-#else
 				data[i] = residual[i] + 3*data[i-1] - 3*data[i-2] + data[i-3];
-#endif
 			break;
 		case 4:
 			for(i = 0; i < idata_len; i++)
-#if 1 /* OPT: may be faster with some compilers on some systems */
-				data[i] = residual[i] + ((data[i-1]+data[i-3])<<2) - ((data[i-2]<<2) + (data[i-2]<<1)) - data[i-4];
-#else
 				data[i] = residual[i] + 4*data[i-1] - 6*data[i-2] + 4*data[i-3] - data[i-4];
-#endif
 			break;
 		default:
 			FLAC__ASSERT(0);
