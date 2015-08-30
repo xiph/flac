@@ -2432,7 +2432,7 @@ FLAC__bool format_input(FLAC__int32 *dest[], unsigned wide_samples, FLAC__bool i
 			unsigned b;
 			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 				for(channel = 0; channel < channels; channel++, sample++) {
-					FLAC__int32 t;
+					uint32_t t;
 					t  = ubuffer.s8[b++]; t <<= 8;
 					t |= ubuffer.u8[b++]; t <<= 8;
 					t |= ubuffer.u8[b++];
