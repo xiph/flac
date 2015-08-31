@@ -812,7 +812,8 @@ namespace FLAC {
 				entry_.length += field_name_length_;
 				memcpy(entry_.entry + entry_.length, "=", 1);
 				entry_.length += 1;
-				memcpy(entry_.entry + entry_.length, field_value_, field_value_length_);
+				if (field_value_length_ > 0)
+					memcpy(entry_.entry + entry_.length, field_value_, field_value_length_);
 				entry_.length += field_value_length_;
 				entry_.entry[entry_.length] = '\0';
 				is_valid_ = true;
