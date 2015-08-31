@@ -74,3 +74,4 @@ test/metaflac.flac
 test/picture.diff
 test/picture.log
 .dirstamp
+microbench/benchmark_residual

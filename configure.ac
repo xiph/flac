@@ -492,6 +492,7 @@ AC_CONFIG_FILES([ \
 	objs/release/Makefile \
 	objs/release/bin/Makefile \
 	objs/release/lib/Makefile \
+	microbench/Makefile
 ])
 AC_OUTPUT
 
