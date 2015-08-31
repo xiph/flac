@@ -67,6 +67,9 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFLAC_dynamic", "src\libF
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFLAC_static", "src\libFLAC\libFLAC_static.vcproj", "{4CEFBC84-C215-11DB-8314-0800200C9A66}"
+	ProjectSection(ProjectDependencies) = postProject
+		{4CEFBE02-C215-11DB-8314-0800200C9A66} = {4CEFBE02-C215-11DB-8314-0800200C9A66}
+	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFLAC++_dynamic", "src\libFLAC++\libFLAC++_dynamic.vcproj", "{4CEFBC85-C215-11DB-8314-0800200C9A66}"
 	ProjectSection(ProjectDependencies) = postProject
