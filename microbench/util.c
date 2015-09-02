@@ -29,13 +29,46 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <stdlib.h>
+#include "util.h"
+
+#if defined _WIN32
+
+#include <windows.h>
+
+static double
+counter_diff (const LARGE_INTEGER * start, const LARGE_INTEGER * end)
+{
+	LARGE_INTEGER diff, freq;
+
+	QueryPerformanceFrequency(&freq);
+	diff.QuadPart = end->QuadPart - start->QuadPart;
+
+	return (double)diff.QuadPart/(double)freq.QuadPart;
+}
+
+double
+benchmark_function (void (*testfunc) (void), unsigned count)
+{
+	LARGE_INTEGER start, end;
+	unsigned k;
+
+	QueryPerformanceCounter (&start) ;
+
+	for (k = 0 ; k < count ; k++)
+		testfunc();
+
+	QueryPerformanceCounter (&end) ;
+
+	return counter_diff (&start, &end) / count ;
+} /* benchmark_function */
+
+#else
+
 #define _GNU_SOURCE
 
-#include <stdlib.h>
 #include <time.h>
 #include <sys/time.h>
-
-#include "util.h"
 
 static double
 timespec_diff (const struct timespec * start, const struct timespec * end)
@@ -67,6 +100,8 @@ benchmark_function (void (*testfunc) (void), unsigned count)
 
 	return timespec_diff (&start, &end) / count ;
 } /* benchmark_function */
+
+#endif
 
 static int
 double_cmp (const void * a, const void * b)
