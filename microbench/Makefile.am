@@ -31,7 +31,8 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
 
-noinst_PROGRAMS = benchmark_residual
+noinst_HEADERS = util.h
 
+noinst_PROGRAMS = benchmark_residual
 
 benchmark_residual_SOURCES = benchmark_residual.c util.c
