@@ -1135,7 +1135,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			if(shift && !decoder_session->replaygain.apply) {
 				for(wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++)
-						((FLAC__int32**)buffer)[channel][wide_sample] <<= shift;/*@@@@@@un-const'ing the buffer is hacky but safe*/
+						((uint32_t **)buffer)[channel][wide_sample] <<= shift;/*@@@@@@un-const'ing the buffer is hacky but safe*/
 			}
 			if(decoder_session->replaygain.apply) {
 				bytes_to_write = FLAC__replaygain_synthesis__apply_gain(
