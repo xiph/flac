@@ -175,10 +175,13 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 	}
 	else { /* bps == 16 */
 		unsigned char c[2];
+		uint16_t value;
 		for(i = 0; i < samples; i++) {
 			for(j = 0; j < channels; j++) {
-				if (fread(&c, 1, 2, f) == 2)
-					pcm[j][i] = ((int)((signed char)c[0])) << 8 | (int)c[1];
+				if (fread(&c, 1, 2, f) == 2) {
+					value = (c[0] << 8) | c[1];
+					pcm[j][i] = value & 0x8000 ? 0xffff0000 | value : value;
+				}
 			}
 		}
 	}
