@@ -43,7 +43,7 @@
 static FLAC__bool is_big_endian_host;
 
 
-static FLAC__bool write_little_endian(FILE *f, FLAC__int32 x, size_t bytes)
+static FLAC__bool write_little_endian_unsigned(FILE *f, FLAC__uint32 x, size_t bytes)
 {
 	while(bytes) {
 		if(fputc(x, f) == EOF)
@@ -52,6 +52,11 @@ static FLAC__bool write_little_endian(FILE *f, FLAC__int32 x, size_t bytes)
 		bytes--;
 	}
 	return true;
+}
+
+static FLAC__bool write_little_endian_signed(FILE *f, FLAC__int32 x, size_t bytes)
+{
+	return write_little_endian_unsigned(f, (FLAC__uint32) x, bytes);
 }
 
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
@@ -595,7 +600,7 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_raw(const char *filename, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+static FLAC__bool generate_signed_raw(const char *filename, unsigned channels, unsigned bytes_per_sample, unsigned samples)
 {
 	const FLAC__int32 full_scale = (1 << (bytes_per_sample*8-1)) - 1;
 	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
@@ -612,7 +617,37 @@ static FLAC__bool generate_raw(const char *filename, unsigned channels, unsigned
 		for(j = 0; j < channels; j++) {
 			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 			FLAC__int32 v = (FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8);
-			if(!write_little_endian(f, v, bytes_per_sample))
+			if(!write_little_endian_signed(f, v, bytes_per_sample))
+				goto foo;
+		}
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
+static FLAC__bool generate_unsigned_raw(const char *filename, unsigned channels, unsigned bytes_per_sample, unsigned samples)
+{
+	const FLAC__int32 full_scale = (1 << (bytes_per_sample*8-1)) - 1;
+	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
+	const double delta1 = 2.0 * M_PI / ( 44100.0 / f1);
+	const double delta2 = 2.0 * M_PI / ( 44100.0 / f2);
+	const double half_scale = 0.5 * full_scale;
+	double theta1, theta2;
+	FILE *f;
+	unsigned i, j;
+
+	if(0 == (f = flac_fopen(filename, "wb")))
+		return false;
+
+	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		for(j = 0; j < channels; j++) {
+			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
+			FLAC__int32 v = (FLAC__int32)(half_scale + val + 0.5) + ((GET_RANDOM_BYTE>>4)-8);
+			if(!write_little_endian_unsigned(f, v, bytes_per_sample))
 				goto foo;
 		}
 	}
@@ -815,7 +850,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		for(j = 0; j < channels; j++) {
 			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 			FLAC__int32 v = ((FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8)) << shift;
-			if(!write_little_endian(f, v, bytes_per_sample))
+			if(!write_little_endian_signed(f, v, bytes_per_sample))
 				goto foo;
 		}
 	}
@@ -1239,8 +1274,11 @@ int main(int argc, char *argv[])
 					return 1;
 
 				if(bits_per_sample % 8 == 0) {
-					flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.raw", channels, bits_per_sample, nsamples[samples]);
-					if(!generate_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
+					flac_snprintf(fn, sizeof (fn), "rt-%u-%u-signed-%u.raw", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_signed_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
+						return 1;
+					flac_snprintf(fn, sizeof (fn), "rt-%u-%u-unsigned-%u.raw", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_unsigned_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
 						return 1;
 				}
 			}
