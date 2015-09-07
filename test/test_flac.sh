@@ -162,10 +162,12 @@ rt_test_raw ()
 	extra="$2"
 	channels=`echo $f | awk -F- '{print $2}'`
 	bps=`echo $f | awk -F- '{print $3}'`
+	sign=`echo $f | awk -F- '{print $4}'`
+
 	echo -n "round-trip test ($f) encode... "
-	run_flac --force --verify --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	run_flac --force --verify --force-raw-format --endian=little --sign=$sign --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo -n "decode... "
-	run_flac --force --decode --force-raw-format --endian=little --sign=signed -o rt.raw $extra rt.flac || die "ERROR"
+	run_flac --force --decode --force-raw-format --endian=little --sign=$sign -o rt.raw $extra rt.flac || die "ERROR"
 	echo -n "compare... "
 	cmp $f rt.raw || die "ERROR: file mismatch"
 	echo "OK"
