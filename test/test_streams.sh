@@ -42,7 +42,7 @@ run_flac ()
 
 echo "Generating streams..."
 if [ ! -f wacky1.wav ] ; then
-	test_streams || die "ERROR during test_streams"
+	test_streams || die "ERROR: missing files"
 fi
 
 #
