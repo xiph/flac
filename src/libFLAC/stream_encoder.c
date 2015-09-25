@@ -3178,7 +3178,10 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fracti
 	 */
 	if(do_independent) {
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
-			const unsigned w = get_wasted_bits_(encoder->private_->integer_signal[channel], encoder->protected_->blocksize);
+			unsigned w = get_wasted_bits_(encoder->private_->integer_signal[channel], encoder->protected_->blocksize);
+			if (w > encoder->protected_->bits_per_sample) {
+				w = encoder->protected_->bits_per_sample;
+			}
 			encoder->private_->subframe_workspace[channel][0].wasted_bits = encoder->private_->subframe_workspace[channel][1].wasted_bits = w;
 			encoder->private_->subframe_bps[channel] = encoder->protected_->bits_per_sample - w;
 		}
@@ -3186,7 +3189,10 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fracti
 	if(do_mid_side) {
 		FLAC__ASSERT(encoder->protected_->channels == 2);
 		for(channel = 0; channel < 2; channel++) {
-			const unsigned w = get_wasted_bits_(encoder->private_->integer_signal_mid_side[channel], encoder->protected_->blocksize);
+			unsigned w = get_wasted_bits_(encoder->private_->integer_signal_mid_side[channel], encoder->protected_->blocksize);
+			if (w > encoder->protected_->bits_per_sample) {
+				w = encoder->protected_->bits_per_sample;
+			}
 			encoder->private_->subframe_workspace_mid_side[channel][0].wasted_bits = encoder->private_->subframe_workspace_mid_side[channel][1].wasted_bits = w;
 			encoder->private_->subframe_bps_mid_side[channel] = encoder->protected_->bits_per_sample - w + (channel==0? 0:1);
 		}

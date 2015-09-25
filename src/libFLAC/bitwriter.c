@@ -309,10 +309,12 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__ui
 	/* WATCHOUT: code does not work with <32bit words; we can make things much faster with this assertion */
 	FLAC__ASSERT(FLAC__BITS_PER_WORD >= 32);
 
-	FLAC__ASSERT(0 != bw);
-	FLAC__ASSERT(0 != bw->buffer);
+	if(bw == 0 || bw->buffer == 0)
+		return false;
 
-	FLAC__ASSERT(bits <= 32);
+	if (bits > 32)
+		return false;
+
 	if(bits == 0)
 		return true;
 
