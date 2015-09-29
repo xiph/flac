@@ -29,6 +29,8 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include <config.h>
+
 #include <stdlib.h>
 #include "util.h"
 
@@ -59,6 +61,36 @@ benchmark_function (void (*testfunc) (void), unsigned count)
 		testfunc();
 
 	QueryPerformanceCounter (&end) ;
+
+	return counter_diff (&start, &end) / count ;
+} /* benchmark_function */
+
+#elif defined FLAC__SYS_DARWIN
+
+#include <mach/mach_time.h>
+
+static double
+counter_diff (const uint64_t * start, const uint64_t * end)
+{
+	mach_timebase_info_data_t t_info;
+	mach_timebase_info(&t_info);
+	uint64_t duration = *end - *start;
+
+	return duration * ((double)t_info.numer/(double)t_info.denom);
+}
+
+double
+benchmark_function (void (*testfunc) (void), unsigned count)
+{
+	uint64_t start, end;
+	unsigned k;
+
+	start = mach_absolute_time();
+
+	for (k = 0 ; k < count ; k++)
+		testfunc();
+
+	end = mach_absolute_time();
 
 	return counter_diff (&start, &end) / count ;
 } /* benchmark_function */
