@@ -97,8 +97,6 @@ benchmark_function (void (*testfunc) (void), unsigned count)
 
 #else
 
-#define _GNU_SOURCE
-
 #include <time.h>
 #include <sys/time.h>
 
