@@ -103,7 +103,7 @@ metaflac_test ()
 	desc="$2"
 	args="$3"
 	expect="$case-expect.meta"
-	echo -n "test $1: $desc... "
+	echo $ECHO_N "test $1: $desc... " $ECHO_C
 	run_metaflac $args $flacfile | filter > $testdir/out.meta || die "ERROR running metaflac"
 	diff -w $expect $testdir/out.meta > /dev/null 2>&1 || die "ERROR: metadata does not match expected $expect"
 	echo OK
@@ -339,13 +339,13 @@ done
 [ $ncase = 60 ] || die "expected case# to be 60"
 
 fn=export-picture-check
-echo -n "Testing --export-picture-to... "
+echo $ECHO_N "Testing --export-picture-to... " $ECHO_C
 run_metaflac --export-picture-to=$fn $flacfile
 check_flac
 cmp $fn ${top_srcdir}/test/pictures/0.gif || die "ERROR, exported picture file and original differ"
 echo OK
 rm -f $fn
-echo -n "Testing --block-number --export-picture-to... "
+echo $ECHO_N "Testing --block-number --export-picture-to... " $ECHO_C
 run_metaflac --block-number=9 --export-picture-to=$fn $flacfile
 check_flac
 cmp $fn ${top_srcdir}/test/pictures/0.png || die "ERROR, exported picture file and original differ"
@@ -363,7 +363,7 @@ check_flac
 metaflac_test case62 "--import-picture-from" "--list"
 
 # UNKNOWN blocks
-echo -n "Testing FLAC file with unknown metadata... "
+echo $ECHO_N "Testing FLAC file with unknown metadata... " $ECHO_C
 cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
 # remove the VORBIS_COMMENT block so vendor string changes don't interfere with the comparison:
 run_metaflac --remove --block-type=VORBIS_COMMENT --dont-use-padding $flacfile

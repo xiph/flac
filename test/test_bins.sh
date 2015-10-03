@@ -49,13 +49,13 @@ test_file ()
 	bps=$3
 	encode_options="$4"
 
-	echo -n "$name.bin (--channels=$channels --bps=$bps $encode_options): encode..."
+	echo $ECHO_N "$name.bin (--channels=$channels --bps=$bps $encode_options): encode..." $ECHO_C
 	cmd="run_flac --verify --silent --force --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding $name.bin"
 	echo "### ENCODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
 	$cmd 2>>./streams.log || die "ERROR during encode of $name"
 
-	echo -n "decode..."
+	echo $ECHO_N "decode..." $ECHO_C
 	cmd="run_flac --silent --force --endian=big --sign=signed --decode --force-raw-format $name.flac";
 	echo "### DECODE $name #######################################################" >> ./streams.log
 	echo "###    cmd=$cmd" >> ./streams.log
@@ -65,7 +65,7 @@ test_file ()
 	ls -1l $name.flac >> ./streams.log
 	ls -1l $name.raw >> ./streams.log
 
-	echo -n "compare..."
+	echo $ECHO_N "compare..." $ECHO_C
 	cmp $name.bin $name.raw || die "ERROR during compare of $name"
 
 	echo OK

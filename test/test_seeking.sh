@@ -63,7 +63,7 @@ run_test_seeking ()
 	fi
 }
 
-echo -n "Checking for --ogg support in flac ... "
+echo $ECHO_N "Checking for --ogg support in flac ... " $ECHO_C
 if flac${EXE} --ogg --no-error-on-compression-fail --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
 	has_ogg=yes;
 else
