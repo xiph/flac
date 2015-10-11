@@ -53,7 +53,11 @@ ifndef PROC
             F_PIC :=
         endif
     else
-        PROC := $(shell uname -p)
+        ifeq ($(shell uname -p),amd64)
+            PROC := x86_64
+        else
+            PROC := $(shell uname -p)
+        endif
     endif
 endif
 ifeq ($(PROC),powerpc)
@@ -104,6 +108,9 @@ ifeq ($(OS),Linux)
 	ifeq ($(PROC),x86_64)
         CONFIG_CFLAGS += -fPIC
 	endif
+endif
+ifeq ($(OS),FreeBSD)
+    CONFIG_CFLAGS += -DHAVE_SYS_PARAM_H
 endif
 
 ifneq (0,$(USE_ICONV))
