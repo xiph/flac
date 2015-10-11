@@ -3542,8 +3542,8 @@ FLAC__bool process_subframe_(
 								}
 								if(encoder->protected_->do_qlp_coeff_prec_search) {
 									min_qlp_coeff_precision = FLAC__MIN_QLP_COEFF_PRECISION;
-									/* try to keep qlp coeff precision such that only 32-bit math is required for decode of <=16bps streams */
-									if(subframe_bps <= 16) {
+									/* try to keep qlp coeff precision such that only 32-bit math is required for decode of <=16bps(+1bps for side channel) streams */
+									if(subframe_bps <= 17) {
 										max_qlp_coeff_precision = flac_min(32 - subframe_bps - FLAC__bitmath_ilog2(lpc_order), FLAC__MAX_QLP_COEFF_PRECISION);
 										max_qlp_coeff_precision = flac_max(max_qlp_coeff_precision, min_qlp_coeff_precision);
 									}
@@ -3785,8 +3785,8 @@ unsigned evaluate_lpc_subframe_(
 	int quantization, ret;
 	const unsigned residual_samples = blocksize - order;
 
-	/* try to keep qlp coeff precision such that only 32-bit math is required for decode of <=16bps streams */
-	if(subframe_bps <= 16) {
+	/* try to keep qlp coeff precision such that only 32-bit math is required for decode of <=16bps(+1bps for side channel) streams */
+	if(subframe_bps <= 17) {
 		FLAC__ASSERT(order > 0);
 		FLAC__ASSERT(order <= FLAC__MAX_LPC_ORDER);
 		qlp_coeff_precision = flac_min(qlp_coeff_precision, 32 - subframe_bps - FLAC__bitmath_ilog2(order));
