@@ -26,8 +26,13 @@ ifeq ($(OS),Darwin)
     CC          = cc
     CCC         = c++
 else
+ifeq ($(OS),FreeBSD)
+    CC          = cc
+    CCC         = c++
+else
     CC          = gcc
     CCC         = g++
+endif
 endif
 NASM        = nasm
 LINK        = ar cru
