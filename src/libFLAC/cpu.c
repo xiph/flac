@@ -295,6 +295,8 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			} __attribute__((aligned(16))) fxsr;
 			FLAC__uint32 old_val, new_val;
 
+			memset(fxsr.buff, 0, sizeof (fxsr.buff));
+
 			asm volatile ("fxsave %0"  : "=m" (fxsr) : "m" (fxsr));
 			old_val = fxsr.buff[50];
 			fxsr.buff[50] ^= 0x0013c0de;                             /* change value in the buffer */
