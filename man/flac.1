@@ -243,7 +243,7 @@ Fastest compression..highest compression (default is -5).  These are synonyms fo
 .RS
 .TP
 \fB-0, --compression-level-0\fR
-Synonymous with -l 0 -b 1152 -r 3
+Synonymous with -l 0 -b 1152 -r 3 --no-mid-side
 .TP
 \fB-1, --compression-level-1\fR
 Synonymous with -l 0 -b 1152 -M -r 3
@@ -252,7 +252,7 @@ Synonymous with -l 0 -b 1152 -M -r 3
 Synonymous with -l 0 -b 1152 -m -r 3
 .TP
 \fB-3, --compression-level-3\fR
-Synonymous with -l 6 -b 4096 -r 4
+Synonymous with -l 6 -b 4096 -r 4 --no-mid-side
 .TP
 \fB-4, --compression-level-4\fR
 Synonymous with -l 8 -b 4096 -M -r 4
@@ -264,10 +264,10 @@ Synonymous with -l 8 -b 4096 -m -r 5
 Synonymous with -l 8 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)
 .TP
 \fB-7, --compression-level-7\fR
-Synonymous with -l 8 -b 4096 -m -e -r 6 -A tukey(0.5) -A partial_tukey(2)
+Synonymous with -l 12 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)
 .TP
 \fB-8, --compression-level-8\fR
-Synonymous with -l 12 -b 4096 -m -e -r 6 -A tukey(0.5) -A partial_tukey(2) -A punchout_tukey(3)
+Synonymous with -l 12 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2) -A punchout_tukey(3)
 .RE
 .TP
 \fB--fast\fR
