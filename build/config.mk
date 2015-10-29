@@ -63,6 +63,12 @@ endif
 ifeq ($(PROC),powerpc)
     PROC := ppc
 endif
+# x64_64 Mac OS outputs 'i386' in uname -p; use uname -m instead
+ifeq ($(PROC),i386)
+    ifeq ($(OS),Darwin)
+        PROC := $(shell uname -m)
+    endif
+endif
 
 ifeq ($(OS),Linux)
     PROC := $(shell uname -m)
@@ -93,7 +99,7 @@ VERSION=\"1.3.1\"
 CONFIG_CFLAGS=$(CUSTOM_CFLAGS) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DHAVE_CXX_VARARRAYS -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
 ifeq ($(OS),Darwin)
-    CONFIG_CFLAGS += -DFLAC__SYS_DARWIN -arch $(PROC)
+    CONFIG_CFLAGS += -DFLAC__SYS_DARWIN -DHAVE_SYS_PARAM_H -arch $(PROC)
 else
     CONFIG_CFLAGS += -DHAVE_SOCKLEN_T
 endif
