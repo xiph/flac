@@ -21,6 +21,8 @@
 #
 
 topdir = ../..
+
+include $(topdir)/build/config.mk
 libdir = $(topdir)/objs/$(BUILD)/lib
 
 PROGRAM_NAME = test_streams
