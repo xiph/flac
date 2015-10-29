@@ -77,13 +77,9 @@ static void disable_avx(FLAC__CPUInfo *info)
 #include <machine/cpu.h>
 #endif
 
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
 #include <sys/types.h>
 #include <sys/sysctl.h>
-#endif
-
-#if defined(__APPLE__)
-/* how to get sysctlbyname()? */
 #endif
 
 #ifdef FLAC__CPU_IA32
