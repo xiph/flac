@@ -55,14 +55,14 @@ void FLAC__precompute_partition_info_sums_intrin_ssse3(const FLAC__int32 residua
 
 	/* first do max_partition_order */
 	{
+		const unsigned threshold = 32 - FLAC__bitmath_ilog2(default_partition_samples);
 		unsigned partition, residual_sample, end = (unsigned)(-(int)predictor_order);
-		unsigned e1, e3;
-		__m128i mm_res, mm_sum;
 
-		if(FLAC__bitmath_ilog2(default_partition_samples) + bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < 32) {
+		if(bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < threshold) {
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
+				__m128i mm_sum = _mm_setzero_si128();
+				unsigned e1, e3;
 				end += default_partition_samples;
-				mm_sum = _mm_setzero_si128();
 
 				e1 = (residual_sample + 3) & ~3; e3 = end & ~3;
 				if(e1 > end)
@@ -70,19 +70,19 @@ void FLAC__precompute_partition_info_sums_intrin_ssse3(const FLAC__int32 residua
 
 				/* assumption: residual[] is properly aligned so (residual + e1) is properly aligned too and _mm_loadu_si128() is fast */
 				for( ; residual_sample < e1; residual_sample++) {
-					mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
+					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
 					mm_res = _mm_abs_epi32(mm_res); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < e3; residual_sample+=4) {
-					mm_res = _mm_loadu_si128((const __m128i*)(residual+residual_sample));
+					__m128i mm_res = _mm_loadu_si128((const __m128i*)(residual+residual_sample));
 					mm_res = _mm_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < end; residual_sample++) {
-					mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
+					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
 					mm_res = _mm_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
@@ -94,27 +94,28 @@ void FLAC__precompute_partition_info_sums_intrin_ssse3(const FLAC__int32 residua
 		}
 		else { /* have to pessimistically use 64 bits for accumulator */
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
+				__m128i mm_sum = _mm_setzero_si128();
+				unsigned e1, e3;
 				end += default_partition_samples;
-				mm_sum = _mm_setzero_si128();
 
 				e1 = (residual_sample + 1) & ~1; e3 = end & ~1;
 				FLAC__ASSERT(e1 <= end);
 
 				for( ; residual_sample < e1; residual_sample++) {
-					mm_res = _mm_cvtsi32_si128(residual[residual_sample]); /*  0   0   0   r0 */
+					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]); /*  0   0   0   r0 */
 					mm_res = _mm_abs_epi32(mm_res); /*  0   0   0  |r0|  ==   00   |r0_64| */
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < e3; residual_sample+=2) {
-					mm_res = _mm_loadl_epi64((const __m128i*)(residual+residual_sample)); /*  0   0   r1  r0 */
+					__m128i mm_res = _mm_loadl_epi64((const __m128i*)(residual+residual_sample)); /*  0   0   r1  r0 */
 					mm_res = _mm_abs_epi32(mm_res); /*  0   0  |r1|   |r0| */
 					mm_res = _mm_shuffle_epi32(mm_res, _MM_SHUFFLE(3,1,2,0)); /* 0  |r1|  0  |r0|  ==  |r1_64|  |r0_64|  */
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < end; residual_sample++) {
-					mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
+					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
 					mm_res = _mm_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}

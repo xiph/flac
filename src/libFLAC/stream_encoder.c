@@ -3984,29 +3984,25 @@ void precompute_partition_info_sums_(
 
 	/* first do max_partition_order */
 	{
+		const unsigned threshold = 32 - FLAC__bitmath_ilog2(default_partition_samples);
 		unsigned partition, residual_sample, end = (unsigned)(-(int)predictor_order);
-		/* WATCHOUT: "+ bps + FLAC__MAX_EXTRA_RESIDUAL_BPS" is the maximum
-		 * assumed size of the average residual magnitude */
-		if(FLAC__bitmath_ilog2(default_partition_samples) + bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < 32) {
-			FLAC__uint32 abs_residual_partition_sum;
-
+		/* WATCHOUT: "bps + FLAC__MAX_EXTRA_RESIDUAL_BPS" is the maximum assumed size of the average residual magnitude */
+		if(bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < threshold) {
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
+				FLAC__uint32 abs_residual_partition_sum = 0;
 				end += default_partition_samples;
-				abs_residual_partition_sum = 0;
 				for( ; residual_sample < end; residual_sample++)
 					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
 				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
 			}
 		}
 		else { /* have to pessimistically use 64 bits for accumulator */
-			FLAC__uint64 abs_residual_partition_sum;
-
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
+				FLAC__uint64 abs_residual_partition_sum64 = 0;
 				end += default_partition_samples;
-				abs_residual_partition_sum = 0;
 				for( ; residual_sample < end; residual_sample++)
-					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
-				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
+					abs_residual_partition_sum64 += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+				abs_residual_partition_sums[partition] = abs_residual_partition_sum64;
 			}
 		}
 	}
