@@ -322,7 +322,8 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	/*
 	 * now have to check for OS support of AVX instructions
 	 */
-	if(info->ia32.avx && ia32_osxsave) {
+#ifdef FLAC__HAS_X86INTRIN
+	 if(info->ia32.avx && ia32_osxsave) {
 		FLAC__uint32 ecr = FLAC__cpu_xgetbv_x86();
 		if ((ecr & 0x6) != 0x6)
 			disable_avx(info);
@@ -332,6 +333,9 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	}
 	else /* no OS AVX support*/
 		disable_avx(info);
+#else
+	disable_avx(info);
+#endif
 #else
 	info->use_asm = false;
 #endif
