@@ -43,6 +43,17 @@
 #include <stdlib.h>    /* for abs() */
 #include <emmintrin.h> /* SSE2 */
 #include "FLAC/assert.h"
+#include "share/compat.h"
+
+FLAC__SSE_TARGET("sse2")
+static inline __m128i local_abs_epi32(__m128i val)
+{
+	__m128i mask = _mm_srai_epi32(val, 31);
+	val = _mm_xor_si128(val, mask);
+	val = _mm_sub_epi32(val, mask);
+	return val;
+}
+
 
 FLAC__SSE_TARGET("sse2")
 void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
@@ -71,25 +82,19 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 				/* assumption: residual[] is properly aligned so (residual + e1) is properly aligned too and _mm_loadu_si128() is fast */
 				for( ; residual_sample < e1; residual_sample++) {
 					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
-					__m128i mm_mask = _mm_srai_epi32(mm_res, 31);
-					mm_res = _mm_xor_si128(mm_res, mm_mask);
-					mm_res = _mm_sub_epi32(mm_res, mm_mask); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
+					mm_res = local_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < e3; residual_sample+=4) {
 					__m128i mm_res = _mm_loadu_si128((const __m128i*)(residual+residual_sample));
-					__m128i mm_mask = _mm_srai_epi32(mm_res, 31);
-					mm_res = _mm_xor_si128(mm_res, mm_mask);
-					mm_res = _mm_sub_epi32(mm_res, mm_mask);
+					mm_res = local_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < end; residual_sample++) {
 					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
-					__m128i mm_mask = _mm_srai_epi32(mm_res, 31);
-					mm_res = _mm_xor_si128(mm_res, mm_mask);
-					mm_res = _mm_sub_epi32(mm_res, mm_mask);
+					mm_res = local_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
@@ -109,26 +114,20 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 
 				for( ; residual_sample < e1; residual_sample++) {
 					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]); /*  0   0   0   r0 */
-					__m128i mm_mask = _mm_srai_epi32(mm_res, 31);
-					mm_res = _mm_xor_si128(mm_res, mm_mask);
-					mm_res = _mm_sub_epi32(mm_res, mm_mask); /*  0   0   0  |r0|  ==   00   |r0_64| */
+					mm_res = local_abs_epi32(mm_res); /*  0   0   0  |r0|  ==   00   |r0_64| */
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < e3; residual_sample+=2) {
 					__m128i mm_res = _mm_loadl_epi64((const __m128i*)(residual+residual_sample)); /*  0   0   r1  r0 */
-					__m128i mm_mask = _mm_srai_epi32(mm_res, 31);
-					mm_res = _mm_xor_si128(mm_res, mm_mask);
-					mm_res = _mm_sub_epi32(mm_res, mm_mask); /*  0   0  |r1|   |r0| */
+					mm_res = local_abs_epi32(mm_res); /*  0   0  |r1|   |r0| */
 					mm_res = _mm_shuffle_epi32(mm_res, _MM_SHUFFLE(3,1,2,0)); /* 0  |r1|  0  |r0|  ==  |r1_64|  |r0_64|  */
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
 
 				for( ; residual_sample < end; residual_sample++) {
 					__m128i mm_res = _mm_cvtsi32_si128(residual[residual_sample]);
-					__m128i mm_mask = _mm_srai_epi32(mm_res, 31);
-					mm_res = _mm_xor_si128(mm_res, mm_mask);
-					mm_res = _mm_sub_epi32(mm_res, mm_mask);
+					mm_res = local_abs_epi32(mm_res);
 					mm_sum = _mm_add_epi64(mm_sum, mm_res);
 				}
 
