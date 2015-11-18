@@ -77,8 +77,7 @@ void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual
 				}
 
 				for( ; residual_sample < end; residual_sample++) {
-					__m128i res128 = _mm_cvtsi32_si128(residual[residual_sample]);
-					res128 = _mm_abs_epi32(res128);
+					__m128i res128 = _mm_abs_epi32(_mm_cvtsi32_si128(residual[residual_sample]));
 					sum128 = _mm_add_epi32(sum128, res128);
 				}
 
@@ -102,15 +101,13 @@ void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual
 				sum128 = _mm_add_epi64(_mm256_extracti128_si256(sum256, 1), _mm256_castsi256_si128(sum256));
 
 				for( ; (int)residual_sample < (int)end-1; residual_sample+=2) {
-					__m128i res128 = _mm_loadl_epi64((const __m128i*)(residual+residual_sample));
-					res128 = _mm_abs_epi32(res128);
+					__m128i res128 = _mm_abs_epi32(_mm_loadl_epi64((const __m128i*)(residual+residual_sample)));
 					res128 = _mm_cvtepu32_epi64(res128);
 					sum128 = _mm_add_epi64(sum128, res128);
 				}
 
 				for( ; residual_sample < end; residual_sample++) {
-					__m128i res128 = _mm_cvtsi32_si128(residual[residual_sample]);
-					res128 = _mm_abs_epi32(res128);
+					__m128i res128 = _mm_abs_epi32(_mm_cvtsi32_si128(residual[residual_sample]));
 					sum128 = _mm_add_epi64(sum128, res128);
 				}
 
