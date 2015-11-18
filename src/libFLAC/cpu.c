@@ -298,7 +298,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 			fxsr.buff[50] ^= 0x0013c0de;                             /* change value in the buffer */
 			asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* try to change SSE register */
 			fxsr.buff[50] = old_val;                                 /* restore old value in the buffer */
-			asm volatile ("fxsave %0 " : "=m" (fxsr) : "m" (fxsr));  /* old value will be overwritten if SSE register was changed */
+			asm volatile ("fxsave %0"  : "=m" (fxsr) : "m" (fxsr));  /* old value will be overwritten if SSE register was changed */
 			new_val = fxsr.buff[50];                                 /* == old_val if FXRSTOR didn't change SSE register and (old_val ^ 0x0013c0de) otherwise */
 			fxsr.buff[50] = old_val;                                 /* again restore old value in the buffer */
 			asm volatile ("fxrstor %0" : "=m" (fxsr) : "m" (fxsr));  /* restore old values of registers */
@@ -331,7 +331,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		fprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
 #endif
 	}
-	else /* no OS AVX support*/
+	else /* no OS AVX support */
 		disable_avx(info);
 #else
 	disable_avx(info);
@@ -392,7 +392,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 		fprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
 #endif
 	}
-	else /* no OS AVX support*/
+	else /* no OS AVX support */
 		disable_avx(info);
 #else
 	info->use_asm = false;
