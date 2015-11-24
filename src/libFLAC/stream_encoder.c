@@ -361,9 +361,6 @@ typedef struct FLAC__StreamEncoderPrivate {
 	void (*local_lpc_compute_residual_from_qlp_coefficients_64bit)(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const FLAC__int32 *data, unsigned data_len, const FLAC__int32 qlp_coeff[], unsigned order, int lp_quantization, FLAC__int32 residual[]);
 #endif
-	FLAC__bool use_wide_by_block;          /* use slow 64-bit versions of some functions because of the block size */
-	FLAC__bool use_wide_by_partition;      /* use slow 64-bit versions of some functions because of the min partition order and blocksize */
-	FLAC__bool use_wide_by_order;          /* use slow 64-bit versions of some functions because of the lpc order */
 	FLAC__bool disable_constant_subframes;
 	FLAC__bool disable_fixed_subframes;
 	FLAC__bool disable_verbatim_subframes;
@@ -869,10 +866,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->current_sample_number = 0;
 	encoder->private_->current_frame_number = 0;
 
-	encoder->private_->use_wide_by_block = (encoder->protected_->bits_per_sample + FLAC__bitmath_ilog2(encoder->protected_->blocksize)+1 > 30);
-	encoder->private_->use_wide_by_order = (encoder->protected_->bits_per_sample + FLAC__bitmath_ilog2(flac_max(encoder->protected_->max_lpc_order, FLAC__MAX_FIXED_ORDER))+1 > 30); /*@@@ need to use this? */
-	encoder->private_->use_wide_by_partition = (false); /*@@@ need to set this */
-
 	/*
 	 * get the CPU info and set the function pointers
 	 */
@@ -1074,10 +1067,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 # endif /* FLAC__CPU_... */
 	}
 #endif /* !FLAC__NO_ASM && FLAC__HAS_X86INTRIN */
-	/* finally override based on wide-ness if necessary */
-	if(encoder->private_->use_wide_by_block) {
-		encoder->private_->local_fixed_compute_best_predictor = encoder->private_->local_fixed_compute_best_predictor_wide;
-	}
 
 	/* set state to OK; from here on, errors are fatal and we'll override the state then */
 	encoder->protected_->state = FLAC__STREAM_ENCODER_OK;
@@ -3412,7 +3401,10 @@ FLAC__bool process_subframe_(
 
 	if(frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
 		unsigned signal_is_constant = false;
-		guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
+		if(subframe_bps + 4 + FLAC__bitmath_ilog2((frame_header->blocksize-FLAC__MAX_FIXED_ORDER)|1) <= 32)
+			guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
+		else
+			guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor_wide(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 		/* check for constant subframe */
 		if(
 			!encoder->private_->disable_constant_subframes &&
