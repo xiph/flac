@@ -181,8 +181,8 @@ namespace FLAC {
 			/// see FLAC__StreamDecoderErrorCallback
 			virtual void error_callback(::FLAC__StreamDecoderErrorStatus status) = 0;
 
-#if (defined _MSC_VER) || (defined __BORLANDC__) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
-			// lame hack: some MSVC/GCC versions can't see a protected decoder_ from nested State::resolved_as_cstring()
+#if (defined __BORLANDC__) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
+			// lame hack: some compilers can't see a protected decoder_ from nested State::resolved_as_cstring()
 			friend State;
 #endif
 			::FLAC__StreamDecoder *decoder_;

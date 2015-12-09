@@ -193,8 +193,8 @@ namespace FLAC {
 			/// See FLAC__StreamEncoderMetadataCallback
 			virtual void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 
-#if (defined _MSC_VER) || (defined __BORLANDC__) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
-			// lame hack: some MSVC/GCC versions can't see a protected encoder_ from nested State::resolved_as_cstring()
+#if (defined __BORLANDC__) || (defined __GNUG__ && (__GNUG__ < 2 || (__GNUG__ == 2 && __GNUC_MINOR__ < 96))) || (defined __SUNPRO_CC)
+			// lame hack: some compilers can't see a protected encoder_ from nested State::resolved_as_cstring()
 			friend State;
 #endif
 			::FLAC__StreamEncoder *encoder_;
