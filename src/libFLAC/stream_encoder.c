@@ -1330,7 +1330,8 @@ static FLAC__StreamEncoderInitStatus init_FILE_internal_(
 	 * Windows can suffer quite badly from disk fragmentation. This can be
 	 * reduced significantly by setting the output buffer size to be 10MB.
 	 */
-	setvbuf(file, NULL, _IOFBF, 10*1024*1024);
+	if(GetFileType((HANDLE)_get_osfhandle(_fileno(file))) == FILE_TYPE_DISK)
+		setvbuf(file, NULL, _IOFBF, 10*1024*1024);
 #endif
 	encoder->private_->file = file;
 
