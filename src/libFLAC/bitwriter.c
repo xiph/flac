@@ -410,7 +410,9 @@ unsigned FLAC__bitwriter_rice_bits(FLAC__int32 val, unsigned parameter)
 	FLAC__ASSERT(parameter < sizeof(unsigned)*8);
 
 	/* fold signed to unsigned; actual formula is: negative(v)? -2v-1 : 2v */
-	uval = (val<<1) ^ (val>>31);
+	uval = val;
+	uval <<= 1;
+	uval ^= (val>>31);
 
 	return 1 + parameter + (uval >> parameter);
 }
@@ -489,7 +491,9 @@ FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 va
 	FLAC__ASSERT(parameter < 8*sizeof(uval));
 
 	/* fold signed to unsigned; actual formula is: negative(v)? -2v-1 : 2v */
-	uval = (val<<1) ^ (val>>31);
+	uval = val;
+	uval <<= 1;
+	uval ^= (val>>31);
 
 	msbs = uval >> parameter;
 	interesting_bits = 1 + parameter;
