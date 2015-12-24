@@ -225,9 +225,11 @@ namespace FLAC {
 			File();
 			virtual ~File();
 
+			using Stream::init;
 			virtual ::FLAC__StreamDecoderInitStatus init(FILE *file);                      ///< See FLAC__stream_decoder_init_FILE()
 			virtual ::FLAC__StreamDecoderInitStatus init(const char *filename);            ///< See FLAC__stream_decoder_init_file()
 			virtual ::FLAC__StreamDecoderInitStatus init(const std::string &filename);     ///< See FLAC__stream_decoder_init_file()
+			using Stream::init_ogg;
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg(FILE *file);                  ///< See FLAC__stream_decoder_init_ogg_FILE()
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg(const char *filename);        ///< See FLAC__stream_decoder_init_ogg_file()
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg(const std::string &filename); ///< See FLAC__stream_decoder_init_ogg_file()
