@@ -117,7 +117,7 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 
 FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sample_frequency)
 {
-        return ValidGainFrequency( sample_frequency );
+	return ValidGainFrequency( sample_frequency );
 }
 
 FLAC__bool grabbag__replaygain_init(unsigned sample_frequency)

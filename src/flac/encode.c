@@ -2480,7 +2480,7 @@ FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecod
 {
 	size_t n = 0;
 	EncoderSession *e = (EncoderSession*)client_data;
-    FLACDecoderData *data = &e->fmt.flac.client_data;
+	FLACDecoderData *data = &e->fmt.flac.client_data;
 
 	(void)decoder;
 
@@ -2538,7 +2538,7 @@ FLAC__StreamDecoderTellStatus flac_decoder_tell_callback(const FLAC__StreamDecod
 FLAC__StreamDecoderLengthStatus flac_decoder_length_callback(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data)
 {
 	const EncoderSession *e = (EncoderSession*)client_data;
-    const FLACDecoderData *data = &e->fmt.flac.client_data;
+	const FLACDecoderData *data = &e->fmt.flac.client_data;
 	(void)decoder;
 
 	if(data->filesize < 0)
@@ -2560,7 +2560,7 @@ FLAC__bool flac_decoder_eof_callback(const FLAC__StreamDecoder *decoder, void *c
 FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	EncoderSession *e = (EncoderSession*)client_data;
-    FLACDecoderData *data = &e->fmt.flac.client_data;
+	FLACDecoderData *data = &e->fmt.flac.client_data;
 	FLAC__uint64 n = min(data->samples_left_to_process, frame->header.blocksize);
 	(void)decoder;
 
@@ -2577,7 +2577,7 @@ FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(const FLAC__StreamDec
 void flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
 {
 	EncoderSession *e = (EncoderSession*)client_data;
-    FLACDecoderData *data = &e->fmt.flac.client_data;
+	FLACDecoderData *data = &e->fmt.flac.client_data;
 	(void)decoder;
 
 	if (data->fatal_error)
@@ -2595,7 +2595,7 @@ void flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FL
 void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
 {
 	EncoderSession *e = (EncoderSession*)client_data;
-    FLACDecoderData *data = &e->fmt.flac.client_data;
+	FLACDecoderData *data = &e->fmt.flac.client_data;
 	(void)decoder;
 
 	stats_print_name(1, e->inbasefilename);

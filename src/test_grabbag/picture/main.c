@@ -57,12 +57,12 @@ static FLAC__bool debug_ = false;
 
 static FLAC__bool failed_(const char *msg)
 {
-    if(msg)
-        printf("FAILED, %s\n", msg);
-    else
-        printf("FAILED\n");
+	if(msg)
+		printf("FAILED, %s\n", msg);
+	else
+		printf("FAILED\n");
 
-    return false;
+	return false;
 }
 
 static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, const PictureResolution * res, FLAC__bool fn_only)
@@ -122,7 +122,7 @@ static FLAC__bool do_picture(const char *prefix)
 	const char *error;
 	size_t i;
 
-    printf("\n+++ grabbag unit test: picture\n\n");
+	printf("\n+++ grabbag unit test: picture\n\n");
 
 	/* invalid spec: no filename */
 	printf("testing grabbag__picture_parse_specification(\"\")... ");
