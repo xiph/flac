@@ -198,7 +198,7 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 	}
 	if(!append_block_(fm, offset, 12, error))
 		return false;
-	if(!fm->is_rf64 || unpack32le_(buffer+4) != 0xffffffffu) {
+	if(!fm->is_rf64 || unpack32le_(buffer+4) != 0xffffffff) {
 		eof_offset = (FLAC__off_t)8 + (FLAC__off_t)unpack32le_(buffer+4);
 		if(eof_offset & 1) /* fix odd RIFF size */
 			eof_offset++;
@@ -293,7 +293,7 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 			}
 		}
 		else { /* skip to next chunk */
-			if(fm->is_rf64 && !memcmp(buffer, "data", 4) && unpack32le_(buffer+4) == 0xffffffffu) {
+			if(fm->is_rf64 && !memcmp(buffer, "data", 4) && unpack32le_(buffer+4) == 0xffffffff) {
 				if(fseeko(f, ds64_data_size, SEEK_CUR) < 0) {
 					if(error) *error = "invalid RF64 file: seek error (r10)";
 					return false;

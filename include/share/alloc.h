@@ -52,7 +52,7 @@
 # ifndef SIZE_T_MAX
 #  ifdef _MSC_VER
 #   ifdef _WIN64
-#    define SIZE_T_MAX 0xffffffffffffffffui64
+#    define SIZE_T_MAX FLAC__U64L(0xffffffffffffffff)
 #   else
 #    define SIZE_T_MAX 0xffffffff
 #   endif
