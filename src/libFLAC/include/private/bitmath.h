@@ -36,16 +36,14 @@
 #include "FLAC/ordinals.h"
 #include "FLAC/assert.h"
 
-/* for CHAR_BIT */
-#include <limits.h>
 #include "share/compat.h"
 
-#if defined(_MSC_VER) && (_MSC_VER >= 1400)
+#if defined(_MSC_VER)
 #include <intrin.h> /* for _BitScanReverse* */
 #endif
 
 /* Will never be emitted for MSVC, GCC, Intel compilers */
-static inline unsigned int FLAC__clz_soft_uint32(unsigned int word)
+static inline unsigned int FLAC__clz_soft_uint32(FLAC__uint32 word)
 {
 	static const unsigned char byte_to_unary_table[] = {
 	8, 7, 6, 6, 5, 5, 5, 5, 4, 4, 4, 4, 4, 4, 4, 4,
@@ -66,10 +64,10 @@ static inline unsigned int FLAC__clz_soft_uint32(unsigned int word)
 	0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 	};
 
-	return (word) > 0xffffff ? byte_to_unary_table[(word) >> 24] :
-	(word) > 0xffff ? byte_to_unary_table[(word) >> 16] + 8 :
-	(word) > 0xff ? byte_to_unary_table[(word) >> 8] + 16 :
-	byte_to_unary_table[(word)] + 24;
+	return word > 0xffffff ? byte_to_unary_table[word >> 24] :
+		word > 0xffff ? byte_to_unary_table[word >> 16] + 8 :
+		word > 0xff ? byte_to_unary_table[word >> 8] + 16 :
+		byte_to_unary_table[word] + 24;
 }
 
 static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
@@ -82,7 +80,7 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
 /* This will translate either to (bsr ^ 31U), clz , ctlz, cntlz, lzcnt depending on
  * -march= setting or to a software routine in exotic machines. */
 	return __builtin_clz(v);
-#elif defined(_MSC_VER) && (_MSC_VER >= 1400)
+#elif defined(_MSC_VER)
 	{
 		unsigned long idx;
 		_BitScanReverse(&idx, v);
@@ -129,14 +127,14 @@ static inline unsigned FLAC__bitmath_ilog2(FLAC__uint32 v)
 	FLAC__ASSERT(v > 0);
 #if defined(__INTEL_COMPILER)
 	return _bit_scan_reverse(v);
-#elif defined(_MSC_VER) && (_MSC_VER >= 1400)
+#elif defined(_MSC_VER)
 	{
 		unsigned long idx;
 		_BitScanReverse(&idx, v);
 		return idx;
 	}
 #else
-	return sizeof(FLAC__uint32) * CHAR_BIT  - 1 - FLAC__clz_uint32(v);
+	return FLAC__clz_uint32(v) ^ 31U;
 #endif
 }
 
@@ -147,9 +145,9 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 {
 	FLAC__ASSERT(v > 0);
 #if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
-	return sizeof(FLAC__uint64) * CHAR_BIT - 1 - __builtin_clzll(v);
+	return __builtin_clzll(v) ^ 63U;
 /* Sorry, only supported in x64/Itanium.. and both have fast FPU which makes integer-only encoder pointless */
-#elif (defined(_MSC_VER) && (_MSC_VER >= 1400)) && (defined(_M_IA64) || defined(_M_X64))
+#elif (defined(__INTEL_COMPILER) || defined(_MSC_VER)) && (defined(_M_IA64) || defined(_M_X64))
 	{
 		unsigned long idx;
 		_BitScanReverse64(&idx, v);
@@ -174,7 +172,7 @@ static inline unsigned FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 		v|= v>>16;
 		v|= v>>32;
 		v= (v>>1)+1;
-		return DEBRUIJN_IDX64[v*0x218A392CD3D5DBF>>58&0x3F];
+		return DEBRUIJN_IDX64[v*FLAC__U64L(0x218A392CD3D5DBF)>>58&0x3F];
 	}
 #endif
 }
