@@ -322,6 +322,8 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__ui
 	if(bw->capacity <= bw->words + bits && !bitwriter_grow_(bw, bits))
 		return false;
 
+	FLAC__ASSERT((bits == 32) || (val>>bits == 0));
+
 	left = FLAC__BITS_PER_WORD - bw->bits;
 	if(bits < left) {
 		bw->accum <<= bits;
@@ -334,9 +336,7 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__ui
 		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);
 		bw->accum = val;
 	}
-	else {
-		bw->accum = val;
-		bw->bits = 0;
+	else { /* at this point bits == FLAC__BITS_PER_WORD == 32  and  bw->bits == 0 */
 		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(val);
 	}
 
@@ -407,7 +407,7 @@ unsigned FLAC__bitwriter_rice_bits(FLAC__int32 val, unsigned parameter)
 {
 	FLAC__uint32 uval;
 
-	FLAC__ASSERT(parameter < sizeof(unsigned)*8);
+	FLAC__ASSERT(parameter < 32);
 
 	/* fold signed to unsigned; actual formula is: negative(v)? -2v-1 : 2v */
 	uval = val;
@@ -488,7 +488,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 va
 
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
-	FLAC__ASSERT(parameter < 8*sizeof(uval));
+	FLAC__ASSERT(parameter < 32);
 
 	/* fold signed to unsigned; actual formula is: negative(v)? -2v-1 : 2v */
 	uval = val;
@@ -511,16 +511,16 @@ FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 va
 
 FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FLAC__int32 *vals, unsigned nvals, unsigned parameter)
 {
-	const FLAC__uint32 mask1 = FLAC__WORD_ALL_ONES << parameter; /* we val|=mask1 to set the stop bit above it... */
-	const FLAC__uint32 mask2 = FLAC__WORD_ALL_ONES >> (31-parameter); /* ...then mask off the bits above the stop bit with val&=mask2*/
+	const FLAC__uint32 mask1 = (FLAC__uint32)0xffffffff << parameter; /* we val|=mask1 to set the stop bit above it... */
+	const FLAC__uint32 mask2 = (FLAC__uint32)0xffffffff >> (31-parameter); /* ...then mask off the bits above the stop bit with val&=mask2 */
 	FLAC__uint32 uval;
 	unsigned left;
 	const unsigned lsbits = 1 + parameter;
-	unsigned msbits;
+	unsigned msbits, total_bits;
 
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
-	FLAC__ASSERT(parameter < 8*sizeof(uint32_t)-1);
+	FLAC__ASSERT(parameter < 31);
 	/* WATCHOUT: code does not work with <32bit words; we can make things much faster with this assertion */
 	FLAC__ASSERT(FLAC__BITS_PER_WORD >= 32);
 
@@ -531,19 +531,20 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 		uval ^= (*vals>>31);
 
 		msbits = uval >> parameter;
+		total_bits = lsbits + msbits;
 
-		if(bw->bits && bw->bits + msbits + lsbits < FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current uint32_t */
+		if(bw->bits && bw->bits + total_bits < FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current uint32_t */
 			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free uint32_t to work in */
-			bw->bits = bw->bits + msbits + lsbits;
+			bw->bits += total_bits;
 			uval |= mask1; /* set stop bit */
 			uval &= mask2; /* mask off unused top bits */
-			bw->accum <<= msbits + lsbits;
+			bw->accum <<= total_bits;
 			bw->accum |= uval;
 		}
 		else {
 			/* slightly pessimistic size check but faster than "<= bw->words + (bw->bits+msbits+lsbits+FLAC__BITS_PER_WORD-1)/FLAC__BITS_PER_WORD" */
 			/* OPT: pessimism may cause flurry of false calls to grow_ which eat up all savings before it */
-			if(bw->capacity <= bw->words + bw->bits + msbits + 1/*lsbits always fit in 1 uint32_t*/ && !bitwriter_grow_(bw, msbits+lsbits))
+			if(bw->capacity <= bw->words + bw->bits + msbits + 1 /* lsbits always fit in 1 uint32_t */ && !bitwriter_grow_(bw, total_bits))
 				return false;
 
 			if(msbits) {
