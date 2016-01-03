@@ -33,8 +33,21 @@
  * the definition here to get at the internals.  Make sure this is kept up
  * to date with what is in ../libFLAC/bitwriter.c
  */
+#if 1
+
 typedef FLAC__uint32 bwword;
+#define FLAC__BYTES_PER_WORD 4
 #define FLAC__BITS_PER_WORD 32
+#define PRI_BWWORD "08x"
+
+#else
+
+typedef FLAC__uint64 bwword;
+#define FLAC__BYTES_PER_WORD 8
+#define FLAC__BITS_PER_WORD 64
+#define PRI_BWWORD "016" PRIx64
+
+#endif
 
 struct FLAC__BitWriter {
 	bwword *buffer;
@@ -53,10 +66,20 @@ FLAC__bool test_bitwriter(void)
 	FLAC__BitWriter *bw;
 	FLAC__bool ok;
 	unsigned i, j;
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	static bwword test_pattern1[5] = { 0xaaf0aabe, 0xaaaaaaa8, 0x300aaaaa, 0xaaadeadb, 0x00eeface };
 #else
 	static bwword test_pattern1[5] = { 0xbeaaf0aa, 0xa8aaaaaa, 0xaaaa0a30, 0xdbeaadaa, 0x00eeface };
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+#if WORDS_BIGENDIAN
+	static bwword test_pattern1[3] = { FLAC__U64L(0xaaf0aabeaaaaaaa8), FLAC__U64L(0x300aaaaaaaadeadb), FLAC__U64L(0x0000000000eeface) };
+#else
+	static bwword test_pattern1[3] = { FLAC__U64L(0xa8aaaaaabeaaf0aa), FLAC__U64L(0xdbeaadaaaaaa0a30), FLAC__U64L(0x0000000000eeface) };
+#endif
+#else
+#error FLAC__BYTES_PER_WORD is neither 4 nor 8 -- not implemented
 #endif
 	unsigned words, bits; /* what we think bw->words and bw->bits should be */
 
@@ -196,7 +219,7 @@ FLAC__bool test_bitwriter(void)
 		return false;
 	}
 	if((bw->accum & 0x00ffffff) != test_pattern1[words]) {
-		printf("FAILED pattern match (bw->accum=%08X != %08X)\n", bw->accum&0x00ffffff, test_pattern1[words]);
+		printf("FAILED pattern match (bw->accum=%" PRI_BWWORD " != %" PRI_BWWORD ")\n", bw->accum&0x00ffffff, test_pattern1[words]);
 		FLAC__bitwriter_dump(bw, stdout);
 		return false;
 	}
@@ -229,7 +252,7 @@ FLAC__bool test_bitwriter(void)
 		return false;
 	}
 	if((bw->accum & 0x3fffffff) != test_pattern1[words]) {
-		printf("FAILED pattern match (bw->accum=%08X != %08X)\n", bw->accum&0x3fffffff, test_pattern1[words]);
+		printf("FAILED pattern match (bw->accum=%" PRI_BWWORD " != %" PRI_BWWORD ")\n", bw->accum&0x3fffffff, test_pattern1[words]);
 		FLAC__bitwriter_dump(bw, stdout);
 		return false;
 	}
@@ -299,10 +322,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint32(0x00010000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint32(bw, 0x00010000);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0xF0908080;
 #else
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0x808090F0;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 32 && (bw->accum & 0xffffffff) == 0xF0908080;
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -313,10 +340,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint32(0x001FFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint32(bw, 0x001FFFFF);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0xF7BFBFBF;
 #else
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0xBFBFBFF7;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 32 && (bw->accum & 0xffffffff) == 0xF7BFBFBF;
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -327,10 +358,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint32(0x00200000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint32(bw, 0x00200000);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0xF8888080 && (bw->accum & 0xff) == 0x80;
 #else
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0x808088F8 && (bw->accum & 0xff) == 0x80;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 40 && (bw->accum & FLAC__U64L(0xffffffffff)) == FLAC__U64L(0xF888808080);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -341,10 +376,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint32(0x03FFFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint32(bw, 0x03FFFFFF);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0xFBBFBFBF && (bw->accum & 0xff) == 0xBF;
 #else
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0xBFBFBFFB && (bw->accum & 0xff) == 0xBF;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 40 && (bw->accum & FLAC__U64L(0xffffffffff)) == FLAC__U64L(0xFBBFBFBFBF);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -355,10 +394,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint32(0x04000000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint32(bw, 0x04000000);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0xFC848080 && (bw->accum & 0xffff) == 0x8080;
 #else
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0x808084FC && (bw->accum & 0xffff) == 0x8080;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 48 && (bw->accum & FLAC__U64L(0xffffffffffff)) == FLAC__U64L(0xFC8480808080);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -369,10 +412,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint32(0x7FFFFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint32(bw, 0x7FFFFFFF);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0xFDBFBFBF && (bw->accum & 0xffff) == 0xBFBF;
 #else
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0xBFBFBFFD && (bw->accum & 0xffff) == 0xBFBF;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 48 && (bw->accum & FLAC__U64L(0xffffffffffff)) == FLAC__U64L(0xFDBFBFBFBFBF);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -443,10 +490,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x0000000000010000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x0000000000010000));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0xF0908080;
 #else
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0x808090F0;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 32 && (bw->accum & 0xffffffff) == 0xF0908080;
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -457,10 +508,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x00000000001FFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x00000000001FFFFF));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0xF7BFBFBF;
 #else
 	ok = TOTAL_BITS(bw) == 32 && bw->buffer[0] == 0xBFBFBFF7;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 32 && (bw->accum & 0xffffffff) == 0xF7BFBFBF;
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -471,10 +526,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x0000000000200000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x0000000000200000));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0xF8888080 && (bw->accum & 0xff) == 0x80;
 #else
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0x808088F8 && (bw->accum & 0xff) == 0x80;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 40 && (bw->accum & FLAC__U64L(0xffffffffff)) == FLAC__U64L(0xF888808080);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -485,10 +544,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x0000000003FFFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x0000000003FFFFFF));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0xFBBFBFBF && (bw->accum & 0xff) == 0xBF;
 #else
 	ok = TOTAL_BITS(bw) == 40 && bw->buffer[0] == 0xBFBFBFFB && (bw->accum & 0xff) == 0xBF;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 40 && (bw->accum & FLAC__U64L(0xffffffffff)) == FLAC__U64L(0xFBBFBFBFBF);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -499,10 +562,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x0000000004000000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x0000000004000000));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0xFC848080 && (bw->accum & 0xffff) == 0x8080;
 #else
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0x808084FC && (bw->accum & 0xffff) == 0x8080;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 48 && (bw->accum & FLAC__U64L(0xffffffffffff)) == FLAC__U64L(0xFC8480808080);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -513,10 +580,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x000000007FFFFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x000000007FFFFFFF));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0xFDBFBFBF && (bw->accum & 0xffff) == 0xBFBF;
 #else
 	ok = TOTAL_BITS(bw) == 48 && bw->buffer[0] == 0xBFBFBFFD && (bw->accum & 0xffff) == 0xBFBF;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 48 && (bw->accum & FLAC__U64L(0xffffffffffff)) == FLAC__U64L(0xFDBFBFBFBFBF);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -527,10 +598,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x0000000080000000)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x0000000080000000));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 56 && bw->buffer[0] == 0xFE828080 && (bw->accum & 0xffffff) == 0x808080;
 #else
 	ok = TOTAL_BITS(bw) == 56 && bw->buffer[0] == 0x808082FE && (bw->accum & 0xffffff) == 0x808080;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 56 && (bw->accum & FLAC__U64L(0xffffffffffffff)) == FLAC__U64L(0xFE828080808080);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -541,10 +616,14 @@ FLAC__bool test_bitwriter(void)
 	printf("testing utf8_uint64(0x0000000FFFFFFFFF)... ");
 	FLAC__bitwriter_clear(bw);
 	FLAC__bitwriter_write_utf8_uint64(bw, FLAC__U64L(0x0000000FFFFFFFFF));
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == 56 && bw->buffer[0] == 0xFEBFBFBF && (bw->accum & 0xffffff) == 0xBFBFBF;
 #else
 	ok = TOTAL_BITS(bw) == 56 && bw->buffer[0] == 0xBFBFBFFE && (bw->accum & 0xffffff) == 0xBFBFBF;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+	ok = TOTAL_BITS(bw) == 56 && (bw->accum & FLAC__U64L(0xffffffffffffff)) == FLAC__U64L(0xFEBFBFBFBFBFBF);
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {
@@ -558,10 +637,18 @@ FLAC__bool test_bitwriter(void)
 	j = bw->capacity;
 	for(i = 0; i < j; i++)
 		FLAC__bitwriter_write_raw_uint32(bw, 0xaaaaaaaa, 32);
+#if FLAC__BYTES_PER_WORD == 4
 #if WORDS_BIGENDIAN
 	ok = TOTAL_BITS(bw) == i*32+4 && bw->buffer[0] == 0x5aaaaaaa && (bw->accum & 0xf) == 0xa;
 #else
 	ok = TOTAL_BITS(bw) == i*32+4 && bw->buffer[0] == 0xaaaaaa5a && (bw->accum & 0xf) == 0xa;
+#endif
+#elif FLAC__BYTES_PER_WORD == 8
+#if WORDS_BIGENDIAN
+	ok = TOTAL_BITS(bw) == i*32+4 && bw->buffer[0] == FLAC__U64L(0x5aaaaaaaaaaaaaaa) && (bw->accum & 0xf) == 0xa;
+#else
+	ok = TOTAL_BITS(bw) == i*32+4 && bw->buffer[0] == FLAC__U64L(0xaaaaaaaaaaaaaa5a) && (bw->accum & 0xf) == 0xa;
+#endif
 #endif
 	printf("%s\n", ok?"OK":"FAILED");
 	if(!ok) {

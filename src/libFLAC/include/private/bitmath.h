@@ -91,12 +91,43 @@ static inline unsigned int FLAC__clz_uint32(FLAC__uint32 v)
 #endif
 }
 
-/* This one works with input 0 */
+/* Used when 64-bit bsr/clz is unavailable; can use 32-bit bsr/clz when possible */
+static inline unsigned int FLAC__clz_soft_uint64(FLAC__uint64 word)
+{
+	return (FLAC__uint32)(word>>32) ? FLAC__clz_uint32((FLAC__uint32)(word>>32)) :
+		FLAC__clz_uint32((FLAC__uint32)word) + 32;
+}
+
+static inline unsigned int FLAC__clz_uint64(FLAC__uint64 v)
+{
+	/* Never used with input 0 */
+	FLAC__ASSERT(v > 0);
+#if defined(__GNUC__) && (__GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4))
+	return __builtin_clzll(v);
+#elif (defined(__INTEL_COMPILER) || defined(_MSC_VER)) && (defined(_M_IA64) || defined(_M_X64))
+	{
+		unsigned long idx;
+		_BitScanReverse64(&idx, v);
+		return idx ^ 63U;
+	}
+#else
+	return FLAC__clz_soft_uint64(v);
+#endif
+}
+
+/* These two functions work with input 0 */
 static inline unsigned int FLAC__clz2_uint32(FLAC__uint32 v)
 {
 	if (!v)
 		return 32;
 	return FLAC__clz_uint32(v);
+}
+
+static inline unsigned int FLAC__clz2_uint64(FLAC__uint64 v)
+{
+	if (!v)
+		return 64;
+	return FLAC__clz_uint64(v);
 }
 
 /* An example of what FLAC__bitmath_ilog2() computes:

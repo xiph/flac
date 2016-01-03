@@ -46,15 +46,34 @@
 
 /* Things should be fastest when this matches the machine word size */
 /* WATCHOUT: if you change this you must also change the following #defines down to SWAP_BE_WORD_TO_HOST below to match */
-/* WATCHOUT: there are a few places where the code will not work unless uint32_t is >= 32 bits wide */
-#define FLAC__BYTES_PER_WORD 4
+/* WATCHOUT: there are a few places where the code will not work unless bwword is >= 32 bits wide */
+
+#if 1
+
+typedef FLAC__uint32 bwword;
+#define FLAC__BYTES_PER_WORD 4		/* sizeof bwword */
 #define FLAC__BITS_PER_WORD 32
 #define FLAC__WORD_ALL_ONES ((FLAC__uint32)0xffffffff)
-/* SWAP_BE_WORD_TO_HOST swaps bytes in a uint32_t (which is always big-endian) if necessary to match host byte order */
+/* SWAP_BE_WORD_TO_HOST swaps bytes in a bwword (which is always big-endian) if necessary to match host byte order */
 #if WORDS_BIGENDIAN
 #define SWAP_BE_WORD_TO_HOST(x) (x)
 #else
 #define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_32(x)
+#endif
+
+#else
+
+typedef FLAC__uint64 bwword;
+#define FLAC__BYTES_PER_WORD 8		/* sizeof bwword */
+#define FLAC__BITS_PER_WORD 64
+#define FLAC__WORD_ALL_ONES ((FLAC__uint64)FLAC__U64L(0xffffffffffffffff))
+/* SWAP_BE_WORD_TO_HOST swaps bytes in a bwword (which is always big-endian) if necessary to match host byte order */
+#if WORDS_BIGENDIAN
+#define SWAP_BE_WORD_TO_HOST(x) (x)
+#else
+#define SWAP_BE_WORD_TO_HOST(x) ENDSWAP_64(x)
+#endif
+
 #endif
 
 /*
@@ -63,16 +82,16 @@
  * a frame or metadata block, then write that out and clear the buffer for the
  * next one.
  */
-static const unsigned FLAC__BITWRITER_DEFAULT_CAPACITY = 32768u / sizeof(uint32_t); /* size in words */
+static const unsigned FLAC__BITWRITER_DEFAULT_CAPACITY = 32768u / sizeof(bwword); /* size in words */
 /* When growing, increment 4K at a time */
-static const unsigned FLAC__BITWRITER_DEFAULT_INCREMENT = 4096u / sizeof(uint32_t); /* size in words */
+static const unsigned FLAC__BITWRITER_DEFAULT_INCREMENT = 4096u / sizeof(bwword); /* size in words */
 
 #define FLAC__WORDS_TO_BITS(words) ((words) * FLAC__BITS_PER_WORD)
 #define FLAC__TOTAL_BITS(bw) (FLAC__WORDS_TO_BITS((bw)->words) + (bw)->bits)
 
 struct FLAC__BitWriter {
-	uint32_t *buffer;
-	uint32_t accum; /* accumulator; bits are right-justified; when full, accum is appended to buffer */
+	bwword *buffer;
+	bwword accum; /* accumulator; bits are right-justified; when full, accum is appended to buffer */
 	unsigned capacity; /* capacity of buffer in words */
 	unsigned words; /* # of complete words in buffer */
 	unsigned bits; /* # of used bits in accum */
@@ -85,7 +104,7 @@ static
 FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
 {
 	unsigned new_capacity;
-	uint32_t *new_buffer;
+	bwword *new_buffer;
 
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
@@ -107,7 +126,7 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, unsigned bits_to_add)
 	FLAC__ASSERT(new_capacity > bw->capacity);
 	FLAC__ASSERT(new_capacity >= bw->words + ((bw->bits + bits_to_add + FLAC__BITS_PER_WORD - 1) / FLAC__BITS_PER_WORD));
 
-	new_buffer = safe_realloc_mul_2op_(bw->buffer, sizeof(uint32_t), /*times*/new_capacity);
+	new_buffer = safe_realloc_mul_2op_(bw->buffer, sizeof(bwword), /*times*/new_capacity);
 	if(new_buffer == 0)
 		return false;
 	bw->buffer = new_buffer;
@@ -149,7 +168,7 @@ FLAC__bool FLAC__bitwriter_init(FLAC__BitWriter *bw)
 
 	bw->words = bw->bits = 0;
 	bw->capacity = FLAC__BITWRITER_DEFAULT_CAPACITY;
-	bw->buffer = malloc(sizeof(uint32_t) * bw->capacity);
+	bw->buffer = malloc(sizeof(bwword) * bw->capacity);
 	if(bw->buffer == 0)
 		return false;
 
@@ -184,13 +203,13 @@ void FLAC__bitwriter_dump(const FLAC__BitWriter *bw, FILE *out)
 		for(i = 0; i < bw->words; i++) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < FLAC__BITS_PER_WORD; j++)
-				fprintf(out, "%01u", bw->buffer[i] & (1u << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
+				fprintf(out, "%01u", bw->buffer[i] & ((bwword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 		if(bw->bits > 0) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < bw->bits; j++)
-				fprintf(out, "%01u", bw->accum & (1 << (bw->bits-j-1)) ? 1:0);
+				fprintf(out, "%01u", bw->accum & ((bwword)1 << (bw->bits-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 	}
@@ -337,7 +356,7 @@ inline FLAC__bool FLAC__bitwriter_write_raw_uint32(FLAC__BitWriter *bw, FLAC__ui
 		bw->accum = val;
 	}
 	else { /* at this point bits == FLAC__BITS_PER_WORD == 32  and  bw->bits == 0 */
-		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(val);
+		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST((bwword)val);
 	}
 
 	return true;
@@ -533,8 +552,8 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 		msbits = uval >> parameter;
 		total_bits = lsbits + msbits;
 
-		if(bw->bits && bw->bits + total_bits < FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current uint32_t */
-			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free uint32_t to work in */
+		if(bw->bits && bw->bits + total_bits < FLAC__BITS_PER_WORD) { /* i.e. if the whole thing fits in the current bwword */
+			/* ^^^ if bw->bits is 0 then we may have filled the buffer and have no free bwword to work in */
 			bw->bits += total_bits;
 			uval |= mask1; /* set stop bit */
 			uval &= mask2; /* mask off unused top bits */
@@ -544,7 +563,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 		else {
 			/* slightly pessimistic size check but faster than "<= bw->words + (bw->bits+msbits+lsbits+FLAC__BITS_PER_WORD-1)/FLAC__BITS_PER_WORD" */
 			/* OPT: pessimism may cause flurry of false calls to grow_ which eat up all savings before it */
-			if(bw->capacity <= bw->words + bw->bits + msbits + 1 /* lsbits always fit in 1 uint32_t */ && !bitwriter_grow_(bw, total_bits))
+			if(bw->capacity <= bw->words + bw->bits + msbits + 1 /* lsbits always fit in 1 bwword */ && !bitwriter_grow_(bw, total_bits))
 				return false;
 
 			if(msbits) {
