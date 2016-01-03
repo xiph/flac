@@ -117,7 +117,9 @@
 #endif
 
 #if defined _MSC_VER
-#  if _MSC_VER >= 1600
+#  if _MSC_VER >= 1800
+#    include <inttypes.h>
+#  elif _MSC_VER >= 1600
 /* Visual Studio 2010 has decent C99 support */
 #    include <stdint.h>
 #    define PRIu64 "llu"

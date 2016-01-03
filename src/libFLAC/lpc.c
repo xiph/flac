@@ -51,15 +51,14 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
-#if !defined(HAVE_LROUND)
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && (_MSC_VER < 1800)
 #include <float.h>
-#define copysign _copysign
-#elif defined(__GNUC__)
-#define copysign __builtin_copysign
-#endif
 static inline long int lround(double x) {
-	return (long)(x + copysign (0.5, x));
+	return (long)(x + _copysign(0.5, x));
+}
+#elif !defined(HAVE_LROUND) && defined(__GNUC__)
+static inline long int lround(double x) {
+	return (long)(x + __builtin_copysign(0.5, x));
 }
 /* If this fails, we are in the presence of a mid 90's compiler, move along... */
 #endif
