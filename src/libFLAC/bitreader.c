@@ -49,7 +49,7 @@
 /* WATCHOUT: there are a few places where the code will not work unless brword is >= 32 bits wide */
 /*           also, some sections currently only have fast versions for 4 or 8 bytes per word */
 
-#if 1
+#if (ENABLE_64_BIT_WORDS == 0)
 
 typedef FLAC__uint32 brword;
 #define FLAC__BYTES_PER_WORD 4		/* sizeof brword */

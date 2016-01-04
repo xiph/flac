@@ -33,7 +33,7 @@
  * the definition here to get at the internals.  Make sure this is kept up
  * to date with what is in ../libFLAC/bitwriter.c
  */
-#if 1
+#if (ENABLE_64_BIT_WORDS == 0)
 
 typedef FLAC__uint32 bwword;
 #define FLAC__BYTES_PER_WORD 4

@@ -269,6 +269,15 @@ AC_ARG_ENABLE(werror,
 AC_ARG_ENABLE(stack-smash-protection,
 	AC_HELP_STRING([--enable-stack-smash-protection], [Enable GNU GCC stack smash protection]))
 
+AC_ARG_ENABLE(64-bit-words,
+	AC_HELP_STRING([--enable-64-bit-words], [Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
+if test "x$enable_64_bit_words" = xyes ; then
+	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],1,[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)])
+else
+	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],0)
+	fi
+AC_SUBST(ENABLE_64_BIT_WORDS)
+
 AC_ARG_ENABLE(valgrind-testing,
 AC_HELP_STRING([--enable-valgrind-testing], [Run all tests inside Valgrind]),
 [case "${enableval}" in

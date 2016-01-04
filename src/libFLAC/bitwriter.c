@@ -48,7 +48,7 @@
 /* WATCHOUT: if you change this you must also change the following #defines down to SWAP_BE_WORD_TO_HOST below to match */
 /* WATCHOUT: there are a few places where the code will not work unless bwword is >= 32 bits wide */
 
-#if 1
+#if (ENABLE_64_BIT_WORDS == 0)
 
 typedef FLAC__uint32 bwword;
 #define FLAC__BYTES_PER_WORD 4		/* sizeof bwword */
