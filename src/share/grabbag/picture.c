@@ -273,7 +273,8 @@ static const char *error_messages[] = {
 	"invalid picture type",
 	"unable to guess MIME type from file, user must set explicitly",
 	"type 1 icon must be a 32x32 pixel PNG",
-	"file not found"
+	"file not found", /* currently unused */
+	"file is too large"
 };
 
 static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj)
@@ -285,6 +286,9 @@ static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj
 
 	if (size < 0)
 		return error_messages[5];
+
+	if (size >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+		return error_messages[11];
 
 	if ((buffer = safe_malloc_(size)) == NULL)
 		return error_messages[0];
