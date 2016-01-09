@@ -1613,9 +1613,9 @@ void show_explain(void)
 	printf("                                     encoder decide (the minimun is %u, the\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("                                     default is -q 0)\n");
 	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
-	printf("                                     (# is 0..16; min defaults to 0; the\n");
-	printf("                                     default is -r 0; above 4 doesn't usually\n");
-	printf("                                     help much)\n");
+	printf("                                     (# is 0 to 15 inclusive; min defaults to 0;\n");
+	printf("                                     the default is -r 0; above 4 does not\n");
+	printf("                                     usually help much)\n");
 	printf("format options:\n");
 	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
 	printf("                               decoding) to be treated as raw samples\n");
