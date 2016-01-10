@@ -210,9 +210,9 @@ int main(int argc, char *argv[])
 {
 	const char *usage = "usage: flacdiff flacfile1 flacfile2\n";
 
-#ifdef FLAC__STRINGS_IN_UTF8
+#ifdef _WIN32
 	if (get_utf8_argv(&argc, &argv) != 0) {
-		fprintf(stderr, "%ERROR: failed to convert command line parameters to UTF-8\n");
+		fprintf(stderr, "ERROR: failed to convert command line parameters to UTF-8\n");
 		return 1;
 	}
 #endif
