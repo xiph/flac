@@ -1,4 +1,4 @@
-/* libFLAC - Free Lossless Audio Codec library
+/* grabbag - Convenience lib for various routines common to several tools
  * Copyright (C) 2013-2014  Xiph.org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
