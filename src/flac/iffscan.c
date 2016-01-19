@@ -105,7 +105,7 @@ int main(int argc, char *argv[])
 			flac_fprintf(stderr, "ERROR reading %s\n", fn);
 			return 1;
 		}
-		size = unpack32_((const FLAC__byte*)buf+4, fm->type);
+		size = unpack32_((FLAC__byte*)buf+4, fm->type);
 		printf("block:[%c%c%c%c] size=%08x=(%10u)", buf[0], buf[1], buf[2], buf[3], size, size);
 		if(i == 0)
 			printf(" type:[%c%c%c%c]", buf[8], buf[9], buf[10], buf[11]);
@@ -116,10 +116,10 @@ int main(int argc, char *argv[])
 				flac_fprintf(stderr, "ERROR reading %s\n", fn);
 				return 1;
 			}
-			printf(" RIFF size=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+8), unpack64le_(buf+8));
-			printf(" data size=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+16), unpack64le_(buf+16));
-			printf(" sample count=%016" PRIx64 "=(" PRIu64 ")", unpack64le_(buf+24), unpack64le_(buf+24));
-			printf(" table size=%08x=(%u)", unpack32le_(buf+32), unpack32le_(buf+32));
+			printf("\n    RIFF size=%016" PRIx64 "=(%20" PRIu64 ")", unpack64le_((FLAC__byte*)buf+8), unpack64le_((FLAC__byte*)buf+8));
+			printf("\n    data size=%016" PRIx64 "=(%20" PRIu64 ")", unpack64le_((FLAC__byte*)buf+16), unpack64le_((FLAC__byte*)buf+16));
+			printf("\n    sample count=%016" PRIx64 "=(%20" PRIu64 ")", unpack64le_((FLAC__byte*)buf+24), unpack64le_((FLAC__byte*)buf+24));
+			printf("\n    table size=%08x=(%10u)", unpack32le_((FLAC__byte*)buf+32), unpack32le_((FLAC__byte*)buf+32));
 		}
 		printf("\n");
 	}
