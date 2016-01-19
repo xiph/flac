@@ -32,10 +32,14 @@
 #include <errno.h>
 
 /* FLAC_CHECK_RETURN : Check the return value of the provided function and
- * print and error message if it fails (ie returns a value < 0).
+ * print an error message if it fails (ie returns a value < 0).
+ *
+ * Ideally, a library should not print anything, but this macro is only used
+ * for things that extremely unlikely to fail, like `chown` to a previoulsy
+ * saved `uid`.
  */
 
 #define FLAC_CHECK_RETURN(x) \
 			{	if ((x) < 0) \
-					printf ("%s : %s\n", #x, strerror (errno)) ; \
+					fprintf (stderr, "%s : %s\n", #x, strerror (errno)) ; \
 			}
