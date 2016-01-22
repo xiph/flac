@@ -504,6 +504,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 			break;
 		default:
 			die_("internal error 006");
+			delete decoder;
 			return false;
 	}
 	if(init_status != ::FLAC__STREAM_DECODER_INIT_STATUS_OK)

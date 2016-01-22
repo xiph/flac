@@ -104,7 +104,7 @@ static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field
 static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw, const char **violation)
 {
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
-	char *converted;
+	char *converted = NULL;
 
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
