@@ -3243,8 +3243,10 @@ local_snprintf(char *str, size_t size, const char *fmt, ...)
 	va_start (va, fmt);
 
 #if defined _MSC_VER
-	if (size == 0)
+	if (size == 0) {
+	        va_end (va);
 		return 1024;
+        }
 	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
 	if (rc < 0)
 		rc = size - 1;

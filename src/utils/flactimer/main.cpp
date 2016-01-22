@@ -81,7 +81,7 @@ int main(int argc, char *argv[])
 		}
 		fout = fopen(argv[1], "w");
 		if(!fout) {
-			fprintf(fout, "ERROR opening file %s for writing\n", argv[1]);
+			fprintf(stderr, "ERROR opening file %s for writing\n", argv[1]);
 			return 1;
 		}
 		argv += 2;
