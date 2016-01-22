@@ -3240,11 +3240,14 @@ local_snprintf(char *str, size_t size, const char *fmt, ...)
 	va_list va;
 	int rc;
 
-	va_start (va, fmt);
-
 #if defined _MSC_VER
 	if (size == 0)
 		return 1024;
+#endif
+
+	va_start (va, fmt);
+
+#if defined _MSC_VER
 	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
 	if (rc < 0)
 		rc = size - 1;
