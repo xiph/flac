@@ -39,6 +39,10 @@
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memcpy() */
 #include <sys/types.h> /* for off_t */
+#ifdef _WIN32
+#include <windows.h> /* for GetFileType() */
+#include <io.h> /* for _get_osfhandle() */
+#endif
 #include "share/compat.h"
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"

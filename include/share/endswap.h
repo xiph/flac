@@ -45,7 +45,9 @@ static inline unsigned short __builtin_bswap16(unsigned short a)
 #define	ENDSWAP_32(x)		(__builtin_bswap32 (x))
 #define	ENDSWAP_64(x)		(__builtin_bswap64 (x))
 
-#elif defined _MSC_VER		/* Windows. Apparently in <stdlib.h>. */
+#elif defined _MSC_VER		/* Windows */
+
+#include <stdlib.h>
 
 #define	ENDSWAP_16(x)		(_byteswap_ushort (x))
 #define	ENDSWAP_32(x)		(_byteswap_ulong (x))

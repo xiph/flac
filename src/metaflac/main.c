@@ -25,6 +25,7 @@
 #include "options.h"
 #include <locale.h>
 #include <stdlib.h>
+#include <string.h>
 #include "share/compat.h"
 
 int main(int argc, char *argv[])
