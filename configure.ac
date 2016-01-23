@@ -437,6 +437,11 @@ if test x$enable_stack_smash_protection = "xyes" ; then
 	XIPH_GXX_STACK_PROTECTOR
 	fi
 
+if test "x$sys_linux" = xtrue ; then
+       LIB_CLOCK_GETTIME=-lrt
+       fi
+AC_SUBST(LIB_CLOCK_GETTIME)
+
 AC_CONFIG_FILES([ \
 	Makefile \
 	src/Makefile \
