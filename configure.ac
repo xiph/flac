@@ -423,8 +423,6 @@ case "$host_os" in
 		fi
 	esac
 
-XIPH_ADD_CFLAGS([-Wextra])
-
 if test x$enable_werror = "xyes" ; then
 	XIPH_ADD_CFLAGS([-Werror])
 	AC_LANG_PUSH([C++])
