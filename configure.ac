@@ -238,6 +238,19 @@ AC_DEFINE(FLAC__USE_ALTIVEC)
 AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
 fi
 
+AC_ARG_ENABLE(avx,
+AC_HELP_STRING([--disable-avx], [Disable AVX, AVX2 optimizations]),
+[case "${enableval}" in
+	yes) use_avx=true ;;
+	no)  use_avx=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-avx) ;;
+esac],[use_avx=true])
+AM_CONDITIONAL(FLaC__USE_AVX, test "x$use_avx" = xtrue)
+if test "x$use_avx" = xtrue ; then
+AC_DEFINE(FLAC__USE_AVX)
+AH_TEMPLATE(FLAC__USE_AVX, [define to enable use of AVX instructions])
+fi
+
 AC_ARG_ENABLE(thorough-tests,
 AC_HELP_STRING([--disable-thorough-tests], [Disable thorough (long) testing, do only basic tests]),
 [case "${enableval}" in

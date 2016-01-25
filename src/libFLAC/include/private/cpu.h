@@ -78,9 +78,11 @@
     #define FLAC__SSE2_SUPPORTED 1
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
+#ifdef FLAC__USE_AVX
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
+#endif
   #else /* for GCC older than 4.9 */
     #define FLAC__SSE_TARGET(x)
     #ifdef __SSE__
