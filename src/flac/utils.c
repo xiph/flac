@@ -183,7 +183,7 @@ int get_console_width(void)
 	int s[2];
 	_scrsize (s);
 	width = s[0];
-#elif defined GWINSZ_IN_SYS_IOCTL
+#elif defined TIOCGWINSZ
 	struct winsize w;
 	if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &w) != -1)
 		width = w.ws_col;
