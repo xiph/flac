@@ -40,10 +40,20 @@ set -e
 
 if test $(uname -s) = "OpenBSD" ; then
 	# OpenBSD needs these environment variables set.
-	AUTOCONF_VERSION=2.69
-	AUTOMAKE_VERSION=1.11
-	export AUTOCONF_VERSION
-	export AUTOMAKE_VERSION
+	if test -z "$AUTOCONF_VERSION" ; then
+		AUTOCONF_VERSION=2.69
+		export AUTOCONF_VERSION
+		echo "Defaulting to use AUTOCONF_VERSION version ${AUTOCONF_VERSION}."
+	else
+		echo "Using AUTOCONF_VERSION version ${AUTOCONF_VERSION}."
+		fi
+	if test -z "$AUTOMAKE_VERSION" ; then
+		AUTOMAKE_VERSION=1.15
+		export AUTOMAKE_VERSION
+		echo "Defaulting to use AUTOMAKE_VERSION version ${AUTOMAKE_VERSION}."
+	else
+		echo "Using AUTOMAKE_VERSION version ${AUTOMAKE_VERSION}."
+		fi
 	fi
 
 srcdir=`dirname $0`
