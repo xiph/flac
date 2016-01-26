@@ -102,18 +102,18 @@ benchmark_function (void (*testfunc) (void), unsigned count)
 
 static double
 timespec_diff (const struct timespec * start, const struct timespec * end)
-{	struct timespec difftime;
+{	struct timespec diff;
 
 	if (end->tv_nsec - start->tv_nsec < 0)
-	{	difftime.tv_sec = end->tv_sec - start->tv_sec - 1 ;
-		difftime.tv_nsec = 1000000000 + end->tv_nsec - start->tv_nsec ;
+	{	diff.tv_sec = end->tv_sec - start->tv_sec - 1 ;
+		diff.tv_nsec = 1000000000 + end->tv_nsec - start->tv_nsec ;
 		}
 	else
-	{	difftime.tv_sec = end->tv_sec - start->tv_sec ;
-		difftime.tv_nsec = end->tv_nsec-start->tv_nsec ;
+	{	diff.tv_sec = end->tv_sec - start->tv_sec ;
+		diff.tv_nsec = end->tv_nsec-start->tv_nsec ;
 		} ;
 
-	return difftime.tv_sec + 1e-9 * difftime.tv_nsec ;
+	return diff.tv_sec + 1e-9 * diff.tv_nsec ;
 }
 
 double
