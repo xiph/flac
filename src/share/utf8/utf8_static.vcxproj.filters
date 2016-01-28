@@ -14,26 +14,11 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="charmaps.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="charset.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="charsetmap.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\..\include\share\utf8.h">
       <Filter>Public Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="charset.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="iconvert.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="utf8.c">
       <Filter>Source Files</Filter>
     </ClCompile>

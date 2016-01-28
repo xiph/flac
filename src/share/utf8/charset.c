@@ -31,7 +31,7 @@
 #  include <config.h>
 #endif
 
-#ifndef HAVE_ICONV /* should be ifdef USE_CHARSET_CONVERT */
+#if !defined _WIN32 && !defined HAVE_ICONV /* should be && defined USE_CHARSET_CONVERT */
 
 #include <stdlib.h>
 

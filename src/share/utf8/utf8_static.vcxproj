@@ -130,13 +130,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\share\utf8.h" />
-    <ClInclude Include="charmaps.h" />
-    <ClInclude Include="charset.h" />
-    <ClInclude Include="charsetmap.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="charset.c" />
-    <ClCompile Include="iconvert.c" />
     <ClCompile Include="utf8.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -20,7 +20,7 @@
 #  include <config.h>
 #endif
 
-#ifdef HAVE_ICONV
+#if !defined _WIN32 && defined HAVE_ICONV
 
 #include <assert.h>
 #include <errno.h>

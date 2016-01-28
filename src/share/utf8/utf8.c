@@ -33,7 +33,6 @@
 #include "share/alloc.h"
 #include "share/safe_str.h"
 #include "share/utf8.h"
-#include "charset.h"
 
 
 #ifdef _WIN32
@@ -247,6 +246,7 @@ int utf8_decode(const char *from, char **to)
 #endif
 
 #include "iconvert.h"
+#include "charset.h"
 
 static const char *current_charset(void)
 {
