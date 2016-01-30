@@ -36,10 +36,7 @@ libplugin_common_la_SOURCES = \
 
 EXTRA_DIST = \
 	Makefile.lite \
-	README \
-	plugin_common_static.vcproj \
-	plugin_common_static.vcxproj \
-	plugin_common_static.vcxproj.filters
+	README
 
 debug:
 	$(MAKE) all CFLAGS="@DEBUG@"

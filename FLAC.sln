@@ -33,8 +33,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libFLAC++_static", "src\lib
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "metaflac", "src\metaflac\metaflac.vcxproj", "{4CEFBC87-C215-11DB-8314-0800200C9A66}"
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "plugin_common_static", "src\plugin_common\plugin_common_static.vcxproj", "{4CEFBC88-C215-11DB-8314-0800200C9A66}"
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "replaygain_analysis_static", "src\share\replaygain_analysis\replaygain_analysis_static.vcxproj", "{4CEFBC89-C215-11DB-8314-0800200C9A66}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "replaygain_synthesis_static", "src\share\replaygain_synthesis\replaygain_synthesis_static.vcxproj", "{4CEFBC8A-C215-11DB-8314-0800200C9A66}"
@@ -185,14 +183,6 @@ Global
 		{4CEFBC87-C215-11DB-8314-0800200C9A66}.Release|Win32.Build.0 = Release|Win32
 		{4CEFBC87-C215-11DB-8314-0800200C9A66}.Release|x64.ActiveCfg = Release|x64
 		{4CEFBC87-C215-11DB-8314-0800200C9A66}.Release|x64.Build.0 = Release|x64
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Debug|Win32.ActiveCfg = Debug|Win32
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Debug|Win32.Build.0 = Debug|Win32
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Debug|x64.ActiveCfg = Debug|x64
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Debug|x64.Build.0 = Debug|x64
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Release|Win32.ActiveCfg = Release|Win32
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Release|Win32.Build.0 = Release|Win32
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Release|x64.ActiveCfg = Release|x64
-		{4CEFBC88-C215-11DB-8314-0800200C9A66}.Release|x64.Build.0 = Release|x64
 		{4CEFBC89-C215-11DB-8314-0800200C9A66}.Debug|Win32.ActiveCfg = Debug|Win32
 		{4CEFBC89-C215-11DB-8314-0800200C9A66}.Debug|Win32.Build.0 = Debug|Win32
 		{4CEFBC89-C215-11DB-8314-0800200C9A66}.Debug|x64.ActiveCfg = Debug|x64
