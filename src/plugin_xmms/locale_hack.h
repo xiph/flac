@@ -1,4 +1,4 @@
-/* plugin_common - Routines common to several plugins
+/* libxmms-flac - XMMS FLAC input plugin
  * Copyright (C) 2002-2009  Josh Coalson
  * Copyright (C) 2011-2014  Xiph.Org Foundation
  *
