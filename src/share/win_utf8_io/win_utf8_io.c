@@ -40,45 +40,41 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdarg.h>
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h> /* for WideCharToMultiByte and MultiByteToWideChar */
-
 #include "share/win_utf8_io.h"
 
 #define UTF8_BUFFER_SIZE 32768
 
-static
-int local_vsnprintf(char *str, size_t size, const char *fmt, va_list va)
+static int local_vsnprintf(char *str, size_t size, const char *fmt, va_list va)
 {
 	int rc;
 
 #if defined _MSC_VER
 	if (size == 0)
 		return 1024;
-	rc = vsnprintf_s (str, size, _TRUNCATE, fmt, va);
+	rc = vsnprintf_s(str, size, _TRUNCATE, fmt, va);
 	if (rc < 0)
 		rc = size - 1;
 #elif defined __MINGW32__
-	rc = __mingw_vsnprintf (str, size, fmt, va);
+	rc = __mingw_vsnprintf(str, size, fmt, va);
 #else
-	rc = vsnprintf (str, size, fmt, va);
+	rc = vsnprintf(str, size, fmt, va);
 #endif
 
 	return rc;
 }
 
-static UINT win_utf8_io_codepage = CP_ACP;
-
 /* convert WCHAR stored Unicode string to UTF-8. Caller is responsible for freeing memory */
-static
-char *utf8_from_wchar(const wchar_t *wstr)
+static char *utf8_from_wchar(const wchar_t *wstr)
 {
 	char *utf8str;
 	int len;
 
-	if (!wstr) return NULL;
-	if ((len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL)) == 0) return NULL;
-	if ((utf8str = (char *)malloc(++len)) == NULL) return NULL;
+	if (!wstr)
+		return NULL;
+	if ((len = WideCharToMultiByte(CP_UTF8, 0, wstr, -1, NULL, 0, NULL, NULL)) == 0)
+		return NULL;
+	if ((utf8str = (char *)malloc(len)) == NULL)
+		return NULL;
 	if (WideCharToMultiByte(CP_UTF8, 0, wstr, -1, utf8str, len, NULL, NULL) == 0) {
 		free(utf8str);
 		utf8str = NULL;
@@ -88,25 +84,26 @@ char *utf8_from_wchar(const wchar_t *wstr)
 }
 
 /* convert UTF-8 back to WCHAR. Caller is responsible for freeing memory */
-static
-wchar_t *wchar_from_utf8(const char *str)
+static wchar_t *wchar_from_utf8(const char *str)
 {
 	wchar_t *widestr;
 	int len;
 
-	if (!str) return NULL;
-	len=(int)strlen(str)+1;
-	if ((widestr = (wchar_t *)malloc(len*sizeof(wchar_t))) != NULL) {
-		if (MultiByteToWideChar(win_utf8_io_codepage, 0, str, len, widestr, len) == 0) {
-			if (MultiByteToWideChar(CP_ACP, 0, str, len, widestr, len) == 0) { /* try conversion from Ansi in case the initial UTF-8 conversion had failed */
-				free(widestr);
-				widestr = NULL;
-			}
-		}
+	if (!str)
+		return NULL;
+	if ((len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0)) == 0)
+		return NULL;
+	if ((widestr = (wchar_t *)malloc(len*sizeof(wchar_t))) == NULL)
+		return NULL;
+	if (MultiByteToWideChar(CP_UTF8, 0, str, -1, widestr, len) == 0) {
+		free(widestr);
+		widestr = NULL;
 	}
 
 	return widestr;
 }
+
+void set_filename_utf8(int b);
 
 /* retrieve WCHAR commandline, expand wildcards and convert everything to UTF-8 */
 int get_utf8_argv(int *argc, char ***argv)
@@ -126,7 +123,7 @@ int get_utf8_argv(int *argc, char ***argv)
 		return 1;
 	}
 	i = 0;
-	/* if __wgetmainargs expands wildcards then it also erroneously converts \\?\c:\path\to\file.flac to \\file.flac */
+	/* when the 4th argument is 1,  __wgetmainargs expands wildcards but also erroneously converts \\?\c:\path\to\file.flac to \\file.flac */
 	if (wgetmainargs(&wargc, &wargv, &wenv, 1, &i) != 0) {
 		FreeLibrary(handle);
 		return 1;
@@ -147,7 +144,7 @@ int get_utf8_argv(int *argc, char ***argv)
 	FreeLibrary(handle); /* do not free it when wargv or wenv are still in use */
 
 	if (ret == 0) {
-		win_utf8_io_codepage = CP_UTF8;
+		set_filename_utf8(1);
 		*argc = wargc;
 		*argv = utf8argv;
 	} else {
@@ -163,9 +160,11 @@ int get_utf8_argv(int *argc, char ***argv)
 size_t strlen_utf8(const char *str)
 {
 	size_t len;
-	if ((len = MultiByteToWideChar(win_utf8_io_codepage, 0, str, -1, NULL, 0)) == 0)
-		len = strlen(str);
-	return len;
+	len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0); /* includes terminating null */
+	if (len != 0)
+		return len-1;
+	else
+		return strlen(str);
 }
 
 /* get the console width in characters */
@@ -174,80 +173,66 @@ int win_get_console_width(void)
 	int width = 80;
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	if (GetConsoleScreenBufferInfo(hOut, &csbi) != 0) width = csbi.dwSize.X;
+	if(hOut != INVALID_HANDLE_VALUE && hOut != NULL)
+		if (GetConsoleScreenBufferInfo(hOut, &csbi) != 0)
+			width = csbi.dwSize.X;
 	return width;
 }
 
 /* print functions */
 
-int print_console(FILE *stream, const wchar_t *text, size_t len)
+static int wprint_console(FILE *stream, const wchar_t *text, size_t len)
 {
-	static HANDLE hOut;
-	static HANDLE hErr;
 	DWORD out;
-	hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-	hErr = GetStdHandle(STD_ERROR_HANDLE);
-	if (stream == stdout && hOut != INVALID_HANDLE_VALUE && GetFileType(hOut) == FILE_TYPE_CHAR) {
-		if (WriteConsoleW(hOut, text, len, &out, NULL) == 0) return -1;
-		return out;
-	} else if (stream == stderr && hErr != INVALID_HANDLE_VALUE && GetFileType(hErr) == FILE_TYPE_CHAR) {
-		if (WriteConsoleW(hErr, text, len, &out, NULL) == 0) return -1;
-		return out;
-	} else {
-		int ret = fputws(text, stream);
-		if (ret < 0) return ret;
-		return len;
-	}
+	int ret;
+
+	do {
+		if (stream == stdout) {
+			HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+			if (hOut == INVALID_HANDLE_VALUE || hOut == NULL || GetFileType(hOut) != FILE_TYPE_CHAR)
+				break;
+			if (WriteConsoleW(hOut, text, len, &out, NULL) == 0)
+				return -1;
+			return out;
+		}
+		if (stream == stderr) {
+			HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
+			if (hErr == INVALID_HANDLE_VALUE || hErr == NULL || GetFileType(hErr) != FILE_TYPE_CHAR)
+				break;
+			if (WriteConsoleW(hErr, text, len, &out, NULL) == 0)
+				return -1;
+			return out;
+		}
+	} while(0);
+
+	ret = fputws(text, stream);
+	if (ret < 0)
+		return ret;
+	return len;
 }
 
 int printf_utf8(const char *format, ...)
 {
-	char *utmp = NULL;
-	wchar_t *wout = NULL;
-	int ret = -1;
+	int ret;
+	va_list argptr;
+	va_start(argptr, format);
 
-	while (1) {
-		va_list argptr;
-		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE*sizeof(char)))) break;
-		va_start(argptr, format);
-		ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr);
-		va_end(argptr);
-		if (ret < 0) break;
-		if (!(wout = wchar_from_utf8(utmp))) {
-			ret = -1;
-			break;
-		}
-		ret = print_console(stdout, wout, wcslen(wout));
-		break;
-	}
-	if (utmp) free(utmp);
-	if (wout) free(wout);
+	ret = vfprintf_utf8(stdout, format, argptr);
+
+	va_end(argptr);
 
 	return ret;
 }
 
 int fprintf_utf8(FILE *stream, const char *format, ...)
 {
-	char *utmp = NULL;
-	wchar_t *wout = NULL;
-	int ret = -1;
+	int ret;
+	va_list argptr;
+	va_start(argptr, format);
 
-	while (1) {
-		va_list argptr;
-		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE*sizeof(char)))) break;
-		va_start(argptr, format);
-		ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr);
-		va_end(argptr);
-		if (ret < 0) break;
-		if (!(wout = wchar_from_utf8(utmp))) {
-			ret = -1;
-			break;
-		}
-		ret = print_console(stream, wout, wcslen(wout));
-		break;
-	}
-	if (utmp) free(utmp);
-	if (wout) free(wout);
+	ret = vfprintf_utf8(stream, format, argptr);
+
+	va_end(argptr);
 
 	return ret;
 }
@@ -258,125 +243,155 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 	wchar_t *wout = NULL;
 	int ret = -1;
 
-	while (1) {
-		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE*sizeof(char)))) break;
-		if ((ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr)) < 0) break;
+	do {
+		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE))) break;
+		if ((ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr)) <= 0) break;
 		if (!(wout = wchar_from_utf8(utmp))) {
 			ret = -1;
 			break;
 		}
-		ret = print_console(stream, wout, wcslen(wout));
-		break;
-	}
-	if (utmp) free(utmp);
-	if (wout) free(wout);
+		ret = wprint_console(stream, wout, wcslen(wout));
+	} while(0);
+
+	free(utmp);
+	free(wout);
 
 	return ret;
 }
 
 /* file functions */
 
+static int utf8_filename = 0;
+
+static void set_filename_utf8(int b)
+{
+	utf8_filename = b ? 1: 0;
+}
+
 FILE *fopen_utf8(const char *filename, const char *mode)
 {
-	wchar_t *wname = NULL;
-	wchar_t *wmode = NULL;
-	FILE *f = NULL;
+	if (0 == utf8_filename) {
+		return fopen(filename, mode);
+	} else {
+		wchar_t *wname = NULL;
+		wchar_t *wmode = NULL;
+		FILE *f = NULL;
 
-	while (1) {
-		if (!(wname = wchar_from_utf8(filename))) break;
-		if (!(wmode = wchar_from_utf8(mode))) break;
-		f = _wfopen(wname, wmode);
-		break;
+		do {
+			if (!(wname = wchar_from_utf8(filename))) break;
+			if (!(wmode = wchar_from_utf8(mode))) break;
+			f = _wfopen(wname, wmode);
+		} while(0);
+
+		free(wname);
+		free(wmode);
+
+		return f;
 	}
-	if (wname) free(wname);
-	if (wmode) free(wmode);
-
-	return f;
 }
 
 int _stat64_utf8(const char *path, struct __stat64 *buffer)
 {
-	wchar_t *wpath;
-	int ret;
+	if (0 == utf8_filename) {
+		return _stat64(path, buffer);
+	} else {
+		wchar_t *wpath;
+		int ret;
 
-	if (!(wpath = wchar_from_utf8(path))) return -1;
-	ret = _wstat64(wpath, buffer);
-	free(wpath);
+		if (!(wpath = wchar_from_utf8(path))) return -1;
+		ret = _wstat64(wpath, buffer);
+		free(wpath);
 
-	return ret;
+		return ret;
+	}
 }
 
 int chmod_utf8(const char *filename, int pmode)
 {
-	wchar_t *wname;
-	int ret;
+	if (0 == utf8_filename) {
+		return _chmod(filename, pmode);
+	} else {
+		wchar_t *wname;
+		int ret;
 
-	if (!(wname = wchar_from_utf8(filename))) return -1;
-	ret = _wchmod(wname, pmode);
-	free(wname);
+		if (!(wname = wchar_from_utf8(filename))) return -1;
+		ret = _wchmod(wname, pmode);
+		free(wname);
 
-	return ret;
+		return ret;
+	}
 }
 
 int utime_utf8(const char *filename, struct utimbuf *times)
 {
-	wchar_t *wname;
-	struct __utimbuf64 ut;
-	int ret;
-
-	if (sizeof(*times) == sizeof(ut)) {
-		memcpy(&ut, times, sizeof(ut));
+	if (0 == utf8_filename) {
+		return utime(filename, times);
 	} else {
+		wchar_t *wname;
+		struct __utimbuf64 ut;
+		int ret;
+
+		if (!(wname = wchar_from_utf8(filename))) return -1;
 		ut.actime = times->actime;
 		ut.modtime = times->modtime;
+		ret = _wutime64(wname, &ut);
+		free(wname);
+
+		return ret;
 	}
-
-	if (!(wname = wchar_from_utf8(filename))) return -1;
-	ret = _wutime64(wname, &ut);
-	free(wname);
-
-	return ret;
 }
 
 int unlink_utf8(const char *filename)
 {
-	wchar_t *wname;
-	int ret;
+	if (0 == utf8_filename) {
+		return _unlink(filename);
+	} else {
+		wchar_t *wname;
+		int ret;
 
-	if (!(wname = wchar_from_utf8(filename))) return -1;
-	ret = _wunlink(wname);
-	free(wname);
+		if (!(wname = wchar_from_utf8(filename))) return -1;
+		ret = _wunlink(wname);
+		free(wname);
 
-	return ret;
+		return ret;
+	}
 }
 
 int rename_utf8(const char *oldname, const char *newname)
 {
-	wchar_t *wold = NULL;
-	wchar_t *wnew = NULL;
-	int ret = -1;
+	if (0 == utf8_filename) {
+		return rename(oldname, newname);
+	} else {
+		wchar_t *wold = NULL;
+		wchar_t *wnew = NULL;
+		int ret = -1;
 
-	while (1) {
-		if (!(wold = wchar_from_utf8(oldname))) break;
-		if (!(wnew = wchar_from_utf8(newname))) break;
-		ret = _wrename(wold, wnew);
-		break;
+		do {
+			if (!(wold = wchar_from_utf8(oldname))) break;
+			if (!(wnew = wchar_from_utf8(newname))) break;
+			ret = _wrename(wold, wnew);
+		} while(0);
+
+		free(wold);
+		free(wnew);
+
+		return ret;
 	}
-	if (wold) free(wold);
-	if (wnew) free(wnew);
-
-	return ret;
 }
 
 HANDLE WINAPI CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
-	wchar_t *wname;
-	HANDLE handle = INVALID_HANDLE_VALUE;
+	if (0 == utf8_filename) {
+		return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+	} else {
+		wchar_t *wname;
+		HANDLE handle = INVALID_HANDLE_VALUE;
 
-	if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
-		handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-		free(wname);
+		if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
+			handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+			free(wname);
+		}
+
+		return handle;
 	}
-
-	return handle;
 }
