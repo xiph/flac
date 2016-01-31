@@ -43,8 +43,6 @@ EXTRA_DIST = \
 	utf8/charmaps.h \
 	utf8/makemap.c \
 	utf8/charset_test.c \
-	utf8/charsetmap.h \
-	utf8/iconvert.h \
 	utf8/utf8_static.vcproj \
 	utf8/utf8_static.vcxproj \
 	utf8/utf8_static.vcxproj.filters \
@@ -86,6 +84,7 @@ utf8_libutf8_la_SOURCES = \
 	utf8/charset.c \
 	utf8/charset.h \
 	utf8/iconvert.c \
+	utf8/iconvert.h \
 	utf8/utf8.c
 
 replaygain_analysis_libreplaygain_analysis_la_SOURCES = replaygain_analysis/replaygain_analysis.c
