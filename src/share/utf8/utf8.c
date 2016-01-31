@@ -182,6 +182,12 @@ int utf8_encode(const char *from, char **to)
 	 * MS doesn't actually have a consistent API across win32.
 	 */
 	*to = (char*)make_utf8_string(unicode);
+	if(*to == NULL)
+	{
+		free(unicode);
+		fprintf(stderr, "Out of memory processing string from UNICODE16 to UTF8\n");
+		return -1;
+	}
 
 	free(unicode);
 	return 0;
