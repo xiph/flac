@@ -144,7 +144,6 @@ EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test_streams", "src\test_streams\test_streams.vcproj", "{4CEFBC91-C215-11DB-8314-0800200C9A66}"
 	ProjectSection(ProjectDependencies) = postProject
 		{4CEFBC81-C215-11DB-8314-0800200C9A66} = {4CEFBC81-C215-11DB-8314-0800200C9A66}
-		{4CEFBE02-C215-11DB-8314-0800200C9A66} = {4CEFBE02-C215-11DB-8314-0800200C9A66}
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "utf8_static", "src\share\utf8\utf8_static.vcproj", "{4CEFBC92-C215-11DB-8314-0800200C9A66}"

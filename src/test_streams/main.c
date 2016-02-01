@@ -222,7 +222,7 @@ static FLAC__bool generate_01(void)
 	FILE *f;
 	FLAC__int16 x = -32768;
 
-	if(0 == (f = flac_fopen("test01.raw", "wb")))
+	if(0 == (f = fopen("test01.raw", "wb")))
 		return false;
 
 	if(!write_little_endian_int16(f, x))
@@ -241,7 +241,7 @@ static FLAC__bool generate_02(void)
 	FILE *f;
 	FLAC__int16 xl = -32768, xr = 32767;
 
-	if(0 == (f = flac_fopen("test02.raw", "wb")))
+	if(0 == (f = fopen("test02.raw", "wb")))
 		return false;
 
 	if(!write_little_endian_int16(f, xl))
@@ -263,7 +263,7 @@ static FLAC__bool generate_03(void)
 	FLAC__int16 x[] = { -25, 0, 25, 50, 100 };
 	unsigned i;
 
-	if(0 == (f = flac_fopen("test03.raw", "wb")))
+	if(0 == (f = fopen("test03.raw", "wb")))
 		return false;
 
 	for(i = 0; i < 5; i++)
@@ -284,7 +284,7 @@ static FLAC__bool generate_04(void)
 	FLAC__int16 x[] = { -25, 500, 0, 400, 25, 300, 50, 200, 100, 100 };
 	unsigned i;
 
-	if(0 == (f = flac_fopen("test04.raw", "wb")))
+	if(0 == (f = fopen("test04.raw", "wb")))
 		return false;
 
 	for(i = 0; i < 10; i++)
@@ -306,7 +306,7 @@ static FLAC__bool generate_fsd8(const char *fn, const int pattern[], unsigned re
 
 	FLAC__ASSERT(pattern != 0);
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(rep = 0; rep < reps; rep++) {
@@ -332,7 +332,7 @@ static FLAC__bool generate_fsd16(const char *fn, const int pattern[], unsigned r
 
 	FLAC__ASSERT(pattern != 0);
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(rep = 0; rep < reps; rep++) {
@@ -356,7 +356,7 @@ static FLAC__bool generate_wbps16(const char *fn, unsigned samples)
 	FILE *f;
 	unsigned sample;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(sample = 0; sample < samples; sample++) {
@@ -383,7 +383,7 @@ static FLAC__bool generate_fsd24(const char *fn, const int pattern[], unsigned r
 
 	FLAC__ASSERT(pattern != 0);
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(rep = 0; rep < reps; rep++) {
@@ -411,7 +411,7 @@ static FLAC__bool generate_sine8_1(const char *fn, const double sample_rate, con
 	double theta1, theta2;
 	unsigned i;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -438,7 +438,7 @@ static FLAC__bool generate_sine8_2(const char *fn, const double sample_rate, con
 	double theta1, theta2;
 	unsigned i;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -469,7 +469,7 @@ static FLAC__bool generate_sine16_1(const char *fn, const double sample_rate, co
 	double theta1, theta2;
 	unsigned i;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -496,7 +496,7 @@ static FLAC__bool generate_sine16_2(const char *fn, const double sample_rate, co
 	double theta1, theta2;
 	unsigned i;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -527,7 +527,7 @@ static FLAC__bool generate_sine24_1(const char *fn, const double sample_rate, co
 	double theta1, theta2;
 	unsigned i;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -554,7 +554,7 @@ static FLAC__bool generate_sine24_2(const char *fn, const double sample_rate, co
 	double theta1, theta2;
 	unsigned i;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -580,7 +580,7 @@ static FLAC__bool generate_noise(const char *fn, unsigned bytes)
 	FILE *f;
 	unsigned b;
 
-	if(0 == (f = flac_fopen(fn, "wb")))
+	if(0 == (f = fopen(fn, "wb")))
 		return false;
 
 	for(b = 0; b < bytes; b++) {
@@ -610,7 +610,7 @@ static FLAC__bool generate_signed_raw(const char *filename, unsigned channels, u
 	FILE *f;
 	unsigned i, j;
 
-	if(0 == (f = flac_fopen(filename, "wb")))
+	if(0 == (f = fopen(filename, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -640,7 +640,7 @@ static FLAC__bool generate_unsigned_raw(const char *filename, unsigned channels,
 	FILE *f;
 	unsigned i, j;
 
-	if(0 == (f = flac_fopen(filename, "wb")))
+	if(0 == (f = fopen(filename, "wb")))
 		return false;
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
@@ -673,7 +673,7 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 	FILE *f;
 	unsigned i, j;
 
-	if(0 == (f = flac_fopen(filename, "wb")))
+	if(0 == (f = fopen(filename, "wb")))
 		return false;
 	if(fwrite("FORM", 1, 4, f) < 4)
 		goto foo;
@@ -737,7 +737,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	FILE *f;
 	unsigned i, j;
 
-	if(0 == (f = flac_fopen(filename, "wb")))
+	if(0 == (f = fopen(filename, "wb")))
 		return false;
 	/* RIFFxxxxWAVE or equivalent: */
 	switch(flavor) {
@@ -883,14 +883,14 @@ static FLAC__bool generate_wackywavs(void)
 		  4,   0,   0,   0, 'b', 'l', 'a', 'h'
 	};
 
-	if(0 == (f = flac_fopen("wacky1.wav", "wb")))
+	if(0 == (f = fopen("wacky1.wav", "wb")))
 		return false;
 	if(fwrite(wav, 1, 84, f) < 84)
 		goto foo;
 	fclose(f);
 
 	wav[4] += 12;
-	if(0 == (f = flac_fopen("wacky2.wav", "wb")))
+	if(0 == (f = fopen("wacky2.wav", "wb")))
 		return false;
 	if(fwrite(wav, 1, 96, f) < 96)
 		goto foo;
@@ -954,7 +954,7 @@ static FLAC__bool generate_noisy_sine(void)
 	double sample, last_val = 0.0;
 	int k;
 
-	if(0 == (f = flac_fopen("noisy-sine.wav", "wb")))
+	if(0 == (f = fopen("noisy-sine.wav", "wb")))
 		return false;
 
 	if(!write_simple_wavex_header (f, 44100, 1, 2, 220500))
@@ -1017,14 +1017,14 @@ static FLAC__bool generate_wackywav64s(void)
 		 'b', 'l', 'a', 'h', 'b', 'l', 'a', 'h'
 	};
 
-	if(0 == (f = flac_fopen("wacky1.w64", "wb")))
+	if(0 == (f = fopen("wacky1.w64", "wb")))
 		return false;
 	if(fwrite(wav, 1, wav[16], f) < wav[16])
 		goto foo;
 	fclose(f);
 
 	wav[16] += 32;
-	if(0 == (f = flac_fopen("wacky2.w64", "wb")))
+	if(0 == (f = fopen("wacky2.w64", "wb")))
 		return false;
 	if(fwrite(wav, 1, wav[16], f) < wav[16])
 		goto foo;
@@ -1059,14 +1059,14 @@ static FLAC__bool generate_wackyrf64s(void)
 		  4,   0,   0,   0, 'b', 'l', 'a', 'h'
 	};
 
-	if(0 == (f = flac_fopen("wacky1.rf64", "wb")))
+	if(0 == (f = fopen("wacky1.rf64", "wb")))
 		return false;
 	if(fwrite(wav, 1, 120, f) < 120)
 		goto foo;
 	fclose(f);
 
 	wav[20] += 12;
-	if(0 == (f = flac_fopen("wacky2.rf64", "wb")))
+	if(0 == (f = fopen("wacky2.rf64", "wb")))
 		return false;
 	if(fwrite(wav, 1, 132, f) < 132)
 		goto foo;
@@ -1082,12 +1082,12 @@ static FLAC__bool generate_replaygain_tone (unsigned samplerate)
 {
 	FILE *f;
 	char fname [256] ;
-	double pi, tone, sample, samplerange;
+	double tone, sample, samplerange;
 	int k;
 
 	flac_snprintf(fname, sizeof(fname), "rpg-tone-%u.wav", samplerate);
 
-	if(0 == (f = flac_fopen(fname, "wb")))
+	if(0 == (f = fopen(fname, "wb")))
 		return false;
 
 	if(!write_simple_wavex_header (f, samplerate, 1, 3, 220500))
@@ -1096,10 +1096,9 @@ static FLAC__bool generate_replaygain_tone (unsigned samplerate)
 
 	samplerange = 0x7fffff; /* Largest sample value allowed for a 24 bit PCM file. */
 	tone = 1000.0; /* 1 kHz */
-	pi = 4 * atan2(1,1);
 
 	for (k = 0 ; k < 5 * 44100 ; k++) {
-		sample = sin(2 * pi * tone * k / samplerate);
+		sample = sin(2 * M_PI * tone * k / samplerate);
 		sample *= samplerange;
 		if (!write_little_endian_uint24(f, (FLAC__int32) sample))
 			goto foo;
