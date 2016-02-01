@@ -103,7 +103,7 @@ static wchar_t *wchar_from_utf8(const char *str)
 	return widestr;
 }
 
-void set_filename_utf8(int b);
+static void set_filename_utf8(int b);
 
 /* retrieve WCHAR commandline, expand wildcards and convert everything to UTF-8 */
 int get_utf8_argv(int *argc, char ***argv)
