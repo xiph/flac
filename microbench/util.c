@@ -95,7 +95,7 @@ benchmark_function (void (*testfunc) (void), unsigned count)
 	return counter_diff (&start, &end) / count ;
 } /* benchmark_function */
 
-#else
+#elif defined HAVE_CLOCK_GETTIME
 
 #include <time.h>
 #include <sys/time.h>
@@ -129,6 +129,42 @@ benchmark_function (void (*testfunc) (void), unsigned count)
 	clock_gettime (CLOCK_PROCESS_CPUTIME_ID, &end) ;
 
 	return timespec_diff (&start, &end) / count ;
+} /* benchmark_function */
+
+#else
+
+#include <time.h>
+#include <sys/time.h>
+
+static double
+timeval_diff (const struct timeval * start, const struct timeval * end)
+{       struct timeval diff;
+
+        if (end->tv_usec - start->tv_usec < 0)
+        {       diff.tv_sec = end->tv_sec - start->tv_sec - 1 ;
+                diff.tv_usec = 1000000 + end->tv_usec - start->tv_usec ;
+                }
+        else
+        {       diff.tv_sec = end->tv_sec - start->tv_sec ;
+                diff.tv_usec = end->tv_usec-start->tv_usec ;
+                } ;
+
+        return diff.tv_sec + 1e-6 * diff.tv_usec ;
+}
+
+double
+benchmark_function (void (*testfunc) (void), unsigned count)
+{	struct timeval start, end;
+	unsigned k ;
+
+	gettimeofday(&start, NULL);
+
+	for (k = 0 ; k < count ; k++)
+		testfunc () ;
+
+	gettimeofday(&end, NULL);
+
+	return timeval_diff (&start, &end) / count ;
 } /* benchmark_function */
 
 #endif

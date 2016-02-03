@@ -371,6 +371,11 @@ AC_DEFINE(FLAC__HAS_DOCBOOK_TO_MAN)
 AH_TEMPLATE(FLAC__HAS_DOCBOOK_TO_MAN, [define if you have docbook-to-man or docbook2man])
 fi
 
+AC_CHECK_LIB(rt, clock_gettime, have_clock_gettime=yes)
+if test x$have_clock_gettime = xyes; then
+        AC_DEFINE(HAVE_CLOCK_GETTIME)
+fi
+
 # only matters for x86
 AC_CHECK_PROGS(NASM, nasm)
 AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
