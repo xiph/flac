@@ -25,8 +25,8 @@ CPPLIBS_DIRS = libFLAC++ test_libFLAC++
 endif
 
 SUBDIRS = \
-	share \
 	libFLAC \
+	share \
 	flac \
 	metaflac \
 	$(XMMS_DIRS) \

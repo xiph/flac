@@ -34,14 +34,12 @@
 #ifndef flac__win_utf8_io_h
 #define flac__win_utf8_io_h
 
+#include <stdio.h>
+#include <stdarg.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
-
-#include <stdio.h>
-#include <sys/stat.h>
-#include <stdarg.h>
-#include <windows.h>
 
 size_t strlen_utf8(const char *str);
 int win_get_console_width(void);

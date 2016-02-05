@@ -48,6 +48,10 @@ flac_SOURCES = \
 	utils.h \
 	vorbiscomment.h
 
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 flac_LDADD = \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
@@ -55,6 +59,7 @@ flac_LDADD = \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
+	$(win_utf8_lib) \
 	@LIBICONV@ \
 	-lm
 

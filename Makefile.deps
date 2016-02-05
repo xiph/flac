@@ -17,15 +17,14 @@
 #  distribution.
 
 ifeq ($(findstring Windows,$(OS)),Windows) # "Windows" is provided by GNU Make's internal $(OS)
-    LIBFLAC_DEPS = share/win_utf8_io
+    WIN_DEPS = share/win_utf8_io
 else
-    LIBFLAC_DEPS =
+    WIN_DEPS =
 endif
 
-libFLAC: $(LIBFLAC_DEPS)
-flac: libFLAC share
+flac: libFLAC share $(WIN_DEPS)
 libFLAC++: libFLAC
-metaflac: libFLAC share
+metaflac: libFLAC share $(WIN_DEPS)
 plugin_common: libFLAC
 plugin_xmms: libFLAC plugin_common
 share: libFLAC
@@ -34,7 +33,7 @@ test_libs_common: libFLAC
 test_libFLAC++: libFLAC libFLAC++ test_libs_common
 test_libFLAC: libFLAC test_libs_common
 test_seeking: libFLAC
-test_streams: libFLAC
-flacdiff: libFLAC libFLAC++
-flactimer: libFLAC libFLAC++
+test_streams: share
+flacdiff: libFLAC libFLAC++ $(WIN_DEPS)
+flactimer:
 utils: flacdiff flactimer

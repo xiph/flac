@@ -38,11 +38,11 @@ topdir = ../..
 ifeq ($(OS),Darwin)
     EXPLICIT_LIBS = $(OGG_EXPLICIT_LIBS) -lm
 else
-ifeq ($(findstring Windows,$(OS)),Windows)
-    LIBS = -lwin_utf8_io $(OGG_LIBS) -lm
-else
     LIBS = $(OGG_LIBS) -lm
 endif
+
+ifeq ($(findstring Windows,$(OS)),Windows)
+    WIN_UNICODE_COMPAT = windows_unicode_filenames.c
 endif
 
 LIB_NAME = libFLAC
@@ -102,6 +102,7 @@ SRCS_C = \
 	stream_encoder_intrin_avx2.c \
 	stream_encoder_framing.c \
 	window.c \
+	$(WIN_UNICODE_COMPAT) \
 	$(OGG_SRCS)
 
 include $(topdir)/build/lib.mk

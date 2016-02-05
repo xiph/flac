@@ -61,11 +61,7 @@ endif
 endif
 endif
 
-if OS_IS_WINDOWS
-win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
-endif
-
-libFLAC_la_LIBADD = $(win_utf8_lib) $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
+libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
 
 SUBDIRS = $(ARCH_SUBDIRS) include .
 
@@ -85,6 +81,10 @@ EXTRA_DIST = \
 	libFLAC_static.vcxproj \
 	libFLAC_static.vcxproj.filters \
 	libFLAC.m4
+
+if OS_IS_WINDOWS
+windows_unicode_compat = windows_unicode_filenames.c
+endif
 
 if FLaC__HAS_OGG
 extra_ogg_sources = \
@@ -124,6 +124,7 @@ libFLAC_sources = \
 	stream_encoder_intrin_avx2.c \
 	stream_encoder_framing.c \
 	window.c \
+	$(windows_unicode_compat) \
 	$(extra_ogg_sources)
 
 libFLAC_la_SOURCES = $(libFLAC_sources)

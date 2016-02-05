@@ -28,13 +28,9 @@ PROGRAM_NAME = flactimer
 INCLUDES = -I$(topdir)/include
 
 ifeq ($(OS),Darwin)
-    EXPLICIT_LIBS = $(libdir)/libFLAC++.a $(libdir)/libFLAC.a $(OGG_EXPLICIT_LIBS) -lm
+    EXPLICIT_LIBS = -lm
 else
-ifeq ($(findstring Windows,$(OS)),Windows)
-    LIBS = -lFLAC++ -lFLAC -lwin_utf8_io $(OGG_LIBS) -lm
-else
-    LIBS = -lFLAC++ -lFLAC $(OGG_LIBS) -lm
-endif
+    LIBS = -lm
 endif
 
 SRCS_CPP = \

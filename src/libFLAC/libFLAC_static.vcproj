@@ -159,11 +159,11 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
-				RelativePath=".\include\protected\all.h"
+				RelativePath=".\include\private\all.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\private\all.h"
+				RelativePath=".\include\protected\all.h"
 				>
 			</File>
 			<File
@@ -239,11 +239,11 @@
 				>
 			</File>
 			<File
-				RelativePath=".\include\protected\stream_encoder.h"
+				RelativePath=".\include\private\stream_encoder.h"
 				>
 			</File>
 			<File
-				RelativePath=".\include\private\stream_encoder.h"
+				RelativePath=".\include\protected\stream_encoder.h"
 				>
 			</File>
 			<File
@@ -263,11 +263,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\share\alloc.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\FLAC\assert.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\include\FLAC\callback.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\share\compat.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\share\endswap.h"
 				>
 			</File>
 			<File
@@ -279,6 +291,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\share\macros.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\FLAC\metadata.h"
 				>
 			</File>
@@ -287,11 +303,23 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\share\private.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\share\safe_str.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\FLAC\stream_decoder.h"
 				>
 			</File>
 			<File
 				RelativePath="..\..\include\FLAC\stream_encoder.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\share\windows_unicode_filenames.h"
 				>
 			</File>
 		</Filter>
@@ -410,6 +438,10 @@
 			</File>
 			<File
 				RelativePath=".\window.c"
+				>
+			</File>
+			<File
+				RelativePath=".\windows_unicode_filenames.c"
 				>
 			</File>
 		</Filter>

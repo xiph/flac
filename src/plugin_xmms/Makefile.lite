@@ -29,11 +29,7 @@ INCLUDES  = -I./include -I$(topdir)/include -I.. $(shell xmms-config --cflags)
 ifeq ($(OS),Darwin)
     LIBS = $(libdir)/libFLAC.a $(libdir)/libplugin_common.a $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(OGG_EXPLICIT_LIBS) $(ICONV_LIBS) -lm -lstdc++ -lz
 else
-ifeq ($(findstring Windows,$(OS)),Windows)
-    LIBS = $(libdir)/libFLAC.a $(libdir)/libplugin_common.a $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(libdir)/libwin_utf8_io.a $(OGG_LIBS) -lm -lsupc++ -lz
-else
     LIBS = $(libdir)/libFLAC.a $(libdir)/libplugin_common.a $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libreplaygain_synthesis.a $(OGG_LIBS) -lm -lsupc++ -lz
-endif
 endif
 
 SRCS_C = \

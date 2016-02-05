@@ -4,6 +4,12 @@
 
 topdir = ../../..
 
+ifeq ($(OS),Darwin)
+    EXPLICIT_LIBS = $(libdir)/libFLAC.a $(OGG_EXPLICIT_LIBS) -lm
+else
+    LIBS = -lFLAC $(OGG_LIBS) -lm
+endif
+
 LIB_NAME = libwin_utf8_io
 INCLUDES = -I$(topdir)/include
 
