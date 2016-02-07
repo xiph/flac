@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2006-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -93,11 +93,11 @@ void FLAC__window_blackman_harris_4term_92db_sidelobe(FLAC__real *window, const 
 void FLAC__window_connes(FLAC__real *window, const FLAC__int32 L)
 {
 	const FLAC__int32 N = L - 1;
-	const double N2 = (double)N / 2.;
+	const FLAC__double N2 = (FLAC__double)N / 2.;
 	FLAC__int32 n;
 
 	for (n = 0; n <= N; n++) {
-		double k = ((double)n - N2) / N2;
+		FLAC__double k = ((FLAC__double)n - N2) / N2;
 		k = 1.0f - k * k;
 		window[n] = (FLAC__real)(k * k);
 	}
@@ -115,11 +115,11 @@ void FLAC__window_flattop(FLAC__real *window, const FLAC__int32 L)
 void FLAC__window_gauss(FLAC__real *window, const FLAC__int32 L, const FLAC__real stddev)
 {
 	const FLAC__int32 N = L - 1;
-	const double N2 = (double)N / 2.;
+	const FLAC__double N2 = (FLAC__double)N / 2.;
 	FLAC__int32 n;
 
 	for (n = 0; n <= N; n++) {
-		const double k = ((double)n - N2) / (stddev * N2);
+		const FLAC__double k = ((FLAC__double)n - N2) / (stddev * N2);
 		window[n] = (FLAC__real)exp(-0.5f * k * k);
 	}
 }
@@ -270,11 +270,11 @@ void FLAC__window_punchout_tukey(FLAC__real *window, const FLAC__int32 L, const 
 void FLAC__window_welch(FLAC__real *window, const FLAC__int32 L)
 {
 	const FLAC__int32 N = L - 1;
-	const double N2 = (double)N / 2.;
+	const FLAC__double N2 = (FLAC__double)N / 2.;
 	FLAC__int32 n;
 
 	for (n = 0; n <= N; n++) {
-		const double k = ((double)n - N2) / N2;
+		const FLAC__double k = ((FLAC__double)n - N2) / N2;
 		window[n] = (FLAC__real)(1.0f - k * k);
 	}
 }
