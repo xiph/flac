@@ -119,10 +119,10 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], unsigned data_le
 	}
 }
 
-void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__double error[])
+void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
 {
 	unsigned i, j;
-	FLAC__double r, err, lpc[FLAC__MAX_LPC_ORDER];
+	double r, err, lpc[FLAC__MAX_LPC_ORDER];
 
 	FLAC__ASSERT(0 != max_order);
 	FLAC__ASSERT(0 < *max_order);
@@ -141,7 +141,7 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_o
 		/* Update LPC coefficients and total error. */
 		lpc[i]=r;
 		for(j = 0; j < (i>>1); j++) {
-			FLAC__double tmp = lpc[j];
+			double tmp = lpc[j];
 			lpc[j] += r * lpc[i-1-j];
 			lpc[i-1-j] += r * tmp;
 		}
@@ -166,7 +166,7 @@ void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_o
 int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order, unsigned precision, FLAC__int32 qlp_coeff[], int *shift)
 {
 	unsigned i;
-	FLAC__double cmax;
+	double cmax;
 	FLAC__int32 qmax, qmin;
 
 	FLAC__ASSERT(precision > 0);
@@ -181,7 +181,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	/* calc cmax = max( |lp_coeff[i]| ) */
 	cmax = 0.0;
 	for(i = 0; i < order; i++) {
-		const FLAC__double d = fabs(lp_coeff[i]);
+		const double d = fabs(lp_coeff[i]);
 		if(d > cmax)
 			cmax = d;
 	}
@@ -206,7 +206,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	}
 
 	if(*shift >= 0) {
-		FLAC__double error = 0.0;
+		double error = 0.0;
 		FLAC__int32 q;
 		for(i = 0; i < order; i++) {
 			error += lp_coeff[i] * (1 << *shift);
@@ -232,7 +232,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], unsigned order,
 	 */
 	else {
 		const int nshift = -(*shift);
-		FLAC__double error = 0.0;
+		double error = 0.0;
 		FLAC__int32 q;
 #ifdef DEBUG
 		fprintf(stderr,"FLAC__lpc_quantize_coefficients: negative shift=%d order=%u cmax=%f\n", *shift, order, cmax);
@@ -1302,21 +1302,21 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 * flac_restrict residual, u
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
-FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__double lpc_error, unsigned total_samples)
+double FLAC__lpc_compute_expected_bits_per_residual_sample(double lpc_error, unsigned total_samples)
 {
-	FLAC__double error_scale;
+	double error_scale;
 
 	FLAC__ASSERT(total_samples > 0);
 
-	error_scale = 0.5 / (FLAC__double)total_samples;
+	error_scale = 0.5 / (double)total_samples;
 
 	return FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error, error_scale);
 }
 
-FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__double lpc_error, FLAC__double error_scale)
+double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(double lpc_error, double error_scale)
 {
 	if(lpc_error > 0.0) {
-		FLAC__double bps = (FLAC__double)0.5 * log(error_scale * lpc_error) / M_LN2;
+		double bps = (double)0.5 * log(error_scale * lpc_error) / M_LN2;
 		if(bps >= 0.0)
 			return bps;
 		else
@@ -1330,21 +1330,21 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scal
 	}
 }
 
-unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order)
+unsigned FLAC__lpc_compute_best_order(const double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order)
 {
 	unsigned order, indx, best_index; /* 'index' the index into lpc_error; index==order-1 since lpc_error[0] is for order==1, lpc_error[1] is for order==2, etc */
-	FLAC__double bits, best_bits, error_scale;
+	double bits, best_bits, error_scale;
 
 	FLAC__ASSERT(max_order > 0);
 	FLAC__ASSERT(total_samples > 0);
 
-	error_scale = 0.5 / (FLAC__double)total_samples;
+	error_scale = 0.5 / (double)total_samples;
 
 	best_index = 0;
 	best_bits = (unsigned)(-1);
 
 	for(indx = 0, order = 1; indx < max_order; indx++, order++) {
-		bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[indx], error_scale) * (FLAC__double)(total_samples - order) + (FLAC__double)(order * overhead_bits_per_order);
+		bits = FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(lpc_error[indx], error_scale) * (double)(total_samples - order) + (double)(order * overhead_bits_per_order);
 		if(bits < best_bits) {
 			best_index = indx;
 			best_bits = bits;

@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -114,7 +114,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new(const FLAC__real da
  *	         in lp_coeff[8][0,8], the LP coefficients for order 8 will be
  *			 in lp_coeff[7][0,7], etc.
  */
-void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], FLAC__double error[]);
+void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], unsigned *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[]);
 
 /*
  *	FLAC__lpc_quantize_coefficients()
@@ -227,8 +227,8 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], un
  *	IN total_samples > 0  # of samples in residual signal
  *	RETURN                expected bits per sample
  */
-FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample(FLAC__double lpc_error, unsigned total_samples);
-FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(FLAC__double lpc_error, FLAC__double error_scale);
+double FLAC__lpc_compute_expected_bits_per_residual_sample(double lpc_error, unsigned total_samples);
+double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(double lpc_error, double error_scale);
 
 /*
  *	FLAC__lpc_compute_best_order()
@@ -243,7 +243,7 @@ FLAC__double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scal
  *	                                    (includes warmup sample size and quantized LP coefficient)
  *	RETURN [1,max_order]                best order
  */
-unsigned FLAC__lpc_compute_best_order(const FLAC__double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order);
+unsigned FLAC__lpc_compute_best_order(const double lpc_error[], unsigned max_order, unsigned total_samples, unsigned overhead_bits_per_order);
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
