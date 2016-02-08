@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -3121,7 +3121,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 			return false;
 		}
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-		pos = (FLAC__int64)lower_bound + (FLAC__int64)((FLAC__double)(target_sample - lower_bound_sample) / (FLAC__double)(upper_bound_sample - lower_bound_sample) * (FLAC__double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
+		pos = (FLAC__int64)lower_bound + (FLAC__int64)((double)(target_sample - lower_bound_sample) / (double)(upper_bound_sample - lower_bound_sample) * (double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
 #else
 		/* a little less accurate: */
 		if(upper_bound - lower_bound < 0xffffffff)
@@ -3245,7 +3245,7 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 			}
 			else {
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-				pos = (FLAC__uint64)((FLAC__double)(target_sample - left_sample) / (FLAC__double)(right_sample - left_sample) * (FLAC__double)(right_pos - left_pos));
+				pos = (FLAC__uint64)((double)(target_sample - left_sample) / (double)(right_sample - left_sample) * (double)(right_pos - left_pos));
 #else
 				/* a little less accurate: */
 				if ((target_sample-left_sample <= 0xffffffff) && (right_pos-left_pos <= 0xffffffff))

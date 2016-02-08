@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -353,8 +353,8 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__CPUInfo cpuinfo;
 	void (*local_precompute_partition_info_sums)(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[], unsigned residual_samples, unsigned predictor_order, unsigned min_partition_order, unsigned max_partition_order, unsigned bps);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-	unsigned (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], unsigned data_len, FLAC__float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+	unsigned (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], unsigned data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #else
 	unsigned (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], unsigned data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	unsigned (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], unsigned data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
@@ -854,7 +854,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->abs_residual_partition_sums_unaligned = encoder->private_->abs_residual_partition_sums = 0;
 	encoder->private_->raw_bits_per_partition_unaligned = encoder->private_->raw_bits_per_partition = 0;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	encoder->private_->loose_mid_side_stereo_frames = (unsigned)((FLAC__double)encoder->protected_->sample_rate * 0.4 / (FLAC__double)encoder->protected_->blocksize + 0.5);
+	encoder->private_->loose_mid_side_stereo_frames = (unsigned)((double)encoder->protected_->sample_rate * 0.4 / (double)encoder->protected_->blocksize + 0.5);
 #else
 	/* 26214 is the approximate fixed-point equivalent to 0.4 (0.4 * 2^16) */
 	/* sample rate can be up to 655350 Hz, and thus use 20 bits, so we do the multiply&divide by hand */
@@ -3377,14 +3377,14 @@ FLAC__bool process_subframe_(
 )
 {
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	FLAC__float fixed_residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1];
+	float fixed_residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1];
 #else
 	FLAC__fixedpoint fixed_residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1];
 #endif
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	FLAC__double lpc_residual_bits_per_sample;
+	double lpc_residual_bits_per_sample;
 	FLAC__real autoc[FLAC__MAX_LPC_ORDER+1]; /* WATCHOUT: the size is important even though encoder->protected_->max_lpc_order might be less; some asm and x86 intrinsic routines need all the space */
-	FLAC__double lpc_error[FLAC__MAX_LPC_ORDER];
+	double lpc_error[FLAC__MAX_LPC_ORDER];
 	unsigned min_lpc_order, max_lpc_order, lpc_order;
 	unsigned min_qlp_coeff_precision, max_qlp_coeff_precision, qlp_coeff_precision;
 #endif
@@ -3450,7 +3450,7 @@ FLAC__bool process_subframe_(
 					max_fixed_order = frame_header->blocksize - 1;
 				for(fixed_order = min_fixed_order; fixed_order <= max_fixed_order; fixed_order++) {
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-					if(fixed_residual_bits_per_sample[fixed_order] >= (FLAC__float)subframe_bps)
+					if(fixed_residual_bits_per_sample[fixed_order] >= (float)subframe_bps)
 						continue; /* don't even try */
 					rice_parameter = (fixed_residual_bits_per_sample[fixed_order] > 0.0)? (unsigned)(fixed_residual_bits_per_sample[fixed_order]+0.5) : 0; /* 0.5 is for rounding */
 #else
@@ -3527,7 +3527,7 @@ FLAC__bool process_subframe_(
 								max_lpc_order = frame_header->blocksize - 1;
 							for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
 								lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
-								if(lpc_residual_bits_per_sample >= (FLAC__double)subframe_bps)
+								if(lpc_residual_bits_per_sample >= (double)subframe_bps)
 									continue; /* don't even try */
 								rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (unsigned)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
 								rice_parameter++; /* to account for the signed->unsigned conversion during rice coding */
