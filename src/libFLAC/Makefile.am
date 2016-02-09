@@ -80,7 +80,8 @@ EXTRA_DIST = \
 	libFLAC_static.vcproj \
 	libFLAC_static.vcxproj \
 	libFLAC_static.vcxproj.filters \
-	libFLAC.m4
+	libFLAC.m4 \
+	windows_unicode_filenames.c
 
 if OS_IS_WINDOWS
 windows_unicode_compat = windows_unicode_filenames.c
