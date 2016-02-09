@@ -33,14 +33,9 @@
 #  include <config.h>
 #endif
 
-#include <stdio.h>
-#include <sys/stat.h>
-#include <sys/utime.h>
-#include <io.h>
-#include <stdlib.h>
-#include <string.h>
-#include <stdarg.h>
+#include <windows.h>
 #include "share/win_utf8_io.h"
+#include "share/windows_unicode_filenames.h"
 
 #define UTF8_BUFFER_SIZE 32768
 
