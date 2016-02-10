@@ -24,8 +24,6 @@ libtest_libs_common_la_SOURCES = \
 	file_utils_flac.c \
 	metadata_utils.c
 
-libtest_libs_common_LDADD = $(top_builddir)/src/libFLAC/libFLAC.la
-
 EXTRA_DIST = \
 	Makefile.lite \
 	README \

@@ -374,6 +374,7 @@ fi
 AC_CHECK_LIB(rt, clock_gettime, have_clock_gettime=yes)
 if test x$have_clock_gettime = xyes; then
         AC_DEFINE(HAVE_CLOCK_GETTIME)
+        AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime])
 fi
 
 # only matters for x86
