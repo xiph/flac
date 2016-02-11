@@ -34,7 +34,6 @@
 #endif
 
 #include <io.h>
-#define FLAC__COMPAT_USE_WINAPI
 #include "share/windows_unicode_filenames.h"
 
 /* convert UTF-8 back to WCHAR. Caller is responsible for freeing memory */
