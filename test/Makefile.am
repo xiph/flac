@@ -55,8 +55,6 @@ EXTRA_DIST = \
 	metaflac.flac.ok \
 	picture.ok \
 	$(check_SCRIPTS) \
-	test_wrapper.sh \
-	test_bins.sh \
 	write_iff.pl
 
 clean-local:
