@@ -56,13 +56,7 @@
 
 
 /* technically this should be in an "export.c" but this is convenient enough */
-FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC =
-#if FLAC__HAS_OGG
-	1
-#else
-	0
-#endif
-;
+FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC = FLAC__HAS_OGG;
 
 
 /***********************************************************************
@@ -125,9 +119,7 @@ static FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *c
  ***********************************************************************/
 
 typedef struct FLAC__StreamDecoderPrivate {
-#if FLAC__HAS_OGG
 	FLAC__bool is_ogg;
-#endif
 	FLAC__StreamDecoderReadCallback read_callback;
 	FLAC__StreamDecoderSeekCallback seek_callback;
 	FLAC__StreamDecoderTellCallback tell_callback;
@@ -174,9 +166,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__uint64 first_frame_offset; /* hint to the seek routine of where in the stream the first audio frame starts */
 	FLAC__uint64 target_sample;
 	unsigned unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
-#if FLAC__HAS_OGG
 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine to check when process_single() actually writes a frame */
-#endif
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -362,10 +352,8 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED;
 
-#if !FLAC__HAS_OGG
-	if(is_ogg)
+	if(!FLAC__HAS_OGG == 0 && is_ogg)
 		return FLAC__STREAM_DECODER_INIT_STATUS_UNSUPPORTED_CONTAINER;
-#endif
 
 	if(
 		0 == read_callback ||
@@ -914,10 +902,9 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamD
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != position);
 
-#if FLAC__HAS_OGG
-	if(decoder->private_->is_ogg)
+	if(FLAC__HAS_OGG && decoder->private_->is_ogg)
 		return false;
-#endif
+
 	if(0 == decoder->private_->tell_callback)
 		return false;
 	if(decoder->private_->tell_callback(decoder, position, decoder->private_->client_data) != FLAC__STREAM_DECODER_TELL_STATUS_OK)
@@ -1234,9 +1221,7 @@ unsigned FLAC__stream_decoder_get_input_bytes_unconsumed(const FLAC__StreamDecod
 
 void set_defaults_(FLAC__StreamDecoder *decoder)
 {
-#if FLAC__HAS_OGG
 	decoder->private_->is_ogg = false;
-#endif
 	decoder->private_->read_callback = 0;
 	decoder->private_->seek_callback = 0;
 	decoder->private_->tell_callback = 0;
