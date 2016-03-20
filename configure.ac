@@ -350,14 +350,16 @@ if test "x$want_ogg" != "xno"; then
 	XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
 fi
 
+FLAC__HAS_OGG=0
 AM_CONDITIONAL(FLaC__HAS_OGG, [test "x$have_ogg" = xyes])
 if test "x$have_ogg" = xyes ; then
-	AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],1,[define if you have the ogg library])
+	FLAC__HAS_OGG=1
 	OGG_PACKAGE="ogg"
 else
-	AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],0)
 	have_ogg=no
 fi
+AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],$FLAC__HAS_OGG,[define if you have the ogg library])
+AC_SUBST(FLAC__HAS_OGG)
 AC_SUBST(OGG_PACKAGE)
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
