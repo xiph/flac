@@ -1767,6 +1767,7 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 						length -= obj->comments[i].length;
 					if (0 == (obj->comments[i].entry = safe_malloc_add_2op_(obj->comments[i].length, /*+*/1))) {
 						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+						obj->num_comments = i;
 						return false;
 					}
 					memset (obj->comments[i].entry, 0, obj->comments[i].length) ;
