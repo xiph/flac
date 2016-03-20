@@ -352,7 +352,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
 		return FLAC__STREAM_DECODER_INIT_STATUS_ALREADY_INITIALIZED;
 
-	if(!FLAC__HAS_OGG == 0 && is_ogg)
+	if(FLAC__HAS_OGG == 0 && is_ogg)
 		return FLAC__STREAM_DECODER_INIT_STATUS_UNSUPPORTED_CONTAINER;
 
 	if(
