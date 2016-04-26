@@ -404,7 +404,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					*error_message = "ISRC command must come after TRACK but before INDEX";
 					return false;
 				}
-				if(0 == (field = local__get_field_(&line, /*allow_quotes=*/false))) {
+				if(0 == (field = local__get_field_(&line, /*allow_quotes=*/true))) {
 					*error_message = "ISRC is missing ISRC number";
 					return false;
 				}
