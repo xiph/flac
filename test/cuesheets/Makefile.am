@@ -65,4 +65,5 @@ EXTRA_DIST = \
 	good.001.cue \
 	good.002.dos_format.cue \
 	good.003.missing_final_newline.cue \
-	good.004.dos_format.missing_final_newline.cue
+	good.004.dos_format.missing_final_newline.cue \
+	good.005.quoted.isrc.cue
