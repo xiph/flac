@@ -53,7 +53,6 @@
 typedef FLAC__uint32 bwword;
 #define FLAC__BYTES_PER_WORD 4		/* sizeof bwword */
 #define FLAC__BITS_PER_WORD 32
-#define FLAC__WORD_ALL_ONES ((FLAC__uint32)0xffffffff)
 /* SWAP_BE_WORD_TO_HOST swaps bytes in a bwword (which is always big-endian) if necessary to match host byte order */
 #if WORDS_BIGENDIAN
 #define SWAP_BE_WORD_TO_HOST(x) (x)
@@ -66,7 +65,6 @@ typedef FLAC__uint32 bwword;
 typedef FLAC__uint64 bwword;
 #define FLAC__BYTES_PER_WORD 8		/* sizeof bwword */
 #define FLAC__BITS_PER_WORD 64
-#define FLAC__WORD_ALL_ONES ((FLAC__uint64)FLAC__U64L(0xffffffffffffffff))
 /* SWAP_BE_WORD_TO_HOST swaps bytes in a bwword (which is always big-endian) if necessary to match host byte order */
 #if WORDS_BIGENDIAN
 #define SWAP_BE_WORD_TO_HOST(x) (x)
@@ -353,7 +351,7 @@ static inline FLAC__bool FLAC__bitwriter_write_raw_uint32_nocheck(FLAC__BitWrite
 		bw->accum <<= left;
 		bw->accum |= val >> (bw->bits = bits - left);
 		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);
-		bw->accum = val;
+		bw->accum = val; /* unused top bits can contain garbage */
 	}
 	else { /* at this point bits == FLAC__BITS_PER_WORD == 32  and  bw->bits == 0 */
 		bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST((bwword)val);
@@ -622,7 +620,7 @@ break1:
 				bw->accum <<= left;
 				bw->accum |= uval >> (bw->bits = lsbits - left);
 				bw->buffer[bw->words++] = SWAP_BE_WORD_TO_HOST(bw->accum);
-				bw->accum = uval;
+				bw->accum = uval; /* unused top bits can contain garbage */
 			}
 		}
 		vals++;
@@ -762,7 +760,8 @@ FLAC__bool FLAC__bitwriter_write_utf8_uint32(FLAC__BitWriter *bw, FLAC__uint32 v
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
 
-	FLAC__ASSERT(!(val & 0x80000000)); /* this version only handles 31 bits */
+	if((val & 0x80000000) != 0) /* this version only handles 31 bits */
+		return false;
 
 	if(val < 0x80) {
 		return FLAC__bitwriter_write_raw_uint32_nocheck(bw, val, 8);
