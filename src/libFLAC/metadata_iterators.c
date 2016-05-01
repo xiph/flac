@@ -1090,7 +1090,7 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 {
 	if(node->data->type == FLAC__METADATA_TYPE_PADDING && 0 != node->next && node->next->data->type == FLAC__METADATA_TYPE_PADDING) {
 		const unsigned growth = FLAC__STREAM_METADATA_HEADER_LENGTH + node->next->data->length;
-		node->data->length += growth;
+		node->data->length += growth; /* new block size can be greater than max metadata block size, but it'll be fixed later in chain_prepare_for_write_() */
 
 		chain_delete_node_(chain, node->next);
 		return true;
@@ -1152,6 +1152,22 @@ static FLAC__off_t chain_prepare_for_write_(FLAC__Metadata_Chain *chain, FLAC__b
 					chain->tail->data->length -= delta;
 					current_length -= delta;
 					FLAC__ASSERT(current_length == chain->initial_length);
+				}
+			}
+		}
+	}
+
+	/* check sizes of all metadata blocks; reduce padding size if necessary */
+	{
+		FLAC__Metadata_Node *node;
+		for (node = chain->head; node; node = node->next) {
+			if(node->data->length >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+				if(node->data->type == FLAC__METADATA_TYPE_PADDING) {
+					node->data->length = (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1;
+					current_length = chain_calculate_length_(chain);
+				} else {
+					chain->status = FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
+					return 0;
 				}
 			}
 		}
@@ -1608,27 +1624,73 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
 	 * but doesn't actually alter the chain.  Make sure to update the logic
 	 * here if chain_prepare_for_write_() changes.
 	 */
-	const FLAC__off_t current_length = chain_calculate_length_(chain);
+	FLAC__off_t current_length;
+	FLAC__Metadata_Node *node;
 
 	FLAC__ASSERT(0 != chain);
 
-	if(use_padding) {
-		/* if the metadata shrank and the last block is padding, we just extend the last padding block */
-		if(current_length < chain->initial_length && chain->tail->data->type == FLAC__METADATA_TYPE_PADDING)
-			return false;
-		/* if the metadata shrank more than 4 bytes then there's room to add another padding block */
-		else if(current_length + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length)
-			return false;
-		/* if the metadata grew but the last block is padding, try cutting the padding to restore the original length so we don't have to rewrite the whole file */
-		else if(current_length > chain->initial_length) {
-			const FLAC__off_t delta = current_length - chain->initial_length;
-			if(chain->tail->data->type == FLAC__METADATA_TYPE_PADDING) {
-				/* if the delta is exactly the size of the last padding block, remove the padding block */
-				if((FLAC__off_t)chain->tail->data->length + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH == delta)
-					return false;
-				/* if there is at least 'delta' bytes of padding, trim the padding down */
-				else if((FLAC__off_t)chain->tail->data->length >= delta)
-					return false;
+	current_length = chain_calculate_length_(chain);
+
+	for (node = chain->head; node; node = node->next) {
+		if(node != chain->tail || !use_padding) {
+			if(node->data->length >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+				if(node->data->type == FLAC__METADATA_TYPE_PADDING) {
+					current_length -= node->data->length;
+					current_length += (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1;
+				} else {
+					return false /* the return value doesn't matter */;
+				}
+			}
+		} else {
+			/* use_padding == true, node == chain->tail */
+			unsigned block_len = node->data->length;
+			
+			/* if the metadata shrank and the last block is padding, we just extend the last padding block */
+			if(current_length < chain->initial_length && node->data->type == FLAC__METADATA_TYPE_PADDING) {
+				const FLAC__off_t delta = chain->initial_length - current_length;
+				block_len += delta;
+				current_length += delta;
+				/* test extended block */
+				if(block_len >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+					current_length -= block_len;
+					current_length += (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1;
+				}
+			}
+			/* if the metadata shrank more than 4 bytes then there's room to add another padding block */
+			else if(current_length + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH <= chain->initial_length) {
+				/* test current last block */
+				if(block_len >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+					current_length -= block_len;
+					current_length += (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1;
+				}
+				block_len = chain->initial_length - (FLAC__STREAM_METADATA_HEADER_LENGTH + current_length);
+				current_length += FLAC__STREAM_METADATA_HEADER_LENGTH + block_len;
+				/* test added block */
+				if(block_len >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+					current_length -= block_len;
+					current_length += (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1;
+				}
+			}
+			/* if the metadata grew but the last block is padding, try cutting the padding to restore the original length so we don't have to rewrite the whole file */
+			else if(current_length > chain->initial_length) {
+				const FLAC__off_t delta = current_length - chain->initial_length;
+				if(node->data->type == FLAC__METADATA_TYPE_PADDING) {
+					/* if the delta is exactly the size of the last padding block, remove the padding block */
+					if((FLAC__off_t)node->data->length + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH == delta) {
+						block_len = 0;
+						current_length -= FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length;
+					}
+					/* if there is at least 'delta' bytes of padding, trim the padding down */
+					else if((FLAC__off_t)node->data->length >= delta) {
+						block_len -= delta;
+						current_length -= delta;
+						/* test shrinked block */
+						if(block_len >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+							current_length -= block_len;
+							current_length += (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1;
+						}
+					}
+				}
 			}
 		}
 	}
