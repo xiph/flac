@@ -1799,9 +1799,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata 
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
 	FLAC__ASSERT((0 != data && length > 0) || (0 == data && length == 0 && copy == false));
 
-	if(length >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
-		return false;
-
 	old = object->data.picture.data;
 
 	/* do the copy first so that if we fail we leave the object untouched */

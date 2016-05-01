@@ -287,7 +287,7 @@ static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj
 	if (size < 0)
 		return error_messages[5];
 
-	if (size >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+	if (size >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) /* actual limit is less because of other fields in the PICTURE metadata block */
 		return error_messages[11];
 
 	if ((buffer = safe_malloc_(size)) == NULL)
@@ -313,6 +313,9 @@ static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj
 	/* try to extract resolution/color info if user left it blank */
 	else if ((obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0) && !local__extract_resolution_color_info_(&obj->data.picture))
 		error_message = error_messages[4];
+	/* check metadata block size */
+	else if (obj->length >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+		error_message = error_messages[11];
 
 	return error_message;
 }
