@@ -2536,6 +2536,9 @@ FLAC__bool write_metadata_block_header_cb_(FLAC__IOHandle handle, FLAC__IOCallba
 	FLAC__byte buffer[FLAC__STREAM_METADATA_HEADER_LENGTH];
 
 	FLAC__ASSERT(block->length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
+	/* double protection */
+	if(block->length >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+		return false;
 
 	buffer[0] = (block->is_last? 0x80 : 0) | (FLAC__byte)block->type;
 	pack_uint32_(block->length, buffer + 1, 3);

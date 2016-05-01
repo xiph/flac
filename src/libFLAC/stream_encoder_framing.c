@@ -65,6 +65,9 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 		i += vendor_string_length;
 	}
 	FLAC__ASSERT(i < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
+	/* double protection */
+	if(i >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+		return false;
 	if(!FLAC__bitwriter_write_raw_uint32(bw, i, FLAC__STREAM_METADATA_LENGTH_LEN))
 		return false;
 
