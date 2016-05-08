@@ -921,17 +921,25 @@ static bool test_level_1_()
 
 	printf("creating PADDING block\n");
 
-	if(0 == (padding = new FLAC::Metadata::Padding()))
+	if(0 == (padding = new FLAC::Metadata::Padding())) {
+		delete app;
 		return die_("new FLAC::Metadata::Padding()");
+	}
 	padding->set_length(20);
 
 	FLAC::Metadata::SimpleIterator iterator;
 
-	if(!iterator.is_valid())
+	if(!iterator.is_valid()) {
+		delete app;
+		delete padding;
 		return die_("iterator.is_valid() returned false");
+	}
 
-	if(!iterator.init(flacfilename(/*is_ogg=*/false), /*read_only=*/false, /*preserve_file_stats=*/false))
+	if(!iterator.init(flacfilename(/*is_ogg=*/false), /*read_only=*/false, /*preserve_file_stats=*/false)) {
+		delete app;
+		delete padding;
 		return die_("iterator.init() returned false");
+	}
 	our_current_position = 0;
 
 	printf("is writable = %u\n", (unsigned)iterator.is_writable());
@@ -939,17 +947,26 @@ static bool test_level_1_()
 	printf("[S]VP\ttry to write over STREAMINFO block...\n");
 	if(!iterator.set_block(app, false))
 		printf("\titerator.set_block() returned false like it should\n");
-	else
+	else {
+		delete app;
+		delete padding;
 		return die_("iterator.set_block() returned true but shouldn't have");
+	}
 
 	printf("[S]VP\tnext\n");
-	if(!iterator.next())
+	if(!iterator.next()) {
+		delete app;
+		delete padding;
 		return die_("iterator ended early\n");
+	}
 	our_current_position++;
 
 	printf("S[V]P\tnext\n");
-	if(!iterator.next())
+	if(!iterator.next()) {
+		delete app;
+		delete padding;
 		return die_("iterator ended early\n");
+	}
 	our_current_position++;
 
 	printf("SV[P]\tinsert PADDING after, don't expand into padding\n");
