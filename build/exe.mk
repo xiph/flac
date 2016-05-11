@@ -47,10 +47,22 @@ PROGRAM         = $(BINPATH)/$(PROGRAM_NAME)
 DEBUG_PROGRAM   = $(DEBUG_BINPATH)/$(PROGRAM_NAME)
 RELEASE_PROGRAM = $(RELEASE_BINPATH)/$(PROGRAM_NAME)
 
-debug   : CFLAGS := -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -Wall -Wextra $(CFLAGS) -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
-valgrind: CFLAGS := -g -O0 -DDEBUG $(CONFIG_CFLAGS) $(DEBUG_CFLAGS) -DFLAC__VALGRIND_TESTING -Wall -Wextra $(CFLAGS)-DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
-release : CFLAGS := -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DNDEBUG $(CONFIG_CFLAGS) $(RELEASE_CFLAGS) -Wall -Wextra $(CFLAGS) -DFLaC__INLINE=__inline__ -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+BASE_CFLAGS = -Wall -Wextra $(CONFIG_CFLAGS) -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
+ifeq ($(DEFAULT_BUILD),debug)
+CFLAGS   := -g -O0 -DDEBUG $(CFLAGS) $(BASE_CFLAGS) -Wmissing-prototypes -Wstrict-prototypes
+CXXFLAGS := -g -O0 -DDEBUG $(CXXFLAGS) $(BASE_CFLAGS)
+endif
+
+ifeq ($(DEFAULT_BUILD),valgrind)
+CFLAGS   := -g -O0 -DDEBUG  -DDEBUG -DFLAC__VALGRIND_TESTING $(CFLAGS) $(BASE_CFLAGS) -Wmissing-prototypes -Wstrict-prototypes
+CXXFLAGS := -g -O0 -DDEBUG -DDEBUG -DFLAC__VALGRIND_TESTING $(CXXFLAGS) $(BASE_CFLAGS)
+endif
+
+ifeq ($(DEFAULT_BUILD),release)
+CFLAGS   := -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DFLaC__INLINE=__inline__ -DNDEBUG $(CFLAGS) $(BASE_CFLAGS) -Wmissing-prototypes -Wstrict-prototypes
+CXXFLAGS := -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DFLaC__INLINE=__inline__ -DNDEBUG $(CXXFLAGS) $(BASE_CFLAGS)
+endif
 
 LFLAGS   = -L$(LIBPATH)
 
