@@ -34,7 +34,6 @@ all: clean
 	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_metaflac.sh $(CONFIG)
 	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_seeking.sh $(CONFIG)
 	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_streams.sh $(CONFIG)
-	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_bins.sh $(CONFIG)
 
 debug   : FLAC__TEST_LEVEL=FLAC__TEST_LEVEL=2
 valgrind: FLAC__TEST_LEVEL=FLAC__TEST_LEVEL=1
