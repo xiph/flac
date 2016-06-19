@@ -109,7 +109,7 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_AVX2 = 0x00000020;
 /*
  * Extra stuff needed for detection of OS support for SSE on IA-32
  */
-#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || defined FLAC__HAS_X86INTRIN) && !defined FLAC__NO_SSE_OS && !defined FLAC__SSE_OS
+#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || defined FLAC__HAS_X86INTRIN) && !FLAC__SSE_OS
 # if defined(__linux__)
 /*
  * If the OS doesn't support SSE, we will get here with a SIGILL.  We
@@ -206,11 +206,9 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	 * now have to check for OS support of SSE instructions
 	 */
 	if(info->ia32.sse) {
-#if defined FLAC__NO_SSE_OS
+#if !FLAC__SSE_OS
 		/* assume user knows better than us; turn it off */
 		disable_sse(info);
-#elif defined FLAC__SSE_OS
-		/* assume user knows better than us; leave as detected above */
 #elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
 		int sse = 0;
 		size_t len;
@@ -238,7 +236,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 # endif
 #elif defined(__ANDROID__) || defined(ANDROID)
 		/* no need to check OS SSE support */
-#elif defined(__linux__)
+#elif defined(__linux__) && !FLAC__SSE_OS
 		int sse = 0;
 		struct sigaction sigill_save;
 		struct sigaction sigill_sse;
