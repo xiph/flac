@@ -154,6 +154,8 @@ AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes; then
 AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
+else
+AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
 fi
 
 case "$host" in
