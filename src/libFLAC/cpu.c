@@ -37,12 +37,36 @@
 #include "private/cpu.h"
 #include <stdlib.h>
 #include <memory.h>
+
 #ifdef DEBUG
-# include <stdio.h>
+#  include <stdio.h>
+#endif
+
+#if defined (__NetBSD__) || defined(__OpenBSD__)
+#  include <sys/param.h>
+#  include <sys/sysctl.h>
+#  include <machine/cpu.h>
+#endif
+
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
+#  include <sys/types.h>
+#  include <sys/sysctl.h>
+#endif
+
+#if  defined(__linux__) && defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN) && !FLAC__SSE_OS
+#  include <sys/ucontext.h>
+#endif
+
+#if defined(_MSC_VER)
+#  include <windows.h>
+#  include <intrin.h> /* for __cpuid() and _xgetbv() */
+#endif
+
+#if defined __GNUC__ && defined HAVE_CPUID_H
+#  include <cpuid.h> /* for __get_cpuid() and __get_cpuid_max() */
 #endif
 
 #if defined FLAC__CPU_IA32
-# include <signal.h>
 
 static void disable_sse(FLAC__CPUInfo *info)
 {
@@ -69,17 +93,6 @@ static void disable_avx(FLAC__CPUInfo *info)
 	info->x86.avx2    = false;
 	info->x86.fma     = false;
 }
-#endif
-
-#if defined (__NetBSD__) || defined(__OpenBSD__)
-#include <sys/param.h>
-#include <sys/sysctl.h>
-#include <machine/cpu.h>
-#endif
-
-#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
-#include <sys/types.h>
-#include <sys/sysctl.h>
 #endif
 
 #ifdef FLAC__CPU_IA32
@@ -109,8 +122,7 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_AVX2 = 0x00000020;
 /*
  * Extra stuff needed for detection of OS support for SSE on IA-32
  */
-#if defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN) && !FLAC__SSE_OS
-# if defined(__linux__)
+#if  defined(__linux__) && defined(FLAC__CPU_IA32) && !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN) && !FLAC__SSE_OS
 /*
  * If the OS doesn't support SSE, we will get here with a SIGILL.  We
  * modify the return address to jump over the offending SSE instruction
@@ -124,15 +136,11 @@ static const unsigned FLAC__CPUINFO_IA32_CPUID_AVX2 = 0x00000020;
  *   6 bytes extra in case our estimate is wrong
  * 12 bytes puts us in the NOP "landing zone"
  */
-#   include <sys/ucontext.h>
-	static void sigill_handler_sse_os(int signal, siginfo_t *si, void *uc)
-	{
-		(void)signal, (void)si;
-		((ucontext_t*)uc)->uc_mcontext.gregs[14/*REG_EIP*/] += 3 + 3 + 6;
-	}
-# elif defined(_MSC_VER)
-#  include <windows.h>
-# endif
+static void sigill_handler_sse_os(int signal, siginfo_t *si, void *uc)
+{
+	(void)signal, (void)si;
+	((ucontext_t*)uc)->uc_mcontext.gregs[14/*REG_EIP*/] += 3 + 3 + 6;
+}
 #endif
 
 
@@ -206,10 +214,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	 * now have to check for OS support of SSE instructions
 	 */
 	if(info->ia32.sse) {
-#if !FLAC__SSE_OS
-		/* assume user knows better than us; turn it off */
-		disable_sse(info);
-#elif defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
+#if defined(__FreeBSD__) || defined(__FreeBSD_kernel__) || defined(__DragonFly__) || defined(__APPLE__)
 		int sse = 0;
 		size_t len;
 		/* at least one of these must work: */
@@ -407,18 +412,11 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
 
-#if defined _MSC_VER
-#include <intrin.h> /* for __cpuid() and _xgetbv() */
-#elif defined __GNUC__ && defined HAVE_CPUID_H
-#include <cpuid.h> /* for __get_cpuid() and __get_cpuid_max() */
-#endif
-
 FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
 {
 #ifdef FLAC__CPU_X86_64
 	return 1;
-#else
-# if defined _MSC_VER || defined __INTEL_COMPILER /* Do they support CPUs w/o CPUID support (or OSes that work on those CPUs)? */
+#elif defined _MSC_VER || defined __INTEL_COMPILER /* Do they support CPUs w/o CPUID support (or OSes that work on those CPUs)? */
 	FLAC__uint32 flags1, flags2;
 	__asm {
 		pushfd
@@ -437,14 +435,13 @@ FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
 		return 1;
 	else
 		return 0;
-# elif defined __GNUC__ && defined HAVE_CPUID_H
+#elif defined __GNUC__ && defined HAVE_CPUID_H
 	if (__get_cpuid_max(0, 0) != 0)
 		return 1;
 	else
 		return 0;
-# else
+#else
 	return 0;
-# endif
 #endif
 }
 
