@@ -143,6 +143,20 @@ static void sigill_handler_sse_os(int signal, siginfo_t *si, void *uc)
 }
 #endif
 
+#if FLAC__HAS_X86INTRIN
+static uint32_t cpu_xgetbv_x86(void)
+{
+#if (defined _MSC_VER || defined __INTEL_COMPILER) && defined FLAC__AVX_SUPPORTED
+	return (uint32_t)_xgetbv(0);
+#elif defined __GNUC__
+	uint32_t lo, hi;
+	asm volatile (".byte 0x0f, 0x01, 0xd0" : "=a"(lo), "=d"(hi) : "c" (0));
+	return lo;
+#else
+	return 0;
+#endif
+}
+#endif
 
 void FLAC__cpu_info(FLAC__CPUInfo *info)
 {
@@ -157,10 +171,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	info->type = FLAC__CPUINFO_TYPE_IA32;
 #if !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN)
 	info->use_asm = true; /* we assume a minimum of 80386 with FLAC__CPU_IA32 */
-#if FLAC__HAS_X86INTRIN
-	if(!FLAC__cpu_have_cpuid_x86())
-		return;
-#else
+#if !FLAC__HAS_X86INTRIN
 	if(!FLAC__cpu_have_cpuid_asm_ia32())
 		return;
 #endif
@@ -327,7 +338,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	 */
 #if FLAC__HAS_X86INTRIN
 	 if(info->ia32.avx && ia32_osxsave) {
-		FLAC__uint32 ecr = FLAC__cpu_xgetbv_x86();
+		FLAC__uint32 ecr = cpu_xgetbv_x86();
 		if ((ecr & 0x6) != 0x6)
 			disable_avx(info);
 #ifdef DEBUG
@@ -388,7 +399,7 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 	 * now have to check for OS support of AVX instructions
 	 */
 	if(info->x86.avx && x86_osxsave) {
-		FLAC__uint32 ecr = FLAC__cpu_xgetbv_x86();
+		FLAC__uint32 ecr = cpu_xgetbv_x86();
 		if ((ecr & 0x6) != 0x6)
 			disable_avx(info);
 #ifdef DEBUG
@@ -411,39 +422,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info)
 }
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
-
-FLAC__uint32 FLAC__cpu_have_cpuid_x86(void)
-{
-#ifdef FLAC__CPU_X86_64
-	return 1;
-#elif defined _MSC_VER || defined __INTEL_COMPILER /* Do they support CPUs w/o CPUID support (or OSes that work on those CPUs)? */
-	FLAC__uint32 flags1, flags2;
-	__asm {
-		pushfd
-		pushfd
-		pop		eax
-		mov		flags1, eax
-		xor		eax, 0x200000
-		push	eax
-		popfd
-		pushfd
-		pop		eax
-		mov		flags2, eax
-		popfd
-	}
-	if (((flags1^flags2) & 0x200000) != 0)
-		return 1;
-	else
-		return 0;
-#elif defined __GNUC__ && defined HAVE_CPUID_H
-	if (__get_cpuid_max(0, 0) != 0)
-		return 1;
-	else
-		return 0;
-#else
-	return 0;
-#endif
-}
 
 void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx)
 {
@@ -471,19 +449,6 @@ void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx
 	__cpuid_count(level, 0, *eax, *ebx, *ecx, *edx);
 #else
 	*eax = *ebx = *ecx = *edx = 0;
-#endif
-}
-
-FLAC__uint32 FLAC__cpu_xgetbv_x86(void)
-{
-#if (defined _MSC_VER || defined __INTEL_COMPILER) && defined FLAC__AVX_SUPPORTED
-	return (FLAC__uint32)_xgetbv(0);
-#elif defined __GNUC__
-	FLAC__uint32 lo, hi;
-	asm volatile (".byte 0x0f, 0x01, 0xd0" : "=a"(lo), "=d"(hi) : "c" (0));
-	return lo;
-#else
-	return 0;
 #endif
 }
 
