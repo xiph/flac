@@ -77,30 +77,6 @@
 #endif
 
 
-static void ia32_disable_sse(FLAC__CPUInfo *info)
-{
-	info->ia32.sse   = false;
-	info->ia32.sse2  = false;
-	info->ia32.sse3  = false;
-	info->ia32.ssse3 = false;
-	info->ia32.sse41 = false;
-	info->ia32.sse42 = false;
-}
-
-static void ia32_disable_avx(FLAC__CPUInfo *info)
-{
-	info->ia32.avx     = false;
-	info->ia32.avx2    = false;
-	info->ia32.fma     = false;
-}
-
-static void x86_64_disable_avx(FLAC__CPUInfo *info)
-{
-	info->x86.avx     = false;
-	info->x86.avx2    = false;
-	info->x86.fma     = false;
-}
-
 /* these are flags in EDX of CPUID AX=00000001 */
 static const unsigned FLAC__CPUINFO_IA32_CPUID_CMOV = 0x00008000;
 static const unsigned FLAC__CPUINFO_IA32_CPUID_MMX = 0x00800000;
@@ -145,7 +121,36 @@ static void sigill_handler_sse_os(int signal, siginfo_t *si, void *uc)
 }
 #endif
 
-static uint32_t cpu_xgetbv_x86(void)
+#if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
+static void
+ia32_disable_sse(FLAC__CPUInfo *info)
+{
+	info->ia32.sse   = false;
+	info->ia32.sse2  = false;
+	info->ia32.sse3  = false;
+	info->ia32.ssse3 = false;
+	info->ia32.sse41 = false;
+	info->ia32.sse42 = false;
+}
+
+static void
+ia32_disable_avx(FLAC__CPUInfo *info)
+{
+	info->ia32.avx     = false;
+	info->ia32.avx2    = false;
+	info->ia32.fma     = false;
+}
+
+static void
+x86_64_disable_avx(FLAC__CPUInfo *info)
+{
+	info->x86.avx     = false;
+	info->x86.avx2    = false;
+	info->x86.fma     = false;
+}
+
+static uint32_t
+cpu_xgetbv_x86(void)
 {
 #if (defined _MSC_VER || defined __INTEL_COMPILER) && FLAC__HAS_X86INTRIN && FLAC__AVX_SUPPORTED
 	return (uint32_t)_xgetbv(0);
@@ -157,10 +162,16 @@ static uint32_t cpu_xgetbv_x86(void)
 	return 0;
 #endif
 }
+#endif
 
 static void
 ia32_cpu_info (FLAC__CPUInfo *info)
 {
+#if !defined FLAC__CPU_IA32 && !defined FLAC__CPU_X86_64
+	(void) info;
+	return;
+#else
+
 	FLAC__bool ia32_fxsr = false;
 	FLAC__bool ia32_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
@@ -344,11 +355,17 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 #else
 	info->use_asm = false;
 #endif
+#endif
 }
 
 static void
 x86_64_cpu_info (FLAC__CPUInfo *info)
 {
+#if !defined FLAC__CPU_IA32 && !defined FLAC__CPU_X86_64
+	(void) info;
+	return;
+#else
+
 	FLAC__bool x86_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
 
@@ -404,6 +421,7 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 	}
 	else /* no OS AVX support */
 		x86_64_disable_avx(info);
+#endif
 #endif
 }
 
