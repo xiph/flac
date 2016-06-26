@@ -122,7 +122,7 @@ static void sigill_handler_sse_os(int signal, siginfo_t *si, void *uc)
 }
 #endif
 
-#if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
+#if defined FLAC__CPU_IA32
 static void
 ia32_disable_sse(FLAC__CPUInfo *info)
 {
@@ -141,7 +141,9 @@ ia32_disable_avx(FLAC__CPUInfo *info)
 	info->ia32.avx2    = false;
 	info->ia32.fma     = false;
 }
+#endif
 
+#if defined FLAC__CPU_X86_64
 static void
 x86_64_disable_avx(FLAC__CPUInfo *info)
 {
@@ -149,7 +151,9 @@ x86_64_disable_avx(FLAC__CPUInfo *info)
 	info->x86.avx2    = false;
 	info->x86.fma     = false;
 }
+#endif
 
+#if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
 static uint32_t
 cpu_xgetbv_x86(void)
 {
@@ -168,7 +172,7 @@ cpu_xgetbv_x86(void)
 static void
 ia32_cpu_info (FLAC__CPUInfo *info)
 {
-#if !defined FLAC__CPU_IA32 && !defined FLAC__CPU_X86_64
+#if !defined FLAC__CPU_IA32
 	(void) info;
 	return;
 #else
@@ -362,7 +366,7 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 static void
 x86_64_cpu_info (FLAC__CPUInfo *info)
 {
-#if !defined FLAC__CPU_IA32 && !defined FLAC__CPU_X86_64
+#if !defined FLAC__CPU_X86_64
 	(void) info;
 	return;
 #else
