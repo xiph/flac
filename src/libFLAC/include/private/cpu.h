@@ -127,13 +127,17 @@
 #endif /* compiler version */
 #endif /* intrinsics support */
 
+
+#ifndef FLAC__AVX_SUPPORTED
+#define FLAC__AVX_SUPPORTED 0
+#endif
+
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_X86_64,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
-#if defined FLAC__CPU_IA32
 typedef struct {
 	FLAC__bool intel;
 
@@ -150,7 +154,7 @@ typedef struct {
 	FLAC__bool avx2;
 	FLAC__bool fma;
 } FLAC__CPUInfo_IA32;
-#elif defined FLAC__CPU_X86_64
+
 typedef struct {
 	FLAC__bool intel;
 
@@ -162,16 +166,13 @@ typedef struct {
 	FLAC__bool avx2;
 	FLAC__bool fma;
 } FLAC__CPUInfo_x86;
-#endif
+
 
 typedef struct {
 	FLAC__bool use_asm;
 	FLAC__CPUInfo_Type type;
-#if defined FLAC__CPU_IA32
 	FLAC__CPUInfo_IA32 ia32;
-#elif defined FLAC__CPU_X86_64
 	FLAC__CPUInfo_x86 x86;
-#endif
 } FLAC__CPUInfo;
 
 void FLAC__cpu_info(FLAC__CPUInfo *info);
