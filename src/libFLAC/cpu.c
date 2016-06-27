@@ -457,25 +457,23 @@ void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx
 	int cpuinfo[4];
 	int ext = level & 0x80000000;
 	__cpuid(cpuinfo, ext);
-	if((unsigned)cpuinfo[0] < level) {
-		*eax = *ebx = *ecx = *edx = 0;
+	if((unsigned)cpuinfo[0] >= level) {
+		cpu_id_ex (cpuinfo, ext);
+
+		*eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
+
 		return;
 	}
-
-    cpu_id_ex (cpuinfo, ext);
-
-	*eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
 #elif defined __GNUC__ && defined HAVE_CPUID_H
 	FLAC__uint32 ext = level & 0x80000000;
 	__cpuid(ext, *eax, *ebx, *ecx, *edx);
-	if (*eax < level) {
-		*eax = *ebx = *ecx = *edx = 0;
+	if (*eax >= level) {
+		__cpuid_count(level, 0, *eax, *ebx, *ecx, *edx);
+
 		return;
 	}
-	__cpuid_count(level, 0, *eax, *ebx, *ecx, *edx);
-#else
-	*eax = *ebx = *ecx = *edx = 0;
 #endif
+	*eax = *ebx = *ecx = *edx = 0;
 }
 
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
