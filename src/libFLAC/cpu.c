@@ -436,21 +436,6 @@ void FLAC__cpu_info (FLAC__CPUInfo *info)
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
 
-#if defined _MSC_VER || defined __INTEL_COMPILER
-static inline void
-cpu_id_ex (int *cpuinfo, int result)
-{
-// Stupid MSVC doesn't know how to optimise out:
-//     if (FLAC_AVC_SUPPORTER)
-//         	__cpuidex(cpuinfo, level, 0); /* for AVX2 detection */
-#if FLAC__AVX_SUPPORTED
-	__cpuidex(cpuinfo, result, 0); /* for AVX2 detection */
-#else
-	__cpuid(cpuinfo, result); /* some old compilers don't support __cpuidex */
-#endif
-}
-#endif
-
 void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx)
 {
 #if defined _MSC_VER || defined __INTEL_COMPILER
@@ -458,7 +443,11 @@ void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx
 	int ext = level & 0x80000000;
 	__cpuid(cpuinfo, ext);
 	if((unsigned)cpuinfo[0] >= level) {
-		cpu_id_ex (cpuinfo, ext);
+#if FLAC__AVX_SUPPORTED
+		__cpuidex(cpuinfo, ext, 0); /* for AVX2 detection */
+#else
+		__cpuid(cpuinfo, ext); /* some old compilers don't support __cpuidex */
+#endif
 
 		*eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
 
