@@ -323,8 +323,9 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 		info->ia32.fma     = false;
 	}
 
-	if (FLAC__HAS_X86INTRIN && FLAC__AVX_SUPPORTED)
+	if (FLAC__HAS_X86INTRIN && FLAC__AVX_SUPPORTED) {
 		dfprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
+	}
 #else
 	info->use_asm = false;
 #endif
@@ -384,8 +385,9 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 		info->x86.fma     = false;
 	}
 
-	if (FLAC__AVX_SUPPORTED)
+	if (FLAC__AVX_SUPPORTED) {
 		dfprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
+	}
 #endif
 }
 
