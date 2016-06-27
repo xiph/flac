@@ -128,24 +128,6 @@ ia32_disable_sse(FLAC__CPUInfo *info)
 	info->ia32.sse41 = false;
 	info->ia32.sse42 = false;
 }
-
-static void
-ia32_disable_avx(FLAC__CPUInfo *info)
-{
-	info->ia32.avx     = false;
-	info->ia32.avx2    = false;
-	info->ia32.fma     = false;
-}
-#endif
-
-#if defined FLAC__CPU_X86_64
-static void
-x86_64_disable_avx(FLAC__CPUInfo *info)
-{
-	info->x86.avx     = false;
-	info->x86.avx2    = false;
-	info->x86.fma     = false;
-}
 #endif
 
 #if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
@@ -334,16 +316,15 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 	/*
 	 * now have to check for OS support of AVX instructions
 	 */
-	if (FLAC__HAS_X86INTRIN && info->ia32.avx && ia32_osxsave) {
-		FLAC__uint32 ecr = cpu_xgetbv_x86();
-		if ((ecr & 0x6) != 0x6)
-			ia32_disable_avx(info);
-
-		dfprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
+	if (!FLAC__HAS_X86INTRIN || !info->ia32.avx || !ia32_osxsave || (cpu_xgetbv_x86() & 0x6) != 0x6) {
+		/* no OS AVX support */
+		info->ia32.avx     = false;
+		info->ia32.avx2    = false;
+		info->ia32.fma     = false;
 	}
-	else /* no OS AVX support */
-		ia32_disable_avx(info);
 
+	if (FLAC__HAS_X86INTRIN && FLAC__AVX_SUPPORTED)
+		dfprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
 #else
 	info->use_asm = false;
 #endif
@@ -396,15 +377,15 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 	/*
 	 * now have to check for OS support of AVX instructions
 	 */
-	if (info->x86.avx && x86_osxsave) {
-		FLAC__uint32 ecr = cpu_xgetbv_x86();
-		if ((ecr & 0x6) != 0x6)
-			x86_64_disable_avx(info);
-
-		dfprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
+	if (!info->x86.avx || !x86_osxsave || (cpu_xgetbv_x86() & 0x6) != 0x6) {
+		/* no OS AVX support */
+		info->x86.avx     = false;
+		info->x86.avx2    = false;
+		info->x86.fma     = false;
 	}
-	else /* no OS AVX support */
-		x86_64_disable_avx(info);
+
+	if (FLAC__AVX_SUPPORTED)
+		dfprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
 #endif
 }
 
