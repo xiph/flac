@@ -39,8 +39,6 @@
 #include <stdlib.h>
 #include <memory.h>
 
-#include <stdio.h>
-
 #if defined (__NetBSD__) || defined(__OpenBSD__)
 #  include <sys/param.h>
 #  include <sys/sysctl.h>
@@ -72,6 +70,8 @@
 #endif
 
 #ifdef DEBUG
+#include <stdio.h>
+
 #define dfprintf fprintf
 #else
 /* This is bad practice, it should be a static void empty function */
