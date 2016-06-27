@@ -72,9 +72,10 @@
 #endif
 
 #ifdef DEBUG
-#define DEBUG_ON 1
+#define dfprintf fprintf
 #else
-#define DEBUG_ON 0
+/* This is bad practice, it should be a static void empty function */
+#define dfprintf(file, format, args...)
 #endif
 
 
@@ -221,22 +222,20 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 		info->ia32.avx2  = (flags_ebx & FLAC__CPUINFO_IA32_CPUID_AVX2   ) ? true : false;
 	}
 
-	if (DEBUG_ON) {
-		fprintf(stderr, "CPU info (IA-32):\n");
-		fprintf(stderr, "  CMOV ....... %c\n", info->ia32.cmov    ? 'Y' : 'n');
-		fprintf(stderr, "  MMX ........ %c\n", info->ia32.mmx     ? 'Y' : 'n');
-		fprintf(stderr, "  SSE ........ %c\n", info->ia32.sse     ? 'Y' : 'n');
-		fprintf(stderr, "  SSE2 ....... %c\n", info->ia32.sse2    ? 'Y' : 'n');
-		fprintf(stderr, "  SSE3 ....... %c\n", info->ia32.sse3    ? 'Y' : 'n');
-		fprintf(stderr, "  SSSE3 ...... %c\n", info->ia32.ssse3   ? 'Y' : 'n');
-		fprintf(stderr, "  SSE41 ...... %c\n", info->ia32.sse41   ? 'Y' : 'n');
-		fprintf(stderr, "  SSE42 ...... %c\n", info->ia32.sse42   ? 'Y' : 'n');
+	dfprintf(stderr, "CPU info (IA-32):\n");
+	dfprintf(stderr, "  CMOV ....... %c\n", info->ia32.cmov    ? 'Y' : 'n');
+	dfprintf(stderr, "  MMX ........ %c\n", info->ia32.mmx     ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE ........ %c\n", info->ia32.sse     ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE2 ....... %c\n", info->ia32.sse2    ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE3 ....... %c\n", info->ia32.sse3    ? 'Y' : 'n');
+	dfprintf(stderr, "  SSSE3 ...... %c\n", info->ia32.ssse3   ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE41 ...... %c\n", info->ia32.sse41   ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE42 ...... %c\n", info->ia32.sse42   ? 'Y' : 'n');
 
-		if (FLAC__HAS_X86INTRIN && FLAC__AVX_SUPPORTED) {
-			fprintf(stderr, "  AVX ........ %c\n", info->ia32.avx     ? 'Y' : 'n');
-			fprintf(stderr, "  FMA ........ %c\n", info->ia32.fma     ? 'Y' : 'n');
-			fprintf(stderr, "  AVX2 ....... %c\n", info->ia32.avx2    ? 'Y' : 'n');
-		}
+	if (FLAC__HAS_X86INTRIN && FLAC__AVX_SUPPORTED) {
+		dfprintf(stderr, "  AVX ........ %c\n", info->ia32.avx     ? 'Y' : 'n');
+		dfprintf(stderr, "  FMA ........ %c\n", info->ia32.fma     ? 'Y' : 'n');
+		dfprintf(stderr, "  AVX2 ....... %c\n", info->ia32.avx2    ? 'Y' : 'n');
 	}
 
 	/*
@@ -338,8 +337,7 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 		/* no way to test, disable to be safe */
 		ia32_disable_sse(info);
 #endif
-		if (DEBUG_ON)
-			fprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse ? 'Y' : 'n');
+		dfprintf(stderr, "  SSE OS sup . %c\n", info->ia32.sse ? 'Y' : 'n');
 	}
 	else /* info->ia32.sse == false */
 		ia32_disable_sse(info);
@@ -351,8 +349,8 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 		FLAC__uint32 ecr = cpu_xgetbv_x86();
 		if ((ecr & 0x6) != 0x6)
 			ia32_disable_avx(info);
-		if (DEBUG_ON)
-			fprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
+
+		dfprintf(stderr, "  AVX OS sup . %c\n", info->ia32.avx ? 'Y' : 'n');
 	}
 	else /* no OS AVX support */
 		ia32_disable_avx(info);
@@ -400,18 +398,16 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 		info->x86.avx2  = (flags_ebx & FLAC__CPUINFO_IA32_CPUID_AVX2   ) ? true : false;
 	}
 
-	if (DEBUG_ON) {
-		fprintf(stderr, "CPU info (x86-64):\n");
-		fprintf(stderr, "  SSE3 ....... %c\n", info->x86.sse3  ? 'Y' : 'n');
-		fprintf(stderr, "  SSSE3 ...... %c\n", info->x86.ssse3 ? 'Y' : 'n');
-		fprintf(stderr, "  SSE41 ...... %c\n", info->x86.sse41 ? 'Y' : 'n');
-		fprintf(stderr, "  SSE42 ...... %c\n", info->x86.sse42 ? 'Y' : 'n');
+	dfprintf(stderr, "CPU info (x86-64):\n");
+	dfprintf(stderr, "  SSE3 ....... %c\n", info->x86.sse3  ? 'Y' : 'n');
+	dfprintf(stderr, "  SSSE3 ...... %c\n", info->x86.ssse3 ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE41 ...... %c\n", info->x86.sse41 ? 'Y' : 'n');
+	dfprintf(stderr, "  SSE42 ...... %c\n", info->x86.sse42 ? 'Y' : 'n');
 
-		if (FLAC__AVX_SUPPORTED) {
-			fprintf(stderr, "  AVX ........ %c\n", info->x86.avx   ? 'Y' : 'n');
-			fprintf(stderr, "  FMA ........ %c\n", info->x86.fma   ? 'Y' : 'n');
-			fprintf(stderr, "  AVX2 ....... %c\n", info->x86.avx2  ? 'Y' : 'n');
-		}
+	if (FLAC__AVX_SUPPORTED) {
+		dfprintf(stderr, "  AVX ........ %c\n", info->x86.avx   ? 'Y' : 'n');
+		dfprintf(stderr, "  FMA ........ %c\n", info->x86.fma   ? 'Y' : 'n');
+		dfprintf(stderr, "  AVX2 ....... %c\n", info->x86.avx2  ? 'Y' : 'n');
 	}
 
 	/*
@@ -421,8 +417,8 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 		FLAC__uint32 ecr = cpu_xgetbv_x86();
 		if ((ecr & 0x6) != 0x6)
 			x86_64_disable_avx(info);
-		if (DEBUG_ON)
-			fprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
+
+		dfprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
 	}
 	else /* no OS AVX support */
 		x86_64_disable_avx(info);
