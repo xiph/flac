@@ -63,12 +63,6 @@
 #  include <cpuid.h> /* for __get_cpuid() and __get_cpuid_max() */
 #endif
 
-#if defined(__ANDROID__) || defined(ANDROID)
-#define OS_IS_ANDROID 1
-#else
-#define OS_IS_ANDROID 0
-#endif
-
 #ifdef DEBUG
 #include <stdio.h>
 
@@ -176,17 +170,14 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 #if !defined FLAC__CPU_IA32
 	(void) info;
 	return;
+#elif defined(__ANDROID__) || defined(ANDROID)
+	/* no need to check OS SSE support */
+	info->use_asm = true;
+	return;
 #else
-
 	FLAC__bool ia32_fxsr = false;
 	FLAC__bool ia32_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
-
-	if (OS_IS_ANDROID) {
-		/* no need to check OS SSE support */
-		info->use_asm = true;
-		return;
-	}
 
 #if !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN)
 	info->use_asm = true; /* we assume a minimum of 80386 with FLAC__CPU_IA32 */
@@ -367,16 +358,13 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 #if !defined FLAC__CPU_X86_64
 	(void) info;
 	return;
+#elif defined(__ANDROID__) || defined(ANDROID)
+	/* no need to check OS SSE support */
+	info->use_asm = true;
+	return;
 #else
-
 	FLAC__bool x86_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
-
-	if (OS_IS_ANDROID) {
-		/* no need to check OS SSE support */
-		info->use_asm = true;
-		return;
-	}
 
 #if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
 	info->use_asm = true;
