@@ -358,11 +358,10 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 #elif defined(__ANDROID__) || defined(ANDROID)
 	/* no need to check OS SSE support */
 	info->use_asm = true;
-#else
+#elif !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
 	FLAC__bool x86_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
 
-#if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
 	info->use_asm = true;
 
 	/* http://www.sandpile.org/x86/cpuid.htm */
@@ -406,7 +405,6 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 	}
 	else /* no OS AVX support */
 		x86_64_disable_avx(info);
-#endif
 #endif
 }
 
