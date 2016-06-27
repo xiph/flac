@@ -169,11 +169,9 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 {
 #if !defined FLAC__CPU_IA32
 	(void) info;
-	return;
 #elif defined(__ANDROID__) || defined(ANDROID)
 	/* no need to check OS SSE support */
 	info->use_asm = true;
-	return;
 #else
 	FLAC__bool ia32_fxsr = false;
 	FLAC__bool ia32_osxsave = false;
@@ -357,11 +355,9 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 {
 #if !defined FLAC__CPU_X86_64
 	(void) info;
-	return;
 #elif defined(__ANDROID__) || defined(ANDROID)
 	/* no need to check OS SSE support */
 	info->use_asm = true;
-	return;
 #else
 	FLAC__bool x86_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
