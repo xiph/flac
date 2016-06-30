@@ -69,7 +69,7 @@
 #define dfprintf fprintf
 #else
 /* This is bad practice, it should be a static void empty function */
-#define dfprintf(file, format, args...)
+#define dfprintf(file, format, ...)
 #endif
 
 
