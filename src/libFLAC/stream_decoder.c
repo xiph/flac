@@ -3134,7 +3134,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		 * FLAC__stream_decoder_process_single() to return false.
 		 */
 		decoder->private_->unparseable_frame_count = 0;
-		if(!FLAC__stream_decoder_process_single(decoder)) {
+		if(!FLAC__stream_decoder_process_single(decoder) ||
+		   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
@@ -3261,7 +3262,8 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 			did_a_seek = false;
 
 		decoder->private_->got_a_frame = false;
-		if(!FLAC__stream_decoder_process_single(decoder)) {
+		if(!FLAC__stream_decoder_process_single(decoder) ||
+		   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
