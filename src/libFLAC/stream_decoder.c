@@ -2481,6 +2481,8 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, unsigned channel, unsign
 		if(!FLAC__bitreader_read_unary_unsigned(decoder->private_->input, &u))
 			return false; /* read_callback_ sets the state for us */
 		decoder->private_->frame.subframes[channel].wasted_bits = u+1;
+		if (decoder->private_->frame.subframes[channel].wasted_bits >= bps)
+			return false;
 		bps -= decoder->private_->frame.subframes[channel].wasted_bits;
 	}
 	else
