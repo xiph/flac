@@ -73,8 +73,6 @@ static FLAC__bool copy_bytes_(FLAC__byte **to, const FLAC__byte *from, unsigned 
 		*to = x;
 	}
 	else {
-		FLAC__ASSERT(0 == from);
-		FLAC__ASSERT(bytes == 0);
 		*to = 0;
 	}
 	return true;
@@ -567,11 +565,9 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 					return 0;
 				}
 				if(object->data.vorbis_comment.num_comments == 0) {
-					FLAC__ASSERT(0 == object->data.vorbis_comment.comments);
 					to->data.vorbis_comment.comments = 0;
 				}
 				else {
-					FLAC__ASSERT(0 != object->data.vorbis_comment.comments);
 					to->data.vorbis_comment.comments = vorbiscomment_entry_array_copy_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
 					if(0 == to->data.vorbis_comment.comments) {
 						to->data.vorbis_comment.num_comments = 0;
