@@ -643,11 +643,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	 */
 	FLAC__MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
 
-	if(decoder->private_->has_seek_table && 0 != decoder->private_->seek_table.data.seek_table.points) {
-		free(decoder->private_->seek_table.data.seek_table.points);
-		decoder->private_->seek_table.data.seek_table.points = 0;
-		decoder->private_->has_seek_table = false;
-	}
+	free(decoder->private_->seek_table.data.seek_table.points);
+	decoder->private_->seek_table.data.seek_table.points = 0;
+	decoder->private_->has_seek_table = false;
+
 	FLAC__bitreader_free(decoder->private_->input);
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 		/* WATCHOUT:
@@ -977,11 +976,11 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
 
 	decoder->private_->has_stream_info = false;
-	if(decoder->private_->has_seek_table && 0 != decoder->private_->seek_table.data.seek_table.points) {
-		free(decoder->private_->seek_table.data.seek_table.points);
-		decoder->private_->seek_table.data.seek_table.points = 0;
-		decoder->private_->has_seek_table = false;
-	}
+
+	free(decoder->private_->seek_table.data.seek_table.points);
+	decoder->private_->seek_table.data.seek_table.points = 0;
+	decoder->private_->has_seek_table = false;
+
 	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
 	/*
 	 * This goes in reset() and not flush() because according to the spec, a
