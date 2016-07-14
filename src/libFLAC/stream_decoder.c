@@ -1418,6 +1418,9 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 			decoder->private_->metadata_callback(decoder, &decoder->private_->stream_info, decoder->private_->client_data);
 	}
 	else if(type == FLAC__METADATA_TYPE_SEEKTABLE) {
+		/* just in case we already have a seek table, and reading the next one fails: */
+		decoder->private_->has_seek_table = false;
+
 		if(!read_metadata_seektable_(decoder, is_last, length))
 			return false;
 
