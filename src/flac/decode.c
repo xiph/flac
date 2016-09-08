@@ -1408,9 +1408,10 @@ void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderError
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
-	if(!decoder_session->error_callback_suppress_messages)
+	if(!decoder_session->error_callback_suppress_messages) {
 		stats_print_name(1, decoder_session->inbasefilename);
 		flac__utils_printf(stderr, 1, "*** Got error code %d:%s\n", status, FLAC__StreamDecoderErrorStatusString[status]);
+	}
 	if(!decoder_session->continue_through_decode_errors) {
 		/* if we got a sync error while looking for metadata, either it's not a FLAC file (more likely) or the file is corrupted */
 		if(
