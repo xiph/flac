@@ -1,5 +1,5 @@
 Encapsulation of FLAC in ISO Base Media File Format
-Version 0.0.0 (early draft)
+Version 0.0.1 (draft)
 
 Table of Contents
 1 Scope
@@ -19,7 +19,8 @@ Table of Contents
    4.4 Basic Structure (informative)
         4.4.1 Initial Movie
    4.5 Example of Encapsulation (informative)
-5 Author's Address
+5 Acknowledgements
+6 Author's Address
 
 1 Scope
 
@@ -71,8 +72,6 @@ Table of Contents
         for any PCM sample, a timestamp exactly matching its sampling
         timestamp is present in the media timeline.
 
-    3.4 native metadata
-    
 
 4 Design Rules of Encapsulation
 
@@ -118,8 +117,6 @@ Table of Contents
             + Every FLAC sample is a sync sample.  No pre-roll or
                 lapping is required.  See section 'Random Access' for
                 further details.
-
-	FLAC native metadata 
 
     4.3 Definition of a FLAC sample
     
@@ -211,13 +208,24 @@ Table of Contents
                 unsigned int(8) MetadataBlockData[BlockLength];
             }
 
-	    aligned(8) class FLACSpecificBox extends Box('dfLa'){
+	    aligned(8) class FLACSpecificBox
+	          (unsigned int32 MetadataBlocks) extends Box('dfLa'){
                 unsigned int(8) Version;
-		unsigned int(8) MetadataBlocks;
 		for(i=0; i <= MetadataBlocks; i++){
 	            FLACMetadataBlock();
 		}
             }
+
+	    + MetadataBlocks:
+
+	        The number of FLAC[3] native metadata blocks to
+		follow.  This value must be at least 1 as a native
+		METADATA_BLOCK_STREAMINFO structure is required to
+		decode FLAC audio data.
+
+		This value is not coded as the end of the
+		FLACMetadataBlock list can be intuited from the
+		LastMetadataBlockFlag (see below).
 
             + Version:
 
@@ -228,14 +236,7 @@ Table of Contents
                 of those values, the reader shall not read the fields
                 after this within the FLACSpecificBox.
 
-	    + MetadataBlocks:
-
-	        The number of FLAC[3] native metadata blocks to
-		follow.  This value must be at least 1 as a native
-		METADATA_BLOCK_STREAMINFO structure is required to
-		decode FLAC audio data.
-
-	    These fields are followed by a sequence of FLAC[3]
+	    The Version field is followed by a sequence of FLAC[3]
 	    native-metadata block structures that fill the remainder
 	    of the box length.
 
@@ -348,14 +349,6 @@ Table of Contents
                 track. The sample_is_non_sync_sample field for FLAC
                 samples shall be set to 0.
 
-            4.3.6.2 Pre-roll
-	    
-                FLAC bitstreams do not require pre-roll or
-                multi-sample synchronization.  All samples
-                independently decode directly to a complete set of
-                valid samples. NeitherAudioRollRecoveryEntry nor AudioPreRollEntry
-                shall be used.
-		
     4.4 Basic Structure (informative)
 
         4.4.1 Initial Movie
@@ -422,11 +415,11 @@ Table of Contents
 
             It is strongly recommended that the order of boxes should
             follow the above structure.  Boxes marked with an asterisk
-            (*) may be present.  For most boxes listed above, the
-            definition is as is defined in ISO/IEC 14496-12 [1]. The
-            additional boxes and the additional requirements,
-            restrictions and recommendations to the other boxes are
-            described in this specification.
+            (*) may or may not be present depending on context.  For
+            most boxes listed above, the definition is as is defined
+            in ISO/IEC 14496-12 [1]. The additional boxes and the
+            additional requirements, restrictions and recommendations
+            to the other boxes are described in this specification.
 	    
     4.5 Example of Encapsulation (informative)
         [File]
@@ -658,5 +651,11 @@ Table of Contents
                 position = 678
                 size = 17001
 
-5 Authors' Address
-    Monty Montgomery <monty@xiph.org>
+5 Acknowledgements
+
+    This spec draws heavily from the Opus-in-ISOBMFF specification
+    work done by Yusuke Nakamura <muken.the.vfrmaniac |at| gmail.com>
+
+6 Authors' Address
+
+    Monty Montgomery <cmontgomery@mozilla.com>
