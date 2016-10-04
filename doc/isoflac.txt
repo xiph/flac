@@ -1,26 +1,25 @@
 Encapsulation of FLAC in ISO Base Media File Format
-Version 0.0.2 (draft)
+Version 0.0.3 (draft)
 
 Table of Contents
 1 Scope
 2 Supporting Normative References
-3 Terms and Definitions
-4 Design Rules of Encapsulation
-  4.1 File Type Identification
-  4.2 Overview of Track Structure
-  4.3 Definition of FLAC sample
-        4.3.1 Sample entry format
-        4.3.2 FLAC Specific Box
-        4.3.3 Sample format
-        4.3.4 Duration of FLAC sample
-        4.3.5 Sub-sample
-        4.3.6 Random Access
-            4.3.6.1 Random Access Point
-   4.4 Basic Structure (informative)
-        4.4.1 Initial Movie
-   4.5 Example of Encapsulation (informative)
-5 Acknowledgements
-6 Author's Address
+3 Design Rules of Encapsulation
+  3.1 File Type Identification
+  3.2 Overview of Track Structure
+  3.3 Definition of FLAC sample
+        3.3.1 Sample entry format
+        3.3.2 FLAC Specific Box
+        3.3.3 Sample format
+        3.3.4 Duration of FLAC sample
+        3.3.5 Sub-sample
+        3.3.6 Random Access
+            3.3.6.1 Random Access Point
+   3.4 Basic Structure (informative)
+        3.4.1 Initial Movie
+   3.5 Example of Encapsulation (informative)
+4 Acknowledgements
+5 Author's Address
 
 1 Scope
 
@@ -56,26 +55,9 @@ Table of Contents
 
     [5] Matroska specification
 
-3 Terms and Definitions
+3 Design Rules of Encapsulation
 
-    3.1 active track
-
-        enabled track from the non-alternate group or selected track
-        from alternate group
-
-    3.2 edit
-
-        entry in the Edit List Box
-
-    3.3 sample-accurate
-
-        for any PCM sample, a timestamp exactly matching its sampling
-        timestamp is present in the media timeline.
-
-
-4 Design Rules of Encapsulation
-
-    4.1 File Type Identification
+    3.1 File Type Identification
     
         This specification does not define any brand to declare files
         which conform to this specification.  Files which conform to
@@ -86,7 +68,7 @@ Table of Contents
         encapsulation of FLAC bitstreams in ISO Base Media file format
         requires the 'isom' brand.
         
-    4.2 Overview of Track Structure
+    3.2 Overview of Track Structure
 
         FLAC coded audio shall be encapsulated into the ISO Base
         Media File Format as media data within an audio track.
@@ -119,9 +101,9 @@ Table of Contents
                 lapping is required.  See section 'Random Access' for
                 further details.
 
-    4.3 Definition of a FLAC sample
+    3.3 Definition of a FLAC sample
     
-        4.3.1 Sample entry format
+        3.3.1 Sample entry format
 
             For any track containing one or more FLAC bitstreams, a
             sample entry describing the corresponding FLAC bitstream
@@ -173,31 +155,50 @@ Table of Contents
                 
             + samplerate:
 
-                The samplerate field shall be set equal to the sample
-                rate specified by the FLAC bitstream's native
-                METADATA_BLOCK_STREAMINFO header as described in [3],
-                left-shifted by 16 bits.  Note that the FLAC
-                FRAME_HEADER structure that begins each FLAC sample
-                redundantly encodes the sample rate; the sample rate
-                declared in each FRAME_HEADER MUST match the sample
-                rate declared here and in the
-                METADATA_BLOCK_STREAMINFO header.
+                When possible, the samplerate field shall be set
+                equal to the sample rate specified by the FLAC
+                bitstream's native METADATA_BLOCK_STREAMINFO header
+                as described in [3], left-shifted by 16 bits to
+                create the appropriate 16.16 fixed-point
+                representation.
+
+                When the bitstream's native sample rate is greater
+                than the maximum expressible value of 65535 Hz,
+                the samplerate field shall hold the greatest
+                expressible regular division of that rate. I.e.
+                the samplerate field shall hold 48000.0 for
+                native sample rates of 96 and 192 kHz. In the
+                case of unusual sample rates which do not have
+                an expressible regular division, the maximum value
+                of 65535.0 Hz should be used.
+
+                High-rate FLAC bitstreams are common, and the native
+                value from the METADATA_BLOCK_STREAMINFO header in
+                the FLACSpecificBox MUST be read to determine the
+                correct sample rate of the bitstream.
+
+                Note that the FLAC FRAME_HEADER structure that begins
+                each FLAC sample redundantly encodes the sample rate;
+                the sample rate declared in each FRAME_HEADER MUST
+                match the sample rate declared in the
+                METADATA_BLOCK_STREAMINFO header, and here in the
+                AudioSampleEntry portion of the FLACSampleEntry
+                as much as is allowed by the encoding restrictions
+                described above.
                 
             Finally, the FLACSpecificBox carries codec headers:
 
             + FLACSpecificBox
             
                 This box contains initializing information for the
-                decoder as defined in section 'FLAC specific box'
+                decoder as defined in section 'FLAC specific box'.
 
-        4.3.2 FLAC Specific Box
+        3.3.2 FLAC Specific Box
         
             Exactly one FLAC Specific Box shall be present in each
-            FLACSampleEntry.  The FLAC Specific Box contains the
-            Version field and this specification defines version 0 of
-            this box.  If incompatible changes occur in the fields
-            after the Version field within the FLACSpecificBox in the
-            future versions of this specification, another version
+            FLACSampleEntry.  This specification defines version 0
+            of this box.  If incompatible changes occur in future
+            versions of this specification, another version number
             will be defined.  The data fields of this box and native
             FLAC[3] structures encoded within FLAC blocks are both
             stored in big-endian format, though for purposes of the
@@ -207,7 +208,7 @@ Table of Contents
             The syntax and semantics of the FLAC Specific Box is shown
             as follows.
 
-            aligned(8) class FLACMetadataBlock {
+            class FLACMetadataBlock {
                unsigned int(1) LastMetadataBlockFlag;
                unsigned int(7) BlockType;
                unsigned int(24) Length;
@@ -303,7 +304,7 @@ Table of Contents
             reparsings of FLAC[3] native metadata, so long as the
             native metadata is also preserved.
 
-        4.3.3 Sample format
+        3.3.3 Sample format
         
             A FLAC sample is exactly one FLAC audio FRAME (as defined
             in the FLAC[3] file specification) belonging to a FLAC
@@ -319,7 +320,7 @@ Table of Contents
             METADATA_BLOCK_STREAMINFO structure as well as the
             FLACSampleEntry box.
 
-        4.3.4 Duration of a FLAC sample
+        3.3.4 Duration of a FLAC sample
 
             The duration of any given FLAC sample is determined by
             dividing the decoded block size of a FLAC frame, as
@@ -329,16 +330,17 @@ Table of Contents
             within a given audio stream.  FLAC does not use padding
             values.
 
-        4.3.5 Sub-sample
+        3.3.5 Sub-sample
 
             Sub-samples are not defined for FLAC samples in this
             specification.
 
-        4.3.6 Random Access
+        3.3.6 Random Access
         
-            This subclause describes the nature of the random access of FLAC sample.
+            This subclause describes the nature of the random access
+            of FLAC sample.
 
-            4.3.6.1 Random Access Point
+            3.3.6.1 Random Access Point
             
                 All FLAC samples can be independently decoded
                 i.e. every FLAC sample is a sync sample. The Sync
@@ -347,9 +349,9 @@ Table of Contents
                 track. The sample_is_non_sync_sample field for FLAC
                 samples shall be set to 0.
 
-    4.4 Basic Structure (informative)
+    3.4 Basic Structure (informative)
 
-        4.4.1 Initial Movie
+        3.4.1 Initial Movie
         
             This subclause shows a basic structure of the Movie Box as follows:
 
@@ -419,7 +421,7 @@ Table of Contents
             additional requirements, restrictions and recommendations
             to the other boxes are described in this specification.
             
-    4.5 Example of Encapsulation (informative)
+    3.5 Example of Encapsulation (informative)
         [File]
             size = 17790
             [ftyp: File Type Box]
@@ -582,7 +584,7 @@ Table of Contents
                                             size = 50
                                             version = 0
                                             flags = 0x000000
-                                            [FLACMetaDataBlock]
+                                            [FLACMetadataBlock]
                                                 LastMetadataBlockFlag = 1
                                                 BlockType = 0
                                                 Length = 34
@@ -650,11 +652,15 @@ Table of Contents
                 position = 680
                 size = 17001
 
-5 Acknowledgements
+4 Acknowledgements
 
     This spec draws heavily from the Opus-in-ISOBMFF specification
     work done by Yusuke Nakamura <muken.the.vfrmaniac |at| gmail.com>
 
-6 Authors' Address
+    Thank you to Tim Terriberry, David Evans, and Yusuke Nakamura
+    for valuable feedback. Thank you to Ralph Giles for editorial
+    help.
+
+5 Author Address
 
     Monty Montgomery <cmontgomery@mozilla.com>
