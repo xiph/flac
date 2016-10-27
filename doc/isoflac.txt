@@ -1,5 +1,5 @@
 Encapsulation of FLAC in ISO Base Media File Format
-Version 0.0.3 (draft)
+Version 0.0.4 (draft)
 
 Table of Contents
 1 Scope
@@ -258,7 +258,7 @@ Table of Contents
             + BlockType:
 
                 The BlockType field maps semantically to the FLAC[3]
-                native MEATADATA_BLOCK_HEADER BLOCK_TYPE field as
+                native METADATA_BLOCK_HEADER BLOCK_TYPE field as
                 defined in the FLAC[3] file specification.
 
                 The BlockType is set to a valid FLAC[3] BLOCK_TYPE
@@ -270,7 +270,7 @@ Table of Contents
             + Length:
 
                 The Length field maps semantically to the FLAC[3]
-                native MEATADATA_BLOCK_HEADER Length field as
+                native METADATA_BLOCK_HEADER Length field as
                 defined in the FLAC[3] file specification.
 
                 The length field specifies the number of bytes of
@@ -279,7 +279,7 @@ Table of Contents
             + BlockData
 
                 The BlockData field maps semantically to the FLAC[3]
-                native MEATADATA_BLOCK_HEADER METADATA_BLOCK_DATA as
+                native METADATA_BLOCK_HEADER METADATA_BLOCK_DATA as
                 defined in the FLAC[3] file specification.
 
             Taken together, the bytes of the FLACMetadataBlock form a
