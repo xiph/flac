@@ -34,7 +34,7 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 
 	FLAC__ASSERT(0 != spec);
 	FLAC__ASSERT(0 != seektable_template);
-	FLAC__ASSERT(seektable_template->type = FLAC__METADATA_TYPE_SEEKTABLE);
+	FLAC__ASSERT(seektable_template->type == FLAC__METADATA_TYPE_SEEKTABLE);
 
 	if(0 != spec_has_real_points)
 		*spec_has_real_points = false;
