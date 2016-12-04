@@ -1,6 +1,6 @@
 /* flac - Command-line FLAC encoder/decoder
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -1168,7 +1168,7 @@ static void usage_header(void)
 	printf("===============================================================================\n");
 	printf("flac - Command-line FLAC encoder/decoder version %s\n", FLAC__VERSION_STRING);
 	printf("Copyright (C) 2000-2009  Josh Coalson\n");
-	printf("Copyright (C) 2011-2014  Xiph.Org Foundation\n");
+	printf("Copyright (C) 2011-2016  Xiph.Org Foundation\n");
 	printf("\n");
 	printf("This program is free software; you can redistribute it and/or\n");
 	printf("modify it under the terms of the GNU General Public License\n");

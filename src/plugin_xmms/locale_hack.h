@@ -1,6 +1,6 @@
 /* libxmms-flac - XMMS FLAC input plugin
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2014  Xiph.Org Foundation
+ * Copyright (C) 2011-2016  Xiph.Org Foundation
  *
  * Based on:
  * locale.h - 2000/05/05 13:10 Jerome Couderc
