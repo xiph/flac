@@ -215,7 +215,7 @@ esac],[debug=false])
 AM_CONDITIONAL(DEBUG, test "x$debug" = xtrue)
 
 AC_ARG_ENABLE(sse,
-AC_HELP_STRING([--disable-sse], [Disable SSE if the OS does not support SSE instructions]),
+AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
 [case "${enableval}" in
 	yes) sse_os=yes ;;
 	no)  sse_os=no ;;
