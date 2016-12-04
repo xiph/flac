@@ -221,11 +221,6 @@ AC_HELP_STRING([--disable-sse], [Disable SSE if the OS does not support SSE inst
 	no)  sse_os=no ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
 esac],[sse_os=yes])
-if test "x$sse_os" = xyes ; then
-	AC_DEFINE_UNQUOTED([FLAC__SSE_OS],[1],[Define if your operating system supports SSE instructions])
-else
-	AC_DEFINE_UNQUOTED([FLAC__SSE_OS],[0])
-	fi
 
 AC_ARG_ENABLE(altivec,
 AC_HELP_STRING([--disable-altivec], [Disable Altivec optimizations]),
