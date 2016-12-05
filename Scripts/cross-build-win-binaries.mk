@@ -1,6 +1,6 @@
 #!/usr/bin/make -f
 
-#  Copyright (C) 2014  Xiph.Org Foundation
+#  Copyright (C) 2014-2016  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries

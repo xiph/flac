@@ -480,7 +480,7 @@ int do_it(void)
 
 	flac__utils_printf(stderr, 2, "\n");
 	flac__utils_printf(stderr, 2, "flac %s\n", FLAC__VERSION_STRING);
-	flac__utils_printf(stderr, 2, "Copyright (C) 2000-2009  Josh Coalson, 2011-2014  Xiph.Org Foundation\n");
+	flac__utils_printf(stderr, 2, "Copyright (C) 2000-2009  Josh Coalson, 2011-2016  Xiph.Org Foundation\n");
 	flac__utils_printf(stderr, 2, "flac comes with ABSOLUTELY NO WARRANTY.  This is free software, and you are\n");
 	flac__utils_printf(stderr, 2, "welcome to redistribute it under certain conditions.  Type `flac' for details.\n\n");
 
