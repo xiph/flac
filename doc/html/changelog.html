@@ -53,10 +53,9 @@
 				General:
 				<ul>
 					<li>Fix undefined behaviour using GCC/Clang UBSAN (erikd).</li>
+					<li>General hardening via fuzz testing with AFL (erikd and others).</li>
 					<li>General code improvements (lvqcl, erikd and others).</li>
 					<li>Add FLAC in MP4 specification docs (Ralph Giles).</li>
-					<li>CPU detection cleanup and fixes (Julian Calaby, erikd and lvqcl).</li>
-					<li>Fix two stream decoder bugs (Max Kellermann).</li>
 					<li>MSVS build cleanups (lvqcl).</li>
 					<li>Fix some cppcheck warnings (erikd).</li>
 				</ul>
@@ -104,13 +103,24 @@
 			<li>
 				documentation:
 				<ul>
-					<li>Document new <a href="documentation_tools_flac.html#flac_options_apodization">apodization windows</a>.</li>
+					<li>(none)</li>
 				</ul>
 			</li>
 			<li>
 				libraries:
 				<ul>
-					<li>Fix CVE-2014-9028 (heap write overflow) and CVE-2014-8962 (heap read overflow) (Erik de Castro Lopo).</li>
+					<li>CPU detection cleanup and fixes (Julian Calaby, erikd and lvqcl).</li>
+					<li>Fix two stream decoder bugs (Max Kellermann).</li>
+					<li>Fix a NULL dereference bug (on a malformed file).</li>
+					<li>Changed the LPC order guess for a slight compression improvement, particularly for classical music.</li>
+					<li>Improved encoding speed on older Intel CPUs.</li>
+					<li>Fixed a seeking bug when decoding certain files</li>
+					<li>Put an upper bound (32768) on the number of seek points.</li>
+					<li>Fix potential memory leaks.</li>
+					<li>Support 64bit brword/bwword allowing FLAC__BYTES_PER_WORD to be set to 8 (disabled by default).</li>
+					<li>Fix an out-of-bounds heap read.</li>
+					<li>Fix a seeking bug.</li>
+					<li>Win32: Only use large buffers when writing to disk.</li>
 				</ul>
 			</li>
 			<li>
@@ -119,9 +129,7 @@
 					<li>
 						libFLAC:
 						<ul>
-							<li>Win32: Only use large buffers when writing to disk.</li>
-							<li>Fix an out-of-bounds heap read.</li>
-							<li>Fix a seeking bug.</li>
+							<li>(none)</li>
 						</ul>
 					</li>
 					<li>
