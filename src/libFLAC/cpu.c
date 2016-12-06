@@ -107,7 +107,7 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 
 #if !defined FLAC__NO_ASM && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN)
 	info->use_asm = true; /* we assume a minimum of 80386 with FLAC__CPU_IA32 */
-#if !FLAC__HAS_X86INTRIN
+#if defined FLAC__HAS_NASM
 	if(!FLAC__cpu_have_cpuid_asm_ia32())
 		return;
 #endif
