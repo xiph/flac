@@ -36,7 +36,8 @@ docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
 doc_DATA = \
 	FLAC.tag
 
-EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html $(doc_DATA)
+EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html \
+	isoflac.txt $(doc_DATA)
 
 distclean-local:
 	rm -rf FLAC.tag html/api doxytmp

@@ -41,6 +41,7 @@ EXTRA_DIST = \
 	FLAC.sln \
 	FLAC-vs2005.sln \
 	Makefile.lite \
+	Makefile.deps \
 	autogen.sh \
 	config.rpath \
 	depcomp \
