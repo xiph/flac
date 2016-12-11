@@ -176,9 +176,7 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 static void
 x86_64_cpu_info (FLAC__CPUInfo *info)
 {
-#if !defined FLAC__CPU_X86_64
-	(void) info;
-#elif !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
+#if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
 	FLAC__bool x86_osxsave = false;
 	FLAC__uint32 flags_eax, flags_ebx, flags_ecx, flags_edx;
 
@@ -226,6 +224,10 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 	if (FLAC__AVX_SUPPORTED) {
 		dfprintf(stderr, "  AVX OS sup . %c\n", info->x86.avx ? 'Y' : 'n');
 	}
+#else
+	/* Silence compiler warnings. */
+	(void) info;
+	if (0) cpu_xgetbv_x86 ();
 #endif
 }
 
