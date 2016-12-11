@@ -30,9 +30,9 @@ PROGRAM_NAME = test_streams
 INCLUDES = -I./include -I$(topdir)/include
 
 ifeq ($(OS),Darwin)
-    EXPLICIT_LIBS = $(libdir)/libgrabbag.a -lm
+    EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a -lm
 else
-    LIBS = -lgrabbag -lm
+    LIBS = -lgrabbag -lreplaygain_analysis -lm
 endif
 
 SRCS_C = \

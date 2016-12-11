@@ -66,7 +66,7 @@ else
     LINKD       = $(CC) -shared
 endif
 
-BASE_CFLAGS = -Wall -Wextra $(CONFIG_CFLAGS) -DVERSION=$(VERSION) $(DEFINES) $(INCLUDES)
+BASE_CFLAGS = -Wall -Wextra $(CONFIG_CFLAGS) -DVERSION=$(VERSION) -DPACKAGE_VERSION=$(VERSION) $(DEFINES) $(INCLUDES)
 
 ifeq ($(DEFAULT_BUILD),debug)
 CFLAGS   := -g -O0 -DDEBUG $(CFLAGS) $(BASE_CFLAGS) -Wmissing-prototypes -Wstrict-prototypes
