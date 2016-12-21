@@ -227,7 +227,9 @@ x86_64_cpu_info (FLAC__CPUInfo *info)
 #else
 	/* Silence compiler warnings. */
 	(void) info;
+#if defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64
 	if (0) cpu_xgetbv_x86 ();
+#endif
 #endif
 }
 
