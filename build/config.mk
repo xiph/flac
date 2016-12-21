@@ -42,15 +42,9 @@ endif
 ifndef PROC
     ifeq ($(findstring Windows,$(OS)),Windows)
         PROC := i386 # failsafe
-        USE_ICONV := 0
-        USE_LANGINFO_CODESET := 0
-        ifeq (mingw32,$(shell gcc -dumpmachine)) # MinGW (mainline): mingw32
-            USE_FSEEKO := 0
-        endif
         # ifeq ($(findstring i686,$(shell gcc -dumpmachine)),i686) # MinGW-w64: i686-w64-mingw32
         ifeq ($(findstring x86_64,$(shell gcc -dumpmachine)),x86_64) # MinGW-w64: x86_64-w64-mingw32
             PROC := x86_64
-            F_PIC :=
         endif
     else
         ifeq ($(shell uname -p),amd64)
@@ -73,6 +67,15 @@ endif
 ifeq ($(OS),Linux)
     PROC := $(shell uname -m)
     USE_ICONV := 0
+endif
+
+ifeq ($(findstring Windows,$(OS)),Windows)
+    F_PIC :=
+    USE_ICONV := 0
+    USE_LANGINFO_CODESET := 0
+    ifeq (mingw32,$(shell gcc -dumpmachine)) # MinGW (mainline): mingw32
+        USE_FSEEKO := 0
+    endif
 endif
 
 debug    : BUILD = debug

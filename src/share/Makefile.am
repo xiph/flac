@@ -46,6 +46,7 @@ EXTRA_DIST = \
 	utf8/utf8_static.vcproj \
 	utf8/utf8_static.vcxproj \
 	utf8/utf8_static.vcxproj.filters \
+	win_utf8_io/Makefile.lite \
 	win_utf8_io/win_utf8_io_static.vcproj \
 	win_utf8_io/win_utf8_io_static.vcxproj \
 	win_utf8_io/win_utf8_io_static.vcxproj.filters
