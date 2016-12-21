@@ -58,12 +58,6 @@ md5cmp ()
 	[ "$n" != "" ] && [ $n = 1 ]
 }
 
-if [ `env | grep -ic '^comspec='` != 0 ] ; then
-	is_win=yes
-else
-	is_win=no
-fi
-
 echo "Checking for --ogg support in flac..."
 if flac${EXE} --ogg $TOTTALY_SILENT --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
 	has_ogg=yes;

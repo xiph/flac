@@ -50,6 +50,13 @@ EXE=@EXEEXT@
 top_srcdir=@top_srcdir@
 top_builddir=@top_builddir@
 
+# Set `is_win` variable which is used in other scripts that source this one.
+if test $(env | grep -ic '^comspec=') != 0 ; then
+	is_win=yes
+else
+	is_win=no
+fi
+
 # change to 'false' to show all flac/metaflac output (useful for debugging)
 if true ; then
 	SILENT='--silent'

@@ -47,12 +47,6 @@ run_test_picture ()
 	fi
 }
 
-if [ `env | grep -ic '^comspec='` != 0 ] ; then
-	is_win=yes
-else
-	is_win=no
-fi
-
 ########################################################################
 #
 # test_picture

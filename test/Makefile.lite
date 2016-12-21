@@ -27,6 +27,7 @@ DEFAULT_CONFIG = release
 CONFIG = $(DEFAULT_CONFIG)
 
 all: clean
+	sed 's|@top_srcdir@|$(topdir)|;s|@EXEEXT@| |' common.sh.in > common.sh
 	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_libFLAC.sh $(CONFIG)
 	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_libFLAC++.sh $(CONFIG)
 	$(FLAC__TEST_LEVEL) $(FLAC__TEST_WITH_VALGRIND) ./test_grabbag.sh $(CONFIG)
