@@ -106,6 +106,7 @@ metaflac_test ()
 	echo $ECHO_N "test $1: $desc... " $ECHO_C
 	run_metaflac $args $flacfile | filter > $testdir/out.meta || die "ERROR running metaflac"
 	diff -w $expect $testdir/out.meta > /dev/null 2>&1 || die "ERROR: metadata does not match expected $expect"
+	# To blindly accept (and check later): cp -f $testdir/out.meta $expect
 	echo OK
 }
 
