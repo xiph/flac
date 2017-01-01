@@ -44,10 +44,10 @@
 #include "private/format.h"
 #include "private/macros.h"
 
-/* VERSION should come from configure */
-FLAC_API const char *FLAC__VERSION_STRING = VERSION;
+/* PACKAGE_VERSION should come from configure */
+FLAC_API const char *FLAC__VERSION_STRING = PACKAGE_VERSION;
 
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " VERSION " 20141125";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20170101";
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 FLAC_API const unsigned FLAC__STREAM_SYNC = 0x664C6143;
