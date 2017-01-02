@@ -269,9 +269,9 @@ void FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx
 	__cpuid(cpuinfo, ext);
 	if((unsigned)cpuinfo[0] >= level) {
 #if FLAC__AVX_SUPPORTED
-		__cpuidex(cpuinfo, ext, 0); /* for AVX2 detection */
+		__cpuidex(cpuinfo, level, 0); /* for AVX2 detection */
 #else
-		__cpuid(cpuinfo, ext); /* some old compilers don't support __cpuidex */
+		__cpuid(cpuinfo, level); /* some old compilers don't support __cpuidex */
 #endif
 
 		*eax = cpuinfo[0]; *ebx = cpuinfo[1]; *ecx = cpuinfo[2]; *edx = cpuinfo[3];
