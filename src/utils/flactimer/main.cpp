@@ -116,13 +116,13 @@ int main(int argc, char *argv[])
 
 	//fprintf(stderr, "@@@ cmd=[%s] args=[%s]\n", argv[0], args);
 
-	STARTUPINFO si;
-	GetStartupInfo(&si);
+	STARTUPINFOA si;
+	GetStartupInfoA(&si);
 
 	DWORD wallclock_msec = GetTickCount();
 
 	PROCESS_INFORMATION pi;
-	BOOL ok = CreateProcess(
+	BOOL ok = CreateProcessA(
 		argv[0], // lpApplicationName
 		args, // lpCommandLine
 		NULL, // lpProcessAttributes

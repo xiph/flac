@@ -110,7 +110,7 @@ int get_utf8_argv(int *argc, char ***argv)
 	char **utf8argv;
 	int ret, i;
 
-	if ((handle = LoadLibrary("msvcrt.dll")) == NULL) return 1;
+	if ((handle = LoadLibraryW(L"msvcrt.dll")) == NULL) return 1;
 	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) {
 		FreeLibrary(handle);
 		return 1;
