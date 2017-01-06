@@ -99,7 +99,7 @@ typedef enum {
 	ENCODER_IN_AUDIO = 2
 } EncoderStateHint;
 
-static struct CompressionLevels {
+static const  struct CompressionLevels {
 	FLAC__bool do_mid_side_stereo;
 	FLAC__bool loose_mid_side_stereo;
 	unsigned max_lpc_order;
