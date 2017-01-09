@@ -186,7 +186,7 @@ esac
 AM_CONDITIONAL(OS_IS_WINDOWS, test "x$os_is_windows" = xyes)
 
 case "$host" in
-	*-pc-linux-gnu)
+	*-linux-*)
 		sys_linux=true
 		AC_DEFINE(FLAC__SYS_LINUX)
 		AH_TEMPLATE(FLAC__SYS_LINUX, [define if building for Linux])
