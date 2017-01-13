@@ -360,6 +360,11 @@ AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],$FLAC__HAS_OGG,[define if you have the ogg li
 AC_SUBST(FLAC__HAS_OGG)
 AC_SUBST(OGG_PACKAGE)
 
+dnl Build examples?
+AC_ARG_ENABLE([examples],
+	AS_HELP_STRING([--disable-examples], [Don't build and install examples]))
+AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" != "xno"])
+
 dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
 AM_LANGINFO_CODESET
