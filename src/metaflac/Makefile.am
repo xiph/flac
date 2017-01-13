@@ -55,6 +55,6 @@ metaflac_LDADD = \
 	$(top_builddir)/src/share/utf8/libutf8.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	$(win_utf8_lib) \
-	@LIBICONV@
+	@LTLIBICONV@
 
 CLEANFILES = metaflac.exe

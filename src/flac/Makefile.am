@@ -60,7 +60,7 @@ flac_LDADD = \
 	$(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
 	$(top_builddir)/src/libFLAC/libFLAC.la \
 	$(win_utf8_lib) \
-	@LIBICONV@ \
+	@LTLIBICONV@ \
 	-lm
 
 CLEANFILES = flac.exe
