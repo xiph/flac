@@ -197,6 +197,8 @@ size_t strlen_console(const char *text)
 {
 #ifdef _WIN32
 	return strlen_utf8(text);
+#elif defined(__DJGPP__) /* workaround for DJGPP missing wcswidth() */
+	return strlen(text);
 #else
 	size_t len;
 	wchar_t *wtmp;
