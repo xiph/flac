@@ -163,6 +163,7 @@ case "$host" in
 	*-*-cygwin|*mingw*) OBJ_FORMAT=win32 ;;
 	*-*-darwin*) OBJ_FORMAT=macho ;;
 	*emx*) OBJ_FORMAT=aout ;;
+	*djgpp) OBJ_FORMAT=coff ;;
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
