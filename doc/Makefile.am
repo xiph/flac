@@ -31,8 +31,6 @@ FLAC.tag:
 	mkdir -p html/api
 endif
 
-docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)
-
 doc_DATA = \
 	FLAC.tag
 

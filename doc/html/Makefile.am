@@ -18,9 +18,7 @@
 
 SUBDIRS = images
 
-docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html
-
-doc_DATA = \
+html_DATA = \
 	changelog.html \
 	developers.html \
 	documentation.html \
@@ -40,16 +38,16 @@ doc_DATA = \
 	license.html \
 	ogg_mapping.html
 
-EXTRA_DIST = $(doc_DATA) api
+EXTRA_DIST = $(html_DATA) api
 
 if FLaC__HAS_DOXYGEN
 # The install targets don't copy whole directories so we have to
 # handle 'api/' specially:
 install-data-local:
-	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
-	(cd $(builddir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+	$(mkinstalldirs) $(DESTDIR)$(htmldir)/api
+	(cd $(builddir)/api && $(INSTALL_DATA) * $(DESTDIR)$(htmldir)/api)
 uninstall-local:
-	rm -rf $(DESTDIR)$(docdir)/api
+	rm -rf $(DESTDIR)$(htmldir)/api
 distclean-local:
 	-rm -rf api
 endif

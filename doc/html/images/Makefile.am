@@ -16,10 +16,10 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-docdir = $(datadir)/doc/$(PACKAGE)-$(VERSION)/html/images
+logosdir = $(htmldir)/images
 
-doc_DATA = \
+logos_DATA = \
 	logo.svg \
 	logo130.gif
 
-EXTRA_DIST = $(doc_DATA)
+EXTRA_DIST = $(logos_DATA)
