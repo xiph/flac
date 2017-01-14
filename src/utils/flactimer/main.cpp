@@ -37,18 +37,18 @@ static inline uint64_t time2nsec(const FILETIME &t)
 
 static void printtime(FILE *fout, uint64_t nsec, uint64_t total)
 {
-	unsigned pct = (unsigned)(100.0 * ((double)nsec / (double)total));
+	uint32_t pct = (uint32_t)(100.0 * ((double)nsec / (double)total));
 	uint64_t msec = nsec / 1000000; nsec -= msec * 1000000;
 	uint64_t sec = msec / 1000; msec -= sec * 1000;
 	uint64_t min = sec / 60; sec -= min * 60;
 	uint64_t hour = min / 60; min -= hour * 60;
 	fprintf(fout, " %5u.%03u = %02u:%02u:%02u.%03u = %3u%%\n",
-		(unsigned)((hour*60+min)*60+sec),
-		(unsigned)msec,
-		(unsigned)hour,
-		(unsigned)min,
-		(unsigned)sec,
-		(unsigned)msec,
+		(uint32_t)((hour*60+min)*60+sec),
+		(uint32_t)msec,
+		(uint32_t)hour,
+		(uint32_t)min,
+		(uint32_t)sec,
+		(uint32_t)msec,
 		pct
 	);
 }

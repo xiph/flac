@@ -65,7 +65,7 @@ static FLAC__bool local__parse_uint64_(const char *s, FLAC__uint64 *value)
 static FLAC__bool local__parse_timecode_(const char *s, double *value)
 {
 	double ret;
-	unsigned i;
+	uint32_t i;
 	char c, *endptr;
 
 	/* parse [0-9][0-9]*: */
@@ -93,10 +93,10 @@ static FLAC__bool local__parse_timecode_(const char *s, double *value)
 	return true;
 }
 
-static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *track, unsigned *indx)
+static FLAC__bool local__parse_cue_(const char *s, const char *end, uint32_t *track, uint32_t *indx)
 {
 	FLAC__bool got_track = false, got_index = false;
-	unsigned t = 0, i = 0;
+	uint32_t t = 0, i = 0;
 	char c;
 
 	while(end? s < end : *s != '\0') {
@@ -129,7 +129,7 @@ static FLAC__bool local__parse_cue_(const char *s, const char *end, unsigned *tr
  * does not require sorted cuesheets).  but if it's not sorted, picking a
  * nearest cue point has no significance.
  */
-static FLAC__uint64 local__find_closest_cue_(const FLAC__StreamMetadata_CueSheet *cuesheet, unsigned track, unsigned indx, FLAC__uint64 total_samples, FLAC__bool look_forward)
+static FLAC__uint64 local__find_closest_cue_(const FLAC__StreamMetadata_CueSheet *cuesheet, uint32_t track, uint32_t indx, FLAC__uint64 total_samples, FLAC__bool look_forward)
 {
 	int t, i;
 	if(look_forward) {
@@ -315,7 +315,7 @@ FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__Skip
 	return true;
 }
 
-void flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, unsigned sample_rate)
+void flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, uint32_t sample_rate)
 {
 	FLAC__ASSERT(0 != spec);
 	if(!spec->value_is_samples) {
@@ -391,7 +391,7 @@ FLAC__bool flac__utils_set_channel_mask_tag(FLAC__StreamMetadata *object, FLAC__
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	FLAC__ASSERT(strlen(CHANNEL_MASK_TAG)+1+2+16+1 <= sizeof(tag)); /* +1 for =, +2 for 0x, +16 for digits, +1 for NUL */
 	entry.entry = (FLAC__byte*)tag;
-	if((entry.length = flac_snprintf(tag, sizeof(tag), "%s=0x%04X", CHANNEL_MASK_TAG, (unsigned)channel_mask)) >= sizeof(tag))
+	if((entry.length = flac_snprintf(tag, sizeof(tag), "%s=0x%04X", CHANNEL_MASK_TAG, (uint32_t)channel_mask)) >= sizeof(tag))
 		return false;
 	if(!FLAC__metadata_object_vorbiscomment_replace_comment(object, entry, /*all=*/true, /*copy=*/true))
 		return false;
@@ -401,7 +401,7 @@ FLAC__bool flac__utils_set_channel_mask_tag(FLAC__StreamMetadata *object, FLAC__
 FLAC__bool flac__utils_get_channel_mask_tag(const FLAC__StreamMetadata *object, FLAC__uint32 *channel_mask)
 {
 	int offset;
-	unsigned val;
+	uint32_t val;
 	char *p;
 	FLAC__ASSERT(object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);

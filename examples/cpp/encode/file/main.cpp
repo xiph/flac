@@ -43,12 +43,12 @@ class OurEncoder: public FLAC::Encoder::File {
 public:
 	OurEncoder(): FLAC::Encoder::File() { }
 protected:
-	virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate);
+	virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate);
 };
 
 #define READSIZE 1024
 
-static unsigned total_samples = 0; /* can use a 32-bit number due to WAVE size limitations */
+static uint32_t total_samples = 0; /* can use a 32-bit number due to WAVE size limitations */
 static FLAC__byte buffer[READSIZE/*samples*/ * 2/*bytes_per_sample*/ * 2/*channels*/]; /* we read the WAVE data into here */
 static FLAC__int32 pcm[READSIZE/*samples*/ * 2/*channels*/];
 
@@ -60,9 +60,9 @@ int main(int argc, char *argv[])
 	FLAC__StreamMetadata *metadata[2];
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	FILE *fin;
-	unsigned sample_rate = 0;
-	unsigned channels = 0;
-	unsigned bps = 0;
+	uint32_t sample_rate = 0;
+	uint32_t channels = 0;
+	uint32_t bps = 0;
 
 	if(argc != 3) {
 		fprintf(stderr, "usage: %s infile.wav outfile.flac\n", argv[0]);
@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
 		fclose(fin);
 		return 1;
 	}
-	sample_rate = ((((((unsigned)buffer[27] << 8) | buffer[26]) << 8) | buffer[25]) << 8) | buffer[24];
+	sample_rate = ((((((uint32_t)buffer[27] << 8) | buffer[26]) << 8) | buffer[25]) << 8) | buffer[24];
 	channels = 2;
 	bps = 16;
-	total_samples = (((((((unsigned)buffer[43] << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / 4;
+	total_samples = (((((((uint32_t)buffer[43] << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / 4;
 
 	/* check the encoder */
 	if(!encoder) {
@@ -170,7 +170,7 @@ int main(int argc, char *argv[])
 	return 0;
 }
 
-void OurEncoder::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, unsigned frames_written, unsigned total_frames_estimate)
+void OurEncoder::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate)
 {
 	fprintf(stderr, "wrote %" PRIu64 " bytes, %" PRIu64 "/%u samples, %u/%u frames\n", bytes_written, samples_written, total_samples, frames_written, total_frames_estimate);
 }

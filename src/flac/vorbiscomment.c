@@ -42,7 +42,7 @@ typedef struct {
 	char *field; /* the whole field as passed on the command line, i.e. "NAME=VALUE" */
 	char *field_name;
 	/* according to the vorbis spec, field values can contain \0 so simple C strings are not enough here */
-	unsigned field_value_length;
+	uint32_t field_value_length;
 	char *field_value;
 	FLAC__bool field_value_from_file; /* true if field_value holds a filename for the value, false for plain value */
 } Argument_VcField;
@@ -63,7 +63,7 @@ static char *local_strdup(const char *source)
 	return ret;
 }
 
-static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, unsigned *length, const char **violation)
+static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char **name, char **value, uint32_t *length, const char **violation)
 {
 	static const char * const violations[] = {
 		"field name contains invalid character",

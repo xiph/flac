@@ -40,7 +40,7 @@ static void *malloc_or_die_(size_t size)
 {
 	void *x = malloc(size);
 	if(0 == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)size);
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (uint32_t)size);
 		exit(1);
 	}
 	return x;
@@ -67,7 +67,7 @@ static bool index_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Index &indx, c
 
 static bool track_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Track *track, const ::FLAC__StreamMetadata_CueSheet_Track *trackcopy)
 {
-	unsigned i;
+	uint32_t i;
 
 	if(trackcopy->offset != track->offset)
 		return false;
@@ -249,7 +249,7 @@ static void free_metadata_blocks_()
 
 bool test_metadata_object_streaminfo()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::StreamInfo\n");
 
@@ -482,7 +482,7 @@ bool test_metadata_object_streaminfo()
 
 bool test_metadata_object_padding()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::Padding\n");
 
@@ -643,7 +643,7 @@ bool test_metadata_object_padding()
 
 bool test_metadata_object_application()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::Application\n");
 
@@ -813,7 +813,7 @@ bool test_metadata_object_application()
 
 bool test_metadata_object_seektable()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::SeekTable\n");
 
@@ -1012,7 +1012,7 @@ bool test_metadata_object_seektable()
 
 bool test_metadata_object_vorbiscomment()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::VorbisComment::Entry\n");
 
@@ -1027,7 +1027,7 @@ bool test_metadata_object_vorbiscomment()
 	}
 	printf("OK\n");
 
-	printf("testing Entry::Entry(const char *field, unsigned field_length)... ");
+	printf("testing Entry::Entry(const char *field, uint32_t field_length)... ");
 	FLAC::Metadata::VorbisComment::Entry entry2("name2=value2", strlen("name2=value2"));
 	if(!entry2.is_valid())
 		return die_("!is_valid()");
@@ -1043,7 +1043,7 @@ bool test_metadata_object_vorbiscomment()
 		printf("OK\n");
 	}
 
-	printf("testing Entry::Entry(const char *field_name, const char *field_value, unsigned field_value_length)... ");
+	printf("testing Entry::Entry(const char *field_name, const char *field_value, uint32_t field_value_length)... ");
 	FLAC::Metadata::VorbisComment::Entry entry3("name3", "value3", strlen("value3"));
 	if(!entry3.is_valid())
 		return die_("!is_valid()");
@@ -1125,7 +1125,7 @@ bool test_metadata_object_vorbiscomment()
 		return die_("entry mismatch");
 	printf("OK\n");
 
-	printf("testing Entry::set_field_value(const char *field_value, unsigned field_value_length)... ");
+	printf("testing Entry::set_field_value(const char *field_value, uint32_t field_value_length)... ");
 	if(!entry1.set_field_value("value1", strlen("value1")))
 		return die_("returned false");
 	if(0 != memcmp(entry1.get_field_value(), "value1", strlen("value1")))
@@ -1143,7 +1143,7 @@ bool test_metadata_object_vorbiscomment()
 		return die_("entry mismatch");
 	printf("OK\n");
 
-	printf("testing Entry::set_field(const char *field, unsigned field_length)... ");
+	printf("testing Entry::set_field(const char *field, uint32_t field_length)... ");
 	if(!entry1.set_field("name0=value0", strlen("name0=value0")))
 		return die_("returned false");
 	if(0 != memcmp(entry1.get_field_name(), "name0", strlen("name0")))
@@ -1428,7 +1428,7 @@ bool test_metadata_object_vorbiscomment()
 
 bool test_metadata_object_cuesheet()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::CueSheet::Track\n");
 
@@ -1807,7 +1807,7 @@ bool test_metadata_object_cuesheet()
 
 bool test_metadata_object_picture()
 {
-	unsigned expected_length;
+	uint32_t expected_length;
 
 	printf("testing class FLAC::Metadata::Picture\n");
 

@@ -199,7 +199,7 @@ namespace FLAC {
 			 * \assert
 			 *   \code is_valid() \endcode
 			 */
-			unsigned get_length() const;
+			uint32_t get_length() const;
 
 			/** Sets the "is_last" flag for the block.  When using the iterators
 			 *  it is not necessary to set this flag; they will do it for you.
@@ -315,23 +315,23 @@ namespace FLAC {
 
 			//@{
 			/** See <A HREF="../format.html#metadata_block_streaminfo">format specification</A>. */
-			unsigned get_min_blocksize() const;
-			unsigned get_max_blocksize() const;
-			unsigned get_min_framesize() const;
-			unsigned get_max_framesize() const;
-			unsigned get_sample_rate() const;
-			unsigned get_channels() const;
-			unsigned get_bits_per_sample() const;
+			uint32_t get_min_blocksize() const;
+			uint32_t get_max_blocksize() const;
+			uint32_t get_min_framesize() const;
+			uint32_t get_max_framesize() const;
+			uint32_t get_sample_rate() const;
+			uint32_t get_channels() const;
+			uint32_t get_bits_per_sample() const;
 			FLAC__uint64 get_total_samples() const;
 			const FLAC__byte *get_md5sum() const;
 
-			void set_min_blocksize(unsigned value);
-			void set_max_blocksize(unsigned value);
-			void set_min_framesize(unsigned value);
-			void set_max_framesize(unsigned value);
-			void set_sample_rate(unsigned value);
-			void set_channels(unsigned value);
-			void set_bits_per_sample(unsigned value);
+			void set_min_blocksize(uint32_t value);
+			void set_max_blocksize(uint32_t value);
+			void set_min_framesize(uint32_t value);
+			void set_max_framesize(uint32_t value);
+			void set_sample_rate(uint32_t value);
+			void set_channels(uint32_t value);
+			void set_bits_per_sample(uint32_t value);
 			void set_total_samples(FLAC__uint64 value);
 			void set_md5sum(const FLAC__byte value[16]);
 			//@}
@@ -361,7 +361,7 @@ namespace FLAC {
 
 			/** Constructs an object with the given length.
 			 */
-			Padding(unsigned length);
+			Padding(uint32_t length);
 
 			~Padding();
 
@@ -393,7 +393,7 @@ namespace FLAC {
 
 			/** Sets the length in bytes of the padding block.
 			 */
-			void set_length(unsigned length);
+			void set_length(uint32_t length);
 		};
 
 		/** APPLICATION metadata block.
@@ -451,8 +451,8 @@ namespace FLAC {
 
 			void set_id(const FLAC__byte value[4]);
 			//! This form always copies \a data
-			bool set_data(const FLAC__byte *data, unsigned length);
-			bool set_data(FLAC__byte *data, unsigned length, bool copy);
+			bool set_data(const FLAC__byte *data, uint32_t length);
+			bool set_data(FLAC__byte *data, uint32_t length, bool copy);
 		};
 
 		/** SEEKTABLE metadata block.
@@ -505,38 +505,38 @@ namespace FLAC {
 			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 			//@}
 
-			unsigned get_num_points() const;
-			::FLAC__StreamMetadata_SeekPoint get_point(unsigned index) const;
+			uint32_t get_num_points() const;
+			::FLAC__StreamMetadata_SeekPoint get_point(uint32_t index) const;
 
 			//! See FLAC__metadata_object_seektable_resize_points()
-			bool resize_points(unsigned new_num_points);
+			bool resize_points(uint32_t new_num_points);
 
 			//! See FLAC__metadata_object_seektable_set_point()
-			void set_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point);
+			void set_point(uint32_t index, const ::FLAC__StreamMetadata_SeekPoint &point);
 
 			//! See FLAC__metadata_object_seektable_insert_point()
-			bool insert_point(unsigned index, const ::FLAC__StreamMetadata_SeekPoint &point);
+			bool insert_point(uint32_t index, const ::FLAC__StreamMetadata_SeekPoint &point);
 
 			//! See FLAC__metadata_object_seektable_delete_point()
-			bool delete_point(unsigned index);
+			bool delete_point(uint32_t index);
 
 			//! See FLAC__metadata_object_seektable_is_legal()
 			bool is_legal() const;
 
 			//! See FLAC__metadata_object_seektable_template_append_placeholders()
-			bool template_append_placeholders(unsigned num);
+			bool template_append_placeholders(uint32_t num);
 
 			//! See FLAC__metadata_object_seektable_template_append_point()
 			bool template_append_point(FLAC__uint64 sample_number);
 
 			//! See FLAC__metadata_object_seektable_template_append_points()
-			bool template_append_points(FLAC__uint64 sample_numbers[], unsigned num);
+			bool template_append_points(FLAC__uint64 sample_numbers[], uint32_t num);
 
 			//! See FLAC__metadata_object_seektable_template_append_spaced_points()
-			bool template_append_spaced_points(unsigned num, FLAC__uint64 total_samples);
+			bool template_append_spaced_points(uint32_t num, FLAC__uint64 total_samples);
 
 			//! See FLAC__metadata_object_seektable_template_append_spaced_points_by_samples()
-			bool template_append_spaced_points_by_samples(unsigned samples, FLAC__uint64 total_samples);
+			bool template_append_spaced_points_by_samples(uint32_t samples, FLAC__uint64 total_samples);
 
 			//! See FLAC__metadata_object_seektable_template_sort()
 			bool template_sort(bool compact);
@@ -581,10 +581,10 @@ namespace FLAC {
 			public:
 				Entry();
 
-				Entry(const char *field, unsigned field_length);
+				Entry(const char *field, uint32_t field_length);
 				Entry(const char *field); // assumes \a field is NUL-terminated
 
-				Entry(const char *field_name, const char *field_value, unsigned field_value_length);
+				Entry(const char *field_name, const char *field_value, uint32_t field_value_length);
 				Entry(const char *field_name, const char *field_value); // assumes \a field_value is NUL-terminated
 
 				Entry(const Entry &entry);
@@ -595,36 +595,36 @@ namespace FLAC {
 
 				virtual bool is_valid() const; ///< Returns \c true iff object was properly constructed.
 
-				unsigned get_field_length() const;
-				unsigned get_field_name_length() const;
-				unsigned get_field_value_length() const;
+				uint32_t get_field_length() const;
+				uint32_t get_field_name_length() const;
+				uint32_t get_field_value_length() const;
 
 				::FLAC__StreamMetadata_VorbisComment_Entry get_entry() const;
 				const char *get_field() const;
 				const char *get_field_name() const;
 				const char *get_field_value() const;
 
-				bool set_field(const char *field, unsigned field_length);
+				bool set_field(const char *field, uint32_t field_length);
 				bool set_field(const char *field); // assumes \a field is NUL-terminated
 				bool set_field_name(const char *field_name);
-				bool set_field_value(const char *field_value, unsigned field_value_length);
+				bool set_field_value(const char *field_value, uint32_t field_value_length);
 				bool set_field_value(const char *field_value); // assumes \a field_value is NUL-terminated
 			protected:
 				bool is_valid_;
 				::FLAC__StreamMetadata_VorbisComment_Entry entry_;
 				char *field_name_;
-				unsigned field_name_length_;
+				uint32_t field_name_length_;
 				char *field_value_;
-				unsigned field_value_length_;
+				uint32_t field_value_length_;
 			private:
 				void zero();
 				void clear();
 				void clear_entry();
 				void clear_field_name();
 				void clear_field_value();
-				void construct(const char *field, unsigned field_length);
+				void construct(const char *field, uint32_t field_length);
 				void construct(const char *field); // assumes \a field is NUL-terminated
-				void construct(const char *field_name, const char *field_value, unsigned field_value_length);
+				void construct(const char *field_name, const char *field_value, uint32_t field_value_length);
 				void construct(const char *field_name, const char *field_value); // assumes \a field_value is NUL-terminated
 				void compose_field();
 				void parse_field();
@@ -674,21 +674,21 @@ namespace FLAC {
 			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
 			//@}
 
-			unsigned get_num_comments() const;
+			uint32_t get_num_comments() const;
 			const FLAC__byte *get_vendor_string() const; // NUL-terminated UTF-8 string
-			Entry get_comment(unsigned index) const;
+			Entry get_comment(uint32_t index) const;
 
 			//! See FLAC__metadata_object_vorbiscomment_set_vendor_string()
 			bool set_vendor_string(const FLAC__byte *string); // NUL-terminated UTF-8 string
 
 			//! See FLAC__metadata_object_vorbiscomment_resize_comments()
-			bool resize_comments(unsigned new_num_comments);
+			bool resize_comments(uint32_t new_num_comments);
 
 			//! See FLAC__metadata_object_vorbiscomment_set_comment()
-			bool set_comment(unsigned index, const Entry &entry);
+			bool set_comment(uint32_t index, const Entry &entry);
 
 			//! See FLAC__metadata_object_vorbiscomment_insert_comment()
-			bool insert_comment(unsigned index, const Entry &entry);
+			bool insert_comment(uint32_t index, const Entry &entry);
 
 			//! See FLAC__metadata_object_vorbiscomment_append_comment()
 			bool append_comment(const Entry &entry);
@@ -697,10 +697,10 @@ namespace FLAC {
 			bool replace_comment(const Entry &entry, bool all);
 
 			//! See FLAC__metadata_object_vorbiscomment_delete_comment()
-			bool delete_comment(unsigned index);
+			bool delete_comment(uint32_t index);
 
 			//! See FLAC__metadata_object_vorbiscomment_find_entry_from()
-			int find_entry_from(unsigned offset, const char *field_name);
+			int find_entry_from(uint32_t offset, const char *field_name);
 
 			//! See FLAC__metadata_object_vorbiscomment_remove_entry_matching()
 			int remove_entry_matching(const char *field_name);
@@ -738,21 +738,21 @@ namespace FLAC {
 				inline FLAC__uint64 get_offset() const { return object_->offset; }
 				inline FLAC__byte get_number() const { return object_->number; }
 				inline const char *get_isrc() const { return object_->isrc; }
-				inline unsigned get_type() const { return object_->type; }
+				inline uint32_t get_type() const { return object_->type; }
 				inline bool get_pre_emphasis() const { return object_->pre_emphasis; }
 
 				inline FLAC__byte get_num_indices() const { return object_->num_indices; }
-				::FLAC__StreamMetadata_CueSheet_Index get_index(unsigned i) const;
+				::FLAC__StreamMetadata_CueSheet_Index get_index(uint32_t i) const;
 
 				inline const ::FLAC__StreamMetadata_CueSheet_Track *get_track() const { return object_; }
 
 				inline void set_offset(FLAC__uint64 value) { object_->offset = value; }
 				inline void set_number(FLAC__byte value) { object_->number = value; }
 				void set_isrc(const char value[12]);
-				void set_type(unsigned value);
+				void set_type(uint32_t value);
 				inline void set_pre_emphasis(bool value) { object_->pre_emphasis = value? 1 : 0; }
 
- 				void set_index(unsigned i, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+ 				void set_index(uint32_t i, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 				//@@@ It's awkward but to insert/delete index points
 				//@@@ you must use the routines in the CueSheet class.
 			};
@@ -805,41 +805,41 @@ namespace FLAC {
 			FLAC__uint64 get_lead_in() const;
 			bool get_is_cd() const;
 
-			unsigned get_num_tracks() const;
-			Track get_track(unsigned i) const;
+			uint32_t get_num_tracks() const;
+			Track get_track(uint32_t i) const;
 
 			void set_media_catalog_number(const char value[128]);
 			void set_lead_in(FLAC__uint64 value);
 			void set_is_cd(bool value);
 
-			void set_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+			void set_index(uint32_t track_num, uint32_t index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 
 			//! See FLAC__metadata_object_cuesheet_track_resize_indices()
-			bool resize_indices(unsigned track_num, unsigned new_num_indices);
+			bool resize_indices(uint32_t track_num, uint32_t new_num_indices);
 
 			//! See FLAC__metadata_object_cuesheet_track_insert_index()
-			bool insert_index(unsigned track_num, unsigned index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
+			bool insert_index(uint32_t track_num, uint32_t index_num, const ::FLAC__StreamMetadata_CueSheet_Index &index);
 
 			//! See FLAC__metadata_object_cuesheet_track_insert_blank_index()
-			bool insert_blank_index(unsigned track_num, unsigned index_num);
+			bool insert_blank_index(uint32_t track_num, uint32_t index_num);
 
 			//! See FLAC__metadata_object_cuesheet_track_delete_index()
-			bool delete_index(unsigned track_num, unsigned index_num);
+			bool delete_index(uint32_t track_num, uint32_t index_num);
 
 			//! See FLAC__metadata_object_cuesheet_resize_tracks()
-			bool resize_tracks(unsigned new_num_tracks);
+			bool resize_tracks(uint32_t new_num_tracks);
 
 			//! See FLAC__metadata_object_cuesheet_set_track()
-			bool set_track(unsigned i, const Track &track);
+			bool set_track(uint32_t i, const Track &track);
 
 			//! See FLAC__metadata_object_cuesheet_insert_track()
-			bool insert_track(unsigned i, const Track &track);
+			bool insert_track(uint32_t i, const Track &track);
 
 			//! See FLAC__metadata_object_cuesheet_insert_blank_track()
-			bool insert_blank_track(unsigned i);
+			bool insert_blank_track(uint32_t i);
 
 			//! See FLAC__metadata_object_cuesheet_delete_track()
-			bool delete_track(unsigned i);
+			bool delete_track(uint32_t i);
 
 			//! See FLAC__metadata_object_cuesheet_is_legal()
 			bool is_legal(bool check_cd_da_subset = false, const char **violation = 0) const;
@@ -983,8 +983,8 @@ namespace FLAC {
 			const FLAC__byte *get_data() const;
 
 			//! This form always copies \a data
-			bool set_data(const FLAC__byte *data, unsigned length);
-			bool set_data(FLAC__byte *data, unsigned length, bool copy);
+			bool set_data(const FLAC__byte *data, uint32_t length);
+			bool set_data(FLAC__byte *data, uint32_t length, bool copy);
 		};
 
 		/* \} */
@@ -1010,8 +1010,8 @@ namespace FLAC {
 		FLACPP_API bool get_cuesheet(const char *filename, CueSheet *&cuesheet); ///< See FLAC__metadata_get_cuesheet().
 		FLACPP_API bool get_cuesheet(const char *filename, CueSheet &cuesheet); ///< See FLAC__metadata_get_cuesheet().
 
-		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors); ///< See FLAC__metadata_get_picture().
-		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, unsigned max_width, unsigned max_height, unsigned max_depth, unsigned max_colors); ///< See FLAC__metadata_get_picture().
+		FLACPP_API bool get_picture(const char *filename, Picture *&picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, uint32_t max_width, uint32_t max_height, uint32_t max_depth, uint32_t max_colors); ///< See FLAC__metadata_get_picture().
+		FLACPP_API bool get_picture(const char *filename, Picture &picture, ::FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, uint32_t max_width, uint32_t max_height, uint32_t max_depth, uint32_t max_colors); ///< See FLAC__metadata_get_picture().
 
 		/* \} */
 
@@ -1079,7 +1079,7 @@ namespace FLAC {
 
 			off_t get_block_offset() const;                                     ///< See FLAC__metadata_simple_iterator_get_block_offset().
 			::FLAC__MetadataType get_block_type() const;                        ///< See FLAC__metadata_simple_iterator_get_block_type().
-			unsigned get_block_length() const;                                  ///< See FLAC__metadata_simple_iterator_get_block_length().
+			uint32_t get_block_length() const;                                  ///< See FLAC__metadata_simple_iterator_get_block_length().
 			bool get_application_id(FLAC__byte *id);                            ///< See FLAC__metadata_simple_iterator_get_application_id().
 			Prototype *get_block();                                             ///< See FLAC__metadata_simple_iterator_get_block().
 			bool set_block(Prototype *block, bool use_padding = true);          ///< See FLAC__metadata_simple_iterator_set_block().

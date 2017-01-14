@@ -57,7 +57,7 @@ static const char * const LayerString[] = {
 
 static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
 static ::FLAC__StreamMetadata *expected_metadata_sequence_[9];
-static unsigned num_expected_;
+static uint32_t num_expected_;
 static FLAC__off_t flacfilesize_;
 
 static const char *flacfilename(bool is_ogg)
@@ -80,7 +80,7 @@ static FLAC__bool die_s_(const char *msg, const FLAC::Decoder::Stream *decoder)
 	else
 		printf("FAILED");
 
-	printf(", state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+	printf(", state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 
 	return false;
 }
@@ -120,7 +120,7 @@ static bool generate_file_(FLAC__bool is_ogg)
 class DecoderCommon {
 public:
 	Layer layer_;
-	unsigned current_metadata_number_;
+	uint32_t current_metadata_number_;
 	bool ignore_errors_;
 	bool error_occurred_;
 
@@ -171,7 +171,7 @@ void DecoderCommon::common_metadata_callback_(const ::FLAC__StreamMetadata *meta
 void DecoderCommon::common_error_callback_(::FLAC__StreamDecoderErrorStatus status)
 {
 	if(!ignore_errors_) {
-		printf("ERROR: got error callback: err = %u (%s)\n", (unsigned)status, ::FLAC__StreamDecoderErrorStatusString[status]);
+		printf("ERROR: got error callback: err = %u (%s)\n", (uint32_t)status, ::FLAC__StreamDecoderErrorStatusString[status]);
 		error_occurred_ = true;
 	}
 }
@@ -326,7 +326,7 @@ bool StreamDecoder::test_respond(bool is_ogg)
 	printf("testing process_until_end_of_stream()... ");
 	if(!process_until_end_of_stream()) {
 		State state = get_state();
-		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED, returned false, state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
 	}
 	printf("OK\n");
@@ -334,7 +334,7 @@ bool StreamDecoder::test_respond(bool is_ogg)
 	printf("testing finish()... ");
 	if(!finish()) {
 		State state = get_state();
-		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED, returned false, state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
 	}
 	printf("OK\n");
@@ -412,7 +412,7 @@ bool FileDecoder::test_respond(bool is_ogg)
 	printf("testing process_until_end_of_stream()... ");
 	if(!process_until_end_of_stream()) {
 		State state = get_state();
-		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED, returned false, state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
 	}
 	printf("OK\n");
@@ -420,7 +420,7 @@ bool FileDecoder::test_respond(bool is_ogg)
 	printf("testing finish()... ");
 	if(!finish()) {
 		State state = get_state();
-		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED, returned false, state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
 	}
 	printf("OK\n");
@@ -594,7 +594,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("testing get_state()... ");
 	FLAC::Decoder::Stream::State state = decoder->get_state();
-	printf("returned state = %u (%s)... OK\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+	printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 
 	dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
 	dynamic_cast<DecoderCommon*>(decoder)->ignore_errors_ = false;
@@ -655,7 +655,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("testing get_channels()... ");
 	{
-		unsigned channels = decoder->get_channels();
+		uint32_t channels = decoder->get_channels();
 		if(channels != streaminfo_.data.stream_info.channels) {
 			printf("FAILED, returned %u, expected %u\n", channels, streaminfo_.data.stream_info.channels);
 			return false;
@@ -665,7 +665,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("testing get_bits_per_sample()... ");
 	{
-		unsigned bits_per_sample = decoder->get_bits_per_sample();
+		uint32_t bits_per_sample = decoder->get_bits_per_sample();
 		if(bits_per_sample != streaminfo_.data.stream_info.bits_per_sample) {
 			printf("FAILED, returned %u, expected %u\n", bits_per_sample, streaminfo_.data.stream_info.bits_per_sample);
 			return false;
@@ -675,7 +675,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("testing get_sample_rate()... ");
 	{
-		unsigned sample_rate = decoder->get_sample_rate();
+		uint32_t sample_rate = decoder->get_sample_rate();
 		if(sample_rate != streaminfo_.data.stream_info.sample_rate) {
 			printf("FAILED, returned %u, expected %u\n", sample_rate, streaminfo_.data.stream_info.sample_rate);
 			return false;
@@ -685,7 +685,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("testing get_blocksize()... ");
 	{
-		unsigned blocksize = decoder->get_blocksize();
+		uint32_t blocksize = decoder->get_blocksize();
 		/* value could be anything since we're at the last block, so accept any reasonable answer */
 		printf("returned %u... %s\n", blocksize, blocksize>0? "OK" : "FAILED");
 		if(blocksize == 0)
@@ -695,7 +695,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing get_channel_assignment()... ");
 	{
 		::FLAC__ChannelAssignment ca = decoder->get_channel_assignment();
-		printf("returned %u (%s)... OK\n", (unsigned)ca, ::FLAC__ChannelAssignmentString[ca]);
+		printf("returned %u (%s)... OK\n", (uint32_t)ca, ::FLAC__ChannelAssignmentString[ca]);
 	}
 
 	if(layer < LAYER_FILE) {
@@ -725,7 +725,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing finish()... ");
 	if(!decoder->finish()) {
 		state = decoder->get_state();
-		printf("FAILED, returned false, state = %u (%s)\n", (unsigned)((::FLAC__StreamDecoderState)state), state.as_cstring());
+		printf("FAILED, returned false, state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 		return false;
 	}
 	printf("OK\n");

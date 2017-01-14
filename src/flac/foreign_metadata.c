@@ -417,7 +417,7 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 static FLAC__bool write_to_flac_(foreign_metadata_t *fm, FILE *fin, FILE *fout, FLAC__Metadata_SimpleIterator *it, const char **error)
 {
 	FLAC__byte buffer[4];
-	const unsigned ID_LEN = FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8;
+	const uint32_t ID_LEN = FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8;
 	size_t block_num = 0;
 	FLAC__ASSERT(sizeof(buffer) >= ID_LEN);
 	while(block_num < fm->num_blocks) {

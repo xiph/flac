@@ -134,7 +134,7 @@ namespace FLAC {
 			return ::FLAC__stream_decoder_get_total_samples(decoder_);
 		}
 
-		unsigned Stream::get_channels() const
+		uint32_t Stream::get_channels() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_get_channels(decoder_);
@@ -146,19 +146,19 @@ namespace FLAC {
 			return ::FLAC__stream_decoder_get_channel_assignment(decoder_);
 		}
 
-		unsigned Stream::get_bits_per_sample() const
+		uint32_t Stream::get_bits_per_sample() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_get_bits_per_sample(decoder_);
 		}
 
-		unsigned Stream::get_sample_rate() const
+		uint32_t Stream::get_sample_rate() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_get_sample_rate(decoder_);
 		}
 
-		unsigned Stream::get_blocksize() const
+		uint32_t Stream::get_blocksize() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_get_blocksize(decoder_);
