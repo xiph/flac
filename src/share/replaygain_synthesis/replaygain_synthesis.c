@@ -79,9 +79,9 @@
  *  XORed values of both generators.
  */
 
-static unsigned int random_int_(void)
+static uint32_t random_int_(void)
 {
-	static const unsigned char parity_[256] = {
+	static const uint8_t parity_[256] = {
 		0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,
 		1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,
 		1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,
@@ -91,10 +91,10 @@ static unsigned int random_int_(void)
 		0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0,1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,
 		1,0,0,1,0,1,1,0,0,1,1,0,1,0,0,1,0,1,1,0,1,0,0,1,1,0,0,1,0,1,1,0
 	};
-	static unsigned int r1_ = 1;
-	static unsigned int r2_ = 1;
+	static uint32_t r1_ = 1;
+	static uint32_t r2_ = 1;
 
-	unsigned int t1, t2, t3, t4;
+	uint32_t t1, t2, t3, t4;
 
 	/* Parity calculation is done via table lookup, this is also available
 	 * on CPUs without parity, can be implemented in C and avoid unpredictable
@@ -201,7 +201,7 @@ static double scalar16_(const float* x, const float* y)
 
 void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits, int shapingtype)
 {
-	static unsigned char default_dither [] = { 92, 92, 88, 84, 81, 78, 74, 67,  0,  0 };
+	static uint8_t default_dither [] = { 92, 92, 88, 84, 81, 78, 74, 67,  0,  0 };
 	static const float*               F [] = { F44_0, F44_1, F44_2, F44_3 };
 
 	int indx;
@@ -292,7 +292,7 @@ static FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int
 #endif
 
 
-size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, FLAC__bool unsigned_data_out, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, const unsigned source_bps, const unsigned target_bps, const double scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
+size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool little_endian_data_out, FLAC__bool uint32_t_data_out, const FLAC__int32 * const input[], uint32_t wide_samples, uint32_t channels, const uint32_t source_bps, const uint32_t target_bps, const double scale, const FLAC__bool hard_limit, FLAC__bool do_dithering, DitherContext *dither_context)
 {
 	static const FLAC__int64 hard_clip_factors_[33] = {
 		0, /* 0 bits-per-sample (not supported) */
@@ -340,11 +340,11 @@ size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool l
 	const double multi_scale = scale / (double)(1u << (source_bps-1));
 
 	FLAC__byte * const start = data_out;
-	unsigned i, channel;
+	uint32_t i, channel;
 	const FLAC__int32 *input_;
 	double sample;
-	const unsigned bytes_per_sample = target_bps / 8;
-	const unsigned last_history_index = dither_context->LastHistoryIndex;
+	const uint32_t bytes_per_sample = target_bps / 8;
+	const uint32_t last_history_index = dither_context->LastHistoryIndex;
 	NoiseShaping noise_shaping = dither_context->ShapingType;
 	FLAC__int64 val64;
 	FLAC__int32 val32;
@@ -359,7 +359,7 @@ size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool l
 	FLAC__ASSERT((target_bps & 7) == 0);
 
 	for(channel = 0; channel < channels; channel++) {
-		const unsigned incr = bytes_per_sample * channels;
+		const uint32_t incr = bytes_per_sample * channels;
 		data_out = start + bytes_per_sample * channel;
 		input_ = input[channel];
 		for(i = 0; i < wide_samples; i++, data_out += incr) {
@@ -383,7 +383,7 @@ size_t FLAC__replaygain_synthesis__apply_gain(FLAC__byte *data_out, FLAC__bool l
 				val32 = (FLAC__int32)hard_clip_factor;
 
 			uval32 = (FLAC__uint32)val32;
-			if (unsigned_data_out)
+			if (uint32_t_data_out)
 				uval32 ^= twiggle;
 
 			if (little_endian_data_out) {

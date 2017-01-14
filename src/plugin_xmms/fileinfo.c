@@ -276,7 +276,7 @@ static void show_replaygain(void)
 
 void FLAC_XMMS__file_info_box(char *filename)
 {
-	unsigned i;
+	uint32_t i;
 	gchar *title;
 
 	if (!window)

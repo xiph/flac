@@ -68,52 +68,52 @@ FLAC__bool mutils__compare_block_data_streaminfo(const FLAC__StreamMetadata_Stre
 	}
 	if(0 != memcmp(blockcopy->md5sum, block->md5sum, sizeof(block->md5sum))) {
 		printf("FAILED, md5sum mismatch, expected %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X, got %02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X%02X\n",
-			(unsigned)block->md5sum[0],
-			(unsigned)block->md5sum[1],
-			(unsigned)block->md5sum[2],
-			(unsigned)block->md5sum[3],
-			(unsigned)block->md5sum[4],
-			(unsigned)block->md5sum[5],
-			(unsigned)block->md5sum[6],
-			(unsigned)block->md5sum[7],
-			(unsigned)block->md5sum[8],
-			(unsigned)block->md5sum[9],
-			(unsigned)block->md5sum[10],
-			(unsigned)block->md5sum[11],
-			(unsigned)block->md5sum[12],
-			(unsigned)block->md5sum[13],
-			(unsigned)block->md5sum[14],
-			(unsigned)block->md5sum[15],
-			(unsigned)blockcopy->md5sum[0],
-			(unsigned)blockcopy->md5sum[1],
-			(unsigned)blockcopy->md5sum[2],
-			(unsigned)blockcopy->md5sum[3],
-			(unsigned)blockcopy->md5sum[4],
-			(unsigned)blockcopy->md5sum[5],
-			(unsigned)blockcopy->md5sum[6],
-			(unsigned)blockcopy->md5sum[7],
-			(unsigned)blockcopy->md5sum[8],
-			(unsigned)blockcopy->md5sum[9],
-			(unsigned)blockcopy->md5sum[10],
-			(unsigned)blockcopy->md5sum[11],
-			(unsigned)blockcopy->md5sum[12],
-			(unsigned)blockcopy->md5sum[13],
-			(unsigned)blockcopy->md5sum[14],
-			(unsigned)blockcopy->md5sum[15]
+			(uint32_t)block->md5sum[0],
+			(uint32_t)block->md5sum[1],
+			(uint32_t)block->md5sum[2],
+			(uint32_t)block->md5sum[3],
+			(uint32_t)block->md5sum[4],
+			(uint32_t)block->md5sum[5],
+			(uint32_t)block->md5sum[6],
+			(uint32_t)block->md5sum[7],
+			(uint32_t)block->md5sum[8],
+			(uint32_t)block->md5sum[9],
+			(uint32_t)block->md5sum[10],
+			(uint32_t)block->md5sum[11],
+			(uint32_t)block->md5sum[12],
+			(uint32_t)block->md5sum[13],
+			(uint32_t)block->md5sum[14],
+			(uint32_t)block->md5sum[15],
+			(uint32_t)blockcopy->md5sum[0],
+			(uint32_t)blockcopy->md5sum[1],
+			(uint32_t)blockcopy->md5sum[2],
+			(uint32_t)blockcopy->md5sum[3],
+			(uint32_t)blockcopy->md5sum[4],
+			(uint32_t)blockcopy->md5sum[5],
+			(uint32_t)blockcopy->md5sum[6],
+			(uint32_t)blockcopy->md5sum[7],
+			(uint32_t)blockcopy->md5sum[8],
+			(uint32_t)blockcopy->md5sum[9],
+			(uint32_t)blockcopy->md5sum[10],
+			(uint32_t)blockcopy->md5sum[11],
+			(uint32_t)blockcopy->md5sum[12],
+			(uint32_t)blockcopy->md5sum[13],
+			(uint32_t)blockcopy->md5sum[14],
+			(uint32_t)blockcopy->md5sum[15]
 		);
 		return false;
 	}
 	return true;
 }
 
-FLAC__bool mutils__compare_block_data_padding(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, unsigned block_length)
+FLAC__bool mutils__compare_block_data_padding(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, uint32_t block_length)
 {
 	/* we don't compare the padding guts */
 	(void)block, (void)blockcopy, (void)block_length;
 	return true;
 }
 
-FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, unsigned block_length)
+FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, uint32_t block_length)
 {
 	if(block_length < sizeof(block->id)) {
 		printf("FAILED, bad block length = %u\n", block_length);
@@ -121,14 +121,14 @@ FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_App
 	}
 	if(0 != memcmp(blockcopy->id, block->id, sizeof(block->id))) {
 		printf("FAILED, id mismatch, expected %02X%02X%02X%02X, got %02X%02X%02X%02X\n",
-			(unsigned)block->id[0],
-			(unsigned)block->id[1],
-			(unsigned)block->id[2],
-			(unsigned)block->id[3],
-			(unsigned)blockcopy->id[0],
-			(unsigned)blockcopy->id[1],
-			(unsigned)blockcopy->id[2],
-			(unsigned)blockcopy->id[3]
+			(uint32_t)block->id[0],
+			(uint32_t)block->id[1],
+			(uint32_t)block->id[2],
+			(uint32_t)block->id[3],
+			(uint32_t)blockcopy->id[0],
+			(uint32_t)blockcopy->id[1],
+			(uint32_t)blockcopy->id[2],
+			(uint32_t)blockcopy->id[3]
 		);
 		return false;
 	}
@@ -157,7 +157,7 @@ FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_App
 
 FLAC__bool mutils__compare_block_data_seektable(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy)
 {
-	unsigned i;
+	uint32_t i;
 	if(blockcopy->num_points != block->num_points) {
 		printf("FAILED, num_points mismatch, expected %u, got %u\n", block->num_points, blockcopy->num_points);
 		return false;
@@ -181,7 +181,7 @@ FLAC__bool mutils__compare_block_data_seektable(const FLAC__StreamMetadata_SeekT
 
 FLAC__bool mutils__compare_block_data_vorbiscomment(const FLAC__StreamMetadata_VorbisComment *block, const FLAC__StreamMetadata_VorbisComment *blockcopy)
 {
-	unsigned i;
+	uint32_t i;
 	if(blockcopy->vendor_string.length != block->vendor_string.length) {
 		printf("FAILED, vendor_string.length mismatch, expected %u, got %u\n", block->vendor_string.length, blockcopy->vendor_string.length);
 		return false;
@@ -223,7 +223,7 @@ FLAC__bool mutils__compare_block_data_vorbiscomment(const FLAC__StreamMetadata_V
 
 FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueSheet *block, const FLAC__StreamMetadata_CueSheet *blockcopy)
 {
-	unsigned i, j;
+	uint32_t i, j;
 
 	if(0 != strcmp(blockcopy->media_catalog_number, block->media_catalog_number)) {
 		printf("FAILED, media_catalog_number mismatch, expected %s, got %s\n", block->media_catalog_number, blockcopy->media_catalog_number);
@@ -234,7 +234,7 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 		return false;
 	}
 	if(blockcopy->is_cd != block->is_cd) {
-		printf("FAILED, is_cd mismatch, expected %u, got %u\n", (unsigned)block->is_cd, (unsigned)blockcopy->is_cd);
+		printf("FAILED, is_cd mismatch, expected %u, got %u\n", (uint32_t)block->is_cd, (uint32_t)blockcopy->is_cd);
 		return false;
 	}
 	if(blockcopy->num_tracks != block->num_tracks) {
@@ -247,11 +247,11 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 			return false;
 		}
 		if(blockcopy->tracks[i].number != block->tracks[i].number) {
-			printf("FAILED, tracks[%u].number mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].number, (unsigned)blockcopy->tracks[i].number);
+			printf("FAILED, tracks[%u].number mismatch, expected %u, got %u\n", i, (uint32_t)block->tracks[i].number, (uint32_t)blockcopy->tracks[i].number);
 			return false;
 		}
 		if(blockcopy->tracks[i].num_indices != block->tracks[i].num_indices) {
-			printf("FAILED, tracks[%u].num_indices mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].num_indices, (unsigned)blockcopy->tracks[i].num_indices);
+			printf("FAILED, tracks[%u].num_indices mismatch, expected %u, got %u\n", i, (uint32_t)block->tracks[i].num_indices, (uint32_t)blockcopy->tracks[i].num_indices);
 			return false;
 		}
 		/* num_indices == 0 means lead-out track so only the track offset and number are valid */
@@ -261,11 +261,11 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 				return false;
 			}
 			if(blockcopy->tracks[i].type != block->tracks[i].type) {
-				printf("FAILED, tracks[%u].type mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].type, (unsigned)blockcopy->tracks[i].type);
+				printf("FAILED, tracks[%u].type mismatch, expected %u, got %u\n", i, (uint32_t)block->tracks[i].type, (uint32_t)blockcopy->tracks[i].type);
 				return false;
 			}
 			if(blockcopy->tracks[i].pre_emphasis != block->tracks[i].pre_emphasis) {
-				printf("FAILED, tracks[%u].pre_emphasis mismatch, expected %u, got %u\n", i, (unsigned)block->tracks[i].pre_emphasis, (unsigned)blockcopy->tracks[i].pre_emphasis);
+				printf("FAILED, tracks[%u].pre_emphasis mismatch, expected %u, got %u\n", i, (uint32_t)block->tracks[i].pre_emphasis, (uint32_t)blockcopy->tracks[i].pre_emphasis);
 				return false;
 			}
 			if(0 == block->tracks[i].indices || 0 == blockcopy->tracks[i].indices) {
@@ -281,7 +281,7 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 						return false;
 					}
 					if(blockcopy->tracks[i].indices[j].number != block->tracks[i].indices[j].number) {
-						printf("FAILED, tracks[%u].indices[%u].number mismatch, expected %u, got %u\n", i, j, (unsigned)block->tracks[i].indices[j].number, (unsigned)blockcopy->tracks[i].indices[j].number);
+						printf("FAILED, tracks[%u].indices[%u].number mismatch, expected %u, got %u\n", i, j, (uint32_t)block->tracks[i].indices[j].number, (uint32_t)blockcopy->tracks[i].indices[j].number);
 						return false;
 					}
 				}
@@ -295,13 +295,13 @@ FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture
 {
 	size_t len, lencopy;
 	if(blockcopy->type != block->type) {
-		printf("FAILED, type mismatch, expected %u, got %u\n", (unsigned)block->type, (unsigned)blockcopy->type);
+		printf("FAILED, type mismatch, expected %u, got %u\n", (uint32_t)block->type, (uint32_t)blockcopy->type);
 		return false;
 	}
 	len = strlen(block->mime_type);
 	lencopy = strlen(blockcopy->mime_type);
 	if(lencopy != len) {
-		printf("FAILED, mime_type length mismatch, expected %u, got %u\n", (unsigned)len, (unsigned)lencopy);
+		printf("FAILED, mime_type length mismatch, expected %u, got %u\n", (uint32_t)len, (uint32_t)lencopy);
 		return false;
 	}
 	if(strcmp(blockcopy->mime_type, block->mime_type)) {
@@ -311,7 +311,7 @@ FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture
 	len = strlen((const char *)block->description);
 	lencopy = strlen((const char *)blockcopy->description);
 	if(lencopy != len) {
-		printf("FAILED, description length mismatch, expected %u, got %u\n", (unsigned)len, (unsigned)lencopy);
+		printf("FAILED, description length mismatch, expected %u, got %u\n", (uint32_t)len, (uint32_t)lencopy);
 		return false;
 	}
 	if(strcmp((const char *)blockcopy->description, (const char *)block->description)) {
@@ -345,7 +345,7 @@ FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture
 	return true;
 }
 
-FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, unsigned block_length)
+FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, uint32_t block_length)
 {
 	if(0 == block->data || 0 == blockcopy->data) {
 		if(block->data != blockcopy->data) {
@@ -377,7 +377,7 @@ FLAC__bool mutils__compare_block(const FLAC__StreamMetadata *block, const FLAC__
 		return false;
 	}
 	if(blockcopy->is_last != block->is_last) {
-		printf("FAILED, is_last mismatch, expected %u, got %u\n", (unsigned)block->is_last, (unsigned)blockcopy->is_last);
+		printf("FAILED, is_last mismatch, expected %u, got %u\n", (uint32_t)block->is_last, (uint32_t)blockcopy->is_last);
 		return false;
 	}
 	if(blockcopy->length != block->length) {
@@ -408,7 +408,7 @@ static void *malloc_or_die_(size_t size)
 {
 	void *x = malloc(size);
 	if(0 == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)size);
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (uint32_t)size);
 		exit(1);
 	}
 	return x;
@@ -418,7 +418,7 @@ static void *calloc_or_die_(size_t n, size_t size)
 {
 	void *x = calloc(n, size);
 	if(0 == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (unsigned)n * (unsigned)size);
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (uint32_t)n * (uint32_t)size);
 		exit(1);
 	}
 	return x;
@@ -498,7 +498,7 @@ void mutils__init_metadata_blocks(
 	application2->data.application.data = 0;
 
 	{
-		const unsigned vendor_string_length = (unsigned)strlen(FLAC__VENDOR_STRING);
+		const uint32_t vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
 		vorbiscomment->is_last = false;
 		vorbiscomment->type = FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment->length = (4 + vendor_string_length) + 4 + (4 + 5) + (4 + 0);

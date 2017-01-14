@@ -27,9 +27,9 @@
 #include <stdlib.h> /* for atoi() */
 #include <string.h>
 
-FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec, FLAC__bool only_explicit_placeholders, FLAC__uint64 total_samples_to_encode, unsigned sample_rate, FLAC__StreamMetadata *seektable_template, FLAC__bool *spec_has_real_points)
+FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec, FLAC__bool only_explicit_placeholders, FLAC__uint64 total_samples_to_encode, uint32_t sample_rate, FLAC__StreamMetadata *seektable_template, FLAC__bool *spec_has_real_points)
 {
-	unsigned i;
+	uint32_t i;
 	const char *pt;
 
 	FLAC__ASSERT(0 != spec);
@@ -53,9 +53,9 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 					if(0 != spec_has_real_points)
 						*spec_has_real_points = true;
 					if(!only_explicit_placeholders) {
-						const int n = (unsigned)atoi(pt);
+						const int n = (uint32_t)atoi(pt);
 						if(n > 0)
-							if(!FLAC__metadata_object_seektable_template_append_spaced_points(seektable_template, (unsigned)n, total_samples_to_encode))
+							if(!FLAC__metadata_object_seektable_template_append_spaced_points(seektable_template, (uint32_t)n, total_samples_to_encode))
 								return false;
 					}
 				}
@@ -68,7 +68,7 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 					if(!only_explicit_placeholders) {
 						const double sec = atof(pt);
 						if(sec > 0.0) {
-							unsigned samples = (unsigned)(sec * (double)sample_rate);
+							uint32_t samples = (uint32_t)(sec * (double)sample_rate);
 							/* Restrict seekpoints to two per second of audio. */
 							samples = samples < sample_rate / 2 ? sample_rate / 2 : samples;
 							if(samples > 0) {

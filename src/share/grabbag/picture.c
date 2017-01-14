@@ -143,7 +143,7 @@ static FLAC__bool local__extract_resolution_color_info_(FLAC__StreamMetadata_Pic
 		while(len > 12) { /* every PNG chunk must be at least 12 bytes long */
 			const FLAC__uint32 clen = (FLAC__uint32)data[0] << 24 | (FLAC__uint32)data[1] << 16 | (FLAC__uint32)data[2] << 8 | (FLAC__uint32)data[3];
 			if(0 == memcmp(data+4, "IHDR", 4) && clen == 13) {
-				unsigned color_type = data[17];
+				uint32_t color_type = data[17];
 				picture->width = (FLAC__uint32)data[8] << 24 | (FLAC__uint32)data[9] << 16 | (FLAC__uint32)data[10] << 8 | (FLAC__uint32)data[11];
 				picture->height = (FLAC__uint32)data[12] << 24 | (FLAC__uint32)data[13] << 16 | (FLAC__uint32)data[14] << 8 | (FLAC__uint32)data[15];
 				if(color_type == 3) {

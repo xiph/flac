@@ -109,7 +109,7 @@ static size_t local__utf8_to_ucs2(const FLAC__byte *utf8, FLAC__uint16 *ucs2)
 	return len;
 }
 
-static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned length)
+static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, uint32_t length)
 {
 	FLAC__uint16 *out;
 	size_t chars = 0;
@@ -118,9 +118,9 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 
 	/* calculate length */
 	{
-		const unsigned char *s, *end;
-		for (s=(const unsigned char *)src, end=s+length; s<end; chars++) {
-			const unsigned n = local__utf8len(s);
+		const uint32_t char *s, *end;
+		for (s=(const uint32_t char *)src, end=s+length; s<end; chars++) {
+			const uint32_t n = local__utf8len(s);
 			if (n == 0)
 				return 0;
 			s += n;
@@ -137,7 +137,7 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, unsigned lengt
 
 	/* convert */
 	{
-		const unsigned char *s = (const unsigned char *)src;
+		const uint32_t char *s = (const uint32_t char *)src;
 		FLAC__uint16 *u = out;
 		for ( ; chars; chars--)
 			s += local__utf8_to_ucs2(s, u++);
@@ -175,7 +175,7 @@ static size_t local__ucs2_to_utf8(FLAC__uint16 ucs2, FLAC__byte *utf8)
 	}
 }
 
-static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, unsigned length)
+static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, uint32_t length)
 {
 	char *out;
 	size_t len = 0, n;
@@ -184,7 +184,7 @@ static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, unsigned lengt
 
 	/* calculate length */
 	{
-		unsigned i;
+		uint32_t i;
 		for (i = 0; i < length; i++) {
 			n = local__ucs2len(src[i]);
 			if(len + n < len) /* overflow check */
@@ -200,7 +200,7 @@ static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, unsigned lengt
 
 	/* convert */
 	{
-		unsigned char *u = (unsigned char *)out;
+		uint32_t char *u = (uint32_t char *)out;
 		for ( ; *src; src++)
 			u += local__ucs2_to_utf8(*src, u);
 		local__ucs2_to_utf8(*src, u);

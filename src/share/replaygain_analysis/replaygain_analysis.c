@@ -62,8 +62,8 @@
  *    flac_float_t       l_samples [4096];
  *    flac_float_t       r_samples [4096];
  *    size_t        num_samples;
- *    unsigned int  num_songs;
- *    unsigned int  i;
+ *    uint32_t int  num_songs;
+ *    uint32_t int  i;
  *
  *    InitGainAnalysis ( 44100 );
  *    for ( i = 1; i <= num_songs; i++ ) {
@@ -125,8 +125,8 @@ static flac_float_t*         rstepbuf;
 static flac_float_t*         rstep;
 static flac_float_t*         routbuf;
 static flac_float_t*         rout;
-static unsigned int              sampleWindow;                           /* number of samples required to reach number of milliseconds required for RMS window */
-static unsigned long    totsamp;
+static uint32_t              sampleWindow;                           /* number of samples required to reach number of milliseconds required for RMS window */
+static uint64_t	        totsamp;
 static double           lsum;
 static double           rsum;
 #if 0
@@ -144,7 +144,7 @@ static uint32_t  B [120 * 100];
 
 struct ReplayGainFilter {
     long rate;
-    unsigned downsample;
+    uint32_t downsample;
     flac_float_t BYule[YULE_ORDER+1];
     flac_float_t AYule[YULE_ORDER+1];
     flac_float_t BButter[BUTTER_ORDER+1];
@@ -269,7 +269,7 @@ static const struct ReplayGainFilter ReplayGainFilters[] = {
 /* When calling this procedure, make sure that ip[-order] and op[-order] point to real data! */
 
 static void
-filter ( const flac_float_t* input, flac_float_t* output, size_t nSamples, const flac_float_t* a, const flac_float_t* b, size_t order, unsigned downsample )
+filter ( const flac_float_t* input, flac_float_t* output, size_t nSamples, const flac_float_t* a, const flac_float_t* b, size_t order, uint32_t downsample )
 {
     double  y;
     size_t  i;
@@ -303,9 +303,9 @@ filter ( const flac_float_t* input, flac_float_t* output, size_t nSamples, const
 static struct ReplayGainFilter*
 CreateGainFilter ( long samplefreq )
 {
-    unsigned i;
+    uint32_t i;
     long maxrate = 0;
-    unsigned downsample = 1;
+    uint32_t downsample = 1;
     struct ReplayGainFilter* gainfilter = malloc(sizeof(*gainfilter));
 
     if ( !gainfilter )
@@ -338,7 +338,7 @@ CreateGainFilter ( long samplefreq )
 }
 
 static void*
-ReallocateWindowBuffer(unsigned window_size, flac_float_t **window_buffer)
+ReallocateWindowBuffer(uint32_t window_size, flac_float_t **window_buffer)
 {
     *window_buffer = safe_realloc_(*window_buffer, sizeof(**window_buffer) * (window_size + MAX_ORDER));
     return *window_buffer;
@@ -413,7 +413,7 @@ InitGainAnalysis ( long samplefreq )
 int
 AnalyzeSamples ( const flac_float_t* left_samples, const flac_float_t* right_samples, size_t num_samples, int num_channels )
 {
-    unsigned        downsample = replaygainfilter->downsample;
+    uint32_t        downsample = replaygainfilter->downsample;
     const flac_float_t*  curleft;
     const flac_float_t*  curright;
     long            prebufsamples;
@@ -545,7 +545,7 @@ flac_float_t
 GetTitleGain ( void )
 {
     flac_float_t  retval;
-    unsigned int    i;
+    uint32_t      i;
 
     retval = analyzeResult ( A, sizeof(A)/sizeof(*A) );
 

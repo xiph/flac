@@ -29,7 +29,7 @@
 static const char *true_false_string_[2] = { "false", "true" };
 
 static struct {
-	unsigned rate;
+	uint32_t rate;
 	FLAC__bool valid;
 	FLAC__bool subset;
 } SAMPLE_RATES[] = {
@@ -89,7 +89,7 @@ static struct {
 };
 
 static struct {
-	unsigned length;
+	uint32_t length;
 	const FLAC__byte *string;
 	FLAC__bool valid;
 } VCENTRY_VALUES[] = {
@@ -153,7 +153,7 @@ static struct {
 };
 
 static struct {
-	unsigned length;
+	uint32_t length;
 	const FLAC__byte *string;
 	FLAC__bool valid;
 } VCENTRIES[] = {
@@ -194,7 +194,7 @@ static struct {
 
 FLAC__bool test_format(void)
 {
-	unsigned i;
+	uint32_t i;
 
 	printf("\n+++ libFLAC unit test: format\n\n");
 
@@ -236,7 +236,7 @@ FLAC__bool test_format(void)
 
 	for(i = 0; i < sizeof(VCENTRY_VALUES_NT)/sizeof(VCENTRY_VALUES_NT[0]); i++) {
 		printf("testing FLAC__format_vorbiscomment_entry_value_is_legal(\"%s\", -1)... ", VCENTRY_VALUES_NT[i].string);
-		if(FLAC__format_vorbiscomment_entry_value_is_legal(VCENTRY_VALUES_NT[i].string, (unsigned)(-1)) != VCENTRY_VALUES_NT[i].valid) {
+		if(FLAC__format_vorbiscomment_entry_value_is_legal(VCENTRY_VALUES_NT[i].string, (uint32_t)(-1)) != VCENTRY_VALUES_NT[i].valid) {
 			printf("FAILED, expected %s, got %s\n", true_false_string_[VCENTRY_VALUES_NT[i].valid], true_false_string_[!VCENTRY_VALUES_NT[i].valid]);
 			return false;
 		}

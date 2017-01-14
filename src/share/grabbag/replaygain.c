@@ -54,7 +54,7 @@ static const char *peak_format_ = "%s=%1.8f";
 
 static double album_peak_, title_peak_;
 
-const unsigned GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED = 190;
+const uint32_t GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED = 190;
 /*
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 29 + 1 + 8 +
 	FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN/8 + 21 + 1 + 10 +
@@ -115,24 +115,24 @@ static FLAC__bool append_tag_(FLAC__StreamMetadata *block, const char *format, c
 	return FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/true);
 }
 
-FLAC__bool grabbag__replaygain_is_valid_sample_frequency(unsigned sample_frequency)
+FLAC__bool grabbag__replaygain_is_valid_sample_frequency(uint32_t sample_frequency)
 {
 	return ValidGainFrequency( sample_frequency );
 }
 
-FLAC__bool grabbag__replaygain_init(unsigned sample_frequency)
+FLAC__bool grabbag__replaygain_init(uint32_t sample_frequency)
 {
 	title_peak_ = album_peak_ = 0.0;
 	return InitGainAnalysis((long)sample_frequency) == INIT_GAIN_ANALYSIS_OK;
 }
 
-FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, unsigned bps, unsigned samples)
+FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, uint32_t bps, uint32_t samples)
 {
 	/* using a small buffer improves data locality; we'd like it to fit easily in the dcache */
 	static flac_float_t lbuffer[2048], rbuffer[2048];
-	static const unsigned nbuffer = sizeof(lbuffer) / sizeof(lbuffer[0]);
+	static const uint32_t nbuffer = sizeof(lbuffer) / sizeof(lbuffer[0]);
 	FLAC__int32 block_peak = 0, s;
-	unsigned i, j;
+	uint32_t i, j;
 
 	FLAC__ASSERT(bps >= 4 && bps <= FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE);
 	FLAC__ASSERT(FLAC__MIN_BITS_PER_SAMPLE == 4);
@@ -147,7 +147,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 		if(is_stereo) {
 			j = 0;
 			while(samples > 0) {
-				const unsigned n = local_min(samples, nbuffer);
+				const uint32_t n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
 					lbuffer[i] = (flac_float_t)s;
@@ -167,7 +167,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 		else {
 			j = 0;
 			while(samples > 0) {
-				const unsigned n = local_min(samples, nbuffer);
+				const uint32_t n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
 					lbuffer[i] = (flac_float_t)s;
@@ -190,7 +190,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 		if(is_stereo) {
 			j = 0;
 			while(samples > 0) {
-				const unsigned n = local_min(samples, nbuffer);
+				const uint32_t n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
 					lbuffer[i] = (flac_float_t)(scale * (double)s);
@@ -210,7 +210,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 		else {
 			j = 0;
 			while(samples > 0) {
-				const unsigned n = local_min(samples, nbuffer);
+				const uint32_t n = local_min(samples, nbuffer);
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
 					lbuffer[i] = (flac_float_t)(scale * (double)s);
@@ -252,19 +252,19 @@ void grabbag__replaygain_get_title(float *gain, float *peak)
 
 
 typedef struct {
-	unsigned channels;
-	unsigned bits_per_sample;
-	unsigned sample_rate;
+	uint32_t channels;
+	uint32_t bits_per_sample;
+	uint32_t sample_rate;
 	FLAC__bool error;
 } DecoderInstance;
 
 static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	DecoderInstance *instance = (DecoderInstance*)client_data;
-	const unsigned bits_per_sample = frame->header.bits_per_sample;
-	const unsigned channels = frame->header.channels;
-	const unsigned sample_rate = frame->header.sample_rate;
-	const unsigned samples = frame->header.blocksize;
+	const uint32_t bits_per_sample = frame->header.bits_per_sample;
+	const uint32_t channels = frame->header.channels;
+	const uint32_t sample_rate = frame->header.sample_rate;
+	const uint32_t samples = frame->header.blocksize;
 
 	(void)decoder;
 

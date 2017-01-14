@@ -55,9 +55,9 @@ typedef struct {
 	FLAC__int32 random;
 } dither_state;
 
-static FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
+static FLAC__int32 linear_dither(uint32_t source_bps, uint32_t target_bps, FLAC__int32 sample, dither_state *dither, const FLAC__int32 MIN, const FLAC__int32 MAX)
 {
-	unsigned scalebits;
+	uint32_t scalebits;
 	FLAC__int32 output, mask, random;
 
 	FLAC__ASSERT(source_bps < 32);
@@ -106,15 +106,15 @@ static FLAC__int32 linear_dither(unsigned source_bps, unsigned target_bps, FLAC_
 	return output >> scalebits;
 }
 
-size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const FLAC__int32 * const input[], uint32_t wide_samples, uint32_t channels, uint32_t source_bps, uint32_t target_bps)
 {
 	static dither_state dither[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
 	FLAC__int32 sample;
 	const FLAC__int32 *input_;
-	unsigned samples, channel;
-	const unsigned bytes_per_sample = target_bps / 8;
-	const unsigned incr = bytes_per_sample * channels;
+	uint32_t samples, channel;
+	const uint32_t bytes_per_sample = target_bps / 8;
+	const uint32_t incr = bytes_per_sample * channels;
 
 	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps < 32);
@@ -187,15 +187,15 @@ size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const F
 	return wide_samples * channels * (target_bps/8);
 }
 
-size_t FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps)
+size_t FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], uint32_t wide_samples, uint32_t channels, uint32_t source_bps, uint32_t target_bps)
 {
 	static dither_state dither[FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS];
 	FLAC__byte * const start = data;
 	FLAC__int32 sample;
 	const FLAC__int32 *input_;
-	unsigned samples, channel;
-	const unsigned bytes_per_sample = target_bps / 8;
-	const unsigned incr = bytes_per_sample * channels;
+	uint32_t samples, channel;
+	const uint32_t bytes_per_sample = target_bps / 8;
+	const uint32_t incr = bytes_per_sample * channels;
 
 	FLAC__ASSERT(channels > 0 && channels <= FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS);
 	FLAC__ASSERT(source_bps < 32);

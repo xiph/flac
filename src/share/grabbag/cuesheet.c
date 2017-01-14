@@ -29,12 +29,12 @@
 #include "share/grabbag.h"
 #include "share/safe_str.h"
 
-unsigned grabbag__cuesheet_msf_to_frame(unsigned minutes, unsigned seconds, unsigned frames)
+uint32_t grabbag__cuesheet_msf_to_frame(uint32_t minutes, uint32_t seconds, uint32_t frames)
 {
 	return ((minutes * 60) + seconds) * 75 + frames;
 }
 
-void grabbag__cuesheet_frame_to_msf(unsigned frame, unsigned *minutes, unsigned *seconds, unsigned *frames)
+void grabbag__cuesheet_frame_to_msf(uint32_t frame, uint32_t *minutes, uint32_t *seconds, uint32_t *frames)
 {
 	*frames = frame % 75;
 	frame /= 75;
@@ -83,7 +83,7 @@ static FLAC__int64 local__parse_int64_(const char *s)
  * return sample number or <0 for error
  * WATCHOUT: if sample rate is not evenly divisible by 75, the resulting sample number will be approximate
  */
-static FLAC__int64 local__parse_msf_(const char *s, unsigned sample_rate)
+static FLAC__int64 local__parse_msf_(const char *s, uint32_t sample_rate)
 {
 	FLAC__int64 ret, field;
 	char c;
@@ -152,7 +152,7 @@ static FLAC__int64 local__parse_msf_(const char *s, unsigned sample_rate)
  * return sample number or <0 for error
  * WATCHOUT: depending on the sample rate, the resulting sample number may be approximate with fractional seconds
  */
-static FLAC__int64 local__parse_ms_(const char *s, unsigned sample_rate)
+static FLAC__int64 local__parse_ms_(const char *s, uint32_t sample_rate)
 {
 	FLAC__int64 ret, field;
 	double x;
@@ -240,10 +240,10 @@ static char *local__get_field_(char **s, FLAC__bool allow_quotes)
 	return p;
 }
 
-static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message, unsigned *last_line_read, FLAC__StreamMetadata *cuesheet, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message, uint32_t *last_line_read, FLAC__StreamMetadata *cuesheet, uint32_t sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	char buffer[4096], *line, *field;
-	unsigned forced_leadout_track_num = 0;
+	uint32_t forced_leadout_track_num = 0;
 	FLAC__uint64 forced_leadout_track_offset = 0;
 	int in_track_num = -1, in_index_num = -1;
 	FLAC__bool disc_has_catalog = false, track_has_flags = false, track_has_isrc = false, has_forced_leadout = false;
@@ -523,7 +523,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 							*error_message = "illegal FLAC__lead-out track number";
 							return false;
 						}
-						forced_leadout_track_num = (unsigned)track_num;
+						forced_leadout_track_num = (uint32_t)track_num;
 						/*@@@ search for duplicate track number? */
 						if(0 == (field = local__get_field_(&line, /*allow_quotes=*/false))) {
 							*error_message = "FLAC__lead-out is missing offset";
@@ -587,7 +587,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 	return true;
 }
 
-FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, unsigned *last_line_read, unsigned sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, uint32_t *last_line_read, uint32_t sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FLAC__StreamMetadata *cuesheet;
 
@@ -614,7 +614,7 @@ FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_mes
 void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, const char *file_reference)
 {
 	const FLAC__StreamMetadata_CueSheet *cs;
-	unsigned track_num, index_num;
+	uint32_t track_num, index_num;
 
 	FLAC__ASSERT(0 != file);
 	FLAC__ASSERT(0 != cuesheet);
@@ -629,7 +629,7 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 	for(track_num = 0; track_num < cs->num_tracks-1; track_num++) {
 		const FLAC__StreamMetadata_CueSheet_Track *track = cs->tracks + track_num;
 
-		fprintf(file, "  TRACK %02u %s\n", (unsigned)track->number, track->type == 0? "AUDIO" : "DATA");
+		fprintf(file, "  TRACK %02u %s\n", (uint32_t)track->number, track->type == 0? "AUDIO" : "DATA");
 
 		if(track->pre_emphasis)
 			fprintf(file, "    FLAGS PRE\n");
@@ -639,10 +639,10 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 		for(index_num = 0; index_num < track->num_indices; index_num++) {
 			const FLAC__StreamMetadata_CueSheet_Index *indx = track->indices + index_num;
 
-			fprintf(file, "    INDEX %02u ", (unsigned)indx->number);
+			fprintf(file, "    INDEX %02u ", (uint32_t)indx->number);
 			if(cs->is_cd) {
-				const unsigned logical_frame = (unsigned)((track->offset + indx->offset) / (44100 / 75));
-				unsigned m, s, f;
+				const uint32_t logical_frame = (uint32_t)((track->offset + indx->offset) / (44100 / 75));
+				uint32_t m, s, f;
 				grabbag__cuesheet_frame_to_msf(logical_frame, &m, &s, &f);
 				fprintf(file, "%02u:%02u:%02u\n", m, s, f);
 			}
@@ -652,5 +652,5 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 	}
 
 	fprintf(file, "REM FLAC__lead-in %" PRIu64 "\n", cs->lead_in);
-	fprintf(file, "REM FLAC__lead-out %u %" PRIu64 "\n", (unsigned)cs->tracks[track_num].number, cs->tracks[track_num].offset);
+	fprintf(file, "REM FLAC__lead-out %u %" PRIu64 "\n", (uint32_t)cs->tracks[track_num].number, cs->tracks[track_num].offset);
 }

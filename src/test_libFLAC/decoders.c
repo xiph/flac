@@ -52,14 +52,14 @@ typedef struct {
 	Layer layer;
 	FILE *file;
 	char filename[512];
-	unsigned current_metadata_number;
+	uint32_t current_metadata_number;
 	FLAC__bool ignore_errors;
 	FLAC__bool error_occurred;
 } StreamDecoderClientData;
 
 static FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
 static FLAC__StreamMetadata *expected_metadata_sequence_[9];
-static unsigned num_expected_;
+static uint32_t num_expected_;
 static FLAC__off_t flacfilesize_;
 
 static const char *flacfilename(FLAC__bool is_ogg)
@@ -82,7 +82,7 @@ static FLAC__bool die_s_(const char *msg, const FLAC__StreamDecoder *decoder)
 	else
 		printf("FAILED");
 
-	printf(", state = %u (%s)\n", (unsigned)state, FLAC__StreamDecoderStateString[state]);
+	printf(", state = %u (%s)\n", (uint32_t)state, FLAC__StreamDecoderStateString[state]);
 
 	return false;
 }
@@ -315,7 +315,7 @@ static void stream_decoder_error_callback_(const FLAC__StreamDecoder *decoder, F
 	}
 
 	if(!dcd->ignore_errors) {
-		printf("ERROR: got error callback: err = %u (%s)\n", (unsigned)status, FLAC__StreamDecoderErrorStatusString[status]);
+		printf("ERROR: got error callback: err = %u (%s)\n", (uint32_t)status, FLAC__StreamDecoderErrorStatusString[status]);
 		dcd->error_occurred = true;
 	}
 }
@@ -585,7 +585,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_decoder_get_channels()... ");
 	{
-		unsigned channels = FLAC__stream_decoder_get_channels(decoder);
+		uint32_t channels = FLAC__stream_decoder_get_channels(decoder);
 		if(channels != streaminfo_.data.stream_info.channels) {
 			printf("FAILED, returned %u, expected %u\n", channels, streaminfo_.data.stream_info.channels);
 			return false;
@@ -595,7 +595,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_decoder_get_bits_per_sample()... ");
 	{
-		unsigned bits_per_sample = FLAC__stream_decoder_get_bits_per_sample(decoder);
+		uint32_t bits_per_sample = FLAC__stream_decoder_get_bits_per_sample(decoder);
 		if(bits_per_sample != streaminfo_.data.stream_info.bits_per_sample) {
 			printf("FAILED, returned %u, expected %u\n", bits_per_sample, streaminfo_.data.stream_info.bits_per_sample);
 			return false;
@@ -605,7 +605,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_decoder_get_sample_rate()... ");
 	{
-		unsigned sample_rate = FLAC__stream_decoder_get_sample_rate(decoder);
+		uint32_t sample_rate = FLAC__stream_decoder_get_sample_rate(decoder);
 		if(sample_rate != streaminfo_.data.stream_info.sample_rate) {
 			printf("FAILED, returned %u, expected %u\n", sample_rate, streaminfo_.data.stream_info.sample_rate);
 			return false;
@@ -615,7 +615,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_decoder_get_blocksize()... ");
 	{
-		unsigned blocksize = FLAC__stream_decoder_get_blocksize(decoder);
+		uint32_t blocksize = FLAC__stream_decoder_get_blocksize(decoder);
 		/* value could be anything since we're at the last block, so accept any reasonable answer */
 		printf("returned %u... %s\n", blocksize, blocksize>0? "OK" : "FAILED");
 		if(blocksize == 0)
@@ -625,7 +625,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("testing FLAC__stream_decoder_get_channel_assignment()... ");
 	{
 		FLAC__ChannelAssignment ca = FLAC__stream_decoder_get_channel_assignment(decoder);
-		printf("returned %u (%s)... OK\n", (unsigned)ca, FLAC__ChannelAssignmentString[ca]);
+		printf("returned %u (%s)... OK\n", (uint32_t)ca, FLAC__ChannelAssignmentString[ca]);
 	}
 
 	if(layer < LAYER_FILE) {

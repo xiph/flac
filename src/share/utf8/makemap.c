@@ -30,7 +30,7 @@ int main(int argc, char *argv[])
   const char *ib;
   char *ob;
   size_t ibl, obl, k;
-  unsigned char c, buf[4];
+  uint8_t c, buf[4];
   int i, wc;
 
   if (argc != 2) {

@@ -40,8 +40,8 @@ typedef struct {
 	FLAC__int32 **pcm;
 	FLAC__bool got_data;
 	FLAC__uint64 total_samples;
-	unsigned channels;
-	unsigned bits_per_sample;
+	uint32_t channels;
+	uint32_t bits_per_sample;
 	FLAC__bool quiet;
 	FLAC__bool ignore_errors;
 	FLAC__bool error_occurred;
@@ -72,12 +72,12 @@ static FLAC__bool die_s_(const char *msg, const FLAC__StreamDecoder *decoder)
 	else
 		printf("FAILED");
 
-	printf(", state = %u (%s)\n", (unsigned)state, FLAC__StreamDecoderStateString[state]);
+	printf(", state = %u (%s)\n", (uint32_t)state, FLAC__StreamDecoderStateString[state]);
 
 	return false;
 }
 
-static unsigned local_rand_(void)
+static uint32_t local_rand_(void)
 {
 #if !defined _MSC_VER && !defined __MINGW32__
 #define RNDFUNC random
@@ -105,7 +105,7 @@ static FLAC__off_t get_filesize_(const char *srcpath)
 static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const char *flacfilename)
 {
 	FILE *f;
-	unsigned channels = 0, bps = 0, samples, i, j;
+	uint32_t channels = 0, bps = 0, samples, i, j;
 
 	FLAC__off_t rawfilesize = get_filesize_(rawfilename);
 	if (rawfilesize < 0) {
@@ -174,7 +174,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 		}
 	}
 	else { /* bps == 16 */
-		unsigned char c[2];
+		uint8_t c[2];
 		uint16_t value;
 		for(i = 0; i < samples; i++) {
 			for(j = 0; j < channels; j++) {
@@ -210,9 +210,9 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder 
 
 	/* check against PCM data if we have it */
 	if (dcd->pcm) {
-		unsigned c, i, j;
+		uint32_t c, i, j;
 		for (c = 0; c < frame->header.channels; c++)
-			for (i = (unsigned)frame->header.number.sample_number, j = 0; j < frame->header.blocksize; i++, j++)
+			for (i = (uint32_t)frame->header.number.sample_number, j = 0; j < frame->header.blocksize; i++, j++)
 				if (buffer[c][j] != dcd->pcm[c][i]) {
 					printf("ERROR: sample mismatch at sample#%u(%u), channel=%u, expected %d, got %d\n", i, j, c, buffer[c][j], dcd->pcm[c][i]);
 					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
@@ -256,7 +256,7 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
 	}
 
 	if(!dcd->ignore_errors) {
-		printf("ERROR: got error callback: err = %u (%s)\n", (unsigned)status, FLAC__StreamDecoderErrorStatusString[status]);
+		printf("ERROR: got error callback: err = %u (%s)\n", (uint32_t)status, FLAC__StreamDecoderErrorStatusString[status]);
 		dcd->error_occurred = true;
 	}
 }
@@ -266,11 +266,11 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
  * 1 - read 2 frames
  * 2 - read until end
  */
-static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__off_t filesize, unsigned count, FLAC__int64 total_samples, unsigned read_mode, FLAC__int32 **pcm)
+static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__off_t filesize, uint32_t count, FLAC__int64 total_samples, uint32_t read_mode, FLAC__int32 **pcm)
 {
 	FLAC__StreamDecoder *decoder;
 	DecoderClientData decoder_client_data;
-	unsigned i;
+	uint32_t i;
 	long int n;
 
 	decoder_client_data.pcm = pcm;
@@ -396,7 +396,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__of
 int main(int argc, char *argv[])
 {
 	const char *flacfilename, *rawfilename = 0;
-	unsigned count = 0, read_mode;
+	uint32_t count = 0, read_mode;
 	FLAC__int64 samples = -1;
 	FLAC__off_t flacfilesize;
 	FLAC__int32 *pcm[2] = { 0, 0 };
@@ -432,7 +432,7 @@ int main(int argc, char *argv[])
 		srandom(tv.tv_usec);
 	}
 #else
-	srand((unsigned)time(0));
+	srand((uint32_t)time(0));
 #endif
 
 	flacfilesize = get_filesize_(flacfilename);

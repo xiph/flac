@@ -31,7 +31,7 @@
 
 static FLAC__bool test_md5_clear_context(void);
 static FLAC__bool test_md5_codec(void);
-static FLAC__bool test_md5_accumulate(const FLAC__int32 * const * signal,unsigned channels, unsigned samples, unsigned bytes_per_sample, const FLAC__byte target_digest [16]);
+static FLAC__bool test_md5_accumulate(const FLAC__int32 * const * signal,uint32_t channels, uint32_t samples, uint32_t bytes_per_sample, const FLAC__byte target_digest [16]);
 
 FLAC__bool test_md5(void)
 {
@@ -54,7 +54,7 @@ static FLAC__bool test_md5_clear_context(void)
 	FLAC__MD5Context ctx;
 	FLAC__byte digest[16];
 	FLAC__byte target[16] = { 0xd4, 0x1d, 0x8c, 0xd9, 0x8f, 0x00, 0xb2, 0x04, 0xe9, 0x80, 0x09, 0x98, 0xec, 0xf8, 0x42, 0x7e };
-	unsigned k ;
+	uint32_t k ;
 	char * cptr;
 
 	printf("testing FLAC__MD5Init ... ");
@@ -167,12 +167,12 @@ static FLAC__byte target_digests [8][4][16] =
 static FLAC__bool test_md5_codec(void)
 {
 	FLAC__int32 arrays[MAX_CHANNEL_COUNT][MD5_SAMPLE_COUNT], *pointer[MAX_CHANNEL_COUNT], **signal;
-	unsigned chan, byte_size, seed = 0x12345679;
+	uint32_t chan, byte_size, seed = 0x12345679;
 
 	/* Set up signal data using a trival Linear Congruent PRNG. */
 	signal = &pointer[0];
 	for (chan = 0 ; chan < MAX_CHANNEL_COUNT ; chan ++) {
-		unsigned k;
+		uint32_t k;
 		pointer[chan] = arrays [chan];
 		for (k = 0 ; k < MD5_SAMPLE_COUNT ; k++) {
 			seed = seed * 1103515245 + 12345;
@@ -190,7 +190,7 @@ static FLAC__bool test_md5_codec(void)
 	return true;
 }
 
-static FLAC__bool test_md5_accumulate(const FLAC__int32 * const * signal, unsigned channels, unsigned samples, unsigned bytes_per_sample, const FLAC__byte target_digest [16])
+static FLAC__bool test_md5_accumulate(const FLAC__int32 * const * signal, uint32_t channels, uint32_t samples, uint32_t bytes_per_sample, const FLAC__byte target_digest [16])
 {
 	FLAC__MD5Context ctx;
 	FLAC__byte digest[16];

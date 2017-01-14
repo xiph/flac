@@ -24,7 +24,7 @@
 #include "defs.h" /* buy FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS for the caller */
 #include "FLAC/ordinals.h"
 
-size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps);
-size_t FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], unsigned wide_samples, unsigned channels, unsigned source_bps, unsigned target_bps);
+size_t FLAC__plugin_common__pack_pcm_signed_big_endian(FLAC__byte *data, const FLAC__int32 * const input[], uint32_t wide_samples, uint32_t channels, uint32_t source_bps, uint32_t target_bps);
+size_t FLAC__plugin_common__pack_pcm_signed_little_endian(FLAC__byte *data, const FLAC__int32 * const input[], uint32_t wide_samples, uint32_t channels, uint32_t source_bps, uint32_t target_bps);
 
 #endif
