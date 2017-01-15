@@ -24,7 +24,7 @@ EXTRA_DIST = \
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
 
-noinst_PROGRAMS = test_libFLAC
+check_PROGRAMS = test_libFLAC
 
 test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \

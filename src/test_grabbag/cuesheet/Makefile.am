@@ -23,7 +23,7 @@ EXTRA_DIST = \
 	test_cuesheet.vcxproj.filters
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
-noinst_PROGRAMS = test_cuesheet
+check_PROGRAMS = test_cuesheet
 test_cuesheet_SOURCES = \
 	main.c
 test_cuesheet_LDADD = \

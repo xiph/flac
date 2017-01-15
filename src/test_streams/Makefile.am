@@ -23,7 +23,7 @@ EXTRA_DIST = \
 	test_streams.vcxproj.filters
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
-noinst_PROGRAMS = test_streams
+check_PROGRAMS = test_streams
 test_streams_SOURCES = \
 	main.c
 

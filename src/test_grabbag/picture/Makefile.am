@@ -23,7 +23,7 @@ EXTRA_DIST = \
 	test_picture.vcxproj.filters
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
-noinst_PROGRAMS = test_picture
+check_PROGRAMS = test_picture
 test_picture_SOURCES = \
 	main.c
 
