@@ -3452,7 +3452,7 @@ FLAC__bool process_subframe_(
 #endif
 					rice_parameter++; /* to account for the signed->uint32_t conversion during rice coding */
 					if(rice_parameter >= rice_parameter_limit) {
-#ifdef DEBUG_VERBOSE
+#ifndef NDEBUG
 						fprintf(stderr, "clipping rice_parameter (%u -> %u) @0\n", rice_parameter, rice_parameter_limit - 1);
 #endif
 						rice_parameter = rice_parameter_limit - 1;
@@ -3524,7 +3524,7 @@ FLAC__bool process_subframe_(
 								rice_parameter = (lpc_residual_bits_per_sample > 0.0)? (uint32_t)(lpc_residual_bits_per_sample+0.5) : 0; /* 0.5 is for rounding */
 								rice_parameter++; /* to account for the signed->uint32_t conversion during rice coding */
 								if(rice_parameter >= rice_parameter_limit) {
-#ifdef DEBUG_VERBOSE
+#ifndef NDEBUG
 									fprintf(stderr, "clipping rice_parameter (%u -> %u) @1\n", rice_parameter, rice_parameter_limit - 1);
 #endif
 									rice_parameter = rice_parameter_limit - 1;
@@ -4156,7 +4156,7 @@ FLAC__bool set_partitioned_rice_(
 				min_rice_parameter = suggested_rice_parameter - rice_parameter_search_dist;
 			max_rice_parameter = suggested_rice_parameter + rice_parameter_search_dist;
 			if(max_rice_parameter >= rice_parameter_limit) {
-#ifdef DEBUG_VERBOSE
+#ifndef NDEBUG
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @5\n", max_rice_parameter, rice_parameter_limit - 1);
 #endif
 				max_rice_parameter = rice_parameter_limit - 1;
@@ -4246,7 +4246,7 @@ FLAC__bool set_partitioned_rice_(
 			}
 #endif
 			if(rice_parameter >= rice_parameter_limit) {
-#ifdef DEBUG_VERBOSE
+#ifndef NDEBUG
 				fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
 #endif
 				rice_parameter = rice_parameter_limit - 1;
@@ -4261,7 +4261,7 @@ FLAC__bool set_partitioned_rice_(
 					min_rice_parameter = rice_parameter - rice_parameter_search_dist;
 				max_rice_parameter = rice_parameter + rice_parameter_search_dist;
 				if(max_rice_parameter >= rice_parameter_limit) {
-#ifdef DEBUG_VERBOSE
+#ifndef NDEBUG
 					fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, rice_parameter_limit - 1);
 #endif
 					max_rice_parameter = rice_parameter_limit - 1;

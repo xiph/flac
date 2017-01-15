@@ -75,7 +75,7 @@ char* FLAC_plugin__charset_convert_string (const char *string, char *from, char 
 
 	if ((cd = iconv_open(to, from)) == (iconv_t)-1)
 	{
-#ifdef DEBUG
+#ifndef NDEBUG
 		fprintf(stderr, "convert_string(): Conversion not supported. Charsets: %s -> %s", from, to);
 #endif
 		return strdup(string);
@@ -115,7 +115,7 @@ retry:
 				length = strlen(input);
 				goto retry;
 			default:
-#ifdef DEBUG
+#ifndef NDEBUG
 				fprintf(stderr, "convert_string(): Conversion failed. Inputstring: %s; Error: %s", string, strerror(errno));
 #endif
 				break;

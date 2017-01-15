@@ -61,8 +61,6 @@ static gint icy_metaint = 0;
 
 extern InputPlugin flac_ip;
 
-#undef DEBUG_UDP
-
 /* Static udp channel functions */
 static int udp_establish_listener (gint *sock);
 static int udp_check_for_data(gint sock);
@@ -573,7 +571,7 @@ static int http_connect (gchar *url_, gboolean head, guint64 offset)
 							if (!strncmp(line, "icy-metaint:", 12))
 								icy_metaint = atoi(line + 12);
 							if (!strncmp(line, "x-audiocast-udpport:", 20)) {
-#ifdef DEBUG_UDP
+#ifndef NDEBUG
 								fprintf (stderr, "Server wants udp messages on port %d\n", atoi (line + 20));
 #endif
 								/*udp_serverport = atoi (line + 20);*/
@@ -752,7 +750,7 @@ static int udp_establish_listener(int *sock)
 	struct sockaddr_in sin;
 	socklen_t sinlen = sizeof (struct sockaddr_in);
 
-#ifdef DEBUG_UDP
+#ifndef NDEBUG
 	fprintf (stderr,"Establishing udp listener\n");
 #endif
 
@@ -791,7 +789,7 @@ static int udp_establish_listener(int *sock)
 		return -1;
 	}
 
-#ifdef DEBUG_UDP
+#ifndef NDEBUG
 	fprintf (stderr,"Listening on local %s:%d\n", inet_ntoa(sin.sin_addr), g_ntohs(sin.sin_port));
 #endif
 
@@ -820,7 +818,7 @@ static int udp_check_for_data(int sock)
 		return 0;
 	}
 	buf[len] = '\0';
-#ifdef DEBUG_UDP
+#ifndef NDEBUG
 	fprintf (stderr,"Received: [%s]\n", buf);
 #endif
 	lines = g_strsplit(buf, "\n", 0);
@@ -889,7 +887,7 @@ static int udp_check_for_data(int sock)
 				g_log(NULL, G_LOG_LEVEL_WARNING,
 				      "udp_check_for_data(): Unable to send ack to server: %s", strerror(errno));
 			}
-#ifdef DEBUG_UDP
+#ifndef NDEBUG
 			else
 				fprintf(stderr,"Sent ack: %s", obuf);
 			fprintf (stderr,"Remote: %s:%d\n", inet_ntoa(from.sin_addr), g_ntohs(from.sin_port));

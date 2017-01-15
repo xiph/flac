@@ -42,7 +42,7 @@
 #include "private/bitmath.h"
 #include "private/lpc.h"
 #include "private/macros.h"
-#if defined DEBUG || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
+#if !defined(NDEBUG) || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
 #include <stdio.h>
 #endif
 
@@ -234,7 +234,7 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], uint32_t order,
 		const int nshift = -(*shift);
 		double error = 0.0;
 		FLAC__int32 q;
-#ifdef DEBUG
+#ifndef NDEBUG
 		fprintf(stderr,"FLAC__lpc_quantize_coefficients: negative shift=%d order=%u cmax=%f\n", *shift, order, cmax);
 #endif
 		for(i = 0; i < order; i++) {

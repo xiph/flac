@@ -92,9 +92,3 @@ replaygain_analysis_libreplaygain_analysis_la_SOURCES = replaygain_analysis/repl
 
 replaygain_synthesis_libreplaygain_synthesis_la_CFLAGS = -I $(top_srcdir)/src/share/replaygain_synthesis/include
 replaygain_synthesis_libreplaygain_synthesis_la_SOURCES = replaygain_synthesis/replaygain_synthesis.c
-
-debug:
-	$(MAKE) all CFLAGS="@DEBUG@"
-
-profile:
-	$(MAKE) all CFLAGS="@PROFILE@"

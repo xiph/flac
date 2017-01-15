@@ -37,9 +37,3 @@ libplugin_common_la_SOURCES = \
 EXTRA_DIST = \
 	Makefile.lite \
 	README
-
-debug:
-	$(MAKE) all CFLAGS="@DEBUG@"
-
-profile:
-	$(MAKE) all CFLAGS="@PROFILE@"

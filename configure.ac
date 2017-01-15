@@ -26,6 +26,13 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign 1.10 -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
+AC_MSG_CHECKING([whether configure should try to set CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS])
+AS_IF([test "x${CFLAGS+set}" = "xset" || test "x${CXXFLAGS+set}" = "xset" || test "x${CPPFLAGS+set}" = "xset" || test "x${LDFLAGS+set}" = "xset"],
+	[enable_flags_setting=no],
+	[enable_flags_setting=yes]
+)
+AC_MSG_RESULT([${enable_flags_setting}])
+AX_CHECK_ENABLE_DEBUG
 user_cflags=$CFLAGS
 
 #Prefer whatever the current ISO standard is.
@@ -206,14 +213,7 @@ AC_DEFINE(FLAC__ALIGN_MALLOC_DATA)
 AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA, [define to align allocated memory on 32-byte boundaries])
 fi
 
-AC_ARG_ENABLE(debug,
-AC_HELP_STRING([--enable-debug], [Turn on debugging]),
-[case "${enableval}" in
-	yes) debug=true ;;
-	no)  debug=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-debug) ;;
-esac],[debug=false])
-AM_CONDITIONAL(DEBUG, test "x$debug" = xtrue)
+AM_CONDITIONAL([DEBUG], [test "x${ax_enable_debug}" = "xyes" || test "x${ax_enable_debug}" = "xinfo"])
 
 AC_ARG_ENABLE(sse,
 AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
@@ -390,14 +390,13 @@ AC_DEFINE(FLAC__HAS_NASM)
 AH_TEMPLATE(FLAC__HAS_NASM, [define if you are compiling for x86 and have the NASM assembler])
 fi
 
-if test "x$debug" = xtrue; then
-	CPPFLAGS="-DDEBUG $CPPFLAGS"
-	CFLAGS="-g $CFLAGS"
-else
-	CPPFLAGS="-DNDEBUG $CPPFLAGS"
-	CFLAGS=$(echo "$CFLAGS" | sed 's/-O2//')
+dnl If debugging is disabled AND no CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
+dnl are provided, we can set defaults to our liking
+AS_IF([test "x${ax_enable_debug}" = "xno" && test "x${enable_flags_setting}" = "xyes"], [
+	AC_PROG_SED
+	CFLAGS=$(echo "$CFLAGS" | $SED 's/-O2//')
 	CFLAGS="-O3 -funroll-loops $CFLAGS"
-fi
+])
 
 XIPH_GCC_VERSION
 
@@ -406,7 +405,28 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
 	XIPH_ADD_CFLAGS([-Wdeclaration-after-statement])
-	XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
+
+	dnl some distributions (such as Gentoo) have _FORTIFY_SOURCE always
+	dnl enabled. We test for this situation in order to prevent polluting
+	dnl the console with messages of macro redefinitions.
+	AC_MSG_CHECKING([whether to add -D_FORTIFY_SOURCE=2 to CFLAGS])
+	AC_LINK_IFELSE([
+		AC_LANG_SOURCE(
+			[[
+				int main() {
+				#ifndef _FORTIFY_SOURCE
+					return 0;
+				#else
+					this_is_an_error;
+				#endif
+				}
+			]]
+		)], [
+			AC_MSG_RESULT([yes])
+			XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
+		], [
+			AC_MSG_RESULT([no])
+		])
 
 	AC_LANG_PUSH([C++])
 	XIPH_ADD_CXXFLAGS([-Weffc++])
