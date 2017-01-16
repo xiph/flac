@@ -62,8 +62,8 @@
  *    flac_float_t       l_samples [4096];
  *    flac_float_t       r_samples [4096];
  *    size_t        num_samples;
- *    uint32_t int  num_songs;
- *    uint32_t int  i;
+ *    uint32_t  num_songs;
+ *    uint32_t  i;
  *
  *    InitGainAnalysis ( 44100 );
  *    for ( i = 1; i <= num_songs; i++ ) {

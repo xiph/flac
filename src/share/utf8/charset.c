@@ -129,7 +129,7 @@ int utf8_mbtowc(int *pwc, const char *s, size_t n)
 
 int utf8_wctomb(char *s, int wc1)
 {
-  uint32_t int wc = wc1;
+  uint32_t wc = wc1;
 
   if (!s)
     return 0;
