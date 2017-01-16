@@ -118,8 +118,8 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, uint32_t lengt
 
 	/* calculate length */
 	{
-		const uint32_t char *s, *end;
-		for (s=(const uint32_t char *)src, end=s+length; s<end; chars++) {
+		const uint8_t *s, *end;
+		for (s=(const uint8_t *)src, end=s+length; s<end; chars++) {
 			const uint32_t n = local__utf8len(s);
 			if (n == 0)
 				return 0;
@@ -137,7 +137,7 @@ static FLAC__uint16 *local__convert_utf8_to_ucs2(const char *src, uint32_t lengt
 
 	/* convert */
 	{
-		const uint32_t char *s = (const uint32_t char *)src;
+		const uint8_t *s = (const uint8_t *)src;
 		FLAC__uint16 *u = out;
 		for ( ; chars; chars--)
 			s += local__utf8_to_ucs2(s, u++);
@@ -200,7 +200,7 @@ static char *local__convert_ucs2_to_utf8(const FLAC__uint16 *src, uint32_t lengt
 
 	/* convert */
 	{
-		uint32_t char *u = (uint32_t char *)out;
+		uint8_t *u = (uint8_t *)out;
 		for ( ; *src; src++)
 			u += local__ucs2_to_utf8(*src, u);
 		local__ucs2_to_utf8(*src, u);
