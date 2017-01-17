@@ -2080,7 +2080,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_is_legal(const FLAC__StreamMe
  *    \code object != NULL \endcode
  *    \code object->type == FLAC__METADATA_TYPE_CUESHEET \endcode
  * \retval FLAC__uint32
- *    The unsigned integereger representation of the CDDB/freedb ID
+ *    The unsigned integer representation of the CDDB/freedb ID
  */
 FLAC_API FLAC__uint32 FLAC__metadata_object_cuesheet_calculate_cddb_id(const FLAC__StreamMetadata *object);
 
