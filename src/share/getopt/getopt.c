@@ -54,7 +54,6 @@
 #endif
 
 #include <stdio.h>
-#include <stdint.h>
 
 /* Comment out all this code if we are using the GNU C Library, and are not
    actually compiling the library itself.  This code is part of the GNU C
@@ -664,8 +663,7 @@ share___getopt_internal (argc, argv, optstring, longopts, longind, long_only)
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
 	if (!strncmp (p->name, nextchar, nameend - nextchar))
 	  {
-	    if ((uint32_t) (nameend - nextchar)
-		== (uint32_t) strlen (p->name))
+	    if ((size_t) (nameend - nextchar) == strlen (p->name))
 	      {
 		/* Exact match found.  */
 		pfound = p;
@@ -853,7 +851,7 @@ share___getopt_internal (argc, argv, optstring, longopts, longind, long_only)
 	for (p = longopts, option_index = 0; p->name; p++, option_index++)
 	  if (!strncmp (p->name, nextchar, nameend - nextchar))
 	    {
-	      if ((uint32_t) (nameend - nextchar) == strlen (p->name))
+	      if ((size_t) (nameend - nextchar) == strlen (p->name))
 		{
 		  /* Exact match found.  */
 		  pfound = p;
