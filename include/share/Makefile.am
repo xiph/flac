@@ -9,6 +9,7 @@ EXTRA_DIST = \
 	getopt.h \
 	grabbag.h \
 	macros.h \
+	msvc2005_int.h \
 	private.h \
 	replaygain_analysis.h \
 	replaygain_synthesis.h \

@@ -50,6 +50,7 @@
 				DebugInformationFormat="4"
 				CompileAs="0"
 				DisableSpecificWarnings="4267;4996"
+				ForcedIncludeFiles="share/msvc2005_int.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -117,6 +118,7 @@
 				DebugInformationFormat="3"
 				CompileAs="0"
 				DisableSpecificWarnings="4267;4996"
+				ForcedIncludeFiles="share/msvc2005_int.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"

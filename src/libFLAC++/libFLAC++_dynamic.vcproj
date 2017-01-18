@@ -49,6 +49,7 @@
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="4"
 				DisableSpecificWarnings="4267;4996"
+				ForcedIncludeFiles="share/msvc2005_int.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
@@ -125,6 +126,7 @@
 				Detect64BitPortabilityProblems="true"
 				DebugInformationFormat="3"
 				DisableSpecificWarnings="4267;4996"
+				ForcedIncludeFiles="share/msvc2005_int.h"
 			/>
 			<Tool
 				Name="VCManagedResourceCompilerTool"
