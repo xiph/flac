@@ -485,7 +485,7 @@ int charset_convert(const char *fromcode, const char *tocode,
 {
   int ret = 0;
   struct charset *charset1, *charset2;
-  char *tobuf, *p, *newbuf;
+  char *tobuf, *p;
   int i, j, wc;
 
   charset1 = charset_find(fromcode);
@@ -520,8 +520,10 @@ int charset_convert(const char *fromcode, const char *tocode,
     *tolen = p - tobuf;
   *p++ = '\0';
   if (to) {
-    newbuf = realloc(tobuf, p - tobuf);
-    *to = newbuf ? newbuf : tobuf;
+    char *tobuf_saved = tobuf;
+    *to = realloc(tobuf, p - tobuf);
+    if (*to == NULL)
+      *to = tobuf_saved;
   }
   else
     free(tobuf);
