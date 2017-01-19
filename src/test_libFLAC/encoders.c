@@ -397,7 +397,7 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_encoder_get_max_lpc_order()... ");
 	if(FLAC__stream_encoder_get_max_lpc_order(encoder) != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, FLAC__stream_encoder_get_max_lpc_order(encoder));
+		printf("FAILED, expected %d, got %u\n", 0, FLAC__stream_encoder_get_max_lpc_order(encoder));
 		return false;
 	}
 	printf("OK\n");
@@ -430,21 +430,21 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 
 	printf("testing FLAC__stream_encoder_get_min_residual_partition_order()... ");
 	if(FLAC__stream_encoder_get_min_residual_partition_order(encoder) != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, FLAC__stream_encoder_get_min_residual_partition_order(encoder));
+		printf("FAILED, expected %d, got %u\n", 0, FLAC__stream_encoder_get_min_residual_partition_order(encoder));
 		return false;
 	}
 	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_get_max_residual_partition_order()... ");
 	if(FLAC__stream_encoder_get_max_residual_partition_order(encoder) != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, FLAC__stream_encoder_get_max_residual_partition_order(encoder));
+		printf("FAILED, expected %d, got %u\n", 0, FLAC__stream_encoder_get_max_residual_partition_order(encoder));
 		return false;
 	}
 	printf("OK\n");
 
 	printf("testing FLAC__stream_encoder_get_rice_parameter_search_dist()... ");
 	if(FLAC__stream_encoder_get_rice_parameter_search_dist(encoder) != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, FLAC__stream_encoder_get_rice_parameter_search_dist(encoder));
+		printf("FAILED, expected %d, got %u\n", 0, FLAC__stream_encoder_get_rice_parameter_search_dist(encoder));
 		return false;
 	}
 	printf("OK\n");

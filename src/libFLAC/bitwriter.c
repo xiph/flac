@@ -201,13 +201,13 @@ void FLAC__bitwriter_dump(const FLAC__BitWriter *bw, FILE *out)
 		for(i = 0; i < bw->words; i++) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < FLAC__BITS_PER_WORD; j++)
-				fprintf(out, "%01u", bw->buffer[i] & ((bwword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
+				fprintf(out, "%01d", bw->buffer[i] & ((bwword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 		if(bw->bits > 0) {
 			fprintf(out, "%08X: ", i);
 			for(j = 0; j < bw->bits; j++)
-				fprintf(out, "%01u", bw->accum & ((bwword)1 << (bw->bits-j-1)) ? 1:0);
+				fprintf(out, "%01d", bw->accum & ((bwword)1 << (bw->bits-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 	}

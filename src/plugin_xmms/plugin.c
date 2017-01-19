@@ -324,7 +324,7 @@ void FLAC_XMMS__play_file(char *filename)
 		}
 		else {
 			/*@@@ need some error here like wa2: MessageBox(mod_.hMainWindow, "ERROR: plugin can only handle 8/16-bit samples\n", "ERROR: plugin can only handle 8/16-bit samples", 0); */
-			fprintf(stderr, "libxmms-flac: can't handle %d bit output\n", stream_data_.bits_per_sample);
+			fprintf(stderr, "libxmms-flac: can't handle %u bit output\n", stream_data_.bits_per_sample);
 			safe_decoder_finish_(decoder_);
 			return;
 		}

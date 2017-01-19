@@ -438,7 +438,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("testing get_max_lpc_order()... ");
 	if(encoder->get_max_lpc_order() != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, encoder->get_max_lpc_order());
+		printf("FAILED, expected %d, got %u\n", 0, encoder->get_max_lpc_order());
 		return false;
 	}
 	printf("OK\n");
@@ -471,21 +471,21 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("testing get_min_residual_partition_order()... ");
 	if(encoder->get_min_residual_partition_order() != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, encoder->get_min_residual_partition_order());
+		printf("FAILED, expected %d, got %u\n", 0, encoder->get_min_residual_partition_order());
 		return false;
 	}
 	printf("OK\n");
 
 	printf("testing get_max_residual_partition_order()... ");
 	if(encoder->get_max_residual_partition_order() != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, encoder->get_max_residual_partition_order());
+		printf("FAILED, expected %d, got %u\n", 0, encoder->get_max_residual_partition_order());
 		return false;
 	}
 	printf("OK\n");
 
 	printf("testing get_rice_parameter_search_dist()... ");
 	if(encoder->get_rice_parameter_search_dist() != 0) {
-		printf("FAILED, expected %u, got %u\n", 0, encoder->get_rice_parameter_search_dist());
+		printf("FAILED, expected %d, got %u\n", 0, encoder->get_rice_parameter_search_dist());
 		return false;
 	}
 	printf("OK\n");

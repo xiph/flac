@@ -306,7 +306,7 @@ void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out)
 				if(i < br->consumed_words || (i == br->consumed_words && j < br->consumed_bits))
 					fprintf(out, ".");
 				else
-					fprintf(out, "%01u", br->buffer[i] & ((brword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
+					fprintf(out, "%01d", br->buffer[i] & ((brword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 		if(br->bytes > 0) {
@@ -315,7 +315,7 @@ void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out)
 				if(i < br->consumed_words || (i == br->consumed_words && j < br->consumed_bits))
 					fprintf(out, ".");
 				else
-					fprintf(out, "%01u", br->buffer[i] & ((brword)1 << (br->bytes*8-j-1)) ? 1:0);
+					fprintf(out, "%01d", br->buffer[i] & ((brword)1 << (br->bytes*8-j-1)) ? 1:0);
 			fprintf(out, "\n");
 		}
 	}

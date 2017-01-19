@@ -282,10 +282,10 @@ static void stream_decoder_metadata_callback_(const FLAC__StreamDecoder *decoder
 		return;
 
 	if (metadata->type == FLAC__METADATA_TYPE_APPLICATION) {
-		printf ("%d ('%c%c%c%c')... ", dcd->current_metadata_number, metadata->data.application.id [0], metadata->data.application.id [1], metadata->data.application.id [2], metadata->data.application.id [3]);
+		printf ("%u ('%c%c%c%c')... ", dcd->current_metadata_number, metadata->data.application.id [0], metadata->data.application.id [1], metadata->data.application.id [2], metadata->data.application.id [3]);
 	}
 	else {
-		printf("%d... ", dcd->current_metadata_number);
+		printf("%u... ", dcd->current_metadata_number);
 	}
 	fflush(stdout);
 
