@@ -1439,7 +1439,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
 	FLAC__bool error = false;
 
-	FLAC__ASSERT(0 != encoder);
+	if (encoder == NULL)
+		return false;
+
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
 
