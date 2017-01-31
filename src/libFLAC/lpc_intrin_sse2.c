@@ -47,9 +47,6 @@
 
 #include <emmintrin.h> /* SSE2 */
 
-#define RESIDUAL16_RESULT(xmmN) curr = *data++; *residual++ = curr - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
-#define     DATA16_RESULT(xmmN) curr = *residual++ + (_mm_cvtsi128_si32(xmmN) >> lp_quantization); *data++ = curr;
-
 #define RESIDUAL32_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 #define     DATA32_RESULT(xmmN) data[i] = residual[i] + (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 
@@ -936,6 +933,8 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 
 #if defined FLAC__CPU_IA32 && !defined FLAC__HAS_NASM /* unused for x64; not better than MMX asm */
 
+#define DATA16_RESULT(xmmN) curr = *residual++ + (_mm_cvtsi128_si32(xmmN) >> lp_quantization); *data++ = curr;
+
 FLAC__SSE_TARGET("sse2")
 void FLAC__lpc_restore_signal_16_intrin_sse2(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[])
 {
@@ -982,8 +981,8 @@ void FLAC__lpc_restore_signal_16_intrin_sse2(const FLAC__int32 residual[], uint3
 		xmm2 = _mm_slli_si128(xmm0, 2);
 
 		/* xmm0, xmm1: qlp_coeff
-			xmm2, xmm7: qlp_coeff << 16 bit
-			xmm3, xmm4: data */
+		   xmm2, xmm7: qlp_coeff << 16 bit
+		   xmm3, xmm4: data */
 
 		xmm5 = _mm_madd_epi16(xmm4, xmm1);
 		xmm6 = _mm_madd_epi16(xmm3, xmm0);
@@ -1042,8 +1041,7 @@ void FLAC__lpc_restore_signal_16_intrin_sse2(const FLAC__int32 residual[], uint3
 			data_len-=2;
 		}
 	} /* endif(order > 8) */
-	else
-	{
+	else {
 		FLAC__int32 curr;
 		__m128i xmm0, xmm1, xmm3, xmm6;
 		xmm0 = _mm_loadu_si128((const __m128i*)(qlp_coeff+0));
@@ -1057,7 +1055,7 @@ void FLAC__lpc_restore_signal_16_intrin_sse2(const FLAC__int32 residual[], uint3
 		xmm3 = _mm_packs_epi32(xmm3, xmm1);
 
 		/* xmm0: qlp_coeff
-			xmm3: data */
+		   xmm3: data */
 
 		xmm6 = _mm_madd_epi16(xmm3, xmm0);
 		xmm6 = _mm_add_epi32(xmm6, _mm_srli_si128(xmm6, 8));

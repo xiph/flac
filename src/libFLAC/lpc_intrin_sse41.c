@@ -866,7 +866,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], ui
 
 					dat0 = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(data-2 )));
 
-					summ = _mm_mul_epi32(dat0, qlp0) ;
+					summ = _mm_mul_epi32(dat0, qlp0);
 
 					summ = _mm_add_epi64(summ, _mm_srli_si128(summ, 8));
 					summ = _mm_srl_epi64(summ, cnt);
@@ -877,7 +877,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], ui
 					for(i = 1; i < (int)data_len; i++) {
 						dat0 = _mm_alignr_epi8(temp, dat0, 8);
 
-						summ = _mm_mul_epi32(dat0, qlp0) ;
+						summ = _mm_mul_epi32(dat0, qlp0);
 
 						summ = _mm_add_epi64(summ, _mm_srli_si128(summ, 8));
 						summ = _mm_srl_epi64(summ, cnt);
@@ -899,7 +899,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], ui
 					data[0] = _mm_cvtsi128_si32(temp);
 
 					for(i = 1; i < (int)data_len; i++) {
-						summ = _mm_mul_epi32(temp, qlp0) ;
+						summ = _mm_mul_epi32(temp, qlp0);
 						summ = _mm_srl_epi64(summ, cnt);
 						temp = _mm_cvtsi32_si128(residual[i]);
 						temp = _mm_add_epi32(temp, summ);
