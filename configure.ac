@@ -393,9 +393,7 @@ fi
 dnl If debugging is disabled AND no CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
 dnl are provided, we can set defaults to our liking
 AS_IF([test "x${ax_enable_debug}" = "xno" && test "x${enable_flags_setting}" = "xyes"], [
-	AC_PROG_SED
-	CFLAGS=$(echo "$CFLAGS" | $SED 's/-O2//')
-	CFLAGS="-O3 -funroll-loops $CFLAGS"
+	CFLAGS="-O3 -funroll-loops"
 ])
 
 XIPH_GCC_VERSION
@@ -409,24 +407,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	dnl some distributions (such as Gentoo) have _FORTIFY_SOURCE always
 	dnl enabled. We test for this situation in order to prevent polluting
 	dnl the console with messages of macro redefinitions.
-	AC_MSG_CHECKING([whether to add -D_FORTIFY_SOURCE=2 to CFLAGS])
-	AC_LINK_IFELSE([
-		AC_LANG_SOURCE(
-			[[
-				int main() {
-				#ifndef _FORTIFY_SOURCE
-					return 0;
-				#else
-					this_is_an_error;
-				#endif
-				}
-			]]
-		)], [
-			AC_MSG_RESULT([yes])
-			XIPH_ADD_CFLAGS([-D_FORTIFY_SOURCE=2])
-		], [
-			AC_MSG_RESULT([no])
-		])
+	AX_ADD_FORTIFY_SOURCE
 
 	AC_LANG_PUSH([C++])
 	XIPH_ADD_CXXFLAGS([-Weffc++])
