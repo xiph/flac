@@ -4540,9 +4540,6 @@ FILE *get_binary_stdout_(void)
 	 */
 #if defined _MSC_VER || defined __MINGW32__
 	_setmode(_fileno(stdout), _O_BINARY);
-#elif defined __CYGWIN__
-	/* almost certainly not needed for any modern Cygwin, but let's be safe... */
-	setmode(_fileno(stdout), _O_BINARY);
 #elif defined __EMX__
 	setmode(fileno(stdout), O_BINARY);
 #endif
