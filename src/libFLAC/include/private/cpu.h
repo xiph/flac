@@ -88,8 +88,25 @@
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
   #endif
-#elif defined __GNUC__
-  #if (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* since GCC 4.9 -msse.. compiler options aren't necessary */
+#elif defined __GNUC__ || defined __clang__
+  #if defined __clang__ && __has_attribute(__target__) /* clang */
+    #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+    #if __has_builtin(__builtin_ia32_maxps)
+      #define FLAC__SSE_SUPPORTED 1
+    #endif
+    #if __has_builtin(__builtin_ia32_pmuludq128)
+      #define FLAC__SSE2_SUPPORTED 1
+    #endif
+    #if __has_builtin(__builtin_ia32_pabsd128)
+      #define FLAC__SSSE3_SUPPORTED 1
+    #endif
+    #if __has_builtin(__builtin_ia32_pmuldq128)
+      #define FLAC__SSE4_1_SUPPORTED 1
+    #endif
+    #if __has_builtin(__builtin_ia32_pabsd256)
+      #define FLAC__AVX2_SUPPORTED 1
+    #endif
+  #elif !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
     #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
     #define FLAC__SSE_SUPPORTED 1
     #define FLAC__SSE2_SUPPORTED 1
@@ -100,7 +117,7 @@
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
 #endif
-  #else /* for GCC older than 4.9 */
+  #else /* older GCC and clang */
     #define FLAC__SSE_TARGET(x)
     #ifdef __SSE__
       #define FLAC__SSE_SUPPORTED 1
@@ -123,7 +140,7 @@
     #ifdef __FMA__
       #define FLAC__FMA_SUPPORTED 1
     #endif
-  #endif /* GCC version */
+  #endif
 #endif /* compiler version */
 #endif /* intrinsics support */
 
