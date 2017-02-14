@@ -1387,9 +1387,9 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			case FORMAT_AIFF_C:
 				while(encoder_session.fmt.iff.data_bytes > 0) {
 					const size_t bytes_to_read =
-						min (sizeof (ubuffer.u8),
-							min ((size_t)encoder_session.fmt.iff.data_bytes,
-								CHUNK_OF_SAMPLES * (size_t)encoder_session.info.bytes_per_wide_sample));
+						(size_t) min (sizeof (ubuffer.u8),
+							min (encoder_session.fmt.iff.data_bytes,
+								CHUNK_OF_SAMPLES * (uint64_t) encoder_session.info.bytes_per_wide_sample));
 					size_t bytes_read = fread(ubuffer.u8, sizeof(uint8_t), bytes_to_read, infile);
 					if(bytes_read == 0) {
 						if(ferror(infile)) {
