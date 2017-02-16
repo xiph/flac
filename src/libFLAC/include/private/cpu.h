@@ -55,6 +55,9 @@
 
 #endif
 
+#ifndef __has_attribute
+#define __has_attribute(x) 0
+#endif
 
 #if FLAC__HAS_X86INTRIN
 /* SSE intrinsics support by ICC/MSVC/GCC */
@@ -88,58 +91,56 @@
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
   #endif
-#elif defined __GNUC__ && defined __clang__
-  #if defined __clang__ && __has_attribute(__target__) /* clang */
-    #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
-    #if __has_builtin(__builtin_ia32_maxps)
-      #define FLAC__SSE_SUPPORTED 1
-    #endif
-    #if __has_builtin(__builtin_ia32_pmuludq128)
-      #define FLAC__SSE2_SUPPORTED 1
-    #endif
-    #if __has_builtin(__builtin_ia32_pabsd128)
-      #define FLAC__SSSE3_SUPPORTED 1
-    #endif
-    #if __has_builtin(__builtin_ia32_pmuldq128)
-      #define FLAC__SSE4_1_SUPPORTED 1
-    #endif
-    #if __has_builtin(__builtin_ia32_pabsd256)
-      #define FLAC__AVX2_SUPPORTED 1
-    #endif
-#elif defined (__GNUC__) &&  (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
-    #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+#elif defined __clang__ && __has_attribute(__target__) /* clang */
+  #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+  #if __has_builtin(__builtin_ia32_maxps)
     #define FLAC__SSE_SUPPORTED 1
+  #endif
+  #if __has_builtin(__builtin_ia32_pmuludq128)
     #define FLAC__SSE2_SUPPORTED 1
+  #endif
+  #if __has_builtin(__builtin_ia32_pabsd128)
     #define FLAC__SSSE3_SUPPORTED 1
+  #endif
+  #if __has_builtin(__builtin_ia32_pmuldq128)
     #define FLAC__SSE4_1_SUPPORTED 1
-#ifdef FLAC__USE_AVX
+  #endif
+  #if __has_builtin(__builtin_ia32_pabsd256)
+    #define FLAC__AVX2_SUPPORTED 1
+  #endif
+#elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
+  #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+  #define FLAC__SSE_SUPPORTED 1
+  #define FLAC__SSE2_SUPPORTED 1
+  #define FLAC__SSSE3_SUPPORTED 1
+  #define FLAC__SSE4_1_SUPPORTED 1
+  #ifdef FLAC__USE_AVX
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
-#endif
-  #else /* older GCC and clang */
-    #define FLAC__SSE_TARGET(x)
-    #ifdef __SSE__
-      #define FLAC__SSE_SUPPORTED 1
-    #endif
-    #ifdef __SSE2__
-      #define FLAC__SSE2_SUPPORTED 1
-    #endif
-    #ifdef __SSSE3__
-      #define FLAC__SSSE3_SUPPORTED 1
-    #endif
-    #ifdef __SSE4_1__
-      #define FLAC__SSE4_1_SUPPORTED 1
-    #endif
-    #ifdef __AVX__
-      #define FLAC__AVX_SUPPORTED 1
-    #endif
-    #ifdef __AVX2__
-      #define FLAC__AVX2_SUPPORTED 1
-    #endif
-    #ifdef __FMA__
-      #define FLAC__FMA_SUPPORTED 1
-    #endif
+  #endif
+#else
+  #define FLAC__SSE_TARGET(x)
+  #ifdef __SSE__
+    #define FLAC__SSE_SUPPORTED 1
+  #endif
+  #ifdef __SSE2__
+    #define FLAC__SSE2_SUPPORTED 1
+  #endif
+  #ifdef __SSSE3__
+    #define FLAC__SSSE3_SUPPORTED 1
+  #endif
+  #ifdef __SSE4_1__
+    #define FLAC__SSE4_1_SUPPORTED 1
+  #endif
+  #ifdef __AVX__
+    #define FLAC__AVX_SUPPORTED 1
+  #endif
+  #ifdef __AVX2__
+    #define FLAC__AVX2_SUPPORTED 1
+  #endif
+  #ifdef __FMA__
+    #define FLAC__FMA_SUPPORTED 1
   #endif
 #endif /* compiler version */
 #endif /* intrinsics support */
