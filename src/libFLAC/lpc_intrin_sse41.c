@@ -875,44 +875,65 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], ui
 		}
 	}
 	else { /* order > 12 */
-		FLAC__int64 sum;
+		__m128i qlp[16];
+
+		for(i = 0; i < (int)order/2; i++)
+			qlp[i] = _mm_shuffle_epi32(_mm_loadl_epi64((const __m128i*)(qlp_coeff+i*2)), _MM_SHUFFLE(2,0,3,1));	// 0  q[2*i]  0  q[2*i+1]
+		if(order & 1)
+			qlp[i] = _mm_shuffle_epi32(_mm_cvtsi32_si128(qlp_coeff[i*2]), _MM_SHUFFLE(2,0,3,1));
+
 		for(i = 0; i < (int)data_len; i++) {
-			sum = 0;
-			switch(order) {
-				case 32: sum += qlp_coeff[31] * (FLAC__int64)data[i-32];
-				case 31: sum += qlp_coeff[30] * (FLAC__int64)data[i-31];
-				case 30: sum += qlp_coeff[29] * (FLAC__int64)data[i-30];
-				case 29: sum += qlp_coeff[28] * (FLAC__int64)data[i-29];
-				case 28: sum += qlp_coeff[27] * (FLAC__int64)data[i-28];
-				case 27: sum += qlp_coeff[26] * (FLAC__int64)data[i-27];
-				case 26: sum += qlp_coeff[25] * (FLAC__int64)data[i-26];
-				case 25: sum += qlp_coeff[24] * (FLAC__int64)data[i-25];
-				case 24: sum += qlp_coeff[23] * (FLAC__int64)data[i-24];
-				case 23: sum += qlp_coeff[22] * (FLAC__int64)data[i-23];
-				case 22: sum += qlp_coeff[21] * (FLAC__int64)data[i-22];
-				case 21: sum += qlp_coeff[20] * (FLAC__int64)data[i-21];
-				case 20: sum += qlp_coeff[19] * (FLAC__int64)data[i-20];
-				case 19: sum += qlp_coeff[18] * (FLAC__int64)data[i-19];
-				case 18: sum += qlp_coeff[17] * (FLAC__int64)data[i-18];
-				case 17: sum += qlp_coeff[16] * (FLAC__int64)data[i-17];
-				case 16: sum += qlp_coeff[15] * (FLAC__int64)data[i-16];
-				case 15: sum += qlp_coeff[14] * (FLAC__int64)data[i-15];
-				case 14: sum += qlp_coeff[13] * (FLAC__int64)data[i-14];
-				case 13: sum += qlp_coeff[12] * (FLAC__int64)data[i-13];
-				         sum += qlp_coeff[11] * (FLAC__int64)data[i-12];
-				         sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
-				         sum += qlp_coeff[ 9] * (FLAC__int64)data[i-10];
-				         sum += qlp_coeff[ 8] * (FLAC__int64)data[i- 9];
-				         sum += qlp_coeff[ 7] * (FLAC__int64)data[i- 8];
-				         sum += qlp_coeff[ 6] * (FLAC__int64)data[i- 7];
-				         sum += qlp_coeff[ 5] * (FLAC__int64)data[i- 6];
-				         sum += qlp_coeff[ 4] * (FLAC__int64)data[i- 5];
-				         sum += qlp_coeff[ 3] * (FLAC__int64)data[i- 4];
-				         sum += qlp_coeff[ 2] * (FLAC__int64)data[i- 3];
-				         sum += qlp_coeff[ 1] * (FLAC__int64)data[i- 2];
-				         sum += qlp_coeff[ 0] * (FLAC__int64)data[i- 1];
+			__m128i summ = _mm_setzero_si128(), dat;
+			FLAC__int32 * const datai = &data[i];
+
+			switch((order+1) / 2) {
+				case 16: /* order == 31, 32 */
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-32)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[15]));
+				case 15:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-30)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[14]));
+				case 14:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-28)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[13]));
+				case 13:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-26)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[12]));
+				case 12:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-24)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[11]));
+				case 11:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-22)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[10]));
+				case 10:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-20)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[9]));
+				case  9:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-18)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[8]));
+				case  8:
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-16)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[7]));
+				case  7: /* order == 13, 14 */
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-14)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[6]));
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-12)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[5]));
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-10)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[4]));
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-8)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[3]));
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-6)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[2]));
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-4)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[1]));
+					dat = _mm_cvtepu32_epi64(_mm_loadl_epi64((const __m128i*)(datai-2)));
+					summ = _mm_add_epi64(summ, _mm_mul_epi32(dat, qlp[0]));
 			}
-			data[i] = residual[i] + (FLAC__int32)(sum >> lp_quantization);
+			summ = _mm_add_epi64(summ, _mm_srli_si128(summ, 8));
+			summ = _mm_srl_epi64(summ, cnt);
+			summ = _mm_add_epi32(summ, _mm_cvtsi32_si128(residual[i]));
+			data[i] = _mm_cvtsi128_si32(summ);
 		}
 	}
 }
