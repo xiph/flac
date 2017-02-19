@@ -55,7 +55,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 {
 	int i;
 	FLAC__int32 sum;
-	__m128i cnt = _mm_cvtsi32_si128(lp_quantization);
+	const __m128i cnt = _mm_cvtsi32_si128(lp_quantization);
 
 	FLAC__ASSERT(order > 0);
 	FLAC__ASSERT(order <= 32);
