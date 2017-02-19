@@ -938,6 +938,200 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], ui
 	}
 }
 
+FLAC__SSE_TARGET("sse4.1")
+void FLAC__lpc_restore_signal_intrin_sse41(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[])
+{
+	if(order < 8) {
+		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
+		return;
+	}
+
+	FLAC__ASSERT(order >= 8);
+	FLAC__ASSERT(order <= 32);
+
+	if(order <= 12) {
+		int i;
+		const __m128i cnt = _mm_cvtsi32_si128(lp_quantization);
+
+		if(order > 8) /* order == 9, 10, 11, 12 */
+		{
+			__m128i qlp[3], dat[3];
+			__m128i summ, temp;
+
+			qlp[0] = _mm_loadu_si128((const __m128i*)(qlp_coeff + 0));	// q[3]  q[2]  q[1]  q[0]
+			qlp[1] = _mm_loadu_si128((const __m128i*)(qlp_coeff + 4));	// q[7]  q[6]  q[5]  q[4]
+			qlp[2] = _mm_loadu_si128((const __m128i*)(qlp_coeff + 8));	// q[11] q[10] q[9]  q[8]
+			switch (order)
+			{
+			case 9:
+				qlp[2] = _mm_slli_si128(qlp[2], 12); qlp[2] = _mm_srli_si128(qlp[2], 12); break;	//   0     0     0   q[8]
+			case 10:
+				qlp[2] = _mm_slli_si128(qlp[2], 8); qlp[2] = _mm_srli_si128(qlp[2], 8); break;	//   0     0   q[9]  q[8]
+			case 11:
+				qlp[2] = _mm_slli_si128(qlp[2], 4); qlp[2] = _mm_srli_si128(qlp[2], 4); break;	//   0   q[10] q[9]  q[8]
+			}
+
+			dat[2] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data - 12)), _MM_SHUFFLE(0, 1, 2, 3));	// d[i-12] d[i-11] d[i-10] d[i-9]
+			dat[1] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data - 8)), _MM_SHUFFLE(0, 1, 2, 3));	// d[i-8]  d[i-7]  d[i-6]  d[i-5]
+			dat[0] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data - 4)), _MM_SHUFFLE(0, 1, 2, 3));	// d[i-4]  d[i-3]  d[i-2]  d[i-1]
+
+			for (i = 0;;) {
+				summ = _mm_mullo_epi32(dat[2], qlp[2]);
+				summ = _mm_add_epi32(summ, _mm_mullo_epi32(dat[1], qlp[1]));
+				summ = _mm_add_epi32(summ, _mm_mullo_epi32(dat[0], qlp[0]));
+
+				summ = _mm_hadd_epi32(summ, summ);
+				summ = _mm_hadd_epi32(summ, summ);
+
+				summ = _mm_sra_epi32(summ, cnt);
+				temp = _mm_add_epi32(_mm_cvtsi32_si128(residual[i]), summ);
+				data[i] = _mm_cvtsi128_si32(temp);
+
+				if(++i >= (int)data_len) break;
+
+				temp = _mm_slli_si128(temp, 12);
+				dat[2] = _mm_alignr_epi8(dat[2], dat[1], 12);
+				dat[1] = _mm_alignr_epi8(dat[1], dat[0], 12);
+				dat[0] = _mm_alignr_epi8(dat[0], temp, 12);
+			}
+		}
+		else /* order == 8 */
+		{
+			__m128i qlp[2], dat[2];
+			__m128i summ, temp;
+
+			qlp[0] = _mm_loadu_si128((const __m128i*)(qlp_coeff + 0));
+			qlp[1] = _mm_loadu_si128((const __m128i*)(qlp_coeff + 4));
+
+			dat[1] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data - 8)), _MM_SHUFFLE(0, 1, 2, 3));
+			dat[0] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data - 4)), _MM_SHUFFLE(0, 1, 2, 3));
+
+			for (i = 0;;) {
+				summ = _mm_add_epi32(_mm_mullo_epi32(dat[1], qlp[1]), _mm_mullo_epi32(dat[0], qlp[0]));
+
+				summ = _mm_hadd_epi32(summ, summ);
+				summ = _mm_hadd_epi32(summ, summ);
+
+				summ = _mm_sra_epi32(summ, cnt);
+				temp = _mm_add_epi32(_mm_cvtsi32_si128(residual[i]), summ);
+				data[i] = _mm_cvtsi128_si32(temp);
+
+				if(++i >= (int)data_len) break;
+
+				temp = _mm_slli_si128(temp, 12);
+				dat[1] = _mm_alignr_epi8(dat[1], dat[0], 12);
+				dat[0] = _mm_alignr_epi8(dat[0], temp, 12);
+			}
+		}
+	}
+	else { /* order > 12 */
+#ifdef FLAC__HAS_NASM
+		FLAC__lpc_restore_signal_asm_ia32(residual, data_len, qlp_coeff, order, lp_quantization, data);
+#else
+		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
+#endif
+	}
+}
+
+FLAC__SSE_TARGET("ssse3")
+void FLAC__lpc_restore_signal_16_intrin_sse41(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[])
+{
+	if(order < 8) {
+		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
+		return;
+	}
+
+	FLAC__ASSERT(order >= 8);
+	FLAC__ASSERT(order <= 32);
+
+	if(order <= 12) {
+		int i;
+		const __m128i cnt = _mm_cvtsi32_si128(lp_quantization);
+
+		if(order > 8) /* order == 9, 10, 11, 12 */
+		{
+			__m128i qlp[2], dat[2];
+			__m128i summ, temp;
+
+			qlp[0] = _mm_loadu_si128((const __m128i*)(qlp_coeff+0));	// q[3]  q[2]  q[1]  q[0]
+			temp   = _mm_loadu_si128((const __m128i*)(qlp_coeff+4));	// q[7]  q[6]  q[5]  q[4]
+			qlp[1] = _mm_loadu_si128((const __m128i*)(qlp_coeff+8));	// q[11] q[10] q[9]  q[8]
+			switch(order)
+			{
+			case 9:
+				qlp[1] = _mm_slli_si128(qlp[1], 12); qlp[1] = _mm_srli_si128(qlp[1], 12); break;	//   0     0     0   q[8]
+			case 10:
+				qlp[1] = _mm_slli_si128(qlp[1],  8); qlp[1] = _mm_srli_si128(qlp[1],  8); break;	//   0     0   q[9]  q[8]
+			case 11:
+				qlp[1] = _mm_slli_si128(qlp[1],  4); qlp[1] = _mm_srli_si128(qlp[1],  4); break;	//   0   q[10] q[9]  q[8]
+			}
+			qlp[0] = _mm_packs_epi32(qlp[0], temp);					// q[7]  q[6]  q[5]  q[4]  q[3]  q[2]  q[1]  q[0]
+			qlp[1] = _mm_packs_epi32(qlp[1], _mm_setzero_si128());	//   0     0     0     0   q[11] q[10] q[9]  q[8]
+
+			dat[1] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data-12)), _MM_SHUFFLE(0,1,2,3));	// d[i-12] d[i-11] d[i-10] d[i-9]
+			temp   = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data-8)),  _MM_SHUFFLE(0,1,2,3));	// d[i-8]  d[i-7]  d[i-6]  d[i-5]
+			dat[0] = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data-4)),  _MM_SHUFFLE(0,1,2,3));	// d[i-4]  d[i-3]  d[i-2]  d[i-1]
+
+			dat[1] = _mm_packs_epi32(dat[1], _mm_setzero_si128());		//   0       0       0       0     d[i-12] d[i-11] d[i-10] d[i-9]
+			dat[0] = _mm_packs_epi32(dat[0], temp);						// d[i-8]  d[i-7]  d[i-6]  d[i-5]  d[i-4]  d[i-3]  d[i-2]  d[i-1]
+
+			for(i = 0;;) {
+				summ = _mm_madd_epi16(dat[1], qlp[1]);
+				summ = _mm_add_epi32(summ, _mm_madd_epi16(dat[0], qlp[0]));
+
+				summ = _mm_hadd_epi32(summ, summ);
+				summ = _mm_hadd_epi32(summ, summ);
+
+				summ = _mm_sra_epi32(summ, cnt);
+				temp = _mm_add_epi32(_mm_cvtsi32_si128(residual[i]), summ);
+				data[i] = _mm_cvtsi128_si32(temp);
+
+				if(++i >= (int)data_len) break;
+
+				temp = _mm_slli_si128(temp, 14);
+				dat[1] = _mm_alignr_epi8(dat[1], dat[0], 14);	//   0       0       0     d[i-12] d[i-11] d[i-10] d[i-9]  d[i-8]
+				dat[0] = _mm_alignr_epi8(dat[0],   temp, 14);	// d[i-7]  d[i-6]  d[i-5]  d[i-4]  d[i-3]  d[i-2]  d[i-1]  d[i]
+			}
+		}
+		else /* order == 8 */
+		{
+			__m128i qlp0, dat0;
+			__m128i summ, temp;
+
+			qlp0 = _mm_loadu_si128((const __m128i*)(qlp_coeff+0));	// q[3]  q[2]  q[1]  q[0]
+			temp = _mm_loadu_si128((const __m128i*)(qlp_coeff+4));	// q[7]  q[6]  q[5]  q[4]
+			qlp0 = _mm_packs_epi32(qlp0, temp);						// q[7]  q[6]  q[5]  q[4]  q[3]  q[2]  q[1]  q[0]
+
+			temp = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data-8)), _MM_SHUFFLE(0,1,2,3));
+			dat0 = _mm_shuffle_epi32(_mm_loadu_si128((const __m128i*)(data-4)), _MM_SHUFFLE(0,1,2,3));
+			dat0 = _mm_packs_epi32(dat0, temp);						// d[i-8]  d[i-7]  d[i-6]  d[i-5]  d[i-4]  d[i-3]  d[i-2]  d[i-1]
+
+			for(i = 0;;) {
+				summ = _mm_madd_epi16(dat0, qlp0);
+
+				summ = _mm_hadd_epi32(summ, summ);
+				summ = _mm_hadd_epi32(summ, summ);
+
+				summ = _mm_sra_epi32(summ, cnt);
+				temp = _mm_add_epi32(_mm_cvtsi32_si128(residual[i]), summ);
+				data[i] = _mm_cvtsi128_si32(temp);
+
+				if(++i >= (int)data_len) break;
+
+				temp = _mm_slli_si128(temp, 14);
+				dat0 = _mm_alignr_epi8(dat0, temp, 14);	// d[i-7]  d[i-6]  d[i-5]  d[i-4]  d[i-3]  d[i-2]  d[i-1]  d[i]
+			}
+		}
+	}
+	else { /* order > 12 */
+#ifdef FLAC__HAS_NASM
+		FLAC__lpc_restore_signal_asm_ia32_mmx(residual, data_len, qlp_coeff, order, lp_quantization, data);
+#else
+		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
+#endif
+	}
+}
+
 #endif /* defined FLAC__CPU_IA32 */
 
 FLAC__SSE_TARGET("sse4.1")
