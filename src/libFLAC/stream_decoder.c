@@ -647,10 +647,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 	FLAC__bitreader_free(decoder->private_->input);
 	for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 		/* WATCHOUT:
-		 * FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the
-		 * output arrays have a buffer of up to 3 zeroes in front
-		 * (at negative indices) for alignment purposes; we use 4
-		 * to keep the data well-aligned.
+		 * FLAC__lpc_restore_signal_asm_ia32_mmx() and ..._intrin_sseN()
+		 * require that the output arrays have a buffer of up to 3 zeroes
+		 * in front (at negative indices) for alignment purposes;
+		 * we use 4 to keep the data well-aligned.
 		 */
 		if(0 != decoder->private_->output[i]) {
 			free(decoder->private_->output[i]-4);
@@ -1280,10 +1280,10 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_
 
 	for(i = 0; i < channels; i++) {
 		/* WATCHOUT:
-		 * FLAC__lpc_restore_signal_asm_ia32_mmx() requires that the
-		 * output arrays have a buffer of up to 3 zeroes in front
-		 * (at negative indices) for alignment purposes; we use 4
-		 * to keep the data well-aligned.
+		 * FLAC__lpc_restore_signal_asm_ia32_mmx() and ..._intrin_sseN()
+		 * require that the output arrays have a buffer of up to 3 zeroes
+		 * in front (at negative indices) for alignment purposes;
+		 * we use 4 to keep the data well-aligned.
 		 */
 		tmp = safe_malloc_muladd2_(sizeof(FLAC__int32), /*times (*/size, /*+*/4/*)*/);
 		if(tmp == 0) {
