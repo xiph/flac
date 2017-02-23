@@ -118,7 +118,9 @@ ia32_cpu_info (FLAC__CPUInfo *info)
 		FLAC__cpu_info_x86(1, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 	}
 	else {
+#if FLAC__HAS_NASM
 		FLAC__cpu_info_asm_ia32(&flags_edx, &flags_ecx);
+#endif
 	}
 
 	info->ia32.cmov  = (flags_edx & FLAC__CPUINFO_IA32_CPUID_CMOV ) ? true : false;
