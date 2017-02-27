@@ -384,7 +384,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 		FLAC__ASSERT(decoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
 #ifdef FLAC__HAS_NASM
 		decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_asm_ia32; /* OPT_IA32: was really necessary for GCC < 4.9 */
-		if(decoder->private_->cpuinfo.ia32.mmx) {
+		if (decoder->private_->cpuinfo.x86.mmx) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_asm_ia32;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_asm_ia32_mmx;
 		}
@@ -395,7 +395,7 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 #endif
 #if FLAC__HAS_X86INTRIN && ! defined FLAC__INTEGER_ONLY_LIBRARY
 # if defined FLAC__SSE4_1_SUPPORTED
-		if(decoder->private_->cpuinfo.ia32.sse41) {
+		if (decoder->private_->cpuinfo.x86.sse41) {
 			decoder->private_->local_lpc_restore_signal = FLAC__lpc_restore_signal_intrin_sse41;
 			decoder->private_->local_lpc_restore_signal_16bit = FLAC__lpc_restore_signal_16_intrin_sse41;
 			decoder->private_->local_lpc_restore_signal_64bit = FLAC__lpc_restore_signal_wide_intrin_sse41;

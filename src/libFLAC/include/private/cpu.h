@@ -171,25 +171,12 @@ typedef struct {
 	FLAC__bool avx;
 	FLAC__bool avx2;
 	FLAC__bool fma;
-} FLAC__CPUInfo_IA32;
-
-typedef struct {
-	FLAC__bool intel;
-
-	FLAC__bool sse3;
-	FLAC__bool ssse3;
-	FLAC__bool sse41;
-	FLAC__bool sse42;
-	FLAC__bool avx;
-	FLAC__bool avx2;
-	FLAC__bool fma;
 } FLAC__CPUInfo_x86;
 
 
 typedef struct {
 	FLAC__bool use_asm;
 	FLAC__CPUInfo_Type type;
-	FLAC__CPUInfo_IA32 ia32;
 	FLAC__CPUInfo_x86 x86;
 } FLAC__CPUInfo;
 
@@ -197,8 +184,6 @@ void FLAC__cpu_info(FLAC__CPUInfo *info);
 
 FLAC__uint32 FLAC__cpu_have_cpuid_asm_ia32(void);
 
-void         FLAC__cpu_info_asm_ia32(FLAC__uint32 *flags_edx, FLAC__uint32 *flags_ecx);
-
-void         FLAC__cpu_info_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx);
+void         FLAC__cpu_info_asm_ia32(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint32 *ecx, FLAC__uint32 *edx);
 
 #endif
