@@ -1184,7 +1184,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_stream(
  *                            Unless \a file is \c stdin, it will be closed
  *                            when FLAC__stream_decoder_finish() is called.
  *                            Note however that seeking will not work when
- *                            decoding from \c stdout since it is not seekable.
+ *                            decoding from \c stdin since it is not seekable.
  * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
  *                            pointer must not be \c NULL.
  * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
@@ -1234,7 +1234,7 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_FILE(
  *                            Unless \a file is \c stdin, it will be closed
  *                            when FLAC__stream_decoder_finish() is called.
  *                            Note however that seeking will not work when
- *                            decoding from \c stdout since it is not seekable.
+ *                            decoding from \c stdin since it is not seekable.
  * \param  write_callback     See FLAC__StreamDecoderWriteCallback.  This
  *                            pointer must not be \c NULL.
  * \param  metadata_callback  See FLAC__StreamDecoderMetadataCallback.  This
