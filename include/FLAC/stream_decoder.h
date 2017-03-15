@@ -1403,8 +1403,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder);
  *  and is not seekable (i.e. no seek callback was provided or the seek
  *  callback returns \c FLAC__STREAM_DECODER_SEEK_STATUS_UNSUPPORTED), it
  *  is the duty of the client to start feeding data from the beginning of
- *  the stream on the next FLAC__stream_decoder_process() or
- *  FLAC__stream_decoder_process_interleaved() call.
+ *  the stream on the next FLAC__stream_decoder_process_*() call.
  *
  * \param  decoder  A decoder instance.
  * \assert
