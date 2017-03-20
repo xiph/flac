@@ -117,7 +117,7 @@ namespace FLAC {
 			virtual ~Stream();
 
 			//@{
-			/** Call after construction to check the that the object was created
+			/** Call after construction to check that the object was created
 			 *  successfully.  If not, use get_state() to find out why not.
 			 *
 			 */
