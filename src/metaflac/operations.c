@@ -286,7 +286,8 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 
 	if(!FLAC__metadata_chain_read(chain, filename)) {
 		print_error_with_chain_status(chain, "%s: ERROR: reading metadata", filename);
-		return false;
+		ok = false;
+		goto cleanup;
 	}
 
 	for(i = 0; i < options->ops.num_operations && ok; i++) {
@@ -325,6 +326,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
 	}
 
+  cleanup :
 	FLAC__metadata_chain_delete(chain);
 
 	return ok;
