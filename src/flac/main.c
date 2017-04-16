@@ -817,7 +817,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			else if(0 == strncmp(option_argument, "unsigned", strlen(option_argument)))
 				option_values.format_is_unsigned_samples = true;
 			else
-				return usage_error("ERROR: argument to --sign must be \"signed\" or \"uint32_t\"\n");
+				return usage_error("ERROR: argument to --sign must be \"signed\" or \"unsigned\"\n");
 		}
 		else if(0 == strcmp(long_option, "residual-gnuplot")) {
 			option_values.aopts.do_residual_gnuplot = true;
