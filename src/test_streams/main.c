@@ -718,11 +718,7 @@ foo:
 /* flavor is: 0:WAVE, 1:RF64, 2:WAVE64 */
 static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, FLAC__bool strict, int flavor)
 {
-	const FLAC__bool waveformatextensible = strict && (channels > 2 || (bps%8));
-	/*                                                                 ^^^^^^^
-	 * (bps%8) allows 24 bps which is technically supposed to be WAVEFORMATEXTENSIBLE but we
-	 * write 24bps as WAVEFORMATEX since it's unambiguous and matches how flac writes it
-	 */
+	const FLAC__bool waveformatextensible = strict && (channels > 2 || (bps != 8 && bps != 16));
 
 	const unsigned bytes_per_sample = (bps+7)/8;
 	const unsigned shift = (bps%8)? 8 - (bps%8) : 0;

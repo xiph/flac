@@ -40,7 +40,7 @@ my $bigdatasize = $bigsamples * $bps * $channels;
 my $padding = int($bigdatasize & 1); # for aiff/wave/rf64 chunk alignment
 my $padding8 = 8 - int($bigdatasize & 7); $padding8 = 0 if $padding8 == 8; # for wave64 alignment
 # wave-ish file needs to be WAVEFORMATEXTENSIBLE?
-my $wavx = ($format eq 'wave' || $format eq 'wave64' || $format eq 'rf64') && ($channels > 2);
+my $wavx = ($format eq 'wave' || $format eq 'wave64' || $format eq 'rf64') && ($channels > 2 || ($bps != 8 && $bps != 16));
 
 # write header
 
