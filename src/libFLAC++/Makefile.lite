@@ -46,7 +46,11 @@ else
 ifeq ($(OS),FreeBSD)
     LIBS = -lFLAC $(OGG_LIBS) -lm -lstdc++
 else
+ifeq ($(OS),FreeBSD)
+    LIBS = -lFLAC $(OGG_LIBS) -lm -lstdc++
+else
     LIBS = -lFLAC $(OGG_LIBS) -lm -lsupc++
+endif
 endif
 endif
 
