@@ -50,15 +50,15 @@ void FLAC__window_bartlett(FLAC__real *window, const FLAC__int32 L)
 
 	if (L & 1) {
 		for (n = 0; n <= N/2; n++)
-			window[n] = 2.0f * n / (float)N;
+			window[n] = 2.0f * n / (FLAC__float)N;
 		for (; n <= N; n++)
-			window[n] = 2.0f - 2.0f * n / (float)N;
+			window[n] = 2.0f - 2.0f * n / (FLAC__float)N;
 	}
 	else {
 		for (n = 0; n <= L/2-1; n++)
-			window[n] = 2.0f * n / (float)N;
+			window[n] = 2.0f * n / (FLAC__float)N;
 		for (; n <= N; n++)
-			window[n] = 2.0f - 2.0f * n / (float)N;
+			window[n] = 2.0f - 2.0f * n / (FLAC__float)N;
 	}
 }
 
@@ -68,7 +68,7 @@ void FLAC__window_bartlett_hann(FLAC__real *window, const FLAC__int32 L)
 	FLAC__int32 n;
 
 	for (n = 0; n < L; n++)
-		window[n] = (FLAC__real)(0.62f - 0.48f * fabs((float)n/(float)N-0.5f) - 0.38f * cos(2.0f * M_PI * ((float)n/(float)N)));
+		window[n] = (FLAC__real)(0.62f - 0.48f * fabs((FLAC__float)n/(FLAC__float)N-0.5f) - 0.38f * cos(2.0f * M_PI * ((FLAC__float)n/(FLAC__float)N)));
 }
 
 void FLAC__window_blackman(FLAC__real *window, const FLAC__int32 L)
@@ -93,11 +93,11 @@ void FLAC__window_blackman_harris_4term_92db_sidelobe(FLAC__real *window, const 
 void FLAC__window_connes(FLAC__real *window, const FLAC__int32 L)
 {
 	const FLAC__int32 N = L - 1;
-	const double N2 = (double)N / 2.;
+	const FLAC__double N2 = (FLAC__double)N / 2.;
 	FLAC__int32 n;
 
 	for (n = 0; n <= N; n++) {
-		double k = ((double)n - N2) / N2;
+		FLAC__double k = ((FLAC__double)n - N2) / N2;
 		k = 1.0f - k * k;
 		window[n] = (FLAC__real)(k * k);
 	}
@@ -115,11 +115,11 @@ void FLAC__window_flattop(FLAC__real *window, const FLAC__int32 L)
 void FLAC__window_gauss(FLAC__real *window, const FLAC__int32 L, const FLAC__real stddev)
 {
 	const FLAC__int32 N = L - 1;
-	const double N2 = (double)N / 2.;
+	const FLAC__double N2 = (FLAC__double)N / 2.;
 	FLAC__int32 n;
 
 	for (n = 0; n <= N; n++) {
-		const double k = ((double)n - N2) / (stddev * N2);
+		const FLAC__double k = ((FLAC__double)n - N2) / (stddev * N2);
 		window[n] = (FLAC__real)exp(-0.5f * k * k);
 	}
 }
@@ -174,15 +174,15 @@ void FLAC__window_triangle(FLAC__real *window, const FLAC__int32 L)
 
 	if (L & 1) {
 		for (n = 1; n <= (L+1)/2; n++)
-			window[n-1] = 2.0f * n / ((float)L + 1.0f);
+			window[n-1] = 2.0f * n / ((FLAC__float)L + 1.0f);
 		for (; n <= L; n++)
-			window[n-1] = (float)(2 * (L - n + 1)) / ((float)L + 1.0f);
+			window[n-1] = (FLAC__float)(2 * (L - n + 1)) / ((FLAC__float)L + 1.0f);
 	}
 	else {
 		for (n = 1; n <= L/2; n++)
-			window[n-1] = 2.0f * n / ((float)L + 1.0f);
+			window[n-1] = 2.0f * n / ((FLAC__float)L + 1.0f);
 		for (; n <= L; n++)
-			window[n-1] = (float)(2 * (L - n + 1)) / ((float)L + 1.0f);
+			window[n-1] = (FLAC__float)(2 * (L - n + 1)) / ((FLAC__float)L + 1.0f);
 	}
 }
 
@@ -270,11 +270,11 @@ void FLAC__window_punchout_tukey(FLAC__real *window, const FLAC__int32 L, const 
 void FLAC__window_welch(FLAC__real *window, const FLAC__int32 L)
 {
 	const FLAC__int32 N = L - 1;
-	const double N2 = (double)N / 2.;
+	const FLAC__double N2 = (FLAC__double)N / 2.;
 	FLAC__int32 n;
 
 	for (n = 0; n <= N; n++) {
-		const double k = ((double)n - N2) / N2;
+		const FLAC__double k = ((FLAC__double)n - N2) / N2;
 		window[n] = (FLAC__real)(1.0f - k * k);
 	}
 }
