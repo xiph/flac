@@ -1267,7 +1267,7 @@
 				&lt;3&gt;
 			</td>
 			<td>
-				Sample size in bits:<br />
+				Sample size in bits: <a href="#frame_header_notes">[5]</a><br />
 				<ul>
 				<li>
 					<tt>000</tt> : get from STREAMINFO metadata block
@@ -1366,6 +1366,11 @@
 				</li>
 				<li>
 					The "UTF-8" coding used for the sample/frame number is the same variable length code used to store compressed UCS-2, extended to handle larger input.
+				</li>
+				<li>
+					For subframes that encode a difference channel,
+					the sample size is one bit larger than the sample size of the frame,
+					in order to be able to encode the difference between extreme values.
 				</li>
 				</ol>
 			</td>
@@ -1489,6 +1494,8 @@
 					<tt>1</tt> : k wasted bits-per-sample in source subblock, k-1 follows, unary coded; e.g. k=3 =&gt; 001 follows, k=7 =&gt; 0000001 follows.
 				</li>
 				</ul>
+				The size of the samples stored in the subframe is the subframe sample size reduced by k bits.
+				Decoded samples must be shifted left by k bits.
 			</td>
 		</tr>
 	</table>
