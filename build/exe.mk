@@ -34,6 +34,9 @@ else
     CCC         = g++
 endif
 endif
+ifeq ($(CC),gcc)
+    GCC_INLINE  = -finline-functions
+endif
 NASM        = nasm
 LINK        = $(CC) $(LINKAGE)
 OBJPATH     = $(topdir)/objs
@@ -60,8 +63,8 @@ CXXFLAGS := -g -O0 -DDEBUG -DDEBUG -DFLAC__VALGRIND_TESTING $(CXXFLAGS) $(BASE_C
 endif
 
 ifeq ($(DEFAULT_BUILD),release)
-CFLAGS   := -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DFLaC__INLINE=__inline__ -DNDEBUG $(CFLAGS) $(BASE_CFLAGS) -Wmissing-prototypes -Wstrict-prototypes
-CXXFLAGS := -O3 -fomit-frame-pointer -funroll-loops -finline-functions -DFLaC__INLINE=__inline__ -DNDEBUG $(CXXFLAGS) $(BASE_CFLAGS)
+CFLAGS   := -O3 -fomit-frame-pointer -funroll-loops $(GCC_INLINE) -DFLaC__INLINE=__inline__ -DNDEBUG $(CFLAGS) $(BASE_CFLAGS) -Wmissing-prototypes -Wstrict-prototypes
+CXXFLAGS := -O3 -fomit-frame-pointer -funroll-loops $(GCC_INLINE) -DFLaC__INLINE=__inline__ -DNDEBUG $(CXXFLAGS) $(BASE_CFLAGS)
 endif
 
 LFLAGS   = -L$(LIBPATH)
