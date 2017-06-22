@@ -226,6 +226,15 @@ namespace FLAC {
 			inline void set_reference(bool x) { is_reference_ = x; }
 		};
 
+		// local utility routines
+
+		namespace local {
+
+			/** Construct a new object of the type provided in object->type and return it. */
+			Prototype *construct_block(::FLAC__StreamMetadata *object);
+
+		}
+
 #ifdef _MSC_VER
 // warning C4800: 'int' : forcing to bool 'true' or 'false' (performance warning)
 #pragma warning ( disable : 4800 )
