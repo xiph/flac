@@ -223,20 +223,27 @@ void FLAC__replaygain_synthesis__init_dither_context(DitherContext *d, int bits,
 	d->LastHistoryIndex = 0;
 }
 
+static inline int64_t
+ROUND64 (DitherContext *d, double x)
+{
+	union {
+		double d;
+		int64_t i;
+	} doubletmp;
+
+    doubletmp.d = x + d->Add + (int64_t)FLAC__I64L(0x001FFFFD80000000);
+
+    return doubletmp.i - (int64_t)FLAC__I64L(0x433FFFFD80000000);
+}
+
 /*
  * the following is based on parts of wavegain.c
  */
 
-static FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int shapingtype, int i, double Sum, int k)
+static int64_t dither_output_(DitherContext *d, FLAC__bool do_dithering, int shapingtype, int i, double Sum, int k)
 {
-	union {
-		double d;
-		FLAC__int64 i;
-	} doubletmp;
 	double Sum2;
-	FLAC__int64 val;
-
-#define ROUND64(x)   ( doubletmp.d = (x) + d->Add + (FLAC__int64)FLAC__I64L(0x001FFFFD80000000), doubletmp.i - (FLAC__int64)FLAC__I64L(0x433FFFFD80000000) )
+	int64_t val;
 
 	if(do_dithering) {
 		if(shapingtype == 0) {
@@ -244,21 +251,19 @@ static FLAC__int64 dither_output_(DitherContext *d, FLAC__bool do_dithering, int
 			Sum2 = tmp - d->LastRandomNumber [k];
 			d->LastRandomNumber [k] = (int)tmp;
 			Sum2 = Sum += Sum2;
-			val = ROUND64(Sum2) & d->Mask;
+			val = ROUND64(d, Sum2) & d->Mask;
 		}
 		else {
 			Sum2 = random_triangular_(d->Dither) - scalar16_(d->DitherHistory[k], d->FilterCoeff + i);
 			Sum += d->DitherHistory [k] [(-1-i)&15] = (float)Sum2;
 			Sum2 = Sum + scalar16_(d->ErrorHistory [k], d->FilterCoeff + i);
-			val = ROUND64(Sum2) & d->Mask;
+			val = ROUND64(d, Sum2) & d->Mask;
 			d->ErrorHistory [k] [(-1-i)&15] = (float)(Sum - val);
 		}
 		return val;
 	}
-	else
-		return ROUND64(Sum);
 
-#undef ROUND64
+	return ROUND64(d, Sum);
 }
 
 #if 0
