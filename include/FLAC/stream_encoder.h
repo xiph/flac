@@ -1492,6 +1492,11 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
  */
 FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_stream(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderWriteCallback write_callback, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderTellCallback tell_callback, FLAC__StreamEncoderMetadataCallback metadata_callback, void *client_data);
 
+/* restart after flush, using the same parameters */
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_restart(FLAC__StreamEncoder *encoder);
+/* flush the last block */
+FLAC_API FLAC__bool FLAC__stream_encoder_flush(FLAC__StreamEncoder *encoder);
+
 /** Initialize the encoder instance to encode Ogg FLAC streams.
  *
  *  This flavor of initialization sets up the encoder to encode to a FLAC

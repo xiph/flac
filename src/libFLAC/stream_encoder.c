@@ -626,7 +626,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 )
 {
 	uint32_t i;
-	FLAC__bool metadata_has_seektable, metadata_has_vorbis_comment, metadata_picture_has_type1, metadata_picture_has_type2;
+    FLAC__StreamEncoderInitStatus start_status;
 
 	FLAC__ASSERT(0 != encoder);
 
@@ -739,85 +739,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->protected_->max_residual_partition_order = (1u << FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN) - 1;
 	if(encoder->protected_->min_residual_partition_order >= encoder->protected_->max_residual_partition_order)
 		encoder->protected_->min_residual_partition_order = encoder->protected_->max_residual_partition_order;
-
-#if FLAC__HAS_OGG
-	/* reorder metadata if necessary to ensure that any VORBIS_COMMENT is the first, according to the mapping spec */
-	if(is_ogg && 0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 1) {
-		uint32_t i1;
-		for(i1 = 1; i1 < encoder->protected_->num_metadata_blocks; i1++) {
-			if(0 != encoder->protected_->metadata[i1] && encoder->protected_->metadata[i1]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
-				FLAC__StreamMetadata *vc = encoder->protected_->metadata[i1];
-				for( ; i1 > 0; i1--)
-					encoder->protected_->metadata[i1] = encoder->protected_->metadata[i1-1];
-				encoder->protected_->metadata[0] = vc;
-				break;
-			}
-		}
-	}
-#endif
-	/* keep track of any SEEKTABLE block */
-	if(0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0) {
-		uint32_t i2;
-		for(i2 = 0; i2 < encoder->protected_->num_metadata_blocks; i2++) {
-			if(0 != encoder->protected_->metadata[i2] && encoder->protected_->metadata[i2]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
-				encoder->private_->seek_table = &encoder->protected_->metadata[i2]->data.seek_table;
-				break; /* take only the first one */
-			}
-		}
-	}
-
-	/* validate metadata */
-	if(0 == encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0)
-		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-	metadata_has_seektable = false;
-	metadata_has_vorbis_comment = false;
-	metadata_picture_has_type1 = false;
-	metadata_picture_has_type2 = false;
-	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
-		const FLAC__StreamMetadata *m = encoder->protected_->metadata[i];
-		if(m->type == FLAC__METADATA_TYPE_STREAMINFO)
-			return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-		else if(m->type == FLAC__METADATA_TYPE_SEEKTABLE) {
-			if(metadata_has_seektable) /* only one is allowed */
-				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-			metadata_has_seektable = true;
-			if(!FLAC__format_seektable_is_legal(&m->data.seek_table))
-				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-		}
-		else if(m->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
-			if(metadata_has_vorbis_comment) /* only one is allowed */
-				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-			metadata_has_vorbis_comment = true;
-		}
-		else if(m->type == FLAC__METADATA_TYPE_CUESHEET) {
-			if(!FLAC__format_cuesheet_is_legal(&m->data.cue_sheet, m->data.cue_sheet.is_cd, /*violation=*/0))
-				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-		}
-		else if(m->type == FLAC__METADATA_TYPE_PICTURE) {
-			if(!FLAC__format_picture_is_legal(&m->data.picture, /*violation=*/0))
-				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-			if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD) {
-				if(metadata_picture_has_type1) /* there should only be 1 per stream */
-					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-				metadata_picture_has_type1 = true;
-				/* standard icon must be 32x32 pixel PNG */
-				if(
-					m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD &&
-					(
-						(strcmp(m->data.picture.mime_type, "image/png") && strcmp(m->data.picture.mime_type, "-->")) ||
-						m->data.picture.width != 32 ||
-						m->data.picture.height != 32
-					)
-				)
-					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-			}
-			else if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON) {
-				if(metadata_picture_has_type2) /* there should only be 1 per stream */
-					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
-				metadata_picture_has_type2 = true;
-			}
-		}
-	}
 
 	encoder->private_->input_capacity = 0;
 	for(i = 0; i < encoder->protected_->channels; i++) {
@@ -1136,6 +1057,31 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->verify.error_stats.expected = 0;
 	encoder->private_->verify.error_stats.got = 0;
 
+    /* now use restart function; reset state if something is wrong but not marked */
+    start_status = FLAC__stream_encoder_restart(encoder);
+    if(start_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK &&
+       encoder->protected_->state == FLAC__STREAM_ENCODER_OK)
+       encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+
+    return start_status;
+}
+
+FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_restart(FLAC__StreamEncoder *encoder)
+{
+	FLAC__bool metadata_has_seektable, metadata_has_vorbis_comment, metadata_picture_has_type1, metadata_picture_has_type2;
+	unsigned i;
+
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+
+	//everything must be ok
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_OK)
+		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
+
+	encoder->private_->loose_mid_side_stereo_frame_count = 0;
+	encoder->private_->current_sample_number = 0;
+	encoder->private_->current_frame_number = 0;
 	/*
 	 * These must be done before we write any metadata, because that
 	 * calls the write_callback, which uses these values.
@@ -1145,6 +1091,88 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->protected_->streaminfo_offset = 0;
 	encoder->protected_->seektable_offset = 0;
 	encoder->protected_->audio_offset = 0;
+
+	FLAC__bitwriter_release_buffer(encoder->private_->frame);
+	FLAC__bitwriter_clear(encoder->private_->frame);
+
+#if FLAC__HAS_OGG
+	/* reorder metadata if necessary to ensure that any VORBIS_COMMENT is the first, according to the mapping spec */
+	if(is_ogg && 0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 1) {
+		uint32_t i1;
+		for(i1 = 1; i1 < encoder->protected_->num_metadata_blocks; i1++) {
+			if(0 != encoder->protected_->metadata[i1] && encoder->protected_->metadata[i1]->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+				FLAC__StreamMetadata *vc = encoder->protected_->metadata[i1];
+				for( ; i1 > 0; i1--)
+					encoder->protected_->metadata[i1] = encoder->protected_->metadata[i1-1];
+				encoder->protected_->metadata[0] = vc;
+				break;
+			}
+		}
+	}
+#endif
+	/* keep track of any SEEKTABLE block */
+	if(0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0) {
+		uint32_t i2;
+		for(i2 = 0; i2 < encoder->protected_->num_metadata_blocks; i2++) {
+			if(0 != encoder->protected_->metadata[i2] && encoder->protected_->metadata[i2]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+				encoder->private_->seek_table = &encoder->protected_->metadata[i2]->data.seek_table;
+				break; /* take only the first one */
+			}
+		}
+	}
+
+	/* validate metadata */
+	if(0 == encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0)
+		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+	metadata_has_seektable = false;
+	metadata_has_vorbis_comment = false;
+	metadata_picture_has_type1 = false;
+	metadata_picture_has_type2 = false;
+	for(i = 0; i < encoder->protected_->num_metadata_blocks; i++) {
+		const FLAC__StreamMetadata *m = encoder->protected_->metadata[i];
+		if(m->type == FLAC__METADATA_TYPE_STREAMINFO)
+			return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+		else if(m->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+			if(metadata_has_seektable) /* only one is allowed */
+				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+			metadata_has_seektable = true;
+			if(!FLAC__format_seektable_is_legal(&m->data.seek_table))
+				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+		}
+		else if(m->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+			if(metadata_has_vorbis_comment) /* only one is allowed */
+				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+			metadata_has_vorbis_comment = true;
+		}
+		else if(m->type == FLAC__METADATA_TYPE_CUESHEET) {
+			if(!FLAC__format_cuesheet_is_legal(&m->data.cue_sheet, m->data.cue_sheet.is_cd, /*violation=*/0))
+				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+		}
+		else if(m->type == FLAC__METADATA_TYPE_PICTURE) {
+			if(!FLAC__format_picture_is_legal(&m->data.picture, /*violation=*/0))
+				return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+			if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD) {
+				if(metadata_picture_has_type1) /* there should only be 1 per stream */
+					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+				metadata_picture_has_type1 = true;
+				/* standard icon must be 32x32 pixel PNG */
+				if(
+					m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON_STANDARD &&
+					(
+						(strcmp(m->data.picture.mime_type, "image/png") && strcmp(m->data.picture.mime_type, "-->")) ||
+						m->data.picture.width != 32 ||
+						m->data.picture.height != 32
+					)
+				)
+					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+			}
+			else if(m->data.picture.type == FLAC__STREAM_METADATA_PICTURE_TYPE_FILE_ICON) {
+				if(metadata_picture_has_type2) /* there should only be 1 per stream */
+					return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA;
+				metadata_picture_has_type2 = true;
+			}
+		}
+	}
 
 	/*
 	 * write the stream header
@@ -1437,6 +1465,27 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_file(
 
 FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 {
+	FLAC__bool error;
+
+	FLAC__ASSERT(0 != encoder);
+	error = !FLAC__stream_encoder_flush(encoder);
+	if(0 != encoder->private_->file) {
+		if(encoder->private_->file != stdout)
+			fclose(encoder->private_->file);
+		encoder->private_->file = 0;
+	}
+
+	free_(encoder);
+	set_defaults_(encoder);
+
+	if(!error)
+		encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+
+	return !error;
+}
+
+FLAC_API FLAC__bool FLAC__stream_encoder_flush(FLAC__StreamEncoder *encoder)
+{
 	FLAC__bool error = false;
 
 	if (encoder == NULL)
@@ -1451,9 +1500,11 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
 			const FLAC__bool is_fractional_block = encoder->protected_->blocksize != encoder->private_->current_sample_number;
+			uint32_t oldsize=encoder->protected_->blocksize;
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
 			if(!process_frame_(encoder, is_fractional_block, /*is_last_block=*/true))
 				error = true;
+			encoder->protected_->blocksize = oldsize; //set back for reuse!
 		}
 	}
 
@@ -1485,22 +1536,14 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 		}
 	}
 
-	if(0 != encoder->private_->file) {
-		if(encoder->private_->file != stdout)
-			fclose(encoder->private_->file);
-		encoder->private_->file = 0;
-	}
-
 #if FLAC__HAS_OGG
 	if(encoder->private_->is_ogg)
 		FLAC__ogg_encoder_aspect_finish(&encoder->protected_->ogg_encoder_aspect);
 #endif
 
-	free_(encoder);
-	set_defaults_(encoder);
-
+	/* this is set to accept some changes before writing a new streaminfo */
 	if(!error)
-		encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+		encoder->protected_->streaminfo_offset = 0;
 
 	return !error;
 }
@@ -1873,7 +1916,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
-	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+	/* allow total samples, when streaminfo has not been written */
+	if((encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED) &&
+	  ((encoder->protected_->state != FLAC__STREAM_ENCODER_OK) || (encoder->protected_->streaminfo_offset > 0)))
 		return false;
 	value = flac_min(value, (FLAC__U64L(1) << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN) - 1);
 	encoder->protected_->total_samples_estimate = value;
