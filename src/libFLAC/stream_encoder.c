@@ -1188,13 +1188,17 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_restart(FLAC__Stream
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
 
+	/* don't autogenerate comment for non-ogg target */
+	if(!metadata_has_vorbis_comment && !encoder->private_->is_ogg)
+		metadata_has_vorbis_comment = true;
+
 	/*
 	 * write the STREAMINFO metadata block
 	 */
 	if(encoder->protected_->verify)
 		encoder->private_->verify.state_hint = ENCODER_IN_METADATA;
 	encoder->private_->streaminfo.type = FLAC__METADATA_TYPE_STREAMINFO;
-	encoder->private_->streaminfo.is_last = false; /* we will have at a minimum a VORBIS_COMMENT afterwards */
+	encoder->private_->streaminfo.is_last = metadata_has_vorbis_comment && (encoder->protected_->num_metadata_blocks == 0);
 	encoder->private_->streaminfo.length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 	encoder->private_->streaminfo.data.stream_info.min_blocksize = encoder->protected_->blocksize; /* this encoder uses the same blocksize for the whole stream */
 	encoder->private_->streaminfo.data.stream_info.max_blocksize = encoder->protected_->blocksize;
