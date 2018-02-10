@@ -34,6 +34,7 @@
 #endif
 
 #include <io.h>
+#include "share/compat.h"
 #include "share/windows_unicode_filenames.h"
 
 /* convert UTF-8 back to WCHAR. Caller is responsible for freeing memory */
