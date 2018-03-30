@@ -24,7 +24,7 @@ test_program () {
 		fi
 }
 
-for prog in autoconf automake libtool pkg-config ; do
+for prog in autoconf automake libtoolize pkg-config ; do
 	test_program $prog
 	done
 
