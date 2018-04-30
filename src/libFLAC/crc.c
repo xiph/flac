@@ -394,3 +394,43 @@ FLAC__uint16 FLAC__crc16(const FLAC__byte *data, uint32_t len)
 
 	return crc;
 }
+
+FLAC__uint16 FLAC__crc16_update_words32(const FLAC__uint32 *words, uint32_t len, FLAC__uint16 crc)
+{
+	while (len >= 2) {
+		crc ^= words[0] >> 16;
+
+		crc = FLAC__crc16_table[7][crc >> 8               ] ^ FLAC__crc16_table[6][crc & 0xFF             ] ^
+		      FLAC__crc16_table[5][(words[0] >>  8) & 0xFF] ^ FLAC__crc16_table[4][ words[0]        & 0xFF] ^
+		      FLAC__crc16_table[3][ words[1] >> 24        ] ^ FLAC__crc16_table[2][(words[1] >> 16) & 0xFF] ^
+		      FLAC__crc16_table[1][(words[1] >>  8) & 0xFF] ^ FLAC__crc16_table[0][ words[1]        & 0xFF];
+
+		words += 2;
+		len -= 2;
+	}
+
+	if (len) {
+		crc ^= words[0] >> 16;
+
+		crc = FLAC__crc16_table[3][crc >> 8               ] ^ FLAC__crc16_table[2][crc & 0xFF             ] ^
+		      FLAC__crc16_table[1][(words[0] >>  8) & 0xFF] ^ FLAC__crc16_table[0][words[0]         & 0xFF];
+	}
+
+	return crc;
+}
+
+FLAC__uint16 FLAC__crc16_update_words64(const FLAC__uint64 *words, uint32_t len, FLAC__uint16 crc)
+{
+	while (len--) {
+		crc ^= words[0] >> 48;
+
+		crc = FLAC__crc16_table[7][crc >> 8               ] ^ FLAC__crc16_table[6][crc & 0xFF             ] ^
+		      FLAC__crc16_table[5][(words[0] >> 40) & 0xFF] ^ FLAC__crc16_table[4][(words[0] >> 32) & 0xFF] ^
+		      FLAC__crc16_table[3][(words[0] >> 24) & 0xFF] ^ FLAC__crc16_table[2][(words[0] >> 16) & 0xFF] ^
+		      FLAC__crc16_table[1][(words[0] >>  8) & 0xFF] ^ FLAC__crc16_table[0][ words[0]        & 0xFF];
+
+		words++;
+	}
+
+	return crc;
+}
