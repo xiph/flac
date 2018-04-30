@@ -7,3 +7,4 @@ os:
   - osx
 script:
   - ./autogen.sh && ./configure && make && make check
+  - make clean && ./configure --enable-64-bit-words && make && make check
