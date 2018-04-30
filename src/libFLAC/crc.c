@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2018  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -38,7 +38,7 @@
 
 /* CRC-8, poly = x^8 + x^2 + x^1 + x^0, init = 0 */
 
-FLAC__byte const FLAC__crc8_table[256] = {
+FLAC__uint8 const FLAC__crc8_table[256] = {
 	0x00, 0x07, 0x0E, 0x09, 0x1C, 0x1B, 0x12, 0x15,
 	0x38, 0x3F, 0x36, 0x31, 0x24, 0x23, 0x2A, 0x2D,
 	0x70, 0x77, 0x7E, 0x79, 0x6C, 0x6B, 0x62, 0x65,
@@ -110,17 +110,6 @@ uint32_t const FLAC__crc16_table[256] = {
 	0x8213,  0x0216,  0x021c,  0x8219,  0x0208,  0x820d,  0x8207,  0x0202
 };
 
-
-void FLAC__crc8_update(const FLAC__byte data, FLAC__uint8 *crc)
-{
-	*crc = FLAC__crc8_table[*crc ^ data];
-}
-
-void FLAC__crc8_update_block(const FLAC__byte *data, uint32_t len, FLAC__uint8 *crc)
-{
-	while(len--)
-		*crc = FLAC__crc8_table[*crc ^ *data++];
-}
 
 FLAC__uint8 FLAC__crc8(const FLAC__byte *data, uint32_t len)
 {
