@@ -1,6 +1,6 @@
 #  test_libFLAC - Unit tester for libFLAC
 #  Copyright (C) 2000-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2018  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -36,6 +36,7 @@ test_libFLAC_LDADD = \
 
 test_libFLAC_SOURCES = \
 	bitwriter.c \
+	crc.c \
 	decoders.c \
 	encoders.c \
 	endswap.c \
@@ -46,6 +47,7 @@ test_libFLAC_SOURCES = \
 	metadata_object.c \
 	md5.c \
 	bitwriter.h \
+	crc.h \
 	decoders.h \
 	encoders.h \
 	endswap.h \
