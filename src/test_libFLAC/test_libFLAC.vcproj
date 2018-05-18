@@ -189,6 +189,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\crc.h"
+				>
+			</File>
+			<File
 				RelativePath=".\decoders.h"
 				>
 			</File>
@@ -220,6 +224,10 @@
 			>
 			<File
 				RelativePath=".\bitwriter.c"
+				>
+			</File>
+			<File
+				RelativePath=".\crc.c"
 				>
 			</File>
 			<File
