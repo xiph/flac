@@ -1,10 +1,32 @@
 language: c
-compiler:
-  - gcc
-  - clang
-os:
-  - linux
-  - osx
+matrix:
+    include:
+        - os: linux
+          compiler: gcc
+
+        - os: linux
+          compiler: clang
+
+        - os: osx
+          compiler: gcc
+
+        - os: osx
+          compiler: clang
+
+        - os: linux
+          compiler: gcc
+          env: CONFIGURE_OPTS=--enable-64-bit-words
+
+        - os: linux
+          compiler: clang
+          env: CONFIGURE_OPTS=--enable-64-bit-words
+
+        - os: osx
+          compiler: gcc
+          env: CONFIGURE_OPTS=--enable-64-bit-words
+
+        - os: osx
+          compiler: clang
+          env: CONFIGURE_OPTS=--enable-64-bit-words
 script:
-  - ./autogen.sh && ./configure && make && make check
-  - make clean && ./configure --enable-64-bit-words && make && make check
+  - ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check
