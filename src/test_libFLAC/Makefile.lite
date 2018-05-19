@@ -36,6 +36,7 @@ else
 endif
 
 SRCS_C = \
+	bitreader.c \
 	bitwriter.c \
 	crc.c \
 	decoders.c \

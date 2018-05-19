@@ -35,6 +35,7 @@ test_libFLAC_LDADD = \
 	-lm
 
 test_libFLAC_SOURCES = \
+	bitreader.c \
 	bitwriter.c \
 	crc.c \
 	decoders.c \
@@ -46,6 +47,7 @@ test_libFLAC_SOURCES = \
 	metadata_manip.c \
 	metadata_object.c \
 	md5.c \
+	bitreader.h \
 	bitwriter.h \
 	crc.h \
 	decoders.h \
