@@ -17,48 +17,11 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
+#ifndef FLAC__TEST_LIBFLAC_BITREADER_H
+#define FLAC__TEST_LIBFLAC_BITREADER_H
+
+#include "FLAC/ordinals.h"
+
+FLAC__bool test_bitreader(void);
+
 #endif
-
-#include "bitreader.h"
-#include "bitwriter.h"
-#include "crc.h"
-#include "decoders.h"
-#include "encoders.h"
-#include "endswap.h"
-#include "format.h"
-#include "metadata.h"
-#include "md5.h"
-
-int main(void)
-{
-	if(!test_endswap())
-		return 1;
-
-	if(!test_crc())
-		return 1;
-
-	if(!test_md5())
-		return 1;
-
-	if(!test_bitreader())
-		return 1;
-
-	if(!test_bitwriter())
-		return 1;
-
-	if(!test_format())
-		return 1;
-
-	if(!test_encoders())
-		return 1;
-
-	if(!test_decoders())
-		return 1;
-
-	if(!test_metadata())
-		return 1;
-
-	return 0;
-}
