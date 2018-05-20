@@ -33,6 +33,8 @@ static FLAC__uint16 crc16_update_ref(FLAC__byte byte, FLAC__uint16 crc);
 static FLAC__bool test_crc8(const FLAC__byte *data, size_t size);
 static FLAC__bool test_crc16(const FLAC__byte *data, size_t size);
 static FLAC__bool test_crc16_update(const FLAC__byte *data, size_t size);
+static FLAC__bool test_crc16_32bit_words(const FLAC__uint32 *words, size_t size);
+static FLAC__bool test_crc16_64bit_words(const FLAC__uint64 *words, size_t size);
 
 #define DATA_SIZE 32768
 
@@ -54,6 +56,12 @@ FLAC__bool test_crc(void)
 		return false;
 
 	if (! test_crc16_update(data, DATA_SIZE))
+		return false;
+
+	if (! test_crc16_32bit_words((FLAC__uint32 *)data, DATA_SIZE / 4))
+		return false;
+
+	if (! test_crc16_64bit_words((FLAC__uint64 *)data, DATA_SIZE / 8))
 		return false;
 
 	printf("\nPASSED!\n");
@@ -177,6 +185,90 @@ static FLAC__bool test_crc16_update(const FLAC__byte *data, size_t size)
 	}
 
 	printf("OK\n");
+
+	return true;
+}
+
+static FLAC__bool test_crc16_32bit_words(const FLAC__uint32 *words, size_t size)
+{
+	uint32_t n,i,k;
+	FLAC__uint16 crc0,crc1;
+
+	for (n = 1; n <= 16; n++) {
+		printf("testing FLAC__crc16_update_words32 (length=%i) ... ", n);
+
+		crc0 = 0;
+		crc1 = 0;
+
+		for (i = 0; i <= size - n; i += n) {
+			for (k = 0; k < n; k++) {
+				crc0 = crc16_update_ref( words[i + k] >> 24,         crc0);
+				crc0 = crc16_update_ref((words[i + k] >> 16) & 0xFF, crc0);
+				crc0 = crc16_update_ref((words[i + k] >>  8) & 0xFF, crc0);
+				crc0 = crc16_update_ref( words[i + k]        & 0xFF, crc0);
+			}
+
+			crc1 = FLAC__crc16_update_words32(words + i, n, crc1);
+
+			if (crc1 != crc0) {
+				printf("FAILED, FLAC__crc16_update_words32 result did not match reference CRC after %i words of test data\n", i + n);
+				return false;
+			}
+		}
+
+		crc1 = FLAC__crc16_update_words32(words, 0, crc1);
+
+		if (crc1 != crc0) {
+			printf("FAILED, FLAC__crc16_update_words32 called with zero bytes changed CRC value\n");
+			return false;
+		}
+
+		printf("OK\n");
+	}
+
+	return true;
+}
+
+static FLAC__bool test_crc16_64bit_words(const FLAC__uint64 *words, size_t size)
+{
+	uint32_t n,i,k;
+	FLAC__uint16 crc0,crc1;
+
+	for (n = 1; n <= 16; n++) {
+		printf("testing FLAC__crc16_update_words64 (length=%i) ... ", n);
+
+		crc0 = 0;
+		crc1 = 0;
+
+		for (i = 0; i <= size - n; i += n) {
+			for (k = 0; k < n; k++) {
+				crc0 = crc16_update_ref( words[i + k] >> 56,         crc0);
+				crc0 = crc16_update_ref((words[i + k] >> 48) & 0xFF, crc0);
+				crc0 = crc16_update_ref((words[i + k] >> 40) & 0xFF, crc0);
+				crc0 = crc16_update_ref((words[i + k] >> 32) & 0xFF, crc0);
+				crc0 = crc16_update_ref((words[i + k] >> 24) & 0xFF, crc0);
+				crc0 = crc16_update_ref((words[i + k] >> 16) & 0xFF, crc0);
+				crc0 = crc16_update_ref((words[i + k] >>  8) & 0xFF, crc0);
+				crc0 = crc16_update_ref( words[i + k]        & 0xFF, crc0);
+			}
+
+			crc1 = FLAC__crc16_update_words64(words + i, n, crc1);
+
+			if (crc1 != crc0) {
+				printf("FAILED, FLAC__crc16_update_words64 result did not match reference CRC after %i words of test data\n", i + n);
+				return false;
+			}
+		}
+
+		crc1 = FLAC__crc16_update_words64(words, 0, crc1);
+
+		if (crc1 != crc0) {
+			printf("FAILED, FLAC__crc16_update_words64 called with zero bytes changed CRC value\n");
+			return false;
+		}
+
+		printf("OK\n");
+	}
 
 	return true;
 }

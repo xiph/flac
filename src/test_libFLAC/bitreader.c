@@ -57,6 +57,7 @@ struct FLAC__BitReader {
 	uint32_t consumed_words; /* #words ... */
 	uint32_t consumed_bits; /* ... + (#bits of head word) already consumed from the front of buffer */
 	uint32_t read_crc16; /* the running frame CRC */
+	uint32_t crc16_offset; /* the number of words in the current buffer that should not be CRC'd */
 	uint32_t crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
