@@ -345,7 +345,7 @@ AC_ARG_ENABLE([ogg],
 	[ want_ogg=$enableval ], [ want_ogg=yes ] )
 
 if test "x$want_ogg" != "xno"; then
-	XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
+	XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development environment not installed - Ogg support will not be built]))
 fi
 
 FLAC__HAS_OGG=0

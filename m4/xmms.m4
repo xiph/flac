@@ -127,7 +127,7 @@ else
             echo "*** being found. The easiest way to fix this is to remove the old version"
             echo "*** of XMMS, but you can also set the XMMS_CONFIG environment to point to the"
             echo "*** correct copy of xmms-config. (In this case, you will have to"
-            echo "*** modify your LD_LIBRARY_PATH enviroment variable, or edit /etc/ld.so.conf"
+            echo "*** modify your LD_LIBRARY_PATH environment variable, or edit /etc/ld.so.conf"
             echo "*** so that the correct libraries are found at run-time)"
 	fi
     fi

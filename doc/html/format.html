@@ -175,7 +175,7 @@
 		<br />
 		<a name="definitions"><font size="+1"><b><u>Definitions</u></b></font></a><br />
 		<br />
-		Many terms like "block" and "frame" are used to mean different things in differenct encoding schemes.  For example, a frame in MP3 corresponds to many samples across several channels, whereas an S/PDIF frame represents just one sample for each channel.  The definitions we use for FLAC follow.  Note that when we talk about blocks and subblocks we are referring to the raw unencoded audio data that is the input to the encoder, and when we talk about frames and subframes, we are referring to the FLAC-encoded data.
+		Many terms like "block" and "frame" are used to mean different things in different encoding schemes.  For example, a frame in MP3 corresponds to many samples across several channels, whereas an S/PDIF frame represents just one sample for each channel.  The definitions we use for FLAC follow.  Note that when we talk about blocks and subblocks we are referring to the raw unencoded audio data that is the input to the encoder, and when we talk about frames and subframes, we are referring to the FLAC-encoded data.
 		<ul>
 			<li>
 				<b>Block</b>: One or more audio samples that span several channels.
@@ -241,7 +241,7 @@
 		<br />
 		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single Rice parameter based on the variance of the residual and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)<br />
 		<br />
-		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <a href="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</a> and <a href="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</a> for descriptions of several universal codes.<br />
+		The FLAC format has reserved space for other coding methods.  Some possibilities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <a href="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</a> and <a href="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</a> for descriptions of several universal codes.<br />
 		<br />
 		<a name="format_overview"><font size="+1"><b><u>Format</u></b></font></a><br />
 		<br />

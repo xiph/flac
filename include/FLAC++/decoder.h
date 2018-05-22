@@ -94,7 +94,7 @@ namespace FLAC {
 		 * Only the read, write, and error callbacks are mandatory.  The
 		 * others are optional; this class provides default
 		 * implementations that do nothing.  In order for seeking to work
-		 * you must overide seek_callback(), tell_callback(),
+		 * you must override seek_callback(), tell_callback(),
 		 * length_callback(), and eof_callback().
 		 */
 		class FLACPP_API Stream {

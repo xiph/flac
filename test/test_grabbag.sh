@@ -101,7 +101,7 @@ for cuesheet in $bad_cuesheets ; do
 done
 
 #
-# positve tests
+# positive tests
 #
 for cuesheet in $good_cuesheets ; do
 	echo "POSITIVE $cuesheet" | sed "s|${top_srcdir}/test/||" >> $log 2>&1

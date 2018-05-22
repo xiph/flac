@@ -95,7 +95,7 @@ namespace FLAC {
 		 * Only the write callback is mandatory.  The others are
 		 * optional; this class provides default implementations that do
 		 * nothing.  In order for some STREAMINFO and SEEKTABLE data to
-		 * be written properly, you must overide seek_callback() and
+		 * be written properly, you must override seek_callback() and
 		 * tell_callback(); see FLAC__stream_encoder_init_stream() as to
 		 * why.
 		 */
