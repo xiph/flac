@@ -36,7 +36,7 @@ dnl Dtermine whether the compiler has the __builtin_bswap32() intrinsic which
 dnl is likely to be present for most versions of GCC as well as Clang.
 
 AC_DEFUN([XIPH_C_BSWAP32],
-[AC_CACHE_CHECK(for bswap32 instrinsic,
+[AC_CACHE_CHECK(for bswap32 intrinsic,
   ac_cv_c_bswap32,
 
   # Initialize to no
@@ -63,7 +63,7 @@ dnl Dtermine whether the compiler has the __builtin_bswap16() intrinsic which
 dnl is likely to be present for most versions of GCC as well as Clang.
 
 AC_DEFUN([XIPH_C_BSWAP16],
-[AC_CACHE_CHECK(for bswap16 instrinsic,
+[AC_CACHE_CHECK(for bswap16 intrinsic,
   ac_cv_c_bswap16,
 
   # Initialize to no

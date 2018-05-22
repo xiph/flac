@@ -43,7 +43,7 @@
 /*
  * Function local__extname (filename)
  *
- *    Return pointer within filename to its extenstion, or NULL if
+ *    Return pointer within filename to its extension, or NULL if
  *    filename has no extension.
  *
  */

@@ -169,7 +169,7 @@ static FLAC__bool test_md5_codec(void)
 	FLAC__int32 arrays[MAX_CHANNEL_COUNT][MD5_SAMPLE_COUNT], *pointer[MAX_CHANNEL_COUNT], **signal;
 	uint32_t chan, byte_size, seed = 0x12345679;
 
-	/* Set up signal data using a trival Linear Congruent PRNG. */
+	/* Set up signal data using a trivial Linear Congruent PRNG. */
 	signal = &pointer[0];
 	for (chan = 0 ; chan < MAX_CHANNEL_COUNT ; chan ++) {
 		uint32_t k;

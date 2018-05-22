@@ -192,7 +192,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "             mean that FILE is actually a URL to an image, though this use is\n");
 	fprintf(out, "             discouraged.\n");
 	fprintf(out, "           DESCRIPTION is optional; the default is an empty string\n");
-	fprintf(out, "           The next part specfies the resolution and color information.  If\n");
+	fprintf(out, "           The next part specifies the resolution and color information.  If\n");
 	fprintf(out, "             the MIME-TYPE is image/jpeg, image/png, or image/gif, you can\n");
 	fprintf(out, "             usually leave this empty and they can be detected from the file.\n");
 	fprintf(out, "             Otherwise, you must specify the width in pixels, height in pixels,\n");
