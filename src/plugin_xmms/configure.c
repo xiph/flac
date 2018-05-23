@@ -46,7 +46,7 @@
 #include "locale_hack.h"
 
 /*
- * Initialize Global Valuable
+ * Initialize Global Variable
  */
 flac_config_t flac_cfg = {
 	/* title */
