@@ -2173,12 +2173,30 @@ int decode_file(const char *infilename)
 const char *get_encoded_outfilename(const char *infilename)
 {
 	const char *suffix = (option_values.use_ogg? ".oga" : ".flac");
-	return get_outfilename(infilename, suffix);
+	char *p;
+
+	if(option_values.output_prefix) {
+		p = grabbag__file_get_basename(infilename);
+	}
+	else {
+		p = infilename;
+	}
+
+	return get_outfilename(p, suffix);
 }
 
 const char *get_decoded_outfilename(const char *infilename)
 {
 	const char *suffix;
+	char *p;
+
+	if(option_values.output_prefix) {
+		p = grabbag__file_get_basename(infilename);
+	}
+	else {
+		p = infilename;
+	}
+
 	if(option_values.analyze) {
 		suffix = ".ana";
 	}
@@ -2197,7 +2215,7 @@ const char *get_decoded_outfilename(const char *infilename)
 	else {
 		suffix = ".wav";
 	}
-	return get_outfilename(infilename, suffix);
+	return get_outfilename(p, suffix);
 }
 
 const char *get_outfilename(const char *infilename, const char *suffix)
