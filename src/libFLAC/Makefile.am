@@ -114,6 +114,7 @@ libFLAC_sources = \
 	lpc_intrin_sse2.c \
 	lpc_intrin_sse41.c \
 	lpc_intrin_avx2.c \
+	lpc_intrin_vsx.c \
 	md5.c \
 	memory.c \
 	metadata_iterators.c \
