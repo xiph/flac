@@ -228,6 +228,19 @@ AC_DEFINE(FLAC__USE_ALTIVEC)
 AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
 fi
 
+AC_ARG_ENABLE(vsx,
+AC_HELP_STRING([--disable-vsx], [Disable VSX optimizations]),
+[case "${enableval}" in
+	yes) use_vsx=true ;;
+	no)  use_vsx=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-vsx) ;;
+esac],[use_vsx=true])
+AM_CONDITIONAL(FLaC__USE_VSX, test "x$use_vsx" = xtrue)
+if test "x$use_vsx" = xtrue ; then
+AC_DEFINE(FLAC__USE_VSX)
+AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
+fi
+
 AC_ARG_ENABLE(avx,
 AC_HELP_STRING([--disable-avx], [Disable AVX, AVX2 optimizations]),
 [case "${enableval}" in
