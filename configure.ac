@@ -175,6 +175,26 @@ else
 AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
 fi
 
+if test x"$cpu_ppc64" = xtrue ; then
+
+AC_C_ATTRIBUTE([target("cpu=power8")],
+  [have_cpu_power8=yes],
+  [have_cpu_power8=no])
+if test x"$have_cpu_power8" = xyes ; then
+  AC_DEFINE(FLAC__HAS_TARGET_POWER8)
+  AH_TEMPLATE(FLAC__HAS_TARGET_POWER8, [define if compiler has __attribute__((target("cpu=power8"))) support])
+fi
+
+AC_C_ATTRIBUTE([target("cpu=power9")],
+  [have_cpu_power9=yes],
+  [have_cpu_power9=no])
+if test x"$have_cpu_power9" = xyes ; then
+  AC_DEFINE(FLAC__HAS_TARGET_POWER9)
+  AH_TEMPLATE(FLAC__HAS_TARGET_POWER9, [define if compiler has __attribute__((target("cpu=power9"))) support])
+fi
+
+fi
+
 case "$host" in
 	i386-*-openbsd3.[[0-3]]) OBJ_FORMAT=aoutb ;;
 	*-*-cygwin|*mingw*) OBJ_FORMAT=win32 ;;
