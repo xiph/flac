@@ -194,6 +194,8 @@ HANDLE WINAPI flac_internal_CreateFile_utf8(const char *lpFileName, DWORD dwDesi
 
 		handle = CreateFile2(wname, dwDesiredAccess, dwShareMode, CREATE_ALWAYS, NULL);
 		free(wname);
+
+		return handle;
 	}
 #else
 	if (!utf8_filenames) {
