@@ -41,11 +41,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h> /* for strrchr() */
-#if defined _WIN32 && !defined __CYGWIN__
-// for GetFileInformationByHandle() etc
-#include <windows.h>
-#include <winbase.h>
-#endif
 #include "share/grabbag.h"
 
 
@@ -116,9 +111,9 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 {
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _WIN32 && !defined __CYGWIN__
 	/* see
-	 * http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
+	 *  http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/getfileinformationbyhandle.asp
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/by_handle_file_information_str.asp
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/createfile.asp
@@ -128,8 +123,8 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 	BY_HANDLE_FILE_INFORMATION info1, info2;
 	HANDLE h1, h2;
 	BOOL ok = 1;
-	h1 = CreateFile_utf8(f1, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
-	h2 = CreateFile_utf8(f2, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	h1 = grabbag__CreateFile_utf8(f1, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+	h2 = grabbag__CreateFile_utf8(f2, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if(h1 == INVALID_HANDLE_VALUE || h2 == INVALID_HANDLE_VALUE)
 		ok = 0;
 	ok &= GetFileInformationByHandle(h1, &info1);
@@ -185,3 +180,44 @@ FILE *grabbag__file_get_binary_stdout(void)
 
 	return stdout;
 }
+
+#if defined _WIN32 && !defined __CYGWIN__
+
+/* convert UTF-8 back to WCHAR. Caller is responsible for freeing memory */
+static wchar_t *wchar_from_utf8(const char *str)
+{
+	wchar_t *widestr;
+	int len;
+
+	if (!str)
+		return NULL;
+	if ((len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0)) == 0)
+		return NULL;
+	if ((widestr = (wchar_t *)malloc(len*sizeof(wchar_t))) == NULL)
+		return NULL;
+	if (MultiByteToWideChar(CP_UTF8, 0, str, -1, widestr, len) == 0) {
+		free(widestr);
+		widestr = NULL;
+	}
+
+	return widestr;
+}
+
+HANDLE WINAPI grabbag__CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
+{
+	if (!flac_internal_get_utf8_filenames()) {
+		return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+	} else {
+		wchar_t *wname;
+		HANDLE handle = INVALID_HANDLE_VALUE;
+
+		if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
+			handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+			free(wname);
+		}
+
+		return handle;
+	}
+}
+
+#endif

@@ -263,11 +263,11 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 {
 	if(0 != d->fout && d->fout != stdout) {
-#ifdef _WIN32
+#if defined _WIN32 && !defined __CYGWIN__
 		if(!error_occurred) {
 			FLAC__off_t written_size = ftello(d->fout);
 			if(written_size > 0) {
-				HANDLE fh = CreateFile_utf8(d->outfilename, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+				HANDLE fh = grabbag__CreateFile_utf8(d->outfilename, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 				if(fh != INVALID_HANDLE_VALUE) {
 					if(GetFileType(fh) == FILE_TYPE_DISK) {
 						LARGE_INTEGER size;
@@ -381,9 +381,9 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		}
 	}
 
-#ifdef _WIN32
+#if defined _WIN32 && !defined __CYGWIN__
 	if(!d->analysis_mode && !d->test_only && d->total_samples > 0 && d->fout != stdout) {
-		HANDLE fh = CreateFile_utf8(d->outfilename, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
+		HANDLE fh = grabbag__CreateFile_utf8(d->outfilename, GENERIC_READ|GENERIC_WRITE, FILE_SHARE_READ|FILE_SHARE_WRITE, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 		if(fh != INVALID_HANDLE_VALUE) {
 			if (GetFileType(fh) == FILE_TYPE_DISK) {
 				LARGE_INTEGER size;
