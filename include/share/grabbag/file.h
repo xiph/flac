@@ -58,11 +58,6 @@ FLAC__bool grabbag__file_remove_file(const char *filename);
 FILE *grabbag__file_get_binary_stdin(void);
 FILE *grabbag__file_get_binary_stdout(void);
 
-#if defined _WIN32 && !defined __CYGWIN__
-#include <windows.h>
-HANDLE WINAPI grabbag__CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile);
-#endif
-
 #ifdef __cplusplus
 }
 #endif
