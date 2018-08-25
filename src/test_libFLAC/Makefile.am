@@ -26,11 +26,16 @@ AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(
 
 check_PROGRAMS = test_libFLAC
 
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
 	$(top_builddir)/src/test_libs_common/libtest_libs_common.la \
 	$(top_builddir)/src/libFLAC/libFLAC-static.la \
+	$(win_utf8_lib) \
 	@OGG_LIBS@ \
 	-lm
 
