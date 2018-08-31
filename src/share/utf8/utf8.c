@@ -49,26 +49,22 @@ int utf8_encode(const char *from, char **to)
 
 		len = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, from, -1, NULL, 0);
 		if(len == 0) break;
-
 		unicode = (wchar_t*) safe_malloc_mul_2op_((size_t)len, sizeof(wchar_t));
 		if(unicode == NULL) break;
-
 		len = MultiByteToWideChar(CP_ACP, MB_PRECOMPOSED, from, -1, unicode, len);
 		if(len == 0) break;
 
 		len = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, NULL, 0, NULL, NULL);
 		if(len == 0) break;
-
 		utf8 = (char*) safe_malloc_mul_2op_((size_t)len, sizeof(char));
 		if(utf8 == NULL) break;
-		
 		len = WideCharToMultiByte(CP_UTF8, 0, unicode, -1, utf8, len, NULL, NULL);
 		if(len == 0) break;
 
 		ret = 0;
 
 	} while(0);
-		
+
 	free(unicode);
 
 	if(ret == 0) {
@@ -92,19 +88,15 @@ int utf8_decode(const char *from, char **to)
 
 		len = MultiByteToWideChar(CP_UTF8, 0, from, -1, NULL, 0);
 		if(len == 0) break;
-
 		unicode = (wchar_t*) safe_malloc_mul_2op_((size_t)len, sizeof(wchar_t));
 		if(unicode == NULL) break;
-
 		len = MultiByteToWideChar(CP_UTF8, 0, from, -1, unicode, len);
 		if(len == 0) break;
 
 		len = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, unicode, -1, NULL, 0, NULL, NULL);
 		if(len == 0) break;
-
 		acp = (char*) safe_malloc_mul_2op_((size_t)len, sizeof(char));
 		if(acp == NULL) break;
-
 		len = WideCharToMultiByte(CP_ACP, WC_COMPOSITECHECK, unicode, -1, acp, len, NULL, NULL);
 		if(len == 0) break;
 
