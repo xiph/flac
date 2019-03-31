@@ -1,0 +1,124 @@
+cmake_minimum_required(VERSION 3.12)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86(_64)?|(AMD|amd)64|i[346]86")
+    option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
+    option(WITH_SSE "Enable AVX, AVX2 optimizations" ON)
+endif()
+
+check_c_compiler_flag(-msse2 HAVE_MSSE2_FLAG)
+if(HAVE_MSSE2_FLAG AND WITH_SSE)
+    add_compile_options(-msse2)
+endif()
+
+option(WITH_ASM "Use any assembly optimization routines" ON)
+
+check_include_file("cpuid.h" HAVE_CPUID_H)
+check_include_file("sys/param.h" HAVE_SYS_PARAM_H)
+
+set(CMAKE_REQUIRED_LIBRARIES m)
+check_function_exists(lround HAVE_LROUND)
+
+add_compile_definitions(
+    $<$<BOOL:${MSVC}>:_USE_MATH_DEFINES>
+    FLAC__USE_AVX=$<BOOL:${WITH_AVX}>
+    HAVE_LROUND=$<BOOL:${HAVE_LROUND}>
+    $<$<BOOL:${HAVE_CPUID_H}>:HAVE_CPUID_H>
+    $<$<OR:$<CONFIG:Debug>,$<CONFIG:RelWithDebInfo>>:FLAC__OVERFLOW_DETECT>)
+
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86_64|(AMD|amd)64")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(IA32 TRUE)
+    endif()
+    add_compile_definitions(
+        FLAC__CPU_X86_64
+        FLAC__ALIGN_MALLOC_DATA)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]|i[346])86")
+    set(IA32 TRUE)
+    add_compile_definitions(
+        FLAC__CPU_IA32
+        FLAC__ALIGN_MALLOC_DATA)
+endif()
+
+include(CheckLanguage)
+check_language(ASM_NASM)
+if(CMAKE_ASM_NASM_COMPILER)
+    enable_language(ASM_NASM)
+    add_compile_definitions(FLAC__HAS_NASM)
+endif()
+
+if(NOT WITH_ASM)
+    add_compile_definitions(FLAC__NO_ASM)
+endif()
+
+if(WITH_ASM AND IA32 AND CMAKE_ASM_NASM_COMPILER)
+    add_subdirectory(ia32)
+endif()
+
+set(prefix "${CMAKE_INSTALL_PREFIX}")
+set(exec_prefix "${CMAKE_INSTALL_PREFIX}")
+set(libdir "${CMAKE_INSTALL_FULL_LIBDIR}")
+set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
+configure_file(flac.pc.in flac.pc @ONLY)
+
+set(SOURCES
+    bitmath.c
+    bitreader.c
+    bitwriter.c
+    cpu.c
+    crc.c
+    fixed.c
+    fixed_intrin_sse2.c
+    fixed_intrin_ssse3.c
+    float.c
+    format.c
+    lpc.c
+    lpc_intrin_sse.c
+    lpc_intrin_sse2.c
+    lpc_intrin_sse41.c
+    lpc_intrin_avx2.c
+    lpc_intrin_vsx.c
+    md5.c
+    memory.c
+    metadata_iterators.c
+    metadata_object.c
+    stream_decoder.c
+    stream_encoder.c
+    stream_encoder_intrin_sse2.c
+    stream_encoder_intrin_ssse3.c
+    stream_encoder_intrin_avx2.c
+    stream_encoder_framing.c
+    window.c
+    $<$<BOOL:${OGG_FOUND}>:ogg_decoder_aspect.c>
+    $<$<BOOL:${OGG_FOUND}>:ogg_encoder_aspect.c>
+    $<$<BOOL:${OGG_FOUND}>:ogg_helper.c>
+    $<$<BOOL:${OGG_FOUND}>:ogg_mapping.c>
+    $<$<BOOL:${WIN32}>:windows_unicode_filenames.c>)
+
+include_directories("include")
+
+add_library(FLAC-static STATIC ${SOURCES})
+target_compile_definitions(FLAC-static PUBLIC FLAC__NO_DLL)
+target_include_directories(FLAC-static INTERFACE
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
+target_link_libraries(FLAC-static PUBLIC
+    $<TARGET_NAME_IF_EXISTS:Ogg::Ogg>
+    $<TARGET_NAME_IF_EXISTS:FLAC-asm>
+    $<$<BOOL:${HAVE_LROUND}>:m>)
+
+add_library(FLAC SHARED ${SOURCES})
+target_compile_definitions(FLAC PRIVATE FLAC_API_EXPORTS FLAC__USE_VISIBILITY_ATTR)
+target_include_directories(FLAC INTERFACE
+    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
+target_link_libraries(FLAC PRIVATE
+    $<TARGET_NAME_IF_EXISTS:FLAC-asm>
+    $<$<BOOL:${HAVE_LROUND}>:m>)
+set_target_properties(FLAC PROPERTIES C_VISIBILITY_PRESET hidden)
+
+install(TARGETS FLAC FLAC-static EXPORT targets
+    ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
+    LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
+    RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/")
+install(FILES "${CMAKE_CURRENT_BINARY_DIR}/flac.pc"
+    DESTINATION "${CMAKE_INSTALL_DATADIR}/pkgconfig")
