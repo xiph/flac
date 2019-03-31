@@ -1,0 +1,10 @@
+add_executable(test_libFLAC++
+    decoders.cpp
+    encoders.cpp
+    main.cpp
+    metadata.cpp
+    metadata_manip.cpp
+    metadata_object.cpp)
+target_link_libraries(test_libFLAC++ FLACXX-static test_libs_common grabbag)
+
+add_test(NAME FLACXX COMMAND test_libFLAC++)
