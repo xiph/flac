@@ -1,12 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 
 option(ENABLE_64_BIT_WORDS "Set FLAC__BYTES_PER_WORD to 8 (4 is the default)" OFF)
-option(WITH_OGG "ogg support (default: test for libogg)" ON)
 option(WITH_XMMS "Build XMMS plugin" OFF)
-
-if(WITH_OGG)
-    find_package(OGG REQUIRED)
-endif()
 
 check_include_file("iconv.h" HAVE_ICONV_H)
 
