@@ -101,13 +101,9 @@ add_subdirectory("microbench")
 if(BUILD_EXAMPLES)
     add_subdirectory("examples")
 endif()
-
-if(WIN32)
-    set(EXEEXT .exe)
+if(BUILD_TESTING)
+    add_subdirectory("test")
 endif()
-set(top_srcdir "${CMAKE_CURRENT_SOURCE_DIR}")
-set(top_builddir "${CMAKE_CURRENT_BINARY_DIR}")
-configure_file(test/common.sh.in test/common.sh @ONLY)
 
 install(
     EXPORT targets
