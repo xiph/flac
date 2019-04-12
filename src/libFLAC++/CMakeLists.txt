@@ -38,7 +38,10 @@ target_include_directories(FLACXX INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
 target_link_libraries(FLACXX PRIVATE FLAC)
-set_target_properties(FLACXX PROPERTIES CXX_VISIBILITY_PRESET hidden)
+set_target_properties(FLACXX PROPERTIES
+    CXX_VISIBILITY_PRESET hidden
+    VERSION 6.3.0
+    SOVERSION 6)
 
 install(TARGETS FLACXX FLACXX-static EXPORT targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
