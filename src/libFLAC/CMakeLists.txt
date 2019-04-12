@@ -2,12 +2,6 @@ cmake_minimum_required(VERSION 3.12)
 
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86(_64)?|(AMD|amd)64|i[346]86")
     option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
-    option(WITH_SSE "Enable AVX, AVX2 optimizations" ON)
-endif()
-
-check_c_compiler_flag(-msse2 HAVE_MSSE2_FLAG)
-if(HAVE_MSSE2_FLAG AND WITH_SSE)
-    add_compile_options(-msse2)
 endif()
 
 option(WITH_ASM "Use any assembly optimization routines" ON)
@@ -50,9 +44,20 @@ if(NOT WITH_ASM)
     add_compile_definitions(FLAC__NO_ASM)
 endif()
 
-if(WITH_ASM AND IA32 AND CMAKE_ASM_NASM_COMPILER)
-    add_subdirectory(ia32)
+if(IA32)
+    if(WITH_ASM AND CMAKE_ASM_NASM_COMPILER)
+        add_subdirectory(ia32)
+    endif()
+
+    option(WITH_SSE "Enable SSE2 optimizations" ON)
+    check_c_compiler_flag(-msse2 HAVE_MSSE2_FLAG)
+    if(WITH_SSE)
+        add_compile_options(
+            $<$<BOOL:${HAVE_MSSE2_FLAG}>:-msse2>
+            $<$<BOOL:${MSVC}>:/arch:SSE2>)
+    endif()
 endif()
+
 
 set(prefix "${CMAKE_INSTALL_PREFIX}")
 set(exec_prefix "${CMAKE_INSTALL_PREFIX}")

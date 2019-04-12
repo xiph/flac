@@ -81,8 +81,8 @@ add_compile_options(
     $<$<AND:$<BOOL:${HAVE_SSP_FLAG}>,$<BOOL:${ENABLE_SSP}>>:-fstack-protector>
     $<$<AND:$<BOOL:${HAVE_SSP_FLAG}>,$<BOOL:${ENABLE_SSP}>>:--param>
     $<$<AND:$<BOOL:${HAVE_SSP_FLAG}>,$<BOOL:${ENABLE_SSP}>>:ssp-buffer-size=4>
-    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:HAVE_WEFFCXX_FLAG>>:-Weffc++>
-    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:HAVE_DECL_AFTER_STMT_FLAG>>:-Wdeclaration-after-statement>)
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${HAVE_WEFFCXX_FLAG}>>:-Weffc++>
+    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_DECL_AFTER_STMT_FLAG}>>:-Wdeclaration-after-statement>)
 
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i686" AND HAVE_STACKREALIGN_FLAG)
     add_compile_options(-mstackrealign)
