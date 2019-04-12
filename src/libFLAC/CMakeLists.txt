@@ -122,7 +122,10 @@ target_link_libraries(FLAC PRIVATE
     $<TARGET_NAME_IF_EXISTS:Ogg::Ogg>
     $<TARGET_NAME_IF_EXISTS:FLAC-asm>
     $<$<BOOL:${HAVE_LROUND}>:m>)
-set_target_properties(FLAC PROPERTIES C_VISIBILITY_PRESET hidden)
+set_target_properties(FLAC PROPERTIES
+    C_VISIBILITY_PRESET hidden
+    VERSION 8.3.0
+    SOVERSION 8)
 
 install(TARGETS FLAC FLAC-static EXPORT targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
