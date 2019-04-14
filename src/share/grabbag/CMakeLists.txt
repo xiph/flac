@@ -8,5 +8,4 @@ add_library(grabbag STATIC
     snprintf.c)
 target_link_libraries(grabbag
     FLAC-static
-    replaygain_analysis
-    $<TARGET_NAME_IF_EXISTS:win_utf8_io>)
+    replaygain_analysis)

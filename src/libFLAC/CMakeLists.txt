@@ -107,15 +107,13 @@ target_include_directories(FLAC-static INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
 target_link_libraries(FLAC-static PUBLIC
-    $<TARGET_NAME_IF_EXISTS:Ogg::Ogg-static>
+    $<TARGET_NAME_IF_EXISTS:win_utf8_io>
     $<TARGET_NAME_IF_EXISTS:FLAC-asm>
     $<$<BOOL:${HAVE_LROUND}>:m>)
 if(TARGET Ogg::Ogg-static)
-    target_link_libraries(FLAC-static PUBLIC
-        $<TARGET_NAME_IF_EXISTS:Ogg::Ogg-static>)
+    target_link_libraries(FLAC-static PUBLIC Ogg::Ogg-static)
 elseif(TARGET Ogg::Ogg)
-    target_link_libraries(FLAC-static PUBLIC
-        $<TARGET_NAME_IF_EXISTS:Ogg::Ogg>)
+    target_link_libraries(FLAC-static PUBLIC Ogg::Ogg)
 endif()
 
 add_library(FLAC SHARED ${SOURCES})
@@ -126,6 +124,7 @@ target_include_directories(FLAC INTERFACE
 target_link_libraries(FLAC PRIVATE
     $<TARGET_NAME_IF_EXISTS:Ogg::Ogg>
     $<TARGET_NAME_IF_EXISTS:FLAC-asm>
+    $<TARGET_NAME_IF_EXISTS:win_utf8_io>
     $<$<BOOL:${HAVE_LROUND}>:m>)
 set_target_properties(FLAC PROPERTIES
     C_VISIBILITY_PRESET hidden
