@@ -4,17 +4,22 @@ os:
   - linux
   - osx
 
+dist: xenial
+
 compiler:
   - gcc
   - clang
 
 env:
-  -
-  - CONFIGURE_OPTS=--enable-64-bit-words
-
+  matrix:
+  - BUILD_SYSTEM="autotools" CONFIGURE_OPTS=
+  - BUILD_SYSTEM="autotools" CONFIGURE_OPTS=--enable-64-bit-words
+  - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=
+  - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
 install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libogg-dev; fi
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libtool-bin libogg-dev; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install libogg; fi
 
 script:
-  - ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check
+  - if [[ "${BUILD_SYSTEM}" == "autotools" ]]; then ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check; fi
+  - if [[ "${BUILD_SYSTEM}" == "cmake" ]]; then mkdir cmake-build && cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $CONFIGURE_OPTS && cmake --build . && ctest -V; fi
