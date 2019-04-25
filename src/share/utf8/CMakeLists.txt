@@ -6,4 +6,4 @@ add_library(utf8 STATIC
     iconvert.c
     utf8.c)
 
-target_link_libraries(utf8 PUBLIC $<$<BOOL:${HAVE_ICONV_LIB}>:iconv>)
+target_link_libraries(utf8 PUBLIC grabbag $<$<BOOL:${HAVE_ICONV_LIB}>:iconv>)
