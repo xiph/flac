@@ -18,8 +18,6 @@ check_cxx_source_compiles("
     #endif"
     HAVE_CXX_VARARRAYS)
 
-add_compile_definitions($<$<BOOL:${HAVE_CXX_VARARRAYS}>:HAVE_CXX_VARARRAYS>)
-
 set(SOURCES
     metadata.cpp
     stream_decoder.cpp

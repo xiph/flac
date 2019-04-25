@@ -1,6 +1,6 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.0)
 
-project(FLAC VERSION 1.3.2 HOMEPAGE_URL "https://www.xiph.org/flac/")
+project(FLAC VERSION 1.3.2) # HOMEPAGE_URL "https://www.xiph.org/flac/")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -45,7 +45,7 @@ include(TestBigEndian)
 check_include_file("byteswap.h" HAVE_BYTESWAP_H)
 check_include_file("inttypes.h" HAVE_INTTYPES_H)
 check_include_file("stdint.h" HAVE_STDINT_H)
-check_include_file("x86intrin.h" HAVE_X86INTRIN_H)
+check_include_file("x86intrin.h" FLAC__HAS_X86INTRIN)
 
 check_function_exists(fseeko HAVE_FSEEKO)
 
@@ -64,19 +64,6 @@ if(HAVE_WERROR_FLAG)
     option(ENABLE_WERROR "Enable -Werror in all Makefiles" OFF)
 endif()
 
-add_compile_definitions(
-    PACKAGE_VERSION="${PROJECT_VERSION}"
-    $<$<BOOL:${HAVE_BYTESWAP_H}>:HAVE_BYTESWAP_H>
-    $<$<BOOL:${HAVE_INTTYPES_H}>:HAVE_INTTYPES_H>
-    $<$<BOOL:${HAVE_STDINT_H}>:HAVE_STDINT_H>
-    $<$<BOOL:${HAVE_FSEEKO}>:HAVE_FSEEKO>
-    $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
-    CPU_IS_BIG_ENDIAN=$<BOOL:${CPU_IS_BIG_ENDIAN}>
-    CPU_IS_LITTLE_ENDIAN=$<NOT:$<BOOL:${CPU_IS_BIG_ENDIAN}>>
-    FLAC__HAS_X86INTRIN=$<BOOL:${HAVE_X86INTRIN_H}>
-    HAVE_BSWAP16=$<BOOL:${HAVE_BSWAP16}>
-    HAVE_BSWAP32=$<BOOL:${HAVE_BSWAP32}>)
-
 add_compile_options(
     $<$<BOOL:${MSVC}>:/wd4267>
     $<$<BOOL:${MSVC}>:/wd4996>
@@ -93,6 +80,18 @@ endif()
 
 include_directories("include")
 
+include_directories("${CMAKE_CURRENT_BINARY_DIR}")
+add_definitions(-DHAVE_CONFIG_H)
+
+if(MSVC)
+    add_definitions(
+        -D_CRT_SECURE_NO_WARNINGS
+        -D_USE_MATH_DEFINES)
+endif()
+if(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
+    add_definitions(-DFLAC__OVERFLOW_DETECT)
+endif()
+
 add_subdirectory("doc")
 add_subdirectory("src")
 add_subdirectory("microbench")
@@ -102,6 +101,8 @@ endif()
 if(BUILD_TESTING)
     add_subdirectory("test")
 endif()
+
+configure_file(config.cmake.h.in config.h)
 
 install(
     EXPORT targets
