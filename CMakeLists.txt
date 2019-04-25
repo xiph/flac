@@ -47,6 +47,8 @@ check_include_file("inttypes.h" HAVE_INTTYPES_H)
 check_include_file("stdint.h" HAVE_STDINT_H)
 check_include_file("x86intrin.h" HAVE_X86INTRIN_H)
 
+check_function_exists(fseeko HAVE_FSEEKO)
+
 check_c_source_compiles("int main() { return __builtin_bswap16 (0) ; }" HAVE_BSWAP16)
 check_c_source_compiles("int main() { return __builtin_bswap32 (0) ; }" HAVE_BSWAP32)
 
@@ -67,6 +69,7 @@ add_compile_definitions(
     $<$<BOOL:${HAVE_BYTESWAP_H}>:HAVE_BYTESWAP_H>
     $<$<BOOL:${HAVE_INTTYPES_H}>:HAVE_INTTYPES_H>
     $<$<BOOL:${HAVE_STDINT_H}>:HAVE_STDINT_H>
+    $<$<BOOL:${HAVE_FSEEKO}>:HAVE_FSEEKO>
     $<$<BOOL:${MSVC}>:_CRT_SECURE_NO_WARNINGS>
     CPU_IS_BIG_ENDIAN=$<BOOL:${CPU_IS_BIG_ENDIAN}>
     CPU_IS_LITTLE_ENDIAN=$<NOT:$<BOOL:${CPU_IS_BIG_ENDIAN}>>
