@@ -9,7 +9,6 @@ compiler:
   - clang
 
 env:
-  -
   - CONFIGURE_OPTS=--enable-64-bit-words
   matrix:
   - BUILD_SYSTEM="cmake"
