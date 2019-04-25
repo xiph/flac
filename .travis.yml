@@ -11,10 +11,13 @@ compiler:
 env:
   -
   - CONFIGURE_OPTS=--enable-64-bit-words
-
+  matrix:
+  - BUILD_SYSTEM="cmake"
+  - BUILD_SYSTEM="autotools"
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libogg-dev; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew install libogg; fi
 
 script:
-  - ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check
+  - if [[ "${BUILD_SYSTEM}" == "autotools" ]]; then ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check; fi
+  - if [[ "${BUILD_SYSTEM}" == "cmake" ]]; then mkdir build && cd build && cmake .. -DCMAKE_BUILD_TYPE=Release -DBUILD_SHARED_LIBS=ON -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON && cmake --build . && ctest -V; fi
