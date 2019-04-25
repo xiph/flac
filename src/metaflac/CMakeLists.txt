@@ -9,7 +9,7 @@ add_executable(metaflac
     options.c
     usage.c
     utils.c)
-target_link_libraries(metaflac FLAC-static grabbag getopt utf8)
+target_link_libraries(metaflac FLAC-static getopt utf8)
 
 install(TARGETS metaflac EXPORT targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")

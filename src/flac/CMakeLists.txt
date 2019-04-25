@@ -13,7 +13,6 @@ add_executable(flac
 target_link_libraries(flac
     FLAC-static
     getopt
-    grabbag
     replaygain_synthesis
     utf8)
 
