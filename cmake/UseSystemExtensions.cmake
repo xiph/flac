@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.12)
-
 include(CheckCSourceCompiles)
 
 check_c_source_compiles("
@@ -63,19 +61,14 @@ check_c_source_compiles("
     int main() { return 0; }"
     DODEFINE_EXTENSIONS)
 
-add_compile_definitions(
-    _ALL_SOURCE
-    _DARWIN_C_SOURCE
-    _GNU_SOURCE
-    _POSIX_PTHREAD_SEMANTICS
-    __STDC_WANT_IEC_60559_ATTRIBS_EXT__
-    __STDC_WANT_IEC_60559_BFP_EXT__
-    __STDC_WANT_IEC_60559_DFP_EXT__
-    __STDC_WANT_IEC_60559_FUNCS_EXT__
-    __STDC_WANT_IEC_60559_TYPES_EXT__
-    __STDC_WANT_LIB_EXT2__
-    __STDC_WANT_MATH_SPEC_FUNCS__
-    _TANDEM_SOURCE
-    $<$<AND:$<BOOL:${DODEFINE_FORTIFY_SOURCE}>,$<OR:$<CONFIG:Release>,$<CONFIG:RelWithDebInfo>>>:_FORTIFY_SOURCE=2>
-    $<$<BOOL:${DODEFINE_XOPEN_SOURCE}>:_XOPEN_SOURCE=500>
-    $<$<BOOL:${DODEFINE_EXTENTIONS}>:__EXTENSIONS__>)
+add_definitions(
+    -D_DARWIN_C_SOURCE
+    -D_POSIX_PTHREAD_SEMANTICS
+    -D__STDC_WANT_IEC_60559_ATTRIBS_EXT__
+    -D__STDC_WANT_IEC_60559_BFP_EXT__
+    -D__STDC_WANT_IEC_60559_DFP_EXT__
+    -D__STDC_WANT_IEC_60559_FUNCS_EXT__
+    -D__STDC_WANT_IEC_60559_TYPES_EXT__
+    -D__STDC_WANT_LIB_EXT2__
+    -D__STDC_WANT_MATH_SPEC_FUNCS__
+    -D_TANDEM_SOURCE)

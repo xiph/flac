@@ -1,16 +1,9 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.0)
 
 option(ENABLE_64_BIT_WORDS "Set FLAC__BYTES_PER_WORD to 8 (4 is the default)" OFF)
 option(WITH_XMMS "Build XMMS plugin" OFF)
 
-check_include_file("iconv.h" HAVE_ICONV_H)
-
-add_compile_definitions(
-    ENABLE_64_BIT_WORDS=$<BOOL:${ENABLE_64_BIT_WORDS}>
-    FLAC__HAS_OGG=$<BOOL:${OGG_FOUND}>
-    WORDS_BIGENDIAN=$<BOOL:${CPU_IS_BIG_ENDIAN}>
-    $<$<BOOL:${HAVE_ICONV_H}>:HAVE_ICONV>
-    $<$<BOOL:${HAVE_SYS_PARAM_H}>:HAVE_SYS_PARAM_H>)
+check_include_file("iconv.h" HAVE_ICONV)
 
 add_subdirectory("libFLAC")
 if(BUILD_CXXLIBS)

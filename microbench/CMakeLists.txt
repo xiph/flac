@@ -5,9 +5,9 @@ endif()
 set(CMAKE_REQUIRED_LIBRARIES rt)
 check_function_exists(clock_gettime HAVE_CLOCK_GETTIME)
 
-add_compile_definitions(
-    $<$<BOOL:${HAVE_CLOCK_GETTIME}>:HAVE_CLOCK_GETTIME>
-    $<$<BOOL:${APPLE}>:FLAC__SYS_DARWIN>)
+if(APPLE)
+    add_definitions(-DFLAC__SYS_DARWIN)
+endif()
 
 add_executable(benchmark_residual benchmark_residual.c util.c)
 target_include_directories(benchmark_residual PRIVATE
