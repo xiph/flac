@@ -15,6 +15,9 @@ target_link_libraries(flac
     getopt
     replaygain_synthesis
     utf8)
+if(TARGET win_utf8_io)
+    target_link_libraries(flac win_utf8_io)
+endif()
 
 install(TARGETS flac EXPORT targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")

@@ -12,7 +12,7 @@ else()
     add_compile_options(-dOBJ_FORMAT_elf)
 endif()
 
-add_library(FLAC-asm STATIC
+add_library(FLAC-asm OBJECT
     cpu_asm.nasm
     fixed_asm.nasm
     lpc_asm.nasm)

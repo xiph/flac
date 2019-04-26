@@ -27,14 +27,14 @@ add_library(FLAC++-static STATIC ${SOURCES})
 target_compile_definitions(FLAC++-static PUBLIC FLAC__NO_DLL)
 target_include_directories(FLAC++-static INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
+    "$<INSTALL_INTERFACE:include>")
 target_link_libraries(FLAC++-static PUBLIC FLAC-static)
 
 add_library(FLAC++ SHARED ${SOURCES})
 target_compile_definitions(FLAC++ PRIVATE FLACPP_API_EXPORTS FLAC__USE_VISIBILITY_ATTR)
 target_include_directories(FLAC++ INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
+    "$<INSTALL_INTERFACE:include>")
 target_link_libraries(FLAC++ PRIVATE FLAC)
 set_target_properties(FLAC++ PROPERTIES
     CXX_VISIBILITY_PRESET hidden
