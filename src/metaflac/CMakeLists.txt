@@ -10,6 +10,9 @@ add_executable(metaflac
     usage.c
     utils.c)
 target_link_libraries(metaflac FLAC-static getopt utf8)
+if(TARGET win_utf8_io)
+    target_link_libraries(metaflac win_utf8_io)
+endif()
 
 install(TARGETS metaflac EXPORT targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")

@@ -87,6 +87,9 @@ set(SOURCES
     $<$<BOOL:${OGG_FOUND}>:ogg_helper.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_mapping.c>
     $<$<BOOL:${WIN32}>:windows_unicode_filenames.c>)
+if(TARGET FLAC-asm)
+    list(APPEND SOURCES $<TARGET_OBJECTS:FLAC-asm>)
+endif()
 
 include_directories("include")
 
@@ -94,14 +97,8 @@ add_library(FLAC-static STATIC ${SOURCES})
 target_compile_definitions(FLAC-static PUBLIC FLAC__NO_DLL)
 target_include_directories(FLAC-static INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
+    "$<INSTALL_INTERFACE:include>")
 target_link_libraries(FLAC-static PUBLIC $<$<BOOL:${HAVE_LROUND}>:m>)
-if(TARGET FLAC-asm)
-    target_link_libraries(FLAC-static PUBLIC FLAC-asm>)
-endif()
-if(TARGET win_utf8_io)
-    target_link_libraries(FLAC-static PUBLIC win_utf8_io>)
-endif()
 if(TARGET Ogg::Ogg-static)
     target_link_libraries(FLAC-static PUBLIC Ogg::Ogg-static)
 elseif(TARGET Ogg::Ogg)
@@ -112,14 +109,8 @@ add_library(FLAC SHARED ${SOURCES})
 target_compile_definitions(FLAC PRIVATE FLAC_API_EXPORTS FLAC__USE_VISIBILITY_ATTR)
 target_include_directories(FLAC INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_PREFIX}/include>")
+    "$<INSTALL_INTERFACE:include>")
 target_link_libraries(FLAC PRIVATE $<$<BOOL:${HAVE_LROUND}>:m>)
-if(TARGET FLAC-asm)
-    target_link_libraries(FLAC PUBLIC FLAC-asm>)
-endif()
-if(TARGET win_utf8_io)
-    target_link_libraries(FLAC PUBLIC win_utf8_io>)
-endif()
 if(TARGET Ogg::Ogg)
     target_link_libraries(FLAC PUBLIC Ogg::Ogg)
 endif()
