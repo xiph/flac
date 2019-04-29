@@ -11,7 +11,7 @@ endif()
 
 add_executable(benchmark_residual benchmark_residual.c util.c)
 target_include_directories(benchmark_residual PRIVATE
-    "$<TARGET_PROPERTY:FLAC-static,SOURCE_DIR>/include")
+    "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/include")
 target_link_libraries(benchmark_residual
-    FLAC-static
+    FLAC
     $<$<BOOL:${HAVE_CLOCK_GETTIME}>:rt>)

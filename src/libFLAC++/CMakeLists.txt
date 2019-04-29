@@ -18,30 +18,26 @@ check_cxx_source_compiles("
     #endif"
     HAVE_CXX_VARARRAYS)
 
-set(SOURCES
+add_library(FLAC++
     metadata.cpp
     stream_decoder.cpp
     stream_encoder.cpp)
-
-add_library(FLAC++-static STATIC ${SOURCES})
-target_compile_definitions(FLAC++-static PUBLIC FLAC__NO_DLL)
-target_include_directories(FLAC++-static INTERFACE
-    "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
-target_link_libraries(FLAC++-static PUBLIC FLAC-static)
-
-add_library(FLAC++ SHARED ${SOURCES})
-target_compile_definitions(FLAC++ PRIVATE FLACPP_API_EXPORTS FLAC__USE_VISIBILITY_ATTR)
+target_compile_definitions(FLAC++
+    PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLACPP_API_EXPORTS>
+    PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLAC__USE_VISIBILITY_ATTR>
+    PUBLIC $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:FLAC__NO_DLL>)
 target_include_directories(FLAC++ INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
-    "$<INSTALL_INTERFACE:include>")
-target_link_libraries(FLAC++ PRIVATE FLAC)
-set_target_properties(FLAC++ PROPERTIES
-    CXX_VISIBILITY_PRESET hidden
-    VERSION 6.3.0
-    SOVERSION 6)
+    "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
+target_link_libraries(FLAC++ PUBLIC FLAC)
+if(BUILD_SHARED_LIBS)
+    set_target_properties(FLAC++ PROPERTIES
+        CXX_VISIBILITY_PRESET hidden
+        VERSION 6.3.0
+        SOVERSION 6)
+endif()
 
-install(TARGETS FLAC++ FLAC++-static EXPORT targets
+install(TARGETS FLAC++ EXPORT targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
     LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}/")

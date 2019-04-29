@@ -10,9 +10,14 @@ add_executable(test_libFLAC
     metadata.c
     metadata_manip.c
     metadata_object.c
-    md5.c)
+    md5.c
+    "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/bitreader.c"
+    "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/bitwriter.c"
+    "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/crc.c"
+    "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/md5.c")
 
 target_compile_definitions(test_libFLAC PRIVATE
     $<$<BOOL:${ENABLE_64_BIT_WORDS}>:ENABLE_64_BIT_WORDS>)
-target_include_directories(test_libFLAC PRIVATE "$<TARGET_PROPERTY:FLAC-static,SOURCE_DIR>/include")
-target_link_libraries(test_libFLAC FLAC-static grabbag test_libs_common)
+target_include_directories(test_libFLAC PRIVATE
+    "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/include")
+target_link_libraries(test_libFLAC FLAC grabbag test_libs_common)

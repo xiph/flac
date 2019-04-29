@@ -7,7 +7,7 @@ add_library(grabbag STATIC
     seektable.c
     snprintf.c)
 target_link_libraries(grabbag PUBLIC
-    FLAC-static
+    FLAC
     replaygain_analysis)
 if(TARGET win_utf8_io)
     target_link_libraries(grabbag PUBLIC win_utf8_io)

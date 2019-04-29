@@ -14,10 +14,7 @@ endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline")
-
-    if(CMAKE_BULD_TYPE STREQUAL Release)
-        set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -O3 -funroll-loops")
-    endif()
+    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -funroll-loops")
 
     option(ENABLE_SSP "Enable GNU GCC stack smash protection" OFF)
 endif()

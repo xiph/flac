@@ -5,4 +5,4 @@ add_executable(test_libFLAC++
     metadata.cpp
     metadata_manip.cpp
     metadata_object.cpp)
-target_link_libraries(test_libFLAC++ FLAC++-static test_libs_common grabbag)
+target_link_libraries(test_libFLAC++ FLAC++ test_libs_common grabbag)

@@ -9,7 +9,7 @@ add_executable(metaflac
     options.c
     usage.c
     utils.c)
-target_link_libraries(metaflac FLAC-static getopt utf8)
+target_link_libraries(metaflac FLAC getopt utf8)
 if(TARGET win_utf8_io)
     target_link_libraries(metaflac win_utf8_io)
 endif()
