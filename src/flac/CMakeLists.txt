@@ -11,7 +11,7 @@ add_executable(flac
     utils.c
     vorbiscomment.c)
 target_link_libraries(flac
-    FLAC-static
+    FLAC
     getopt
     replaygain_synthesis
     utf8)

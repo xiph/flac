@@ -64,7 +64,6 @@ check_c_source_compiles("
 add_definitions(
     -D_DARWIN_C_SOURCE
     -D_POSIX_PTHREAD_SEMANTICS
-    -D__STDC_WANT_IEC_60559_ATTRIBS_EXT__
     -D__STDC_WANT_IEC_60559_BFP_EXT__
     -D__STDC_WANT_IEC_60559_DFP_EXT__
     -D__STDC_WANT_IEC_60559_FUNCS_EXT__

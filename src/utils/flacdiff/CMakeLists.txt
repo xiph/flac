@@ -1,5 +1,5 @@
 add_executable(flacdiff main.cpp)
-target_link_libraries(flacdiff FLAC++-static)
+target_link_libraries(flacdiff FLAC++)
 if(TARGET win_utf8_io)
     target_link_libraries(flacdiff win_utf8_io)
 endif()
