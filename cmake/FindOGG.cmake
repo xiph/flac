@@ -18,9 +18,9 @@ find_package_handle_standard_args(OGG
     REQUIRED_VARS OGG_INCLUDE_DIR OGG_LIBRARY
     VERSION_VAR _OGG_VERSION)
 
-if(OGG_FOUND AND NOT TARGET Ogg::Ogg)
-    add_library(Ogg::Ogg UNKNOWN IMPORTED)
-    set_target_properties(Ogg::Ogg PROPERTIES
+if(OGG_FOUND AND NOT TARGET Ogg::ogg)
+    add_library(Ogg::ogg UNKNOWN IMPORTED)
+    set_target_properties(Ogg::ogg PROPERTIES
         INTERFACE_INCLUDE_DIRECTORIES "${OGG_INCLUDE_DIR}"
         IMPORTED_LOCATION "${OGG_LIBRARY}")
 endif()
