@@ -9,7 +9,6 @@ set(top_srcdir "${PROJECT_SOURCE_DIR}")
 set(top_builddir "${PROJECT_BINARY_DIR}")
 configure_file(common.sh.in common.sh @ONLY)
 
-
 add_test(NAME libFLAC
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/test_libFLAC.sh"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -43,3 +42,7 @@ add_test(NAME streams
 add_test(NAME compression
     COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/test_compression.sh"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+
+set_property(TEST
+    libFLAC libFLAC++ grabbag flac metaflac replaygain seeking streams compression
+    APPEND PROPERTY ENVIRONMENT ECHO_C=\\c)
