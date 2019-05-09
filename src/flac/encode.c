@@ -1676,7 +1676,7 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 		}
 	}
 
-	if (e->compression_ratio >= 1.0) {
+	if (e->compression_ratio >= 1.0 && error_on_compression_fail) {
 		flac__utils_printf(stderr, 1,
 			"FAILURE: Compression failed (ratio %0.3f, should be < 1.0).\n"
 			"This happens for some files for one or more of the following reasons:\n"
@@ -1684,8 +1684,7 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 			" * Insufficient input data  (e.g. very short files, < 10000 frames).\n"
 			" * The audio data is not compressible (e.g. a full range white noise signal).\n"
 			, e->compression_ratio);
-		if (error_on_compression_fail)
-			ret = 1;
+		ret = 1;
 	}
 
 	EncoderSession_destroy(e);

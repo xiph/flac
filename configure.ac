@@ -141,7 +141,16 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
 		asm_optimisation=$asm_opt
 		;;
-	powerpc|powerpc64)
+	powerpc64|powerpc64le)
+		cpu_ppc64=true
+		cpu_ppc=true
+		AC_DEFINE(FLAC__CPU_PPC)
+		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
+		AC_DEFINE(FLAC__CPU_PPC64)
+		AH_TEMPLATE(FLAC__CPU_PPC64, [define if building for PowerPC64])
+		asm_optimisation=$asm_opt
+		;;
+	powerpc|powerpcle)
 		cpu_ppc=true
 		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
@@ -157,12 +166,33 @@ esac
 AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
+AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes; then
 AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
 else
 AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
+fi
+
+if test x"$cpu_ppc64" = xtrue ; then
+
+AC_C_ATTRIBUTE([target("cpu=power8")],
+  [have_cpu_power8=yes],
+  [have_cpu_power8=no])
+if test x"$have_cpu_power8" = xyes ; then
+  AC_DEFINE(FLAC__HAS_TARGET_POWER8)
+  AH_TEMPLATE(FLAC__HAS_TARGET_POWER8, [define if compiler has __attribute__((target("cpu=power8"))) support])
+fi
+
+AC_C_ATTRIBUTE([target("cpu=power9")],
+  [have_cpu_power9=yes],
+  [have_cpu_power9=no])
+if test x"$have_cpu_power9" = xyes ; then
+  AC_DEFINE(FLAC__HAS_TARGET_POWER9)
+  AH_TEMPLATE(FLAC__HAS_TARGET_POWER9, [define if compiler has __attribute__((target("cpu=power9"))) support])
+fi
+
 fi
 
 case "$host" in
@@ -174,14 +204,6 @@ case "$host" in
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
-case "$host" in
-	*-gnuspe)
-		abi_spe=true
-		AC_DEFINE(FLAC__CPU_PPC_SPE)
-		AH_TEMPLATE(FLAC__CPU_PPC_SPE, [define if building for PowerPC with SPE ABI])
-		;;
-esac
-AM_CONDITIONAL(FLaC__CPU_PPC_SPE, test "x$abi_spe" = xtrue)
 
 os_is_windows=no
 case "$host" in
@@ -234,6 +256,19 @@ AM_CONDITIONAL(FLaC__USE_ALTIVEC, test "x$use_altivec" = xtrue)
 if test "x$use_altivec" = xtrue ; then
 AC_DEFINE(FLAC__USE_ALTIVEC)
 AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
+fi
+
+AC_ARG_ENABLE(vsx,
+AC_HELP_STRING([--disable-vsx], [Disable VSX optimizations]),
+[case "${enableval}" in
+	yes) use_vsx=true ;;
+	no)  use_vsx=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-vsx) ;;
+esac],[use_vsx=true])
+AM_CONDITIONAL(FLaC__USE_VSX, test "x$use_vsx" = xtrue)
+if test "x$use_vsx" = xtrue ; then
+AC_DEFINE(FLAC__USE_VSX)
+AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
 fi
 
 AC_ARG_ENABLE(avx,
