@@ -1,7 +1,7 @@
 check_include_file("sys/ioctl.h" HAVE_SYS_IOCTL_H)
 check_include_file("termios.h" HAVE_TERMIOS_H)
 
-add_executable(flac
+add_executable(flacapp
     analyze.c
     decode.c
     encode.c
@@ -10,14 +10,15 @@ add_executable(flac
     local_string_utils.c
     utils.c
     vorbiscomment.c)
-target_link_libraries(flac
+set_property(TARGET flacapp PROPERTY RUNTIME_OUTPUT_NAME flac)
+target_link_libraries(flacapp
     FLAC
     getopt
     replaygain_synthesis
     utf8)
 if(TARGET win_utf8_io)
-    target_link_libraries(flac win_utf8_io)
+    target_link_libraries(flacapp win_utf8_io)
 endif()
 
-install(TARGETS flac EXPORT targets
+install(TARGETS flacapp EXPORT targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
