@@ -87,10 +87,12 @@ add_library(FLAC
     $<$<BOOL:${OGG_FOUND}>:ogg_decoder_aspect.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_encoder_aspect.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_helper.c>
-    $<$<BOOL:${OGG_FOUND}>:ogg_mapping.c>
-    $<$<BOOL:${WIN32}>:windows_unicode_filenames.c>)
+    $<$<BOOL:${OGG_FOUND}>:ogg_mapping.c>)
 if(TARGET FLAC-asm)
     target_sources(FLAC PRIVATE $<TARGET_OBJECTS:FLAC-asm>)
+endif()
+if(WIN32)
+    target_sources(FLAC PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/windows_unicode_filenames.c>)
 endif()
 
 target_compile_definitions(FLAC
