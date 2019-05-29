@@ -13,9 +13,13 @@ project(FLAC VERSION 1.3.3) # HOMEPAGE_URL "https://www.xiph.org/flac/")
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(BUILD_CXXLIBS "Build libFLAC++" ON)
+option(BUILD_PROGRAMS "Build and install programs" ON)
 option(BUILD_EXAMPLES "Build and install examples" ON)
 option(BUILD_DOCS "Build and install doxygen documents" ON)
 option(WITH_STACK_PROTECTOR "Enable GNU GCC stack smash protection" ON)
+option(INSTALL_MANPAGES "Install MAN pages" ON)
+option(INSTALL_PKGCONFIG_MODULES "Install PkgConfig modules" ON)
+option(INSTALL_CMAKE_CONFIG_MODULE "Install CMake package-config module" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
 
 if(WITH_OGG)
@@ -120,26 +124,30 @@ endif()
 
 configure_file(config.cmake.h.in config.h)
 
-install(
-    EXPORT targets
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
-    NAMESPACE FLAC::)
+if(INSTALL_CMAKE_CONFIG_MODULE)
+    install(
+        EXPORT targets
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
+        NAMESPACE FLAC::)
 
-configure_package_config_file(
-    flac-config.cmake.in flac-config.cmake
-    INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
-write_basic_package_version_file(
-    flac-config-version.cmake COMPATIBILITY AnyNewerVersion)
+    configure_package_config_file(
+        flac-config.cmake.in flac-config.cmake
+        INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+    write_basic_package_version_file(
+        flac-config-version.cmake COMPATIBILITY AnyNewerVersion)
 
-install(
-    FILES
-        "${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake"
-        "${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake"
-        "cmake/FindOGG.cmake"
-    DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+    install(
+        FILES
+            "${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake"
+            "${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake"
+            "cmake/FindOGG.cmake"
+        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+endif()
 
 file(GLOB FLAC_HEADERS "include/FLAC/*.h")
 file(GLOB FLAC++_HEADERS "include/FLAC++/*.h")
 install(FILES ${FLAC_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC")
 install(FILES ${FLAC++_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC++")
-install(FILES "man/flac.1" "man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}")
+if(INSTALL_MANPAGES)
+    install(FILES "man/flac.1" "man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}")
+endif()
