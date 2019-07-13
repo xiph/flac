@@ -1203,7 +1203,9 @@ flac2flac ()
 	# The 'make distcheck' target needs this.
 	chmod u+w $file
 	run_flac -f -o out.flac $args $file || die "ERROR encoding FLAC file"
-	run_metaflac --list out.flac | filter > out.meta || die "ERROR listing metadata of output FLAC file"
+	run_metaflac --list out.flac | filter > out1.meta || die "ERROR listing metadata of output FLAC file"
+    # Ignore lengths which can be affected by the version string.
+    sed "s/length:.*/length: XXX/" out1.meta > out.meta
 	diff -q -w $expect out.meta 2>/dev/null || die "ERROR: metadata does not match expected $expect"
 	echo OK
 }
@@ -1247,7 +1249,7 @@ flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
 
-rm -f out.flac out.meta
+rm -f out.flac out.meta out1.meta
 
 #@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
 
