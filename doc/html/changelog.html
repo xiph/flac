@@ -44,6 +44,96 @@
 	<div class="box_body">
 		This is an informal changelog, a summary of changes in each release.  (See also <a href="documentation_bugs.html">known bugs</a>.)  Particularly important for developers is the precise description of changes to the library interfaces.  See also the <a href="api/group__porting.html">porting guide</a> for specific instructions on porting to newer versions of FLAC.<br />
 
+		<a name="flac_1.3.3"><b>FLAC 1.3.3</b> (4-Augs-2019)</a>
+
+		<br />
+
+		<ul>
+			<li>
+				General:
+				<ul>
+					<li>Fix CPU detection (Janne Hyvärinen).</li>
+					<li>Switch from unsigned types to uint32_t (erikd).</li>
+					<li>CppCheck fixes (erikd).</li>
+					<li>Improve SIMD decoding of 24 bit files (lvqcl).</li>
+					<li>POWER* amnd POWER9 improvements (Anton Blanchard).</li>
+					<li>More tests.</li>
+				</ul>
+			</li>
+			<li>
+				FLAC format:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				Ogg FLAC format:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				flac:
+				<ul>
+					<li>When converting to WAV, use WAVEFORMATEXTENSIBLE when bits per second is not 8 or 16 (erikd).</li>
+					<li>Fix --output-prefix with input-files in sub-directories (orbea).</li>
+				</ul>
+			</li>
+			<li>
+				metaflac:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				plugins:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				build system:
+				<ul>
+					<li>Cmake support (Vitaliy Kirsanov, evpobr).</li>
+					<li>Visual Studio updates (Janne Hyvärinen).</li>
+					<li>Fix for MSVC when UNICODE is enabled (lvqcl).</li>
+					<li>Fix for OpenBSD/i386 (Christian Weisgerber).</li>
+				</ul>
+			</li>
+
+			<li>
+				documentation:
+				<ul>
+					<li>(none)</li>
+				</ul>
+			</li>
+			<li>
+				libraries:
+				<ul>
+					<li>(none).</li>
+				</ul>
+			</li>
+			<li>
+				Interface changes:
+				<ul>
+					<li>
+						libFLAC:
+						<ul>
+							<li>(none)</li>
+						</ul>
+					</li>
+					<li>
+						libFLAC++:
+						<ul>
+							<li>(none)</li>
+						</ul>
+					</li>
+				</ul>
+			</li>
+		</ul>
+
+		<br />
+
 		<a name="flac_1_3_2"><b>FLAC 1.3.2</b> (01-Jan-2017)</a>
 
 		<br />
