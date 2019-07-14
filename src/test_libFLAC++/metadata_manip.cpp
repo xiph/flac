@@ -206,11 +206,13 @@ bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 	static const char *tempfile_suffix = ".metadata_edit";
 	size_t destlen = strlen(filename) + strlen(tempfile_suffix) + 1;
 
-	if(0 == (*tempfilename = (char*)malloc(destlen)))
+	*tempfilename = (char*)malloc(destlen);
+	if (*tempfilename == 0)
 		return false;
 	flac_snprintf(*tempfilename, destlen, "%s%s", filename, tempfile_suffix);
 
-	if(0 == (*tempfile = flac_fopen(*tempfilename, "wb")))
+	*tempfile = flac_fopen(*tempfilename, "wb");
+	if (*tempfile == 0)
 		return false;
 
 	return true;
@@ -218,12 +220,12 @@ bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 
 void cleanup_tempfile_(FILE **tempfile, char **tempfilename)
 {
-	if(0 != *tempfile) {
+	if (*tempfile != 0) {
 		(void)fclose(*tempfile);
 		*tempfile = 0;
 	}
 
-	if(0 != *tempfilename) {
+	if (*tempfilename != 0) {
 		(void)flac_unlink(*tempfilename);
 		free(*tempfilename);
 		*tempfilename = 0;

@@ -120,7 +120,7 @@ void test_utf8()
 
   /* Encoder */
   safe_strncpy(s, ".......", sizeof(s));
-  assert(charset_wctomb(charset, s, 1 << 31) == -1 &&
+  assert(charset_wctomb(charset, s, 1u << 31) == -1 &&
 	 !strcmp(s, "......."));
   assert(charset_wctomb(charset, s, 127) == 1 &&
 	 !strcmp(s, "\177......"));
