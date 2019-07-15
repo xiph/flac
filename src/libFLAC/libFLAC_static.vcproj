@@ -387,6 +387,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\lpc_intrin_avx2.c"
+				>
+			</File>
+			<File
 				RelativePath=".\md5.c"
 				>
 			</File>
@@ -436,6 +440,10 @@
 			</File>
 			<File
 				RelativePath=".\stream_encoder_intrin_ssse3.c"
+				>
+			</File>
+			<File
+				RelativePath=".\stream_encoder_intrin_avx2.c"
 				>
 			</File>
 			<File
