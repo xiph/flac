@@ -411,11 +411,11 @@ AC_DEFINE(FLAC__HAS_DOCBOOK_TO_MAN)
 AH_TEMPLATE(FLAC__HAS_DOCBOOK_TO_MAN, [define if you have docbook-to-man or docbook2man])
 fi
 
-AC_CHECK_LIB(rt, clock_gettime, have_clock_gettime=yes)
-if test x$have_clock_gettime = xyes; then
+AC_CHECK_LIB(rt, clock_gettime,
+        LIB_CLOCK_GETTIME=-lrt
         AC_DEFINE(HAVE_CLOCK_GETTIME)
-        AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime])
-fi
+        AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime]))
+AC_SUBST(LIB_CLOCK_GETTIME)
 
 # only matters for x86
 AC_CHECK_PROGS(NASM, nasm)
@@ -492,11 +492,6 @@ if test x$enable_stack_smash_protection = "xyes" ; then
 	XIPH_GCC_STACK_PROTECTOR
 	XIPH_GXX_STACK_PROTECTOR
 	fi
-
-if test "x$sys_linux" = xtrue ; then
-       LIB_CLOCK_GETTIME=-lrt
-       fi
-AC_SUBST(LIB_CLOCK_GETTIME)
 
 AC_CONFIG_FILES([ \
 	Makefile \
