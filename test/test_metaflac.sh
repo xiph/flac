@@ -24,6 +24,9 @@ PATH=`pwd`/../src/flac:$PATH
 PATH=`pwd`/../src/metaflac:$PATH
 PATH=`pwd`/../objs/$BUILD/bin:$PATH
 
+echo "Erik was here!"
+which metaflac
+
 if echo a | (grep -E '(a|b)') >/dev/null 2>&1
 	then EGREP='grep -E'
 	else EGREP='egrep'
@@ -108,7 +111,8 @@ metaflac_test ()
 	run_metaflac $args $flacfile | filter > $testdir/out1.meta || die "ERROR running metaflac"
 	# Ignore lengths which can be affected by the version string.
 	sed "s/length:.*/length: XXX/" $testdir/out1.meta > $testdir/out.meta
-	diff -w $expect $testdir/out.meta || die "ERROR: metadata does not match expected $expect"
+	echo "diff -u $expect $testdir/out.meta"
+	diff -u $expect $testdir/out.meta || die "ERROR: metadata does not match expected $expect"
 	# To blindly accept (and check later): cp -f $testdir/out.meta $expect
 	echo OK
 }
