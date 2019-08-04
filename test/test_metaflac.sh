@@ -108,7 +108,7 @@ metaflac_test ()
 	run_metaflac $args $flacfile | filter > $testdir/out1.meta || die "ERROR running metaflac"
 	# Ignore lengths which can be affected by the version string.
 	sed "s/length:.*/length: XXX/" $testdir/out1.meta > $testdir/out.meta
-	diff -w $expect $testdir/out.meta > /dev/null 2>&1 || die "ERROR: metadata does not match expected $expect"
+	diff -w $expect $testdir/out.meta || die "ERROR: metadata does not match expected $expect"
 	# To blindly accept (and check later): cp -f $testdir/out.meta $expect
 	echo OK
 }
