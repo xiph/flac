@@ -106,7 +106,7 @@ endif()
 if(TARGET Ogg::ogg)
     target_link_libraries(FLAC PUBLIC Ogg::ogg)
 endif()
-if(BUILD_SHARED_LIBS)
+if(BUILD_SHARED_LIBS AND NOT WIN32)
     set_target_properties(FLAC PROPERTIES
         C_VISIBILITY_PRESET hidden
         VERSION 8.3.0
