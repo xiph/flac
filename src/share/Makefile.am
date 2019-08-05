@@ -62,9 +62,9 @@ noinst_LTLIBRARIES = \
 
 
 if OS_IS_WINDOWS
-win_utf8_io_libwin_utf8_io_la_SOURCES =	win_utf8_io/win_utf8_io.c
+win_utf8_io_libwin_utf8_io_la_SOURCES = win_utf8_io/win_utf8_io.c win_utf8_io/windows_unicode_filenames.c
 libwin_utf8_io = win_utf8_io/libwin_utf8_io.la
-win_utf8_io_libwin_utf8_io_la_LIBADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
+#win_utf8_io_libwin_utf8_io_la_LIBADD = $(top_builddir)/src/libFLAC/libFLAC.la -lm
 else
 win_utf8_io_libwin_utf8_io_la_SOURCES =
 libwin_utf8_io =

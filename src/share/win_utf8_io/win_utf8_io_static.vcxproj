@@ -130,9 +130,11 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\..\..\include\share\win_utf8_io.h" />
+    <ClInclude Include="..\..\..\include\share\windows_unicode_filenames.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win_utf8_io.c" />
+    <ClCompile Include="windows_unicode_filenames.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

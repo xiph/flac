@@ -14,6 +14,7 @@ LIB_NAME = libwin_utf8_io
 INCLUDES = -I$(topdir)/include
 
 SRCS_C = \
+	windows_unicode_filenames.c \
 	win_utf8_io.c
 
 include $(topdir)/build/lib.mk

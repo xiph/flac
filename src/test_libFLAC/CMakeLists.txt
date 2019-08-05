@@ -21,3 +21,6 @@ target_compile_definitions(test_libFLAC PRIVATE
 target_include_directories(test_libFLAC PRIVATE
     "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/include")
 target_link_libraries(test_libFLAC FLAC grabbag test_libs_common)
+if(TARGET win_utf8_io)
+    target_link_libraries(test_libFLAC win_utf8_io)
+endif()

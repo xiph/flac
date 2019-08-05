@@ -159,6 +159,10 @@
 				RelativePath="..\..\..\include\share\win_utf8_io.h"
 				>
 			</File>
+			<File
+				RelativePath="..\..\..\include\share\windows_unicode_filenames.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Source Files"
@@ -167,6 +171,10 @@
 			>
 			<File
 				RelativePath=".\win_utf8_io.c"
+				>
+			</File>
+			<File
+				RelativePath=".\windows_unicode_filenames.c"
 				>
 			</File>
 		</Filter>

@@ -1,2 +1,5 @@
 add_executable(test_seeking main.c)
 target_link_libraries(test_seeking FLAC)
+if(TARGET win_utf8_io)
+    target_link_libraries(test_seeking win_utf8_io)
+endif()

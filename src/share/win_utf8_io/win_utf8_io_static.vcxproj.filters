@@ -13,9 +13,15 @@
     <ClInclude Include="..\..\..\include\share\win_utf8_io.h">
       <Filter>Public Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\..\include\share\windows_unicode_filenames.h">
+      <Filter>Public Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="win_utf8_io.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="windows_unicode_filenames.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

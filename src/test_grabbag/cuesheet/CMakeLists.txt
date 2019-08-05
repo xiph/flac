@@ -1,2 +1,5 @@
 add_executable(test_cuesheet main.c)
 target_link_libraries(test_cuesheet FLAC grabbag)
+if(TARGET win_utf8_io)
+    target_link_libraries(test_cuesheet win_utf8_io)
+endif()

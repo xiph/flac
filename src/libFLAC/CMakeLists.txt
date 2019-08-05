@@ -91,9 +91,6 @@ add_library(FLAC
 if(TARGET FLAC-asm)
     target_sources(FLAC PRIVATE $<TARGET_OBJECTS:FLAC-asm>)
 endif()
-if(WIN32)
-    target_sources(FLAC PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/windows_unicode_filenames.c>)
-endif()
 
 target_compile_definitions(FLAC
     PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLAC_API_EXPORTS>
@@ -103,6 +100,9 @@ target_include_directories(FLAC INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
 target_link_libraries(FLAC PRIVATE $<$<BOOL:${HAVE_LROUND}>:m>)
+if(WIN32)
+    target_link_libraries(FLAC PRIVATE win_utf8_io)
+endif()
 if(TARGET Ogg::ogg)
     target_link_libraries(FLAC PUBLIC Ogg::ogg)
 endif()

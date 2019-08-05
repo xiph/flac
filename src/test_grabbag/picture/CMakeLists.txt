@@ -1,2 +1,5 @@
 add_executable(test_picture main.c)
 target_link_libraries(test_picture FLAC grabbag)
+if(TARGET win_utf8_io)
+    target_link_libraries(test_picture win_utf8_io)
+endif()

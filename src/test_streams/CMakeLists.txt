@@ -1,2 +1,5 @@
 add_executable(test_streams main.c)
 target_link_libraries(test_streams FLAC grabbag)
+if(TARGET win_utf8_io)
+    target_link_libraries(test_streams win_utf8_io)
+endif()
