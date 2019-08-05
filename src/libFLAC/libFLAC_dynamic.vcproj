@@ -180,6 +180,13 @@
 		</Configuration>
 	</Configurations>
 	<References>
+		<ProjectReference
+			ReferencedProjectIdentifier="{4cefbe02-c215-11db-8314-0800200c9a66}"
+			CopyLocal="false"
+			CopyLocalDependencies="false"
+			CopyLocalSatelliteAssemblies="false"
+			RelativePathToProject="..\share\win_utf8_io\win_utf8_io_static.vcproj"
+		/>
 	</References>
 	<Files>
 		<Filter
