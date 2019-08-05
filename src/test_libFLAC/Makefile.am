@@ -22,7 +22,7 @@ EXTRA_DIST = \
 	test_libFLAC.vcxproj \
 	test_libFLAC.vcxproj.filters
 
-AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
+AM_CPPFLAGS = -DFLAC__NO_DLL -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
 
 check_PROGRAMS = test_libFLAC
 
