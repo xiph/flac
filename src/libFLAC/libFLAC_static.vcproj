@@ -450,10 +450,6 @@
 				RelativePath=".\window.c"
 				>
 			</File>
-			<File
-				RelativePath=".\windows_unicode_filenames.c"
-				>
-			</File>
 		</Filter>
 		<File
 			RelativePath=".\ia32\cpu_asm.nasm"

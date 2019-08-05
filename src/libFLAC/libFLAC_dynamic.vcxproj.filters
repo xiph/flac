@@ -226,9 +226,6 @@
     <ClCompile Include="window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows_unicode_filenames.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ia32\cpu_asm.nasm" />

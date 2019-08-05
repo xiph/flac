@@ -416,10 +416,6 @@
 				RelativePath=".\window.c"
 				>
 			</File>
-			<File
-				RelativePath=".\windows_unicode_filenames.c"
-				>
-			</File>
 		</Filter>
 		<Filter
 			Name="Public Header Files"
