@@ -27,8 +27,6 @@
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #ifdef _MSC_VER
 #include <sys/utime.h>
-#else
-#include <utime.h> /* for utime() */
 #endif
 #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
 #include <unistd.h> /* for chown(), unlink() */
@@ -271,13 +269,18 @@ bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
 
 void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
-	struct utimbuf srctime;
-
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
 
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+	struct timespec srctime[2] = {};
+	srctime[0].tv_sec = stats->st_atime;
+	srctime[1].tv_sec = stats->st_mtime;
+#else
+	struct utimbuf srctime;
 	srctime.actime = stats->st_atime;
 	srctime.modtime = stats->st_mtime;
+#endif
 	(void)flac_chmod(filename, stats->st_mode);
 	(void)flac_utime(filename, &srctime);
 #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
