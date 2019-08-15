@@ -254,7 +254,7 @@ ppc_cpu_info (FLAC__CPUInfo *info)
 #error Unsupported platform! Please add support for reading ppc hwcaps.
 #endif
 	
-	if (hwcaps) & PPC_FEATURE2_ARCH_3_00) {
+	if (hwcaps & PPC_FEATURE2_ARCH_3_00) {
 		info->ppc.arch_3_00 = true;
 	} else if (hwcaps & PPC_FEATURE2_ARCH_2_07) {
 		info->ppc.arch_2_07 = true;
