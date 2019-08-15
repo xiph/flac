@@ -250,6 +250,8 @@ ppc_cpu_info (FLAC__CPUInfo *info)
 	hwcaps = getauxval(AT_HWCAP2);
 #elif defined (__FreeBSD__)
 	elf_aux_info(AT_HWCAP2, &hwcaps, sizeof(hwcaps));
+#else
+#error Unsupported platform! Please add support for reading ppc hwcaps.
 #endif
 	
 	if (hwcaps) & PPC_FEATURE2_ARCH_3_00) {
