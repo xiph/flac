@@ -131,16 +131,19 @@ static inline void crc16_update_block_(FLAC__BitReader *br)
 	if(br->consumed_words > br->crc16_offset && br->crc16_align)
 		crc16_update_word_(br, br->buffer[br->crc16_offset++]);
 
+	/* Prevent OOB read due to wrap-around. */
+	if (br->consumed_words > br->crc16_offset) {
 #if FLAC__BYTES_PER_WORD == 4
-	br->read_crc16 = FLAC__crc16_update_words32(br->buffer + br->crc16_offset, br->consumed_words - br->crc16_offset, br->read_crc16);
+		br->read_crc16 = FLAC__crc16_update_words32(br->buffer + br->crc16_offset, br->consumed_words - br->crc16_offset, br->read_crc16);
 #elif FLAC__BYTES_PER_WORD == 8
-	br->read_crc16 = FLAC__crc16_update_words64(br->buffer + br->crc16_offset, br->consumed_words - br->crc16_offset, br->read_crc16);
+		br->read_crc16 = FLAC__crc16_update_words64(br->buffer + br->crc16_offset, br->consumed_words - br->crc16_offset, br->read_crc16);
 #else
-	unsigned i;
+		unsigned i;
 
-	for(i = br->crc16_offset; i < br->consumed_words; i++)
-		crc16_update_word_(br, br->buffer[i]);
+		for (i = br->crc16_offset; i < br->consumed_words; i++)
+			crc16_update_word_(br, br->buffer[i]);
 #endif
+	}
 
 	br->crc16_offset = 0;
 }
