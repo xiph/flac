@@ -127,9 +127,7 @@ void init_options(CommandLineOptions *options)
 {
 	options->preserve_modtime = false;
 
-	/* '2' is a hack to mean "use default if not forced on command line" */
-	FLAC__ASSERT(true != 2);
-	options->prefix_with_filename = 2;
+	options->prefix_with_filename = true;
 
 	options->utf8_convert = true;
 	options->use_padding = true;
@@ -176,7 +174,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 		}
 	}
 
-	if(options->prefix_with_filename == 2)
+	if(options->prefix_with_filename == true)
 		options->prefix_with_filename = (argc - share__optind > 1);
 
 	if(share__optind >= argc && !options->show_long_help && !options->show_version) {

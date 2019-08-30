@@ -66,7 +66,12 @@ typedef uint64_t FLAC__uint64;
 
 #endif
 
+#if defined(_MSC_VER) && _MSC_VER < 1900
 typedef int FLAC__bool;
+#else
+#include <stdbool.h>
+typedef bool FLAC__bool;
+#endif
 
 typedef FLAC__uint8 FLAC__byte;
 
