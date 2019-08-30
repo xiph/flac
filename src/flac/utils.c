@@ -31,6 +31,9 @@
 #include "FLAC/metadata.h"
 #include "share/compat.h"
 #ifndef _WIN32
+#ifndef _XOPEN_SOURCE
+#define _XOPEN_SOURCE
+#endif
 #include <wchar.h>
 #ifdef HAVE_TERMIOS_H
 # include <termios.h>
