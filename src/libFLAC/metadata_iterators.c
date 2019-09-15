@@ -3422,9 +3422,6 @@ FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
 
 void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
-	FLAC__ASSERT(0 != filename);
-	FLAC__ASSERT(0 != stats);
-
 #if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
 	struct timespec srctime[2] = {};
 	srctime[0].tv_sec = stats->st_atime;
@@ -3434,6 +3431,10 @@ void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 	srctime.actime = stats->st_atime;
 	srctime.modtime = stats->st_mtime;
 #endif
+
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != stats);
+
 	(void)flac_chmod(filename, stats->st_mode);
 	(void)flac_utime(filename, &srctime);
 #if !defined _MSC_VER && !defined __BORLANDC__ && !defined __MINGW32__

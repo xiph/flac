@@ -29,6 +29,7 @@
 #  include <config.h>
 #endif
 
+#include <stdio.h>
 #include <stdlib.h>
 
 #include "share/alloc.h"
@@ -180,7 +181,7 @@ static int convert_string(const char *fromcode, const char *tocode,
   s = safe_malloc_add_2op_(fromlen, /*+*/1);
   if (!s)
     return -1;
-  safe_strncpy(s, from, fromlen + 1);
+  snprintf(s, fromlen + 1, "%s", from);
   *to = s;
   for (; *s; s++)
     if (*s & ~0x7f)

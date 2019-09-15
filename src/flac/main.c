@@ -1928,13 +1928,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		static const char *tmp_suffix = ".tmp,fl-ac+en'c";
 		size_t dest_len = strlen(outfilename) + strlen(tmp_suffix) + 1;
 		/*@@@@ still a remote possibility that a file with this filename exists */
-		if(0 == (internal_outfilename = safe_malloc_(dest_len))) {
+		if((internal_outfilename = safe_malloc_(dest_len)) == NULL) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
 			conditional_fclose(encode_infile);
 			return 1;
 		}
-		safe_strncpy(internal_outfilename, outfilename, dest_len);
-		safe_strncat(internal_outfilename, tmp_suffix, dest_len);
+		snprintf(internal_outfilename, dest_len, "%s%s", outfilename, tmp_suffix);
 	}
 
 	if(input_format == FORMAT_RAW) {
