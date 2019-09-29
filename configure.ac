@@ -550,13 +550,6 @@ AC_CONFIG_FILES([ \
 	test/metaflac-test-files/Makefile \
 	test/pictures/Makefile \
 	build/Makefile \
-	objs/Makefile \
-	objs/debug/Makefile \
-	objs/debug/bin/Makefile \
-	objs/debug/lib/Makefile \
-	objs/release/Makefile \
-	objs/release/bin/Makefile \
-	objs/release/lib/Makefile \
 	microbench/Makefile
 ])
 AC_OUTPUT
