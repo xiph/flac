@@ -22,4 +22,4 @@ logos_DATA = \
 	logo.svg \
 	logo130.gif
 
-EXTRA_DIST = $(logos_DATA)
+EXTRA_DIST = $(logos_DATA) CMakeLists.txt

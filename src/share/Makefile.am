@@ -21,24 +21,30 @@ AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	README \
+	getopt/CMakeLists.txt \
 	getopt/Makefile.lite \
 	getopt/getopt_static.vcproj \
 	getopt/getopt_static.vcxproj \
 	getopt/getopt_static.vcxproj.filters \
+	grabbag/CMakeLists.txt \
 	grabbag/Makefile.lite \
 	grabbag/grabbag_static.vcproj \
 	grabbag/grabbag_static.vcxproj \
 	grabbag/grabbag_static.vcxproj.filters \
+	replaygain_analysis/CMakeLists.txt \
 	replaygain_analysis/Makefile.lite \
 	replaygain_analysis/replaygain_analysis_static.vcproj \
 	replaygain_analysis/replaygain_analysis_static.vcxproj \
 	replaygain_analysis/replaygain_analysis_static.vcxproj.filters \
+	replaygain_synthesis/CMakeLists.txt \
 	replaygain_synthesis/Makefile.lite \
 	replaygain_synthesis/replaygain_synthesis_static.vcproj \
 	replaygain_synthesis/replaygain_synthesis_static.vcxproj \
 	replaygain_synthesis/replaygain_synthesis_static.vcxproj.filters \
+	utf8/CMakeLists.txt \
 	utf8/Makefile.lite \
 	utf8/charmaps.h \
 	utf8/makemap.c \
@@ -46,6 +52,7 @@ EXTRA_DIST = \
 	utf8/utf8_static.vcproj \
 	utf8/utf8_static.vcxproj \
 	utf8/utf8_static.vcxproj.filters \
+	win_utf8_io/CMakeLists.txt \
 	win_utf8_io/Makefile.lite \
 	win_utf8_io/win_utf8_io_static.vcproj \
 	win_utf8_io/win_utf8_io_static.vcxproj \

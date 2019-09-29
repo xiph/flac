@@ -17,6 +17,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	example_c_decode_file.vcproj \
 	example_c_decode_file.vcxproj \
