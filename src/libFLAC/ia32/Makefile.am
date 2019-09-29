@@ -42,3 +42,5 @@ libFLAC_asm_la_SOURCES = \
 	fixed_asm.nasm \
 	lpc_asm.nasm \
 	nasm.h
+
+EXTRA_DIST = CMakeLists.txt

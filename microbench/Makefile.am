@@ -38,3 +38,5 @@ noinst_PROGRAMS = benchmark_residual
 benchmark_residual_SOURCES = benchmark_residual.c util.c
 
 benchmark_residual_LDADD = @LIB_CLOCK_GETTIME@
+
+EXTRA_DIST = CMakeLists.txt

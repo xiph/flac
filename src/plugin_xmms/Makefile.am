@@ -21,6 +21,7 @@
 #
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite
 
 noinst_HEADERS = \

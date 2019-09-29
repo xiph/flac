@@ -17,6 +17,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	test_streams.vcproj \
 	test_streams.vcxproj \

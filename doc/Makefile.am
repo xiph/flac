@@ -35,7 +35,7 @@ doc_DATA = \
 	FLAC.tag
 
 EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html \
-	isoflac.txt $(doc_DATA)
+	isoflac.txt $(doc_DATA) CMakeLists.txt
 
 distclean-local:
 	rm -rf FLAC.tag html/api doxytmp
