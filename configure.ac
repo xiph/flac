@@ -493,6 +493,22 @@ if test x$enable_stack_smash_protection = "xyes" ; then
 	XIPH_GXX_STACK_PROTECTOR
 	fi
 
+AH_VERBATIM([FLAC_API_EXPORTS],
+[/* libtool defines DLL_EXPORT for windows dll builds,
+   but flac code relies on FLAC_API_EXPORTS instead. */
+#ifdef DLL_EXPORT
+#ifdef __cplusplus
+# define FLACPP_API_EXPORTS
+#else
+# define FLAC_API_EXPORTS
+#endif
+#endif])
+
+if test x$enable_shared != "xyes" ; then
+dnl for correct FLAC_API
+	CPPFLAGS="-DFLAC__NO_DLL $CPPFLAGS"
+	fi
+
 AC_CONFIG_FILES([ \
 	Makefile \
 	src/Makefile \
