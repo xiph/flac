@@ -429,11 +429,12 @@ dnl If debugging is disabled AND no CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
 dnl are provided, we can set defaults to our liking
 AS_IF([test "x${ax_enable_debug}" = "xno" && test "x${enable_flags_setting}" = "xyes"], [
 	CFLAGS="-O3 -funroll-loops"
+	CXXFLAGS="-O3"
 ])
 
-XIPH_GCC_VERSION
+XIPH_GCC_VERSION dnl Sets a non-zero GCC_XXX_VERSION for gcc, not clang. checks below rely on that..
 
-if test x$ac_cv_c_compiler_gnu = xyes ; then
+if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; then
 	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Wconversion
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
@@ -448,13 +449,22 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	XIPH_ADD_CXXFLAGS([-Weffc++])
 	AC_LANG_POP([C++])
 
-	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
+	if test x$xiph_cv_c_compiler_clang = xyes -a "$OBJ_FORMAT" = elf; then
+		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
+		CFLAGS="$CFLAGS -fvisibility=hidden"
+		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+	elif test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
 		CFLAGS="$CFLAGS -fvisibility=hidden"
 		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
 		fi
 
-	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = macho; then
+
+	if test x$xiph_cv_c_compiler_clang = xyes -a "$OBJ_FORMAT" = macho; then
+		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
+		CFLAGS="$CFLAGS -fvisibility=hidden"
+		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+	elif test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = macho; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
 		CFLAGS="$CFLAGS -fvisibility=hidden"
 		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"

@@ -22,6 +22,9 @@ if test "x$ac_cv_c_compiler_gnu" = "xyes" ; then
 
 	GCC_MAJOR_VERSION=`echo $GCC_VERSION | cut -d. -f 1`
 	GCC_MINOR_VERSION=`echo $GCC_VERSION | cut -d. -f 2`
+else
+	GCC_MAJOR_VERSION=0
+	GCC_MINOR_VERSION=0
 	fi
 
 AC_SUBST(GCC_VERSION)
