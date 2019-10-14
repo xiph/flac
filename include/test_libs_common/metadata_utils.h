@@ -28,9 +28,9 @@
 
 FLAC__bool mutils__compare_block_data_streaminfo(const FLAC__StreamMetadata_StreamInfo *block, const FLAC__StreamMetadata_StreamInfo *blockcopy);
 
-FLAC__bool mutils__compare_block_data_padding(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, unsigned block_length);
+FLAC__bool mutils__compare_block_data_padding(const FLAC__StreamMetadata_Padding *block, const FLAC__StreamMetadata_Padding *blockcopy, uint32_t block_length);
 
-FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, unsigned block_length);
+FLAC__bool mutils__compare_block_data_application(const FLAC__StreamMetadata_Application *block, const FLAC__StreamMetadata_Application *blockcopy, uint32_t block_length);
 
 FLAC__bool mutils__compare_block_data_seektable(const FLAC__StreamMetadata_SeekTable *block, const FLAC__StreamMetadata_SeekTable *blockcopy);
 
@@ -40,7 +40,7 @@ FLAC__bool mutils__compare_block_data_cuesheet(const FLAC__StreamMetadata_CueShe
 
 FLAC__bool mutils__compare_block_data_picture(const FLAC__StreamMetadata_Picture *block, const FLAC__StreamMetadata_Picture *blockcopy);
 
-FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, unsigned block_length);
+FLAC__bool mutils__compare_block_data_unknown(const FLAC__StreamMetadata_Unknown *block, const FLAC__StreamMetadata_Unknown *blockcopy, uint32_t block_length);
 
 FLAC__bool mutils__compare_block(const FLAC__StreamMetadata *block, const FLAC__StreamMetadata *blockcopy);
 
