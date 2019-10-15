@@ -18,7 +18,7 @@ env:
   - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew install libogg; fi
+  - if [ $TRAVIS_OS_NAME = osx ]; then brew update ; brew install libogg; fi
 
 script:
   - if [[ "${BUILD_SYSTEM}" == "autotools" ]]; then ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check; fi
