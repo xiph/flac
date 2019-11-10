@@ -462,7 +462,7 @@ FLAC__bool FLAC__bitreader_read_raw_int32(FLAC__BitReader *br, FLAC__int32 *val,
 		return false;
 	/* sign-extend *val assuming it is currently bits wide. */
 	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
-	mask = 1u << (bits - 1);
+	mask = bits >= 33 ? 0 : 1u << (bits - 1);
 	*val = (uval ^ mask) - mask;
 	return true;
 }
