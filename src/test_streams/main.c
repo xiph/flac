@@ -946,7 +946,7 @@ static FLAC__bool write_simple_wavex_header (FILE * f, unsigned samplerate, unsi
 static FLAC__bool generate_noisy_sine(void)
 {
 	FILE *f;
-	int32_t randstate = 0x1243456;
+	int64_t randstate = 0x1243456;
 	double sample, last_val = 0.0;
 	int k;
 
@@ -962,7 +962,7 @@ static FLAC__bool generate_noisy_sine(void)
 		randstate = 11117 * randstate + 211231;
 		randstate = 11117 * randstate + 211231;
 
-		sample = randstate / (0x7fffffff * 1.000001);
+		sample = ((int32_t) randstate) / (0x7fffffff * 1.000001);
 		sample = 0.2 * sample - 0.9 * last_val;
 
 		last_val = sample;
