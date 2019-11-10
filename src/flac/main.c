@@ -1933,7 +1933,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			conditional_fclose(encode_infile);
 			return 1;
 		}
-		snprintf(internal_outfilename, dest_len, "%s%s", outfilename, tmp_suffix);
+		flac_snprintf(internal_outfilename, dest_len, "%s%s", outfilename, tmp_suffix);
 	}
 
 	if(input_format == FORMAT_RAW) {
