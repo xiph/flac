@@ -37,8 +37,8 @@
 #include <stdio.h>
 #include <stdlib.h> /* for malloc() */
 #include <string.h> /* for memset/memcpy() */
-#include <sys/stat.h> /* for stat() */
 #include <sys/types.h> /* for off_t */
+#include <sys/stat.h>  /* for stat() */
 #include "share/compat.h"
 #include "FLAC/assert.h"
 #include "share/alloc.h"
@@ -3683,3 +3683,4 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 
 	return feof(decoder->private_->file)? true : false;
 }
+
