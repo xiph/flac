@@ -27,6 +27,9 @@ else()
         check_vsx(FLAC__USE_VSX)
 	endif()
 endif()
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "(arm64|aarch64)")
+    add_definitions(-DFLAC__CPU_ARM)
+endif()
 
 include(CheckLanguage)
 check_language(ASM_NASM)
@@ -67,6 +70,7 @@ add_library(FLAC
     float.c
     format.c
     lpc.c
+    lpc_intrin_neon.c
     lpc_intrin_sse.c
     lpc_intrin_sse2.c
     lpc_intrin_sse41.c

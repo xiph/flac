@@ -34,6 +34,9 @@
 /* Set to 1 if <x86intrin.h> is available. */
 #cmakedefine01 FLAC__HAS_X86INTRIN
 
+/* Set to 1 if <arm_neon.h> is available. */
+#cmakedefine01 FLAC__HAS_NEONINTRIN
+
 /* define if building for Darwin / MacOS X */
 #cmakedefine FLAC__SYS_DARWIN
 
