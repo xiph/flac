@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 option(ENABLE_64_BIT_WORDS "Set FLAC__BYTES_PER_WORD to 8 (4 is the default)" OFF)
 option(WITH_XMMS "Build XMMS plugin" OFF)
 
@@ -18,7 +16,6 @@ if(WITH_XMMS)
     add_subdirectory("plugin_common")
     add_subdirectory("plugin_xmms")
 endif()
-
 if(BUILD_TESTING)
     add_subdirectory("test_libs_common")
     add_subdirectory("test_libFLAC")
