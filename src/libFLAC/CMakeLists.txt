@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.0)
-
 if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86(_64)?|(AMD|amd)64|i[346]86")
     option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
 endif()

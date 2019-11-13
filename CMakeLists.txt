@@ -1,4 +1,8 @@
-cmake_minimum_required(VERSION 3.9)
+# 3.1 is OK for most parts. However:
+# 3.3 is needed in src/libFLAC
+# 3.5 is needed in src/libFLAC/ia32
+# 3.9 is needed in 'doc' because of doxygen_add_docs()
+cmake_minimum_required(VERSION 3.5)
 
 if(NOT (CMAKE_BUILD_TYPE OR CMAKE_CONFIGURATION_TYPES OR DEFINED ENV{CFLAGS} OR DEFINED ENV{CXXFLAGS}))
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo")
@@ -10,6 +14,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
 option(BUILD_CXXLIBS "Build libFLAC++" ON)
 option(BUILD_EXAMPLES "Build and install examples" ON)
+option(BUILD_DOCS "Build and install doxygen documents" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
 
 if(WITH_OGG)
@@ -93,9 +98,11 @@ if(CMAKE_BUILD_TYPE STREQUAL Debug OR CMAKE_BUILD_TYPE STREQUAL RelWithDebInfo)
     add_definitions(-DFLAC__OVERFLOW_DETECT)
 endif()
 
-add_subdirectory("doc")
 add_subdirectory("src")
 add_subdirectory("microbench")
+if(BUILD_DOCS)
+    add_subdirectory("doc")
+endif()
 if(BUILD_EXAMPLES)
     add_subdirectory("examples")
 endif()
