@@ -374,6 +374,32 @@ AC_HELP_STRING([--disable-cpplibs], [Do not build libFLAC++]),
 esac], [disable_cpplibs=false])
 AM_CONDITIONAL(FLaC__WITH_CPPLIBS, [test "x$disable_cpplibs" != xtrue])
 
+AC_ARG_ENABLE([oss-fuzzers],
+  [AS_HELP_STRING([--enable-oss-fuzzers],
+    [Whether to generate the fuzzers for OSS-Fuzz (Clang only)])],
+  [have_oss_fuzzers=yes], [have_oss_fuzzers=no])
+
+if test "x$have_oss_fuzzers" = "xyes"; then
+  if test "x$xiph_cv_c_compiler_clang" = "xyes" ; then
+    AM_CONDITIONAL([USE_OSSFUZZERS], [test "x$have_oss_fuzzers" = "xyes"])
+    if test "x$LIB_FUZZING_ENGINE" = "x" ; then
+      # Only set this if it is empty.
+	  LIB_FUZZING_ENGINE=-fsanitize=fuzzer
+    fi
+  else
+    AM_CONDITIONAL([USE_OSSFUZZERS], [test "false" = "true"])
+    # Disable fuzzer if the compiler is not Clang.
+    AC_MSG_WARN([*** Ozz-Fuzz is disabled because that requres the  Clang compiler.])
+    have_oss_fuzzers="no (compiler is GCC)"
+  fi
+else
+  AM_CONDITIONAL([USE_OSSFUZZERS], [test "false" = "true"])
+fi
+
+AM_CONDITIONAL([USE_OSSFUZZ_FLAG], [test "x$LIB_FUZZING_ENGINE" = "x-fsanitize=fuzzer"])
+AM_CONDITIONAL([USE_OSSFUZZ_STATIC], [test -f "$LIB_FUZZING_ENGINE"])
+AC_SUBST([LIB_FUZZING_ENGINE])
+
 dnl check for ogg library
 AC_ARG_ENABLE([ogg],
 	AC_HELP_STRING([--disable-ogg], [Disable ogg support (default: test for libogg)]),
@@ -576,7 +602,8 @@ AC_CONFIG_FILES([ \
 	test/metaflac-test-files/Makefile \
 	test/pictures/Makefile \
 	build/Makefile \
-	microbench/Makefile
+	microbench/Makefile \
+	oss-fuzz/Makefile
 ])
 AC_OUTPUT
 
@@ -585,19 +612,20 @@ AC_MSG_RESULT([
 
   Configuration summary :
 
-    FLAC version : ........................ ${VERSION}
+    FLAC version : ............................ ${VERSION}
 
-    Host CPU : ............................ ${host_cpu}
-    Host Vendor : ......................... ${host_vendor}
-    Host OS : ............................. ${host_os}
+    Host CPU : ................................ ${host_cpu}
+    Host Vendor : ............................. ${host_vendor}
+    Host OS : ................................. ${host_os}
 ])
 
-	echo "    Compiler is GCC : ..................... ${ac_cv_c_compiler_gnu}"
+	echo "    Compiler is GCC : ......................... ${ac_cv_c_compiler_gnu}"
 if test x$ac_cv_c_compiler_gnu = xyes ; then
-	echo "    GCC version : ......................... ${GCC_VERSION}"
+	echo "    GCC version : ............................. ${GCC_VERSION}"
 fi
-	echo "    Compiler is Clang : ................... ${xiph_cv_c_compiler_clang}"
-	echo "    SSE optimizations : ................... ${sse_os}"
-	echo "    Asm optimizations : ................... ${asm_optimisation}"
-	echo "    Ogg/FLAC support : .................... ${have_ogg}"
+	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
+	echo "    SSE optimizations : ....................... ${sse_os}"
+	echo "    Asm optimizations : ....................... ${asm_optimisation}"
+	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
+	echo "    Fuzzing support (Clang only) : ............ ${have_oss_fuzzers}"
 echo
