@@ -403,18 +403,19 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
 			/* this also works when consumed_bits==0, it's just a little slower than necessary for that case */
 			const uint32_t n = FLAC__BITS_PER_WORD - br->consumed_bits;
 			const brword word = br->buffer[br->consumed_words];
+			const brword mask = br->consumed_bits < FLAC__BITS_PER_WORD ? FLAC__WORD_ALL_ONES >> br->consumed_bits : 0;
 			if(bits < n) {
-				*val = (FLAC__uint32)((word & (FLAC__WORD_ALL_ONES >> br->consumed_bits)) >> (n-bits)); /* The result has <= 32 non-zero bits */
+				*val = (FLAC__uint32)((word & mask) >> (n-bits)); /* The result has <= 32 non-zero bits */
 				br->consumed_bits += bits;
 				return true;
 			}
 			/* (FLAC__BITS_PER_WORD - br->consumed_bits <= bits) ==> (FLAC__WORD_ALL_ONES >> br->consumed_bits) has no more than 'bits' non-zero bits */
-			*val = (FLAC__uint32)(word & (FLAC__WORD_ALL_ONES >> br->consumed_bits));
+			*val = (FLAC__uint32)(word & mask);
 			bits -= n;
 			br->consumed_words++;
 			br->consumed_bits = 0;
 			if(bits) { /* if there are still bits left to read, there have to be less than 32 so they will all be in the next word */
-				*val <<= bits;
+				*val = bits >= 32 ? 0 : *val << bits ;
 				*val |= (FLAC__uint32)(br->buffer[br->consumed_words] >> (FLAC__BITS_PER_WORD-bits));
 				br->consumed_bits = bits;
 			}
