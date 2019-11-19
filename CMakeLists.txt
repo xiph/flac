@@ -15,6 +15,7 @@ list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 option(BUILD_CXXLIBS "Build libFLAC++" ON)
 option(BUILD_EXAMPLES "Build and install examples" ON)
 option(BUILD_DOCS "Build and install doxygen documents" ON)
+option(WITH_STACK_PROTECTOR "Enable GNU GCC stack smash protection" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
 
 if(WITH_OGG)
@@ -24,8 +25,6 @@ endif()
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -funroll-loops")
-
-    option(ENABLE_SSP "Enable GNU GCC stack smash protection" OFF)
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef")
@@ -62,9 +61,14 @@ test_big_endian(CPU_IS_BIG_ENDIAN)
 
 check_c_compiler_flag(-Werror HAVE_WERROR_FLAG)
 check_c_compiler_flag(-Wdeclaration-after-statement HAVE_DECL_AFTER_STMT_FLAG)
-check_c_compiler_flag("-fstack-protector --param ssp-buffer-size=4" HAVE_SSP_FLAG)
 check_c_compiler_flag(-mstackrealign HAVE_STACKREALIGN_FLAG)
 check_cxx_compiler_flag(-Weffc++ HAVE_WEFFCXX_FLAG)
+
+if(WITH_STACK_PROTECTOR)
+  if(NOT MSVC)
+    check_c_compiler_flag("-fstack-protector-strong" HAVE_STACK_PROTECTOR_FLAG)
+  endif()
+endif()
 
 if(HAVE_WERROR_FLAG)
     option(ENABLE_WERROR "Enable -Werror in all Makefiles" OFF)
@@ -74,11 +78,12 @@ add_compile_options(
     $<$<BOOL:${MSVC}>:/wd4267>
     $<$<BOOL:${MSVC}>:/wd4996>
     $<$<BOOL:${ENABLE_WERROR}>:-Werror>
-    $<$<AND:$<BOOL:${HAVE_SSP_FLAG}>,$<BOOL:${ENABLE_SSP}>>:-fstack-protector>
-    $<$<AND:$<BOOL:${HAVE_SSP_FLAG}>,$<BOOL:${ENABLE_SSP}>>:--param>
-    $<$<AND:$<BOOL:${HAVE_SSP_FLAG}>,$<BOOL:${ENABLE_SSP}>>:ssp-buffer-size=4>
     $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${HAVE_WEFFCXX_FLAG}>>:-Weffc++>
     $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_DECL_AFTER_STMT_FLAG}>>:-Wdeclaration-after-statement>)
+
+if(HAVE_STACK_PROTECTOR_FLAG)
+    add_compile_options(-fstack-protector-strong)
+endif()
 
 if(CMAKE_SYSTEM_PROCESSOR STREQUAL "i686" AND HAVE_STACKREALIGN_FLAG)
     add_compile_options(-mstackrealign)

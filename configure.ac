@@ -310,8 +310,10 @@ AC_SUBST(FLAC__TEST_LEVEL)
 AC_ARG_ENABLE(werror,
 	AC_HELP_STRING([--enable-werror], [Enable -Werror in all Makefiles]))
 
-AC_ARG_ENABLE(stack-smash-protection,
-	AC_HELP_STRING([--enable-stack-smash-protection], [Enable GNU GCC stack smash protection]))
+AC_ARG_ENABLE([stack-smash-protection],
+    [AS_HELP_STRING([--disable-stack-smash-protection],[Disable GNU GCC stack smash protection])],,
+    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "$os_is_windows" = "no"],
+        [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
 
 AC_ARG_ENABLE(64-bit-words,
 	AC_HELP_STRING([--enable-64-bit-words], [Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
@@ -627,5 +629,6 @@ fi
 	echo "    SSE optimizations : ....................... ${sse_os}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
+	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
 	echo "    Fuzzing support (Clang only) : ............ ${have_oss_fuzzers}"
 echo
