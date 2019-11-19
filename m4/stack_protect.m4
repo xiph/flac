@@ -27,7 +27,7 @@ dnl LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
 dnl NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 dnl SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-dnl Want to know of GCC stack protector works, botfor the C and for the C++
+dnl We want to know if GCC stack protector works, for the C and for the C++
 dnl compiler.
 dnl
 dnl Just checking if the compiler accepts the required CFLAGSs is not enough
@@ -41,7 +41,7 @@ AC_DEFUN([XIPH_GCC_STACK_PROTECTOR],
 [AC_LANG_ASSERT(C)
 	AC_MSG_CHECKING([if $CC supports stack smash protection])
 	xiph_stack_check_old_cflags="$CFLAGS"
-	SSP_FLAGS="-fstack-protector --param ssp-buffer-size=4"
+	SSP_FLAGS="-fstack-protector-strong"
 	CFLAGS=$SSP_FLAGS
 	AC_TRY_LINK([
 			#include <stdio.h>
@@ -58,7 +58,7 @@ AC_DEFUN([XIPH_GXX_STACK_PROTECTOR],
 [AC_LANG_PUSH([C++])
 	AC_MSG_CHECKING([if $CXX supports stack smash protection])
 	xiph_stack_check_old_cflags="$CFLAGS"
-	SSP_FLAGS="-fstack-protector --param ssp-buffer-size=4"
+	SSP_FLAGS="-fstack-protector-strong"
 	CFLAGS=$SSP_FLAGS
 	AC_TRY_LINK([
 			#include <cstdio>
