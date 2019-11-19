@@ -38,7 +38,7 @@ ifeq ($(CC),gcc)
     GCC_INLINE  = -finline-functions
 endif
 NASM        = nasm
-LINK        = ar cru
+LINK        = ar cr
 OBJPATH     = $(topdir)/objs
 LIBPATH     = $(OBJPATH)/$(BUILD)/lib
 DEBUG_LIBPATH     = $(OBJPATH)/debug/lib
