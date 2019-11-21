@@ -415,8 +415,9 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
 			br->consumed_words++;
 			br->consumed_bits = 0;
 			if(bits) { /* if there are still bits left to read, there have to be less than 32 so they will all be in the next word */
-				*val = bits >= 32 ? 0 : *val << bits ;
-				*val |= (FLAC__uint32)(br->buffer[br->consumed_words] >> (FLAC__BITS_PER_WORD-bits));
+				uint32_t shift = FLAC__BITS_PER_WORD - bits;
+				*val = bits < 32 ? *val << bits : 0;
+				*val |= shift < FLAC__BITS_PER_WORD ? (FLAC__uint32)(br->buffer[br->consumed_words] >> shift) : 0;
 				br->consumed_bits = bits;
 			}
 			return true;
