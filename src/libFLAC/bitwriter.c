@@ -107,6 +107,10 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
 
+	/* sanity check */
+	if (bits_to_add > 16 * 1024 * 1024)
+		return false;
+
 	/* calculate total words needed to store 'bits_to_add' additional bits */
 	new_capacity = bw->words + ((bw->bits + bits_to_add + FLAC__BITS_PER_WORD - 1) / FLAC__BITS_PER_WORD);
 
