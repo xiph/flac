@@ -405,7 +405,8 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
 			const brword word = br->buffer[br->consumed_words];
 			const brword mask = br->consumed_bits < FLAC__BITS_PER_WORD ? FLAC__WORD_ALL_ONES >> br->consumed_bits : 0;
 			if(bits < n) {
-				*val = (FLAC__uint32)((word & mask) >> (n-bits)); /* The result has <= 32 non-zero bits */
+				uint32_t shift = n - bits;
+				*val = shift < FLAC__BITS_PER_WORD ? (FLAC__uint32)((word & mask) >> shift) : 0; /* The result has <= 32 non-zero bits */
 				br->consumed_bits += bits;
 				return true;
 			}
@@ -670,7 +671,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, uint32_t *va
 	*val = 0;
 	while(1) {
 		while(br->consumed_words < br->words) { /* if we've not consumed up to a partial tail word... */
-			brword b = br->buffer[br->consumed_words] << br->consumed_bits;
+			brword b = br->consumed_bits < FLAC__BITS_PER_WORD ? br->buffer[br->consumed_words] << br->consumed_bits : 0;
 			if(b) {
 				i = COUNT_ZERO_MSBS(b);
 				*val += i;
