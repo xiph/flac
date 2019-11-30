@@ -459,6 +459,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!decoder->is_valid()) {
 		printf("FAILED, returned false\n");
+		free(decoder);
 		return false;
 	}
 	printf("OK\n");
@@ -481,6 +482,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!decoder->is_valid()) {
 		printf("FAILED, returned false\n");
+		free(decoder);
 		return false;
 	}
 	printf("OK\n");
@@ -532,6 +534,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!decoder->is_valid()) {
 		printf("FAILED, returned false\n");
+		free(decoder);
 		return false;
 	}
 	printf("OK\n");
