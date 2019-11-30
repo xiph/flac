@@ -126,7 +126,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(frame->header.channels != 2) {
-		fprintf(stderr, "ERROR: This frame contains %d channels (should be 2)\n", frame->header.channels);
+		fprintf(stderr, "ERROR: This frame contains %u channels (should be 2)\n", frame->header.channels);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
 	if(buffer [0] == NULL) {
