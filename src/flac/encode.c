@@ -223,7 +223,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				flac__utils_printf(stderr, 1, "%s: ERROR: file has multiple 'ds64' chunks\n", e->inbasefilename);
 				return false;
 			}
-			if(got_fmt_chunk || got_data_chunk) {
+			if(got_fmt_chunk) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: 'ds64' chunk appears after 'fmt ' or 'data' chunk\n", e->inbasefilename);
 				return false;
 			}
