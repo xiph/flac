@@ -472,7 +472,7 @@ static void decoder_metadata_callback_null_(const FLAC__StreamDecoder *decoder, 
 {
 	(void)decoder, (void)metadata, (void)client_data;
 
-	printf("%d... ", mc_our_block_number_);
+	printf("%u... ", mc_our_block_number_);
 	fflush(stdout);
 
 	mc_our_block_number_++;
@@ -489,7 +489,7 @@ static void decoder_metadata_callback_compare_(const FLAC__StreamDecoder *decode
 	if(dcd->error_occurred)
 		return;
 
-	printf("%d... ", mc_our_block_number_);
+	printf("%u... ", mc_our_block_number_);
 	fflush(stdout);
 
 	if(mc_our_block_number_ >= our_metadata_.num_blocks) {

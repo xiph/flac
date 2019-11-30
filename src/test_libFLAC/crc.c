@@ -124,7 +124,7 @@ static FLAC__bool test_crc8(const FLAC__byte *data, size_t size)
 		crc1 = FLAC__crc8(data, i + 1);
 
 		if (crc1 != crc0) {
-			printf("FAILED, FLAC__crc8 result did not match reference CRC for %i bytes of test data\n", i + 1);
+			printf("FAILED, FLAC__crc8 result did not match reference CRC for %u bytes of test data\n", i + 1);
 			return false;
 		}
 	}
@@ -154,7 +154,7 @@ static FLAC__bool test_crc16(const FLAC__byte *data, size_t size)
 		crc1 = FLAC__crc16(data, i + 1);
 
 		if (crc1 != crc0) {
-			printf("FAILED, FLAC__crc16 result did not match reference CRC for %i bytes of test data\n", i + 1);
+			printf("FAILED, FLAC__crc16 result did not match reference CRC for %u bytes of test data\n", i + 1);
 			return false;
 		}
 	}
@@ -179,7 +179,7 @@ static FLAC__bool test_crc16_update(const FLAC__byte *data, size_t size)
 		crc1 = FLAC__CRC16_UPDATE(data[i], crc1);
 
 		if (crc1 != crc0) {
-			printf("FAILED, FLAC__CRC16_UPDATE result did not match reference CRC after %i bytes of test data\n", i + 1);
+			printf("FAILED, FLAC__CRC16_UPDATE result did not match reference CRC after %u bytes of test data\n", i + 1);
 			return false;
 		}
 	}
@@ -211,7 +211,7 @@ static FLAC__bool test_crc16_32bit_words(const FLAC__uint32 *words, size_t size)
 			crc1 = FLAC__crc16_update_words32(words + i, n, crc1);
 
 			if (crc1 != crc0) {
-				printf("FAILED, FLAC__crc16_update_words32 result did not match reference CRC after %i words of test data\n", i + n);
+				printf("FAILED, FLAC__crc16_update_words32 result did not match reference CRC after %u words of test data\n", i + n);
 				return false;
 			}
 		}
@@ -255,7 +255,7 @@ static FLAC__bool test_crc16_64bit_words(const FLAC__uint64 *words, size_t size)
 			crc1 = FLAC__crc16_update_words64(words + i, n, crc1);
 
 			if (crc1 != crc0) {
-				printf("FAILED, FLAC__crc16_update_words64 result did not match reference CRC after %i words of test data\n", i + n);
+				printf("FAILED, FLAC__crc16_update_words64 result did not match reference CRC after %u words of test data\n", i + n);
 				return false;
 			}
 		}
