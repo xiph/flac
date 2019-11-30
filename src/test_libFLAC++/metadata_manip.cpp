@@ -475,7 +475,7 @@ void OurFileDecoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 	if(error_occurred_)
 		return;
 
-	printf("%d... ", mc_our_block_number_);
+	printf("%u... ", mc_our_block_number_);
 	fflush(stdout);
 
 	if(!ignore_metadata_) {

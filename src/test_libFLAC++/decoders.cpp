@@ -152,7 +152,7 @@ void DecoderCommon::common_metadata_callback_(const ::FLAC__StreamMetadata *meta
 	if(error_occurred_)
 		return;
 
-	printf("%d... ", current_metadata_number_);
+	printf("%u... ", current_metadata_number_);
 	fflush(stdout);
 
 	if(current_metadata_number_ >= num_expected_) {
