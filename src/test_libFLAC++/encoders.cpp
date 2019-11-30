@@ -215,7 +215,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!encoder->is_valid()) {
 		printf("FAILED, returned false\n");
-		delete decoder;
+		delete encoder;
 		return false;
 	}
 	printf("OK\n");
