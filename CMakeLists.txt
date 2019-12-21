@@ -22,6 +22,9 @@ if(WITH_OGG)
     find_package(OGG REQUIRED)
 endif()
 
+find_package(Iconv)
+set(HAVE_ICONV ${Iconv_FOUND})
+
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline")
     set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -funroll-loops")

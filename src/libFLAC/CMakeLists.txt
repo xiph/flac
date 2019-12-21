@@ -97,9 +97,7 @@ target_compile_definitions(FLAC
     PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLAC_API_EXPORTS>
     PUBLIC $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:FLAC__NO_DLL>)
 if(NOT WIN32)
-target_compile_definitions(FLAC
-    PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLAC__USE_VISIBILITY_ATTR>
-)
+    target_compile_definitions(FLAC PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLAC__USE_VISIBILITY_ATTR>)
 endif()
 target_include_directories(FLAC INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
@@ -112,11 +110,9 @@ if(BUILD_SHARED_LIBS)
     set_target_properties(FLAC PROPERTIES
         VERSION 8.3.0
         SOVERSION 8)
-if(NOT WIN32)
-    set_target_properties(FLAC PROPERTIES
-        C_VISIBILITY_PRESET hidden
-    )
-endif()
+    if(NOT WIN32)
+        set_target_properties(FLAC PROPERTIES C_VISIBILITY_PRESET hidden)
+    endif()
 endif()
 
 
