@@ -55,6 +55,9 @@ namespace FLAC {
 
 			Prototype *construct_block(::FLAC__StreamMetadata *object)
 			{
+				if (0 == object)
+					return 0;
+
 				Prototype *ret = 0;
 				switch(object->type) {
 					case FLAC__METADATA_TYPE_STREAMINFO:
