@@ -106,6 +106,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_16(const FLAC__real
 #endif
 #endif
 #ifdef FLAC__CPU_AARCH64
+#include <arm_neon.h>
 float32x4_t shufffleVector(float32x4_t vec);
 float32x4_t shufffleVector_2103(float32x4_t vec);
 float32x4_t copyLane(float32x4_t dest, float32x4_t source);
