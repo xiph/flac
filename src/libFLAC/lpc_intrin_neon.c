@@ -31,12 +31,13 @@ float32x4_t shufffleVector_2103(float32x4_t vec)
     return vec;
 }
 
-float32x4_t copyLane(float32x4_t dest, const int destLaneNum, float32x4_t source, const int sourceLaneNum){
+float32x4_t copyLane(float32x4_t dest, float32x4_t source)
+{
     float32_t *pSourceLane;
-    float32_t sourceLane = vgetq_lane_f32(source, sourceLaneNum);
+    float32_t sourceLane = vgetq_lane_f32(source, 0);
 
     pSourceLane = &sourceLane;
-    vst1q_lane_f32(pSourceLane, dest, destLaneNum);
+    vst1q_lane_f32(pSourceLane, dest, 0);
 
     return dest;
 }
