@@ -8,7 +8,7 @@
 #include "FLAC/format.h"
 #include <arm_neon.h>
 
-inline float32x4_t shufffleVector(float32x4_t vec)
+float32x4_t shufffleVector(float32x4_t vec)
 {
     float32x2_t hi = vget_high_f32(vec);
     float32x2_t lo = vget_low_f32(vec);
@@ -16,7 +16,7 @@ inline float32x4_t shufffleVector(float32x4_t vec)
     return vcombine_f32(qr0_z.val[0], qr0_z.val[1]);
 }
 
-inline float32x4_t shufffleVector_2103(float32x4_t vec)
+float32x4_t shufffleVector_2103(float32x4_t vec)
 {
     float32_t *pLane0;
     float32_t *pLane2;
@@ -31,7 +31,7 @@ inline float32x4_t shufffleVector_2103(float32x4_t vec)
     return vec;
 }
 
-inline float32x4_t copyLane(float32x4_t dest, int destLaneNum, float32x4_t source, int sourceLaneNum){
+float32x4_t copyLane(float32x4_t dest, const int destLaneNum, float32x4_t source, const int sourceLaneNum){
     float32_t *pSourceLane;
     float32_t sourceLane = vgetq_lane_f32(source, sourceLaneNum);
 
