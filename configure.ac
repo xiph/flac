@@ -144,7 +144,7 @@ case "$host_cpu" in
 	powerpc64|powerpc64le)
 		cpu_ppc64=true
 		cpu_ppc=true
-		AC_CHECK_HEADER(sys/auxv.h, AC_DEFINE(FLAC__CPU_PPC))
+		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		AC_DEFINE(FLAC__CPU_PPC64)
 		AH_TEMPLATE(FLAC__CPU_PPC64, [define if building for PowerPC64])
@@ -152,7 +152,7 @@ case "$host_cpu" in
 		;;
 	powerpc|powerpcle)
 		cpu_ppc=true
-		AC_CHECK_HEADER(sys/auxv.h, AC_DEFINE(FLAC__CPU_PPC))
+		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		asm_optimisation=$asm_opt
 		;;
