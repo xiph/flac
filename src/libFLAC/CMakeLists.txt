@@ -102,7 +102,7 @@ endif()
 target_include_directories(FLAC INTERFACE
     "$<BUILD_INTERFACE:${PROJECT_SOURCE_DIR}/include>"
     "$<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>")
-target_link_libraries(FLAC PRIVATE $<$<BOOL:${HAVE_LROUND}>:m>)
+target_link_libraries(FLAC PUBLIC $<$<BOOL:${HAVE_LROUND}>:m>)
 if(TARGET Ogg::ogg)
     target_link_libraries(FLAC PUBLIC Ogg::ogg)
 endif()
