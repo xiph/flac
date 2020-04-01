@@ -10,35 +10,40 @@
 
 float32x4_t shufffleVector(float32x4_t vec)
 {
-    float32x2_t hi = vget_high_f32(vec);
-    float32x2_t lo = vget_low_f32(vec);
-    float32x2x2_t qr0_z = vzip_f32(hi, lo);
-    return vcombine_f32(qr0_z.val[0], qr0_z.val[1]);
+    float checkvalue1[4] = {0.0, 0.0, 0.0, 0.0};
+    vst1q_f32(checkvalue1, vec);
+
+    float32_t lane0 = vgetq_lane_f32(vec, 0);
+    vec = vsetq_lane_f32(lane0, vec, 1);
+    vec = vsetq_lane_f32(lane0, vec, 2);
+    vec = vsetq_lane_f32(lane0, vec, 3);
+
+    float checkvalue2[4] = {0.0, 0.0, 0.0, 0.0};
+    vst1q_f32(checkvalue2, vec);
+
+    return vec;
 }
 
-float32x4_t shufffleVector_2103(float32x4_t vec)
-{
-    float32_t *pLane0;
-    float32_t *pLane2;
-    float32_t lane0 = vgetq_lane_f32(vec, 0);
-    float32_t lane2 = vgetq_lane_f32(vec, 2);
 
-    pLane0 = &lane0;
-    pLane2 = &lane2;
-    vst1q_lane_f32(pLane0, vec, 2);
-    vst1q_lane_f32(pLane2, vec, 0);
+float32x4_t shufffleVector_3012(float32x4_t vec)
+{
+    float32_t lane0 = vgetq_lane_f32(vec, 0);
+    float32_t lane1 = vgetq_lane_f32(vec, 1);
+    float32_t lane2 = vgetq_lane_f32(vec, 2);
+    float32_t lane3 = vgetq_lane_f32(vec, 3);
+
+    vec = vsetq_lane_f32(lane3, vec, 0);
+    vec = vsetq_lane_f32(lane0, vec, 1);
+    vec = vsetq_lane_f32(lane1, vec, 2);
+    vec = vsetq_lane_f32(lane2, vec, 3);
 
     return vec;
 }
 
 float32x4_t copyLane(float32x4_t dest, float32x4_t source)
 {
-    float32_t *pSourceLane;
-    float32_t sourceLane = vgetq_lane_f32(source, 0);
-
-    pSourceLane = &sourceLane;
-    vst1q_lane_f32(pSourceLane, dest, 0);
-
+    float32_t lane0 = vgetq_lane_f32(source, 0);
+    dest = vsetq_lane_f32(lane0, dest, 0);
     return dest;
 }
 
@@ -72,7 +77,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_4(const FLAC__real data[]
 
             d = shufffleVector(d);
 
-            d0 = shufffleVector_2103(d0);
+            d0 = shufffleVector_3012(d0);
             d0 = copyLane(d0, d);
             sum0 = vaddq_f32(sum0, vmulq_f32(d, d0));
         }
@@ -113,8 +118,8 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[]
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
 
-            d1 = shufffleVector_2103(d1);
-            d0 = shufffleVector_2103(d0);
+            d1 = shufffleVector_3012(d1);
+            d0 = shufffleVector_3012(d0);
 
             d1 = copyLane(d1, d0);
             d0 = copyLane(d0, d);
@@ -164,9 +169,9 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_12(const FLAC__real data[
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
 
-            d2 = shufffleVector_2103(d2);
-            d1 = shufffleVector_2103(d1);
-            d0 = shufffleVector_2103(d0);
+            d2 = shufffleVector_3012(d2);
+            d1 = shufffleVector_3012(d1);
+            d0 = shufffleVector_3012(d0);
 
             d2 = copyLane(d2, d1);
             d1 = copyLane(d1, d0);
@@ -223,10 +228,10 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_16(const FLAC__real data[
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
 
-            d3 = shufffleVector_2103(d3);
-            d2 = shufffleVector_2103(d2);
-            d1 = shufffleVector_2103(d1);
-            d0 = shufffleVector_2103(d0);
+            d3 = shufffleVector_3012(d3);
+            d2 = shufffleVector_3012(d2);
+            d1 = shufffleVector_3012(d1);
+            d0 = shufffleVector_3012(d0);
 
             d3 = copyLane(d3, d2);
             d2 = copyLane(d2, d1);
