@@ -8,23 +8,26 @@
 #include "FLAC/format.h"
 #include <arm_neon.h>
 
+/*
+*   Vec     [1 , 2 , 3 , 4]
+*   Result  [1 , 1 , 1 , 1]
+*/
+// Set all vector lanes to the value of lane 0
 float32x4_t shufffleVector(float32x4_t vec)
 {
-    float checkvalue1[4] = {0.0, 0.0, 0.0, 0.0};
-    vst1q_f32(checkvalue1, vec);
-
     float32_t lane0 = vgetq_lane_f32(vec, 0);
     vec = vsetq_lane_f32(lane0, vec, 1);
     vec = vsetq_lane_f32(lane0, vec, 2);
     vec = vsetq_lane_f32(lane0, vec, 3);
 
-    float checkvalue2[4] = {0.0, 0.0, 0.0, 0.0};
-    vst1q_f32(checkvalue2, vec);
-
     return vec;
 }
-
-
+/*
+*   Index   [0 , 1 , 2 , 3]
+*   Mask    [3 , 0 , 1 , 2]
+*   Vec     [1 , 2 , 3 , 4]
+*   Result  [4 , 1 , 2 , 3]
+*/
 float32x4_t shufffleVector_3012(float32x4_t vec)
 {
     float32_t lane0 = vgetq_lane_f32(vec, 0);
@@ -39,7 +42,11 @@ float32x4_t shufffleVector_3012(float32x4_t vec)
 
     return vec;
 }
-
+/*
+*   Source  [4 , 4 , 4 , 4]
+*   Dest    [1 , 2 , 3 , 4]
+*   Result  [4 , 2 , 3 , 4]
+*/
 float32x4_t copyLane(float32x4_t dest, float32x4_t source)
 {
     float32_t lane0 = vgetq_lane_f32(source, 0);
@@ -71,7 +78,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_4(const FLAC__real data[]
         if (limit < 0)
             limit = 0;
 
-        for (i = data_len - 1; i >= limit; i--)
+        for (; i < data_len; i++) 
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
 
@@ -113,7 +120,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[]
         if (limit < 0)
             limit = 0;
 
-        for (i = data_len - 1; i >= limit; i--)
+        for (; i < data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
@@ -164,7 +171,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_12(const FLAC__real data[
         if (limit < 0)
             limit = 0;
 
-        for (i = data_len - 1; i >= limit; i--)
+        for (; i < data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
@@ -223,7 +230,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_16(const FLAC__real data[
         if (limit < 0)
             limit = 0;
 
-        for (i = data_len - 1; i >= limit; i--)
+        for (; i < data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
