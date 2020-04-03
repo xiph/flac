@@ -12,7 +12,7 @@
 *   Vec     [1 , 2 , 3 , 4]
 *   Result  [1 , 1 , 1 , 1]
 */
-// Set all vector lanes to the value of lane 0
+// Set all vector lanes to the value of lane 0 
 float32x4_t shufffleVector(float32x4_t vec)
 {
     float32_t lane0 = vgetq_lane_f32(vec, 0);
@@ -78,7 +78,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_4(const FLAC__real data[]
         if (limit < 0)
             limit = 0;
 
-        for (; i < data_len; i++) 
+        for (; i < (long)data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
 
@@ -120,7 +120,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[]
         if (limit < 0)
             limit = 0;
 
-        for (; i < data_len; i++)
+        for (; i < (long)data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
@@ -156,7 +156,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_12(const FLAC__real data[
         float32x4_t d, d0, d1, d2;
         d0 = vld1q_f32(data + i);
         d1 = vld1q_f32(data + i + 4);
-        d1 = vld1q_f32(data + i + 8);
+        d2 = vld1q_f32(data + i + 8);
         d = shufffleVector(d0);
         sum0 = vaddq_f32(sum0, vmulq_f32(d0, d));
         sum1 = vaddq_f32(sum1, vmulq_f32(d1, d));
@@ -171,7 +171,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_12(const FLAC__real data[
         if (limit < 0)
             limit = 0;
 
-        for (; i < data_len; i++)
+        for (; i < (long)data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
@@ -212,8 +212,8 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_16(const FLAC__real data[
         float32x4_t d, d0, d1, d2, d3;
         d0 = vld1q_f32(data + i);
         d1 = vld1q_f32(data + i + 4);
-        d1 = vld1q_f32(data + i + 8);
-        d1 = vld1q_f32(data + i + 12);
+        d2 = vld1q_f32(data + i + 8);
+        d3 = vld1q_f32(data + i + 12);
         d = shufffleVector(d0);
         sum0 = vaddq_f32(sum0, vmulq_f32(d0, d));
         sum1 = vaddq_f32(sum1, vmulq_f32(d1, d));
@@ -230,7 +230,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_16(const FLAC__real data[
         if (limit < 0)
             limit = 0;
 
-        for (; i < data_len; i++)
+        for (; i < (long)data_len; i++)
         {
             float32x4_t d = vld1q_lane_f32(data + i, vdupq_n_f32(0.0f), 0);
             d = shufffleVector(d);
