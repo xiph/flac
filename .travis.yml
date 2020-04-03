@@ -20,6 +20,12 @@ env:
   - BUILD_SYSTEM="autotools" CONFIGURE_OPTS=--enable-64-bit-words
   - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=
   - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
+
+before_install:
+ if [[ "${TRAVIS_CPU_ARCH}" == "arm64" ]]; then
+      CMAKE_URL="https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz"
+      mkdir cmake && travis_retry wget --no-check-certificate --quiet -O - ${CMAKE_URL} | tar --strip-components=1 -
+
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install gettext libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib; fi
   - if [ $TRAVIS_OS_NAME = osx ]; then brew update ; brew install libogg; fi
