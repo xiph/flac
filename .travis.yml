@@ -23,11 +23,12 @@ env:
 
 before_install:
  if [[ "${TRAVIS_CPU_ARCH}" == "arm64" ]]; then
-      - mkdir $HOME/usr
-      - export PATH="$HOME/usr/bin:$PATH"
-      - wget https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz
-      - chmod +x cmake-3.17.0-Linux-x86_64.tar.gz
-      - ./cmake-3.17.0-Linux-x86_64.tar.gz --prefix=$HOME/usr --exclude-subdir --skip-license
+      mkdir $HOME/usr;
+      export PATH="$HOME/usr/bin:$PATH";
+      wget https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz;
+      chmod +x cmake-3.17.0-Linux-x86_64.tar.gz;
+      ./cmake-3.17.0-Linux-x86_64.tar.gz --prefix=$HOME/usr --exclude-subdir --skip-license;
+fi
 
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install gettext libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib; fi
