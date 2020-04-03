@@ -23,11 +23,18 @@ env:
 
 before_install:
  if [[ "${TRAVIS_CPU_ARCH}" == "arm64" ]]; then
-      mkdir $HOME/usr;
-      export PATH="$HOME/usr/bin:$PATH";
-      wget https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.sh;
-      chmod +x cmake-3.17.0-Linux-x86_64.sh;
-      ./cmake-3.17.0-Linux-x86_64.sh --prefix=$HOME/usr --exclude-subdir --skip-license;
+  # create a directory for the CMake binaries
+  CMAKE_DIR="${TRAVIS_BUILD_DIR}/deps";
+  mkdir ${CMAKE_DIR} && cd ${CMAKE_DIR};
+  # get the cmake binaries
+  travis_retry wget --no-check-certificate https://cmake.org/files/v3.17/cmake-3.17.0-Linux-x86_64.tar.gz;
+  # extract the binaries
+  tar -xvf cmake-3.17.0-Linux-x86_64.tar.gz;
+  mv cmake-3.17.0-Linux-x86_64 cmake-install;
+  # Add to system Path
+  PATH=${CMAKE_DIR}/cmake-install:${CMAKE_DIR}/cmake-install/bin:$PATH;
+  # return to build directory
+  cd ${TRAVIS_BUILD_DIR};
   fi
 
 install:
