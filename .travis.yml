@@ -1,12 +1,12 @@
 language: c
 
 arch:
-  - amd64
+#  - amd64
   - arm64
 
 os:
   - linux
-  - osx
+#  - osx
 
 dist: xenial
 
