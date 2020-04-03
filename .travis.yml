@@ -22,7 +22,7 @@ env:
   - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
 
 before_install:
- if [[ "${TRAVIS_CPU_ARCH}" == "arm64" ]]; then
+if [[ "${TRAVIS_CPU_ARCH}" == "arm64" ]]; then
   # create a directory for the CMake binaries
   CMAKE_DIR="${TRAVIS_BUILD_DIR}/deps";
   mkdir ${CMAKE_DIR} && cd ${CMAKE_DIR};
@@ -35,7 +35,7 @@ before_install:
   PATH=${CMAKE_DIR}/cmake-install:${CMAKE_DIR}/cmake-install/bin:$PATH;
   # return to build directory
   cd ${TRAVIS_BUILD_DIR};
-  fi
+fi
 
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install gettext libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib; fi
