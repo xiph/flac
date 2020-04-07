@@ -47,5 +47,5 @@ if(INSTALL_PKGCONFIG_MODULES)
     set(includedir "${CMAKE_INSTALL_FULL_INCLUDEDIR}")
     configure_file(flac++.pc.in flac++.pc @ONLY)
     install(FILES "${CMAKE_CURRENT_BINARY_DIR}/flac++.pc"
-        DESTINATION "${CMAKE_INSTALL_DATAROOTDIR}/pkgconfig")
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/pkgconfig")
 endif()
