@@ -17,5 +17,3 @@
 #  distribution.
 
 SUBDIRS = flacdiff flactimer
-
-EXTRA_DIST = CMakeLists.txt

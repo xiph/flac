@@ -17,5 +17,3 @@
 #  distribution.
 
 SUBDIRS = decode encode
-
-EXTRA_DIST = CMakeLists.txt

@@ -23,7 +23,7 @@ option(INSTALL_CMAKE_CONFIG_MODULE "Install CMake package-config module" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
 
 if(WITH_OGG)
-    find_package(OGG REQUIRED)
+    find_package(Ogg REQUIRED)
 endif()
 
 find_package(Iconv)
@@ -35,9 +35,6 @@ if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef")
-endif()
-if(CMAKE_C_COMPILER_ID MATCHES "GNU")
-    set(CMAKE_EXE_LINKER_FLAGS -no-pie)
 endif()
 
 include(CMakePackageConfigHelpers)
@@ -57,7 +54,11 @@ include(TestBigEndian)
 check_include_file("byteswap.h" HAVE_BYTESWAP_H)
 check_include_file("inttypes.h" HAVE_INTTYPES_H)
 check_include_file("stdint.h" HAVE_STDINT_H)
-check_include_file("x86intrin.h" FLAC__HAS_X86INTRIN)
+if(MSVC)
+    check_include_file("intrin.h" FLAC__HAS_X86INTRIN)
+else()
+    check_include_file("x86intrin.h" FLAC__HAS_X86INTRIN)
+endif()
 
 check_function_exists(fseeko HAVE_FSEEKO)
 
@@ -140,7 +141,6 @@ if(INSTALL_CMAKE_CONFIG_MODULE)
         FILES
             "${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake"
             "${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake"
-            "cmake/FindOGG.cmake"
         DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
 endif()
 

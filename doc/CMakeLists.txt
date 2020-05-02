@@ -19,7 +19,28 @@ doxygen_add_docs(FLAC-doxygen
     "${PROJECT_SOURCE_DIR}/include/FLAC"
     "${PROJECT_SOURCE_DIR}/include/FLAC++")
 
-add_subdirectory(html)
-
 install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
     DESTINATION "${CMAKE_INSTALL_DOCDIR}/html/api")
+
+install(FILES
+    html/images/logo.svg
+    html/images/logo130.gif
+    html/changelog.html
+    html/developers.html
+    html/documentation.html
+    html/documentation_bugs.html
+    html/documentation_example_code.html
+    html/documentation_format_overview.html
+    html/documentation_tools.html
+    html/documentation_tools_flac.html
+    html/documentation_tools_metaflac.html
+    html/faq.html
+    html/favicon.ico
+    html/features.html
+    html/flac.css
+    html/format.html
+    html/id.html
+    html/index.html
+    html/license.html
+    html/ogg_mapping.html
+DESTINATION "${CMAKE_INSTALL_DOCDIR}/html")
