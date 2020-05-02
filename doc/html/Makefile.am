@@ -38,7 +38,7 @@ html_DATA = \
 	license.html \
 	ogg_mapping.html
 
-EXTRA_DIST = $(html_DATA) api CMakeLists.txt
+EXTRA_DIST = $(html_DATA) api
 
 if FLaC__HAS_DOXYGEN
 # The install targets don't copy whole directories so we have to

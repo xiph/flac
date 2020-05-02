@@ -41,7 +41,7 @@ EXTRA_DIST = \
 	CMakeLists.txt \
 	config.cmake.h.in \
 	flac-config.cmake.in \
-	cmake/FindOGG.cmake \
+	cmake/FindOgg.cmake \
 	cmake/UseSystemExtensions.cmake \
 	COPYING.FDL \
 	COPYING.GPL \

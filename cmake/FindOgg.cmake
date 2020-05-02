@@ -14,7 +14,7 @@ mark_as_advanced(
     OGG_LIBRARY)
 
 include(FindPackageHandleStandardArgs)
-find_package_handle_standard_args(OGG
+find_package_handle_standard_args(Ogg
     REQUIRED_VARS OGG_INCLUDE_DIR OGG_LIBRARY
     VERSION_VAR _OGG_VERSION)
 
