@@ -15,12 +15,20 @@ endif()
 set(DOXYGEN_HTML_FOOTER doxygen.footer.html)
 set(DOXYGEN_GENERATE_TAGFILE FLAC.tag)
 
-doxygen_add_docs(FLAC-doxygen
-    "${PROJECT_SOURCE_DIR}/include/FLAC"
-    "${PROJECT_SOURCE_DIR}/include/FLAC++")
+if(CMAKE_VERSION VERSION_LESS 3.12)
+    doxygen_add_docs(FLAC-doxygen
+        ALL
+        "${PROJECT_SOURCE_DIR}/include/FLAC"
+        "${PROJECT_SOURCE_DIR}/include/FLAC++")
+else()
+    doxygen_add_docs(FLAC-doxygen
+        "${PROJECT_SOURCE_DIR}/include/FLAC"
+        "${PROJECT_SOURCE_DIR}/include/FLAC++")
 
-install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
-    DESTINATION "${CMAKE_INSTALL_DOCDIR}/html/api")
+    install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+        DESTINATION "${CMAKE_INSTALL_DOCDIR}/html/api")
+
+endif()
 
 install(FILES
     html/images/logo.svg
