@@ -43,6 +43,8 @@ EXTRA_DIST = \
 	flac-config.cmake.in \
 	cmake/FindOgg.cmake \
 	cmake/UseSystemExtensions.cmake \
+	cmake/CheckCPUArch.cmake \
+	cmake/CheckCPUArch.c.in \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \

@@ -79,6 +79,8 @@ oss-fuzz/fuzz-decoder
 oss-fuzz/fuzz-encoder
 
 /*[Bb]uild*/
+/out/
+CMakeSettings.json
 CMakeLists.txt.user
 CMakeCache.txt
 CMakeFiles

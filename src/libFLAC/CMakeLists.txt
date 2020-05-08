@@ -1,7 +1,3 @@
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86(_64)?|(AMD|amd)64|i[346]86")
-    option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
-endif()
-
 option(WITH_ASM "Use any assembly optimization routines" ON)
 
 check_include_file("cpuid.h" HAVE_CPUID_H)
@@ -10,14 +6,17 @@ check_include_file("sys/param.h" HAVE_SYS_PARAM_H)
 set(CMAKE_REQUIRED_LIBRARIES m)
 check_function_exists(lround HAVE_LROUND)
 
-if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86_64|(AMD|amd)64")
-    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
-        set(IA32 TRUE)
-    endif()
-    add_definitions(-DFLAC__CPU_X86_64 -DFLAC__ALIGN_MALLOC_DATA)
-elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]|i[346])86")
-    set(IA32 TRUE)
-    add_definitions(-DFLAC__CPU_IA32 -DFLAC__ALIGN_MALLOC_DATA)
+include(CheckCSourceCompiles)
+include(CheckCPUArch)
+
+check_cpu_arch_x64(FLAC__CPU_X86_64)
+if(NOT FLAC__CPU_X86_64)
+    check_cpu_arch_x86(FLAC__CPU_IA32)
+endif()
+
+if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
+    set(FLAC__ALIGN_MALLOC_DATA 1)
+    option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
 endif()
 
 include(CheckLanguage)
@@ -31,7 +30,7 @@ if(NOT WITH_ASM)
     add_definitions(-DFLAC__NO_ASM)
 endif()
 
-if(IA32)
+if(FLAC__CPU_IA32)
     if(WITH_ASM AND CMAKE_ASM_NASM_COMPILER)
         add_subdirectory(ia32)
     endif()
