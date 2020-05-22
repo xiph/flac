@@ -252,13 +252,17 @@ fi
 
 AM_CONDITIONAL([DEBUG], [test "x${ax_enable_debug}" = "xyes" || test "x${ax_enable_debug}" = "xinfo"])
 
-AC_ARG_ENABLE(sse,
-AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
-[case "${enableval}" in
-	yes) sse_os=yes ;;
-	no)  sse_os=no ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
-esac],[sse_os=yes])
+if test "x$ac_cv_header_x86intrin_h" = xyes; then
+	AC_ARG_ENABLE(sse,
+	AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
+	[case "${enableval}" in
+		yes) sse_os=yes ;;
+		no)  sse_os=no ;;
+		*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
+	esac],[sse_os=yes])
+else
+	sse_os=no
+fi
 
 AC_ARG_ENABLE(altivec,
 AC_HELP_STRING([--disable-altivec], [Disable Altivec optimizations]),
@@ -642,7 +646,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
 	echo "    SSE optimizations : ....................... ${sse_os}"
-	echo "    Neon optimizations : ....................... ${neon}"
+	echo "    Neon optimizations : ...................... ${neon}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
