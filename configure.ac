@@ -156,7 +156,7 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		asm_optimisation=$asm_opt
 		;;
-	arm* | aarch64*)
+	arm*|aarch64*)
 		cpu_arm=true
 		AC_DEFINE(FLAC__CPU_ARM)
 		AH_TEMPLATE(FLAC__CPU_ARM, [define if building for ARM])
