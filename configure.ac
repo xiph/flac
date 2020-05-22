@@ -160,6 +160,7 @@ case "$host_cpu" in
 		cpu_arm=true
 		AC_DEFINE(FLAC__CPU_ARM)
 		AH_TEMPLATE(FLAC__CPU_ARM, [define if building for ARM])
+		asm_optimisation=$asm_opt
 		;;
 	sparc)
 		cpu_sparc=true
@@ -181,8 +182,10 @@ else
 AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
 fi
 
+neon=no
 if test "x$ac_cv_header_arm_neon_h" = xyes; then
 AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
+neon=yes
 else
 AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
 fi
@@ -639,6 +642,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
 	echo "    SSE optimizations : ....................... ${sse_os}"
+	echo "    Neon optimizations : ....................... ${neon}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
