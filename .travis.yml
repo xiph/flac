@@ -24,6 +24,11 @@ env:
   - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=
   - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
 
+jobs:
+  exclude:
+  - os: osx
+    arch: arm64
+
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then 
       sudo apt-get -y install libcurl4-openssl-dev gettext libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib; 
