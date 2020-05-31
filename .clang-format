@@ -1,0 +1,21 @@
+BasedOnStyle: WebKit
+AlignAfterOpenBracket: Align
+AlignEscapedNewlines: DontAlign
+AlignOperands: true
+BraceWrapping:
+  AfterFunction: true
+  BeforeElse: true
+BreakBeforeBinaryOperators: None
+BreakBeforeBraces: Custom
+BreakBeforeInheritanceComma: true
+BreakConstructorInitializers: BeforeComma
+DerivePointerAlignment: false
+IndentCaseLabels: true
+MaxEmptyLinesToKeep: 1
+NamespaceIndentation: All
+PointerAlignment: Right
+SortIncludes: false
+SpaceBeforeCtorInitializerColon: true
+SpaceBeforeParens: Never
+TabWidth: 4
+UseTab: ForContinuationAndIndentation
