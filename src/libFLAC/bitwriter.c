@@ -102,7 +102,6 @@ static
 FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 {
 	uint32_t new_capacity;
-	bwword *new_buffer;
 
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
@@ -124,10 +123,11 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 	FLAC__ASSERT(new_capacity > bw->capacity);
 	FLAC__ASSERT(new_capacity >= bw->words + ((bw->bits + bits_to_add + FLAC__BITS_PER_WORD - 1) / FLAC__BITS_PER_WORD));
 
-	new_buffer = safe_realloc_mul_2op_(bw->buffer, sizeof(bwword), /*times*/new_capacity);
-	if(new_buffer == 0)
+	bw->buffer = safe_realloc_mul_2op_(bw->buffer, sizeof(bwword), /*times*/new_capacity);
+	if(bw->buffer == 0) {
+		bw->capacity = 0;
 		return false;
-	bw->buffer = new_buffer;
+	}
 	bw->capacity = new_capacity;
 	return true;
 }
