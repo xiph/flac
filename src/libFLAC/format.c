@@ -218,12 +218,10 @@ FLAC_API FLAC__bool FLAC__format_blocksize_is_subset(uint32_t blocksize, uint32_
 
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_subset(uint32_t sample_rate)
 {
-	if(
-		!FLAC__format_sample_rate_is_valid(sample_rate) ||
-		(
-			sample_rate >= (1u << 16) &&
-			!(sample_rate % 1000 == 0 || sample_rate % 10 == 0)
-		)
+	if( // sample rate is not subset if
+		!FLAC__format_sample_rate_is_valid(sample_rate) || // sample rate is invalid or
+		sample_rate >= ((1u << 16) * 10) || // sample rate is larger then or equal to 655360 or
+		(sample_rate >= (1u << 16) && sample_rate % 10 != 0) //sample rate is >= 65536 and not divisible by 10
 	) {
 		return false;
 	}
