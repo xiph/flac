@@ -65,11 +65,14 @@ static struct {
 	{ 500010 , true , true  },
 	{ 655349 , true , false },
 	{ 655350 , true , true  },
-	{ 655351 , false, false },
-	{ 655360 , false, false },
-	{ 700000 , false, false },
-	{ 700010 , false, false },
-	{ 1000000, false, false },
+	{ 655351 , true , false },
+	{ 655360 , true , false },
+	{ 700000 , true , false },
+	{ 700010 , true , false },
+	{ 705600 , true , false },
+	{ 768000 , true , false },
+	{ 1000000, true , false },
+	{ 1048575, true , false },
 	{ 1100000, false, false }
 };
 

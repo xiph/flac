@@ -853,10 +853,10 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->loose_mid_side_stereo_frames = (uint32_t)((double)encoder->protected_->sample_rate * 0.4 / (double)encoder->protected_->blocksize + 0.5);
 #else
 	/* 26214 is the approximate fixed-point equivalent to 0.4 (0.4 * 2^16) */
-	/* sample rate can be up to 655350 Hz, and thus use 20 bits, so we do the multiply&divide by hand */
-	FLAC__ASSERT(FLAC__MAX_SAMPLE_RATE <= 655350);
+	/* sample rate can be up to 1048575 Hz, and thus use 20 bits, so we do the multiply&divide by hand */
+	FLAC__ASSERT(FLAC__MAX_SAMPLE_RATE <= 1048575);
 	FLAC__ASSERT(FLAC__MAX_BLOCK_SIZE <= 65535);
-	FLAC__ASSERT(encoder->protected_->sample_rate <= 655350);
+	FLAC__ASSERT(encoder->protected_->sample_rate <= 1048575);
 	FLAC__ASSERT(encoder->protected_->blocksize <= 65535);
 	encoder->private_->loose_mid_side_stereo_frames = (uint32_t)FLAC__fixedpoint_trunc((((FLAC__uint64)(encoder->protected_->sample_rate) * (FLAC__uint64)(26214)) << 16) / (encoder->protected_->blocksize<<16) + FLAC__FP_ONE_HALF);
 #endif

@@ -278,7 +278,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 		default:
 			if(header->sample_rate <= 255000 && header->sample_rate % 1000 == 0)
 				sample_rate_hint = u = 12;
-			else if(header->sample_rate % 10 == 0)
+			else if(header->sample_rate <= 655350 && header->sample_rate % 10 == 0)
 				sample_rate_hint = u = 14;
 			else if(header->sample_rate <= 0xffff)
 				sample_rate_hint = u = 13;
