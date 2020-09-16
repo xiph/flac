@@ -73,7 +73,7 @@ check_c_compiler_flag(-mstackrealign HAVE_STACKREALIGN_FLAG)
 check_cxx_compiler_flag(-Weffc++ HAVE_WEFFCXX_FLAG)
 
 if(WITH_STACK_PROTECTOR)
-  if(NOT MSVC)
+  if(NOT (MSVC OR MINGW))
     check_c_compiler_flag("-fstack-protector-strong" HAVE_STACK_PROTECTOR_FLAG)
   endif()
 endif()
