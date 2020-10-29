@@ -3032,14 +3032,25 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 
 	/*
 	 * First, we set an upper and lower bound on where in the
-	 * stream we will search.  For now we assume the worst case
-	 * scenario, which is our best guess at the beginning of
-	 * the first frame and end of the stream.
+	 * stream we will search.  For now we take the current position
+	 * as one bound and, depending on where the target position lies,
+	 * the beginning of the first frame or the end of the stream as
+	 * the other bound.
 	 */
 	lower_bound = first_frame_offset;
 	lower_bound_sample = 0;
 	upper_bound = stream_length;
 	upper_bound_sample = total_samples > 0 ? total_samples : target_sample /*estimate it*/;
+
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME) {
+		if(target_sample < decoder->private_->samples_decoded) {
+			if(FLAC__stream_decoder_get_decode_position(decoder, &upper_bound))
+				upper_bound_sample = decoder->private_->samples_decoded;
+		} else {
+			if(FLAC__stream_decoder_get_decode_position(decoder, &lower_bound))
+				lower_bound_sample = decoder->private_->samples_decoded;
+		}
+	}
 
 	/*
 	 * Now we refine the bounds if we have a seektable with
