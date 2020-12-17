@@ -116,7 +116,7 @@ class Datasource : public Base
         size_t left;
         std::vector<uint8_t> get(const size_t min, const size_t max, const uint64_t id = 0) override;
 
-		// Make copy constructor and assignment opertator private.
+		// Make copy constructor and assignment operator private.
         Datasource(const Datasource &) : data(0), size(0), idx(0), left(0) {}
         Datasource& operator=(const Datasource &) { return *this; }
     public:
