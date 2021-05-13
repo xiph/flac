@@ -183,7 +183,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 	else { /* bps must be < 32 according to above assertion */
 		const double scale = (
 			(bps > 16)?
-				(double)1. / (double)(1u << (bps - 16)) :
+				1. / (double)(1u << (bps - 16)) :
 				(double)(1u << (16 - bps))
 		);
 

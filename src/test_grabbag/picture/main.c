@@ -100,7 +100,7 @@ static FLAC__bool test_one_picture(const char *prefix, const PictureFile *pf, co
 		return failed_("picture type mismatch");
 	if(strcmp(obj->data.picture.mime_type, pf->mime_type))
 		return failed_("picture MIME type mismatch");
-	if(strcmp((const char *)obj->data.picture.description, (const char *)pf->description))
+	if(strcmp((const char *)obj->data.picture.description, pf->description))
 		return failed_("picture description mismatch");
 	if(obj->data.picture.width != pf->width)
 		return failed_("picture width mismatch");

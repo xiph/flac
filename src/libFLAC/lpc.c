@@ -1316,7 +1316,7 @@ double FLAC__lpc_compute_expected_bits_per_residual_sample(double lpc_error, uin
 double FLAC__lpc_compute_expected_bits_per_residual_sample_with_error_scale(double lpc_error, double error_scale)
 {
 	if(lpc_error > 0.0) {
-		double bps = (double)0.5 * log(error_scale * lpc_error) / M_LN2;
+		double bps = 0.5 * log(error_scale * lpc_error) / M_LN2;
 		if(bps >= 0.0)
 			return bps;
 		else

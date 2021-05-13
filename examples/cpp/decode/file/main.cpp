@@ -50,7 +50,7 @@ static bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
 
 static bool write_little_endian_int16(FILE *f, FLAC__int16 x)
 {
-	return write_little_endian_uint16(f, (FLAC__uint16)x);
+	return write_little_endian_uint16(f, static_cast<FLAC__uint16>(x));
 }
 
 static bool write_little_endian_uint32(FILE *f, FLAC__uint32 x)
@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
 ::FLAC__StreamDecoderWriteStatus OurDecoder::write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[])
 {
-	const auto total_size = (FLAC__uint32)(total_samples * channels * (bps/8));
+	const auto total_size = static_cast<FLAC__uint32>(total_samples * channels * (bps/8));
 	size_t i;
 
 	if(total_samples == 0) {
@@ -140,11 +140,11 @@ int main(int argc, char *argv[])
 			fwrite("WAVEfmt ", 1, 8, f) < 8 ||
 			!write_little_endian_uint32(f, 16) ||
 			!write_little_endian_uint16(f, 1) ||
-			!write_little_endian_uint16(f, (FLAC__uint16)channels) ||
+			!write_little_endian_uint16(f, static_cast<FLAC__uint16>(channels)) ||
 			!write_little_endian_uint32(f, sample_rate) ||
 			!write_little_endian_uint32(f, sample_rate * channels * (bps/8)) ||
-			!write_little_endian_uint16(f, (FLAC__uint16)(channels * (bps/8))) || /* block align */
-			!write_little_endian_uint16(f, (FLAC__uint16)bps) ||
+			!write_little_endian_uint16(f, static_cast<FLAC__uint16>(channels * (bps/8))) || /* block align */
+			!write_little_endian_uint16(f, static_cast<FLAC__uint16>(bps)) ||
 			fwrite("data", 1, 4, f) < 4 ||
 			!write_little_endian_uint32(f, total_size)
 		) {
@@ -156,8 +156,8 @@ int main(int argc, char *argv[])
 	/* write decoded PCM samples */
 	for(i = 0; i < frame->header.blocksize; i++) {
 		if(
-			!write_little_endian_int16(f, (FLAC__int16)buffer[0][i]) ||  /* left channel */
-			!write_little_endian_int16(f, (FLAC__int16)buffer[1][i])     /* right channel */
+			!write_little_endian_int16(f, static_cast<FLAC__int16>(buffer[0][i])) ||  /* left channel */
+			!write_little_endian_int16(f, static_cast<FLAC__int16>(buffer[1][i]))     /* right channel */
 		) {
 			fprintf(stderr, "ERROR: write error\n");
 			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;

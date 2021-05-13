@@ -91,7 +91,7 @@ static bool die_(const char *msg)
 static bool die_c_(const char *msg, FLAC::Metadata::Chain::Status status)
 {
 	printf("ERROR: %s\n", msg);
-	printf("       status=%u (%s)\n", (uint32_t)((::FLAC__Metadata_ChainStatus)status), status.as_cstring());
+	printf("       status=%u (%s)\n", static_cast<uint32_t>((::FLAC__Metadata_ChainStatus)status), status.as_cstring());
 	return false;
 }
 
@@ -99,7 +99,7 @@ static bool die_ss_(const char *msg, FLAC::Metadata::SimpleIterator &iterator)
 {
 	const FLAC::Metadata::SimpleIterator::Status status = iterator.status();
 	printf("ERROR: %s\n", msg);
-	printf("       status=%u (%s)\n", (uint32_t)((::FLAC__Metadata_SimpleIteratorStatus)status), status.as_cstring());
+	printf("       status=%u (%s)\n", static_cast<uint32_t>((::FLAC__Metadata_SimpleIteratorStatus)status), status.as_cstring());
 	return false;
 }
 
@@ -107,7 +107,7 @@ static void *malloc_or_die_(size_t size)
 {
 	void *x = malloc(size);
 	if(nullptr == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (uint32_t)size);
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", static_cast<uint32_t>(size));
 		exit(1);
 	}
 	return x;
@@ -192,7 +192,7 @@ void add_to_padding_length_(uint32_t indx, int delta)
 {
 	auto padding = dynamic_cast<FLAC::Metadata::Padding *>(our_metadata_.blocks[indx]);
 	FLAC__ASSERT(0 != padding);
-	padding->set_length((uint32_t)((int)padding->get_length() + delta));
+	padding->set_length(static_cast<uint32_t>(static_cast<int>(padding->get_length()) + delta));
 }
 
 /*
@@ -204,7 +204,7 @@ bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 	static const char *tempfile_suffix = ".metadata_edit";
 	size_t destlen = strlen(filename) + strlen(tempfile_suffix) + 1;
 
-	*tempfilename = (char*)malloc(destlen);
+	*tempfilename = static_cast<char*>(malloc(destlen));
 	if (*tempfilename == nullptr)
 		return false;
 	flac_snprintf(*tempfilename, destlen, "%s%s", filename, tempfile_suffix);
@@ -302,19 +302,19 @@ static size_t chain_write_cb_(const void *ptr, size_t size, size_t nmemb, ::FLAC
 
 static int chain_seek_cb_(::FLAC__IOHandle handle, FLAC__int64 offset, int whence)
 {
-	auto o = (FLAC__off_t)offset;
+	auto o = static_cast<FLAC__off_t>(offset);
 	FLAC__ASSERT(offset == o);
-	return fseeko((FILE*)handle, o, whence);
+	return fseeko(static_cast<FILE*>(handle), o, whence);
 }
 
 static FLAC__int64 chain_tell_cb_(::FLAC__IOHandle handle)
 {
-	return ftello((FILE*)handle);
+	return ftello(static_cast<FILE*>(handle));
 }
 
 static int chain_eof_cb_(::FLAC__IOHandle handle)
 {
-	return feof((FILE*)handle);
+	return feof(static_cast<FILE*>(handle));
 }
 
 static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool preserve_file_stats, bool filename_based, const char *filename)
@@ -325,11 +325,11 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 		::FLAC__IOCallbacks callbacks;
 
 		memset(&callbacks, 0, sizeof(callbacks));
-		callbacks.read = (::FLAC__IOCallback_Read)fread;
+		callbacks.read = reinterpret_cast<::FLAC__IOCallback_Read>(fread);
 #ifdef FLAC__VALGRIND_TESTING
 		callbacks.write = chain_write_cb_;
 #else
-		callbacks.write = (::FLAC__IOCallback_Write)fwrite;
+		callbacks.write = reinterpret_cast<::FLAC__IOCallback_Write>(fwrite);
 #endif
 		callbacks.seek = chain_seek_cb_;
 		callbacks.eof = chain_eof_cb_;
@@ -385,7 +385,7 @@ static bool read_chain_(FLAC::Metadata::Chain &chain, const char *filename, bool
 		::FLAC__IOCallbacks callbacks;
 
 		memset(&callbacks, 0, sizeof(callbacks));
-		callbacks.read = (::FLAC__IOCallback_Read)fread;
+		callbacks.read = reinterpret_cast<::FLAC__IOCallback_Read>(fread);
 		callbacks.seek = chain_seek_cb_;
 		callbacks.tell = chain_tell_cb_;
 
@@ -497,7 +497,7 @@ void OurFileDecoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 void OurFileDecoder::error_callback(::FLAC__StreamDecoderErrorStatus status)
 {
 	error_occurred_ = true;
-	printf("ERROR: got error callback, status = %s (%u)\n", FLAC__StreamDecoderErrorStatusString[status], (uint32_t)status);
+	printf("ERROR: got error callback, status = %s (%u)\n", FLAC__StreamDecoderErrorStatusString[status], static_cast<uint32_t>(status));
 }
 
 static bool generate_file_(bool include_extras, bool is_ogg)
@@ -525,12 +525,12 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 	memset(streaminfo.data.stream_info.md5sum, 0, 16);
 
 	{
-		const auto vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
+		const auto vendor_string_length = static_cast<uint32_t>(strlen(FLAC__VENDOR_STRING));
 		vorbiscomment.is_last = false;
 		vorbiscomment.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment.length = (4 + vendor_string_length) + 4;
 		vorbiscomment.data.vorbis_comment.vendor_string.length = vendor_string_length;
-		vorbiscomment.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(vendor_string_length+1);
+		vorbiscomment.data.vorbis_comment.vendor_string.entry = static_cast<FLAC__byte*>(malloc_or_die_(vendor_string_length+1));
 		memcpy(vorbiscomment.data.vorbis_comment.vendor_string.entry, FLAC__VENDOR_STRING, vendor_string_length+1);
 		vorbiscomment.data.vorbis_comment.num_comments = 0;
 		vorbiscomment.data.vorbis_comment.comments = nullptr;
@@ -568,14 +568,14 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 		picture.data.picture.type = ::FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;
 		picture.data.picture.mime_type = strdup_or_die_("image/jpeg");
 		picture.length += strlen(picture.data.picture.mime_type);
-		picture.data.picture.description = (FLAC__byte*)strdup_or_die_("desc");
-		picture.length += strlen((const char *)picture.data.picture.description);
+		picture.data.picture.description = reinterpret_cast<FLAC__byte*>(strdup_or_die_("desc"));
+		picture.length += strlen(reinterpret_cast<const char *>(picture.data.picture.description));
 		picture.data.picture.width = 300;
 		picture.data.picture.height = 300;
 		picture.data.picture.depth = 24;
 		picture.data.picture.colors = 0;
-		picture.data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
-		picture.data.picture.data_length = strlen((const char *)picture.data.picture.data);
+		picture.data.picture.data = reinterpret_cast<FLAC__byte*>(strdup_or_die_("SOMEJPEGDATA"));
+		picture.data.picture.data_length = strlen(reinterpret_cast<const char *>(picture.data.picture.data));
 		picture.length += picture.data.picture.data_length;
 	}
 
@@ -771,7 +771,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::Picture *picture = nullptr;
 
-		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false), picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/nullptr, /*description=*/nullptr, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
+		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false), picture, /*type=*/static_cast<::FLAC__StreamMetadata_Picture_Type>(-1), /*mime_type=*/nullptr, /*description=*/nullptr, /*max_width=*/static_cast<uint32_t>(-1), /*max_height=*/static_cast<uint32_t>(-1), /*max_depth=*/static_cast<uint32_t>(-1), /*max_colors=*/static_cast<uint32_t>(-1)))
 			return die_("during FLAC::Metadata::get_picture()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -788,7 +788,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::Picture picture;
 
-		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false), picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/nullptr, /*description=*/nullptr, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
+		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false), picture, /*type=*/static_cast<::FLAC__StreamMetadata_Picture_Type>(-1), /*mime_type=*/nullptr, /*description=*/nullptr, /*max_width=*/static_cast<uint32_t>(-1), /*max_height=*/static_cast<uint32_t>(-1), /*max_depth=*/static_cast<uint32_t>(-1), /*max_colors=*/static_cast<uint32_t>(-1)))
 			return die_("during FLAC::Metadata::get_picture()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -839,7 +839,7 @@ static bool test_level_1_()
 	if(!iterator.init(flacfilename(/*is_ogg=*/false), /*read_only=*/false, /*preserve_file_stats=*/false))
 		return die_("iterator.init() returned false");
 
-	printf("is writable = %u\n", (uint32_t)iterator.is_writable());
+	printf("is writable = %u\n", static_cast<uint32_t>(iterator.is_writable()));
 	if(iterator.is_writable())
 		return die_("iterator claims file is writable when tester thinks it should not be; are you running as root?\n");
 
@@ -922,7 +922,7 @@ static bool test_level_1_()
 
 	if(nullptr == (app = new FLAC::Metadata::Application()))
 		return die_("new FLAC::Metadata::Application()");
-	app->set_id((const uint8_t *)"duh");
+	app->set_id(reinterpret_cast<const uint8_t *>("duh"));
 
 	printf("creating PADDING block\n");
 
@@ -947,7 +947,7 @@ static bool test_level_1_()
 	}
 	our_current_position = 0;
 
-	printf("is writable = %u\n", (uint32_t)iterator.is_writable());
+	printf("is writable = %u\n", static_cast<uint32_t>(iterator.is_writable()));
 
 	printf("[S]VP\ttry to write over STREAMINFO block...\n");
 	if(!iterator.set_block(app, false))
@@ -1108,12 +1108,12 @@ static bool test_level_1_()
 	our_current_position++;
 
 	printf("S[V]P\tinsert APPLICATION after, expand into padding of exceeding size\n");
-	app->set_id((const uint8_t *)"euh"); /* twiddle the id so that our comparison doesn't miss transposition */
+	app->set_id(reinterpret_cast<const uint8_t *>("euh")); /* twiddle the id so that our comparison doesn't miss transposition */
 	if(!iterator.insert_block_after(app, true))
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 	if(!insert_to_our_metadata_(app, ++our_current_position, /*copy=*/true))
 		return false;
-	add_to_padding_length_(our_current_position+1, -((int)(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + (int)app->get_length()));
+	add_to_padding_length_(our_current_position+1, -(static_cast<int>(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + static_cast<int>(app->get_length())));
 
 	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
 		return false;
@@ -1124,18 +1124,18 @@ static bool test_level_1_()
 	our_current_position++;
 
 	printf("SVA[P]\tset APPLICATION, expand into padding of exceeding size\n");
-	app->set_id((const uint8_t *)"fuh"); /* twiddle the id */
+	app->set_id(reinterpret_cast<const uint8_t *>("fuh")); /* twiddle the id */
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 	if(!insert_to_our_metadata_(app, our_current_position, /*copy=*/true))
 		return false;
-	add_to_padding_length_(our_current_position+1, -((int)(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + (int)app->get_length()));
+	add_to_padding_length_(our_current_position+1, -(static_cast<int>(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + static_cast<int>(app->get_length())));
 
 	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (grow), don't expand into padding\n");
-	app->set_id((const uint8_t *)"guh"); /* twiddle the id */
+	app->set_id(reinterpret_cast<const uint8_t *>("guh")); /* twiddle the id */
 	if(!app->set_data(data, sizeof(data), true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -1147,7 +1147,7 @@ static bool test_level_1_()
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (shrink), don't fill in with padding\n");
-	app->set_id((const uint8_t *)"huh"); /* twiddle the id */
+	app->set_id(reinterpret_cast<const uint8_t *>("huh")); /* twiddle the id */
 	if(!app->set_data(data, 12, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -1159,12 +1159,12 @@ static bool test_level_1_()
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (grow), expand into padding of exceeding size\n");
-	app->set_id((const uint8_t *)"iuh"); /* twiddle the id */
+	app->set_id(reinterpret_cast<const uint8_t *>("iuh")); /* twiddle the id */
 	if(!app->set_data(data, sizeof(data), true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
 		return die_("copying object");
-	add_to_padding_length_(our_current_position+1, -((int)sizeof(data) - 12));
+	add_to_padding_length_(our_current_position+1, -(static_cast<int>(sizeof(data)) - 12));
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
@@ -1172,7 +1172,7 @@ static bool test_level_1_()
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (shrink), fill in with padding\n");
-	app->set_id((const uint8_t *)"juh"); /* twiddle the id */
+	app->set_id(reinterpret_cast<const uint8_t *>("juh")); /* twiddle the id */
 	if(!app->set_data(data, 23, true))
 		return die_("setting APPLICATION data");
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
@@ -1207,7 +1207,7 @@ static bool test_level_1_()
 		return false;
 
 	printf("SVAAP[P]\tset APPLICATION (grow)\n");
-	app->set_id((const uint8_t *)"kuh"); /* twiddle the id */
+	app->set_id(reinterpret_cast<const uint8_t *>("kuh")); /* twiddle the id */
 	if(!replace_in_our_metadata_(app, our_current_position, /*copy=*/true))
 		return die_("copying object");
 	if(!iterator.set_block(app, false))
@@ -1583,7 +1583,7 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 		return die_("getting block from iterator");
 	if(nullptr == (app = new FLAC::Metadata::Application()))
 		return die_("new FLAC::Metadata::Application()");
-	app->set_id((const uint8_t *)"duh");
+	app->set_id(reinterpret_cast<const uint8_t *>("duh"));
 	if(!app->set_data(data, block->get_length()-(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8), true))
 		return die_("setting APPLICATION data");
 	delete block;
@@ -2049,11 +2049,11 @@ static bool test_level_2_misc_(bool is_ogg)
 	::FLAC__IOCallbacks callbacks;
 
 	memset(&callbacks, 0, sizeof(callbacks));
-	callbacks.read = (::FLAC__IOCallback_Read)fread;
+	callbacks.read = reinterpret_cast<::FLAC__IOCallback_Read>(fread);
 #ifdef FLAC__VALGRIND_TESTING
 	callbacks.write = chain_write_cb_;
 #else
-	callbacks.write = (::FLAC__IOCallback_Write)fwrite;
+	callbacks.write = reinterpret_cast<::FLAC__IOCallback_Write>(fwrite);
 #endif
 	callbacks.seek = chain_seek_cb_;
 	callbacks.tell = chain_tell_cb_;

@@ -223,7 +223,7 @@ FLAC__bool FLAC__bitwriter_get_write_crc16(FLAC__BitWriter *bw, FLAC__uint16 *cr
 	if(!FLAC__bitwriter_get_buffer(bw, &buffer, &bytes))
 		return false;
 
-	*crc = (FLAC__uint16)FLAC__crc16(buffer, bytes);
+	*crc = FLAC__crc16(buffer, bytes);
 	FLAC__bitwriter_release_buffer(bw);
 	return true;
 }

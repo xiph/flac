@@ -4445,8 +4445,8 @@ FLAC__StreamDecoderWriteStatus verify_write_callback_(const FLAC__StreamDecoder 
 			for(i = 0; i < blocksize; i++) {
 				if(buffer[channel][i] != encoder->private_->verify.input_fifo.data[channel][i]) {
 					sample = i;
-					expect = (FLAC__int32)encoder->private_->verify.input_fifo.data[channel][i];
-					got = (FLAC__int32)buffer[channel][i];
+					expect = encoder->private_->verify.input_fifo.data[channel][i];
+					got = buffer[channel][i];
 					break;
 				}
 			}

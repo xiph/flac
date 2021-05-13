@@ -40,7 +40,7 @@ static void *malloc_or_die_(size_t size)
 {
 	void *x = malloc(size);
 	if(nullptr == x) {
-		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (uint32_t)size);
+		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", static_cast<uint32_t>(size));
 		exit(1);
 	}
 	return x;
@@ -117,7 +117,7 @@ static void init_metadata_blocks_()
 	seektable_.type = ::FLAC__METADATA_TYPE_SEEKTABLE;
 	seektable_.data.seek_table.num_points = 2;
 	seektable_.length = seektable_.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
-	seektable_.data.seek_table.points = (::FLAC__StreamMetadata_SeekPoint*)malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(::FLAC__StreamMetadata_SeekPoint));
+	seektable_.data.seek_table.points = static_cast<::FLAC__StreamMetadata_SeekPoint*>(malloc_or_die_(seektable_.data.seek_table.num_points * sizeof(::FLAC__StreamMetadata_SeekPoint)));
 	seektable_.data.seek_table.points[0].sample_number = 0;
 	seektable_.data.seek_table.points[0].stream_offset = 0;
 	seektable_.data.seek_table.points[0].frame_samples = streaminfo_.data.stream_info.min_blocksize;
@@ -129,22 +129,22 @@ static void init_metadata_blocks_()
 	application_.type = ::FLAC__METADATA_TYPE_APPLICATION;
 	application_.length = 8;
 	memcpy(application_.data.application.id, "\xfe\xdc\xba\x98", 4);
-	application_.data.application.data = (FLAC__byte*)malloc_or_die_(4);
+	application_.data.application.data = static_cast<FLAC__byte*>(malloc_or_die_(4));
 	memcpy(application_.data.application.data, "\xf0\xe1\xd2\xc3", 4);
 
 	vorbiscomment_.is_last = false;
 	vorbiscomment_.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
 	vorbiscomment_.length = (4 + 5) + 4 + (4 + 12) + (4 + 12);
 	vorbiscomment_.data.vorbis_comment.vendor_string.length = 5;
-	vorbiscomment_.data.vorbis_comment.vendor_string.entry = (FLAC__byte*)malloc_or_die_(5+1);
+	vorbiscomment_.data.vorbis_comment.vendor_string.entry = static_cast<FLAC__byte*>(malloc_or_die_(5+1));
 	memcpy(vorbiscomment_.data.vorbis_comment.vendor_string.entry, "name0", 5+1);
 	vorbiscomment_.data.vorbis_comment.num_comments = 2;
-	vorbiscomment_.data.vorbis_comment.comments = (::FLAC__StreamMetadata_VorbisComment_Entry*)malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(::FLAC__StreamMetadata_VorbisComment_Entry));
+	vorbiscomment_.data.vorbis_comment.comments = static_cast<::FLAC__StreamMetadata_VorbisComment_Entry*>(malloc_or_die_(vorbiscomment_.data.vorbis_comment.num_comments * sizeof(::FLAC__StreamMetadata_VorbisComment_Entry)));
 	vorbiscomment_.data.vorbis_comment.comments[0].length = 12;
-	vorbiscomment_.data.vorbis_comment.comments[0].entry = (FLAC__byte*)malloc_or_die_(12+1);
+	vorbiscomment_.data.vorbis_comment.comments[0].entry = static_cast<FLAC__byte*>(malloc_or_die_(12+1));
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[0].entry, "name2=value2", 12+1);
 	vorbiscomment_.data.vorbis_comment.comments[1].length = 12;
-	vorbiscomment_.data.vorbis_comment.comments[1].entry = (FLAC__byte*)malloc_or_die_(12+1);
+	vorbiscomment_.data.vorbis_comment.comments[1].entry = static_cast<FLAC__byte*>(malloc_or_die_(12+1));
 	memcpy(vorbiscomment_.data.vorbis_comment.comments[1].entry, "name3=value3", 12+1);
 
 	cuesheet_.is_last = false;
@@ -181,14 +181,14 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.lead_in = 159;
 	cuesheet_.data.cue_sheet.is_cd = true;
 	cuesheet_.data.cue_sheet.num_tracks = 2;
-	cuesheet_.data.cue_sheet.tracks = (FLAC__StreamMetadata_CueSheet_Track*)malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	cuesheet_.data.cue_sheet.tracks = static_cast<FLAC__StreamMetadata_CueSheet_Track*>(malloc_or_die_(cuesheet_.data.cue_sheet.num_tracks * sizeof(FLAC__StreamMetadata_CueSheet_Track)));
 	cuesheet_.data.cue_sheet.tracks[0].offset = 1;
 	cuesheet_.data.cue_sheet.tracks[0].number = 1;
 	memcpy(cuesheet_.data.cue_sheet.tracks[0].isrc, "ACBDE1234567", sizeof(cuesheet_.data.cue_sheet.tracks[0].isrc));
 	cuesheet_.data.cue_sheet.tracks[0].type = 0;
 	cuesheet_.data.cue_sheet.tracks[0].pre_emphasis = 1;
 	cuesheet_.data.cue_sheet.tracks[0].num_indices = 2;
-	cuesheet_.data.cue_sheet.tracks[0].indices = (FLAC__StreamMetadata_CueSheet_Index*)malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[0].indices = static_cast<FLAC__StreamMetadata_CueSheet_Index*>(malloc_or_die_(cuesheet_.data.cue_sheet.tracks[0].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index)));
 	cuesheet_.data.cue_sheet.tracks[0].indices[0].offset = 0;
 	cuesheet_.data.cue_sheet.tracks[0].indices[0].number = 0;
 	cuesheet_.data.cue_sheet.tracks[0].indices[1].offset = 1234567890;
@@ -199,7 +199,7 @@ static void init_metadata_blocks_()
 	cuesheet_.data.cue_sheet.tracks[1].type = 1;
 	cuesheet_.data.cue_sheet.tracks[1].pre_emphasis = 0;
 	cuesheet_.data.cue_sheet.tracks[1].num_indices = 1;
-	cuesheet_.data.cue_sheet.tracks[1].indices = (FLAC__StreamMetadata_CueSheet_Index*)malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index));
+	cuesheet_.data.cue_sheet.tracks[1].indices = static_cast<FLAC__StreamMetadata_CueSheet_Index*>(malloc_or_die_(cuesheet_.data.cue_sheet.tracks[1].num_indices * sizeof(FLAC__StreamMetadata_CueSheet_Index)));
 	cuesheet_.data.cue_sheet.tracks[1].indices[0].offset = 0;
 	cuesheet_.data.cue_sheet.tracks[1].indices[0].number = 1;
 
@@ -220,14 +220,14 @@ static void init_metadata_blocks_()
 	picture_.data.picture.type = FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER;
 	picture_.data.picture.mime_type = strdup_or_die_("image/jpeg");
 	picture_.length += strlen(picture_.data.picture.mime_type);
-	picture_.data.picture.description = (FLAC__byte*)strdup_or_die_("desc");
-	picture_.length += strlen((const char *)picture_.data.picture.description);
+	picture_.data.picture.description = reinterpret_cast<FLAC__byte*>(strdup_or_die_("desc"));
+	picture_.length += strlen(reinterpret_cast<const char *>(picture_.data.picture.description));
 	picture_.data.picture.width = 300;
 	picture_.data.picture.height = 300;
 	picture_.data.picture.depth = 24;
 	picture_.data.picture.colors = 0;
-	picture_.data.picture.data = (FLAC__byte*)strdup_or_die_("SOMEJPEGDATA");
-	picture_.data.picture.data_length = strlen((const char *)picture_.data.picture.data);
+	picture_.data.picture.data = reinterpret_cast<FLAC__byte*>(strdup_or_die_("SOMEJPEGDATA"));
+	picture_.data.picture.data_length = strlen(reinterpret_cast<const char *>(picture_.data.picture.data));
 	picture_.length += picture_.data.picture.data_length;
 }
 
@@ -1304,13 +1304,13 @@ bool test_metadata_object_vorbiscomment()
 	printf("OK\n");
 
 	printf("testing VorbisComment::set_vendor_string()... ");
-	if(!block.set_vendor_string((const FLAC__byte *)"mame0"))
+	if(!block.set_vendor_string(reinterpret_cast<const FLAC__byte *>("mame0")))
 		return die_("returned false");
 	printf("OK\n");
 	vorbiscomment_.data.vorbis_comment.vendor_string.entry[0] = 'm';
 
 	printf("testing VorbisComment::get_vendor_string()... ");
-	if(strlen((const char *)block.get_vendor_string()) != vorbiscomment_.data.vorbis_comment.vendor_string.length)
+	if(strlen(reinterpret_cast<const char *>(block.get_vendor_string())) != vorbiscomment_.data.vorbis_comment.vendor_string.length)
 		return die_("length mismatch");
 	if(0 != memcmp(block.get_vendor_string(), vorbiscomment_.data.vorbis_comment.vendor_string.entry, vorbiscomment_.data.vorbis_comment.vendor_string.length))
 		return die_("value mismatch");
@@ -1972,13 +1972,13 @@ bool test_metadata_object_picture()
 	printf("OK\n");
 
 	printf("testing Picture::set_description()... ");
-	if(!block.set_description((const FLAC__byte*)"qesc"))
+	if(!block.set_description(reinterpret_cast<const FLAC__byte*>("qesc")))
 		return die_("returned false");
 	printf("OK\n");
 	picture_.data.picture.description[0] = 'q';
 
 	printf("testing Picture::get_description()... ");
-	if(0 != strcmp((const char *)block.get_description(), (const char *)picture_.data.picture.description))
+	if(0 != strcmp(reinterpret_cast<const char *>(block.get_description()), reinterpret_cast<const char *>(picture_.data.picture.description)))
 		return die_("value mismatch");
 	printf("OK\n");
 
@@ -2036,7 +2036,7 @@ bool test_metadata_object_picture()
 	printf("OK\n");
 
 	printf("testing Picture::set_data()... ");
-	if(!block.set_data((const FLAC__byte*)"qOMEJPEGDATA", strlen("qOMEJPEGDATA")))
+	if(!block.set_data(reinterpret_cast<const FLAC__byte*>("qOMEJPEGDATA"), strlen("qOMEJPEGDATA")))
 		return die_("returned false");
 	printf("OK\n");
 	picture_.data.picture.data[0] = 'q';

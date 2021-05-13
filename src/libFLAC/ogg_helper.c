@@ -107,7 +107,7 @@ FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 	/* move the stream pointer to the supposed beginning of the page */
 	if(0 == seek_callback)
 		return false;
-	if((seek_status = seek_callback((FLAC__StreamEncoder*)encoder, position, client_data)) != FLAC__STREAM_ENCODER_SEEK_STATUS_OK) {
+	if((seek_status = seek_callback(encoder, position, client_data)) != FLAC__STREAM_ENCODER_SEEK_STATUS_OK) {
 		if(seek_status == FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR)
 			encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 		return false;
@@ -188,7 +188,7 @@ FLAC__bool simple_ogg_page__set_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 	/* move the stream pointer to the supposed beginning of the page */
 	if(0 == seek_callback)
 		return false;
-	if((seek_status = seek_callback((FLAC__StreamEncoder*)encoder, position, client_data)) != FLAC__STREAM_ENCODER_SEEK_STATUS_OK) {
+	if((seek_status = seek_callback(encoder, position, client_data)) != FLAC__STREAM_ENCODER_SEEK_STATUS_OK) {
 		if(seek_status == FLAC__STREAM_ENCODER_SEEK_STATUS_ERROR)
 			encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 		return false;
@@ -197,11 +197,11 @@ FLAC__bool simple_ogg_page__set_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 	ogg_page_checksum_set(page);
 
 	/* re-write the page */
-	if(write_callback((FLAC__StreamEncoder*)encoder, page->header, page->header_len, 0, 0, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
+	if(write_callback(encoder, page->header, page->header_len, 0, 0, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 		return false;
 	}
-	if(write_callback((FLAC__StreamEncoder*)encoder, page->body, page->body_len, 0, 0, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
+	if(write_callback(encoder, page->body, page->body_len, 0, 0, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 		return false;
 	}

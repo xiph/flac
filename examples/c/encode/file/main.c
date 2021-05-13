@@ -129,7 +129,7 @@ int main(int argc, char *argv[])
 	if(ok) {
 		size_t left = (size_t)total_samples;
 		while(ok && left) {
-			size_t need = (left>READSIZE? (size_t)READSIZE : (size_t)left);
+			size_t need = (left>READSIZE? (size_t)READSIZE : left);
 			if(fread(buffer, channels*(bps/8), need, fin) != need) {
 				fprintf(stderr, "ERROR: reading from WAVE file\n");
 				ok = false;

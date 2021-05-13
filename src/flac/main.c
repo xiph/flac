@@ -1012,7 +1012,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 					i = atoi(option_argument);
 					if((i < (int)FLAC__MIN_BLOCK_SIZE || i > (int)FLAC__MAX_BLOCK_SIZE))
 						return usage_error("ERROR: invalid blocksize (-%c) '%d', must be >= %u and <= %u\n", short_option, i, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
-					add_compression_setting_uint32_t(CST_BLOCKSIZE, (uint32_t)i);
+					add_compression_setting_uint32_t(CST_BLOCKSIZE, i);
 				}
 				break;
 			case 'e':

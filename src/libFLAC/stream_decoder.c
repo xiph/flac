@@ -3268,7 +3268,7 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 			}
 
 			/* physical seek */
-			if(decoder->private_->seek_callback((FLAC__StreamDecoder*)decoder, (FLAC__uint64)pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
+			if(decoder->private_->seek_callback(decoder, pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}

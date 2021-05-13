@@ -85,10 +85,10 @@ int main(int argc, char *argv[])
 		fclose(fin);
 		return 1;
 	}
-	sample_rate = ((((((uint32_t)buffer[27] << 8) | buffer[26]) << 8) | buffer[25]) << 8) | buffer[24];
+	sample_rate = (((((static_cast<uint32_t>(buffer[27]) << 8) | buffer[26]) << 8) | buffer[25]) << 8) | buffer[24];
 	channels = 2;
 	bps = 16;
-	total_samples = (((((((uint32_t)buffer[43] << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / 4;
+	total_samples = ((((((static_cast<uint32_t>(buffer[43]) << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / 4;
 
 	/* check the encoder */
 	if(!encoder) {
@@ -135,9 +135,9 @@ int main(int argc, char *argv[])
 
 	/* read blocks of samples from WAVE file and feed to encoder */
 	if(ok) {
-		auto left = (size_t)total_samples;
+		auto left = static_cast<size_t>(total_samples);
 		while(ok && left) {
-			size_t need = (left>READSIZE? (size_t)READSIZE : (size_t)left);
+			size_t need = (left>READSIZE? static_cast<size_t>(READSIZE) : static_cast<size_t>(left));
 			if(fread(buffer, channels*(bps/8), need, fin) != need) {
 				fprintf(stderr, "ERROR: reading from WAVE file\n");
 				ok = false;
@@ -147,7 +147,7 @@ int main(int argc, char *argv[])
 				size_t i;
 				for(i = 0; i < need*channels; i++) {
 					/* inefficient but simple and works on big- or little-endian machines */
-					pcm[i] = (FLAC__int32)(((FLAC__int16)(FLAC__int8)buffer[2*i+1] << 8) | (FLAC__int16)buffer[2*i]);
+					pcm[i] = FLAC__int32(FLAC__int16(FLAC__int8(buffer[2*i+1]) << 8) | FLAC__int16(buffer[2*i]));
 				}
 				/* feed samples to encoder */
 				ok = encoder.process_interleaved(pcm, need);
