@@ -183,6 +183,9 @@ public:
 	StreamDecoder(Layer layer): FLAC::Decoder::Stream(), DecoderCommon(layer), file_(0) { }
 	~StreamDecoder() override = default;
 
+	StreamDecoder(const StreamDecoder&) = delete;
+	StreamDecoder&operator=(const StreamDecoder&) = delete;
+
 	// from FLAC::Decoder::Stream
 	::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) override;
 	::FLAC__StreamDecoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) override;
@@ -194,9 +197,6 @@ public:
 	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 
 	bool test_respond(bool is_ogg);
-private:
-	StreamDecoder(const StreamDecoder&);
-	StreamDecoder&operator=(const StreamDecoder&);
 };
 
 ::FLAC__StreamDecoderReadStatus StreamDecoder::read_callback(FLAC__byte buffer[], size_t *bytes)

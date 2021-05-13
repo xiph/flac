@@ -66,15 +66,14 @@ static bool write_little_endian_uint32(FILE *f, FLAC__uint32 x)
 class OurDecoder: public FLAC::Decoder::File {
 public:
 	OurDecoder(FILE *f_): FLAC::Decoder::File(), f(f_) { }
+	OurDecoder(const OurDecoder&) = delete;
+	OurDecoder&operator=(const OurDecoder&) = delete;
 protected:
 	FILE *f;
 
 	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) override;
 	void metadata_callback(const ::FLAC__StreamMetadata *metadata) override;
 	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
-private:
-	OurDecoder(const OurDecoder&);
-	OurDecoder&operator=(const OurDecoder&);
 };
 
 int main(int argc, char *argv[])

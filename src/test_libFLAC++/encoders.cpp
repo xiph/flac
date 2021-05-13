@@ -105,15 +105,15 @@ public:
 	StreamEncoder(Layer layer): FLAC::Encoder::Stream(), layer_(layer), file_(0) { }
 	~StreamEncoder() override = default;
 
+	StreamEncoder(const StreamEncoder&) = delete;
+	StreamEncoder&operator=(const StreamEncoder&) = delete;
+
 	// from FLAC::Encoder::Stream
 	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) override;
 	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame) override;
 	::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) override;
 	::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) override;
 	void metadata_callback(const ::FLAC__StreamMetadata *metadata) override;
-private:
-	StreamEncoder(const StreamEncoder&);
-	StreamEncoder&operator=(const StreamEncoder&);
 };
 
 ::FLAC__StreamEncoderReadStatus StreamEncoder::read_callback(FLAC__byte buffer[], size_t *bytes)
