@@ -233,7 +233,7 @@ namespace FLAC {
 		class FLACPP_API File: public Stream {
 		public:
 			File();
-			virtual ~File();
+			virtual ~File() = default;
 
 			using Stream::init;
 			virtual ::FLAC__StreamEncoderInitStatus init(FILE *file);                      ///< See FLAC__stream_encoder_init_FILE()

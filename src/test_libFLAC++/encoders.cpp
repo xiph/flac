@@ -103,7 +103,7 @@ public:
 	FILE *file_;
 
 	StreamEncoder(Layer layer): FLAC::Encoder::Stream(), layer_(layer), file_(0) { }
-	~StreamEncoder() override { }
+	~StreamEncoder() override = default;
 
 	// from FLAC::Encoder::Stream
 	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) override;
@@ -174,7 +174,7 @@ public:
 	Layer layer_;
 
 	FileEncoder(Layer layer): FLAC::Encoder::File(), layer_(layer) { }
-	~FileEncoder() override { }
+	~FileEncoder() override = default;
 
 	// from FLAC::Encoder::File
 	void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate) override;

@@ -448,10 +448,6 @@ namespace FLAC {
 			Stream()
 		{ }
 
-		File::~File()
-		{
-		}
-
 		::FLAC__StreamEncoderInitStatus File::init(FILE *file)
 		{
 			FLAC__ASSERT(is_valid());

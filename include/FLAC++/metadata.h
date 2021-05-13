@@ -294,7 +294,7 @@ namespace FLAC {
 			 */
 			inline StreamInfo(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~StreamInfo();
+			~StreamInfo() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -372,7 +372,7 @@ namespace FLAC {
 			 */
 			Padding(uint32_t length);
 
-			~Padding();
+			~Padding() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -427,7 +427,7 @@ namespace FLAC {
 			 */
 			inline Application(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~Application();
+			~Application() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -486,7 +486,7 @@ namespace FLAC {
 			 */
 			inline SeekTable(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~SeekTable();
+			~SeekTable() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -655,7 +655,7 @@ namespace FLAC {
 			 */
 			inline VorbisComment(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~VorbisComment();
+			~VorbisComment() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -782,7 +782,7 @@ namespace FLAC {
 			 */
 			inline CueSheet(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~CueSheet();
+			~CueSheet() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -879,7 +879,7 @@ namespace FLAC {
 			 */
 			inline Picture(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~Picture();
+			~Picture() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */
@@ -961,7 +961,7 @@ namespace FLAC {
 			 */
 			inline Unknown(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
 
-			~Unknown();
+			~Unknown() = default;
 
 			//@{
 			/** Assign from another object.  Always performs a deep copy. */

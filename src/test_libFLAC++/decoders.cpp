@@ -125,7 +125,7 @@ public:
 	bool error_occurred_;
 
 	DecoderCommon(Layer layer): layer_(layer), current_metadata_number_(0), ignore_errors_(false), error_occurred_(false) { }
-	virtual ~DecoderCommon(void) { }
+	virtual ~DecoderCommon(void) = default;
 	::FLAC__StreamDecoderWriteStatus common_write_callback_(const ::FLAC__Frame *frame);
 	void common_metadata_callback_(const ::FLAC__StreamMetadata *metadata);
 	void common_error_callback_(::FLAC__StreamDecoderErrorStatus status);
@@ -181,7 +181,7 @@ public:
 	FILE *file_;
 
 	StreamDecoder(Layer layer): FLAC::Decoder::Stream(), DecoderCommon(layer), file_(0) { }
-	~StreamDecoder() override { }
+	~StreamDecoder() override = default;
 
 	// from FLAC::Decoder::Stream
 	::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) override;
@@ -345,7 +345,7 @@ bool StreamDecoder::test_respond(bool is_ogg)
 class FileDecoder : public FLAC::Decoder::File, public DecoderCommon {
 public:
 	FileDecoder(Layer layer): FLAC::Decoder::File(), DecoderCommon(layer) { }
-	~FileDecoder() override { }
+	~FileDecoder() override = default;
 
 	// from FLAC::Decoder::Stream
 	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) override;

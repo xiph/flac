@@ -235,9 +235,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_STREAMINFO), /*copy=*/false)
 		{ }
 
-		StreamInfo::~StreamInfo()
-		{ }
-
 		uint32_t StreamInfo::get_min_blocksize() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -374,9 +371,6 @@ namespace FLAC {
 			set_length(length);
 		}
 
-		Padding::~Padding()
-		{ }
-
 		void Padding::set_length(uint32_t length)
 		{
 			FLAC__ASSERT(is_valid());
@@ -390,9 +384,6 @@ namespace FLAC {
 
 		Application::Application():
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION), /*copy=*/false)
-		{ }
-
-		Application::~Application()
 		{ }
 
 		const FLAC__byte *Application::get_id() const
@@ -433,9 +424,6 @@ namespace FLAC {
 
 		SeekTable::SeekTable():
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE), /*copy=*/false)
-		{ }
-
-		SeekTable::~SeekTable()
 		{ }
 
 		uint32_t SeekTable::get_num_points() const
@@ -869,9 +857,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT), /*copy=*/false)
 		{ }
 
-		VorbisComment::~VorbisComment()
-		{ }
-
 		uint32_t VorbisComment::get_num_comments() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -1030,9 +1015,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET), /*copy=*/false)
 		{ }
 
-		CueSheet::~CueSheet()
-		{ }
-
 		const char *CueSheet::get_media_catalog_number() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -1180,9 +1162,6 @@ namespace FLAC {
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE), /*copy=*/false)
 		{ }
 
-		Picture::~Picture()
-		{ }
-
 		::FLAC__StreamMetadata_Picture_Type Picture::get_type() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -1301,9 +1280,6 @@ namespace FLAC {
 
 		Unknown::Unknown():
 		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION), /*copy=*/false)
-		{ }
-
-		Unknown::~Unknown()
 		{ }
 
 		const FLAC__byte *Unknown::get_data() const
