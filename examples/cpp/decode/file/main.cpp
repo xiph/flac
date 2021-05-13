@@ -120,7 +120,7 @@ int main(int argc, char *argv[])
 
 ::FLAC__StreamDecoderWriteStatus OurDecoder::write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[])
 {
-	const FLAC__uint32 total_size = (FLAC__uint32)(total_samples * channels * (bps/8));
+	const auto total_size = (FLAC__uint32)(total_samples * channels * (bps/8));
 	size_t i;
 
 	if(total_samples == 0) {

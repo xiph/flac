@@ -190,7 +190,7 @@ static void delete_from_our_metadata_(uint32_t position)
 
 void add_to_padding_length_(uint32_t indx, int delta)
 {
-	FLAC::Metadata::Padding *padding = dynamic_cast<FLAC::Metadata::Padding *>(our_metadata_.blocks[indx]);
+	auto padding = dynamic_cast<FLAC::Metadata::Padding *>(our_metadata_.blocks[indx]);
 	FLAC__ASSERT(0 != padding);
 	padding->set_length((uint32_t)((int)padding->get_length() + delta));
 }
@@ -302,7 +302,7 @@ static size_t chain_write_cb_(const void *ptr, size_t size, size_t nmemb, ::FLAC
 
 static int chain_seek_cb_(::FLAC__IOHandle handle, FLAC__int64 offset, int whence)
 {
-	FLAC__off_t o = (FLAC__off_t)offset;
+	auto o = (FLAC__off_t)offset;
 	FLAC__ASSERT(offset == o);
 	return fseeko((FILE*)handle, o, whence);
 }
@@ -525,7 +525,7 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 	memset(streaminfo.data.stream_info.md5sum, 0, 16);
 
 	{
-		const uint32_t vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
+		const auto vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
 		vorbiscomment.is_last = false;
 		vorbiscomment.type = ::FLAC__METADATA_TYPE_VORBIS_COMMENT;
 		vorbiscomment.length = (4 + vendor_string_length) + 4;

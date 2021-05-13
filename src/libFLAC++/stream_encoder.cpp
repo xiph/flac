@@ -397,7 +397,7 @@ namespace FLAC {
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
-			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			auto instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->read_callback(buffer, bytes);
 		}
@@ -406,7 +406,7 @@ namespace FLAC {
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
-			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			auto instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->write_callback(buffer, bytes, samples, current_frame);
 		}
@@ -415,7 +415,7 @@ namespace FLAC {
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
-			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			auto instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->seek_callback(absolute_byte_offset);
 		}
@@ -424,7 +424,7 @@ namespace FLAC {
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
-			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			auto instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			return instance->tell_callback(absolute_byte_offset);
 		}
@@ -433,7 +433,7 @@ namespace FLAC {
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
-			Stream *instance = reinterpret_cast<Stream *>(client_data);
+			auto instance = reinterpret_cast<Stream *>(client_data);
 			FLAC__ASSERT(0 != instance);
 			instance->metadata_callback(metadata);
 		}

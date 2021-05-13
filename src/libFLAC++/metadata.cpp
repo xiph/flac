@@ -94,14 +94,14 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(0 != object);
 
-			const StreamInfo *streaminfo = dynamic_cast<const StreamInfo *>(object);
-			const Padding *padding = dynamic_cast<const Padding *>(object);
-			const Application *application = dynamic_cast<const Application *>(object);
-			const SeekTable *seektable = dynamic_cast<const SeekTable *>(object);
-			const VorbisComment *vorbiscomment = dynamic_cast<const VorbisComment *>(object);
-			const CueSheet *cuesheet = dynamic_cast<const CueSheet *>(object);
-			const Picture *picture = dynamic_cast<const Picture *>(object);
-			const Unknown *unknown = dynamic_cast<const Unknown *>(object);
+			auto streaminfo = dynamic_cast<const StreamInfo *>(object);
+			auto padding = dynamic_cast<const Padding *>(object);
+			auto application = dynamic_cast<const Application *>(object);
+			auto seektable = dynamic_cast<const SeekTable *>(object);
+			auto vorbiscomment = dynamic_cast<const VorbisComment *>(object);
+			auto cuesheet = dynamic_cast<const CueSheet *>(object);
+			auto picture = dynamic_cast<const Picture *>(object);
+			auto unknown = dynamic_cast<const Unknown *>(object);
 
 			if(0 != streaminfo)
 				return new StreamInfo(*streaminfo);

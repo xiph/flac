@@ -135,7 +135,7 @@ int main(int argc, char *argv[])
 
 	/* read blocks of samples from WAVE file and feed to encoder */
 	if(ok) {
-		size_t left = (size_t)total_samples;
+		auto left = (size_t)total_samples;
 		while(ok && left) {
 			size_t need = (left>READSIZE? (size_t)READSIZE : (size_t)left);
 			if(fread(buffer, channels*(bps/8), need, fin) != need) {
