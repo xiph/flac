@@ -125,7 +125,7 @@ public:
 	bool error_occurred_;
 
 	DecoderCommon(Layer layer): layer_(layer), current_metadata_number_(0), ignore_errors_(false), error_occurred_(false) { }
-	virtual ~DecoderCommon(void) = default;
+	virtual ~DecoderCommon() = default;
 	::FLAC__StreamDecoderWriteStatus common_write_callback_(const ::FLAC__Frame *frame);
 	void common_metadata_callback_(const ::FLAC__StreamMetadata *metadata);
 	void common_error_callback_(::FLAC__StreamDecoderErrorStatus status);
