@@ -223,13 +223,13 @@ namespace FLAC {
 		Stream::State Stream::get_state() const
 		{
 			FLAC__ASSERT(is_valid());
-			return State(::FLAC__stream_encoder_get_state(encoder_));
+			return {::FLAC__stream_encoder_get_state(encoder_)};
 		}
 
 		Decoder::Stream::State Stream::get_verify_decoder_state() const
 		{
 			FLAC__ASSERT(is_valid());
-			return Decoder::Stream::State(::FLAC__stream_encoder_get_verify_decoder_state(encoder_));
+			return {::FLAC__stream_encoder_get_verify_decoder_state(encoder_)};
 		}
 
 		void Stream::get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, uint32_t *frame_number, uint32_t *channel, uint32_t *sample, FLAC__int32 *expected, FLAC__int32 *got)

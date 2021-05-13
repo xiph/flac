@@ -119,7 +119,7 @@ namespace FLAC {
 		Stream::State Stream::get_state() const
 		{
 			FLAC__ASSERT(is_valid());
-			return State(::FLAC__stream_decoder_get_state(decoder_));
+			return {::FLAC__stream_decoder_get_state(decoder_)};
 		}
 
 		bool Stream::get_md5_checking() const

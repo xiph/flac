@@ -1449,7 +1449,7 @@ namespace FLAC {
 		SimpleIterator::Status SimpleIterator::status()
 		{
 			FLAC__ASSERT(is_valid());
-			return Status(::FLAC__metadata_simple_iterator_status(iterator_));
+			return {::FLAC__metadata_simple_iterator_status(iterator_)};
 		}
 
 		bool SimpleIterator::is_writable() const
@@ -1561,7 +1561,7 @@ namespace FLAC {
 		Chain::Status Chain::status()
 		{
 			FLAC__ASSERT(is_valid());
-			return Status(::FLAC__metadata_chain_status(chain_));
+			return {::FLAC__metadata_chain_status(chain_)};
 		}
 
 		bool Chain::read(const char *filename, bool is_ogg)
