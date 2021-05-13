@@ -267,7 +267,7 @@ bool test_metadata_object_streaminfo()
 	printf("testing StreamInfo::StreamInfo(const StreamInfo &)... +\n");
 	printf("        StreamInfo::operator!=(const StreamInfo &)... ");
 	{
-		FLAC::Metadata::StreamInfo blockcopy(block);
+		const FLAC::Metadata::StreamInfo& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -351,7 +351,7 @@ bool test_metadata_object_streaminfo()
 	printf("testing StreamInfo::operator=(const StreamInfo &)... +\n");
 	printf("        StreamInfo::operator==(const StreamInfo &)... ");
 	{
-		FLAC::Metadata::StreamInfo blockcopy = block;
+		const FLAC::Metadata::StreamInfo& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
@@ -500,7 +500,7 @@ bool test_metadata_object_padding()
 	printf("testing Padding::Padding(const Padding &)... +\n");
 	printf("        Padding::operator!=(const Padding &)... ");
 	{
-		FLAC::Metadata::Padding blockcopy(block);
+		const FLAC::Metadata::Padding& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -584,7 +584,7 @@ bool test_metadata_object_padding()
 	printf("testing Padding::operator=(const Padding &)... +\n");
 	printf("        Padding::operator==(const Padding &)... ");
 	{
-		FLAC::Metadata::Padding blockcopy = block;
+		const FLAC::Metadata::Padding& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
@@ -661,7 +661,7 @@ bool test_metadata_object_application()
 	printf("testing Application::Application(const Application &)... +\n");
 	printf("        Application::operator!=(const Application &)... ");
 	{
-		FLAC::Metadata::Application blockcopy(block);
+		const FLAC::Metadata::Application& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -745,7 +745,7 @@ bool test_metadata_object_application()
 	printf("testing Application::operator=(const Application &)... +\n");
 	printf("        Application::operator==(const Application &)... ");
 	{
-		FLAC::Metadata::Application blockcopy = block;
+		const FLAC::Metadata::Application& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
@@ -831,7 +831,7 @@ bool test_metadata_object_seektable()
 	printf("testing SeekTable::SeekTable(const SeekTable &)... +\n");
 	printf("        SeekTable::operator!=(const SeekTable &)... ");
 	{
-		FLAC::Metadata::SeekTable blockcopy(block);
+		const FLAC::Metadata::SeekTable& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -915,7 +915,7 @@ bool test_metadata_object_seektable()
 	printf("testing SeekTable::operator=(const SeekTable &)... +\n");
 	printf("        SeekTable::operator==(const SeekTable &)... ");
 	{
-		FLAC::Metadata::SeekTable blockcopy = block;
+		const FLAC::Metadata::SeekTable& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
@@ -1061,7 +1061,7 @@ bool test_metadata_object_vorbiscomment()
 
 	printf("testing Entry::Entry(const Entry &entry)... ");
 	{
-		FLAC::Metadata::VorbisComment::Entry entry2copy(entry2);
+		const FLAC::Metadata::VorbisComment::Entry& entry2copy(entry2);
 		if(!entry2copy.is_valid())
 			return die_("!is_valid()");
 		printf("OK\n");
@@ -1184,7 +1184,7 @@ bool test_metadata_object_vorbiscomment()
 	printf("testing VorbisComment::VorbisComment(const VorbisComment &)... +\n");
 	printf("        VorbisComment::operator!=(const VorbisComment &)... ");
 	{
-		FLAC::Metadata::VorbisComment blockcopy(block);
+		const FLAC::Metadata::VorbisComment& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -1268,7 +1268,7 @@ bool test_metadata_object_vorbiscomment()
 	printf("testing VorbisComment::operator=(const VorbisComment &)... +\n");
 	printf("        VorbisComment::operator==(const VorbisComment &)... ");
 	{
-		FLAC::Metadata::VorbisComment blockcopy = block;
+		const FLAC::Metadata::VorbisComment& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
@@ -1459,7 +1459,7 @@ bool test_metadata_object_cuesheet()
 
 	printf("testing Track::Track(const Track &track)... ");
 	{
-		FLAC::Metadata::CueSheet::Track track0copy(track0);
+		const FLAC::Metadata::CueSheet::Track& track0copy(track0);
 		if(!track0copy.is_valid())
 			return die_("!is_valid()");
 		if(!track_is_equal_(track0copy.get_track(), track0.get_track()))
@@ -1562,7 +1562,7 @@ bool test_metadata_object_cuesheet()
 	printf("testing CueSheet::CueSheet(const CueSheet &)... +\n");
 	printf("        CueSheet::operator!=(const CueSheet &)... ");
 	{
-		FLAC::Metadata::CueSheet blockcopy(block);
+		const FLAC::Metadata::CueSheet& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -1646,7 +1646,7 @@ bool test_metadata_object_cuesheet()
 	printf("testing CueSheet::operator=(const CueSheet &)... +\n");
 	printf("        CueSheet::operator==(const CueSheet &)... ");
 	{
-		FLAC::Metadata::CueSheet blockcopy = block;
+		const FLAC::Metadata::CueSheet& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
@@ -1834,7 +1834,7 @@ bool test_metadata_object_picture()
 	printf("testing Picture::Picture(const Picture &)... +\n");
 	printf("        Picture::operator!=(const Picture &)... ");
 	{
-		FLAC::Metadata::Picture blockcopy(block);
+		const FLAC::Metadata::Picture& blockcopy(block);
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(blockcopy != block)
@@ -1918,7 +1918,7 @@ bool test_metadata_object_picture()
 	printf("testing Picture::operator=(const Picture &)... +\n");
 	printf("        Picture::operator==(const Picture &)... ");
 	{
-		FLAC::Metadata::Picture blockcopy = block;
+		const FLAC::Metadata::Picture& blockcopy = block;
 		if(!blockcopy.is_valid())
 			return die_("!blockcopy.is_valid()");
 		if(!(blockcopy == block))
