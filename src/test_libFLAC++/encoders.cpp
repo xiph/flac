@@ -536,7 +536,7 @@ bool test_encoders()
 {
 	FLAC__bool is_ogg = false;
 
-	while(1) {
+	while(true) {
 		init_metadata_blocks_();
 
 		if(!test_stream_encoder(LAYER_STREAM, is_ogg))

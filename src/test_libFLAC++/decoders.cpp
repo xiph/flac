@@ -1152,7 +1152,7 @@ bool test_decoders()
 {
 	FLAC__bool is_ogg = false;
 
-	while(1) {
+	while(true) {
 		init_metadata_blocks_();
 
 		if(!generate_file_(is_ogg))

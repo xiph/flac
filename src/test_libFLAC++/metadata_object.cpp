@@ -1533,7 +1533,7 @@ bool test_metadata_object_cuesheet()
 	printf("OK\n");
 
 	printf("testing Track::set_pre_emphasis()... ");
-	track1.set_pre_emphasis(1);
+	track1.set_pre_emphasis(true);
 	if(track1.get_pre_emphasis() != 1)
 		return die_("value mismatch");
 	printf("OK\n");
