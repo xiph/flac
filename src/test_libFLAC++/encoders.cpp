@@ -102,7 +102,7 @@ public:
 	Layer layer_;
 	FILE *file_;
 
-	StreamEncoder(Layer layer): FLAC::Encoder::Stream(), layer_(layer), file_(0) { }
+	StreamEncoder(Layer layer): FLAC::Encoder::Stream(), layer_(layer), file_(nullptr) { }
 	~StreamEncoder() override = default;
 
 	StreamEncoder(const StreamEncoder&) = delete;
@@ -197,7 +197,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 {
 	FLAC::Encoder::Stream *encoder;
 	::FLAC__StreamEncoderInitStatus init_status;
-	FILE *file = 0;
+	FILE *file = nullptr;
 	FLAC__int32 samples[1024];
 	FLAC__int32 *samples_array[1] = { samples };
 	uint32_t i;
@@ -206,7 +206,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("allocating encoder instance... ");
 	encoder = new_by_layer(layer);
-	if(0 == encoder) {
+	if(nullptr == encoder) {
 		printf("FAILED, new returned NULL\n");
 		return false;
 	}
@@ -325,7 +325,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 	if(layer < LAYER_FILENAME) {
 		printf("opening file for FLAC output... ");
 		file = ::flac_fopen(flacfilename(is_ogg), "w+b");
-		if(0 == file) {
+		if(nullptr == file) {
 			printf("ERROR (%s)\n", strerror(errno));
 			return false;
 		}
@@ -357,7 +357,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 			return false;
 	}
 	if(init_status != ::FLAC__STREAM_ENCODER_INIT_STATUS_OK)
-		return die_s_(0, encoder);
+		return die_s_(nullptr, encoder);
 	printf("OK\n");
 
 	printf("testing get_state()... ");

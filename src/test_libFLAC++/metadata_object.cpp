@@ -39,7 +39,7 @@ static bool die_(const char *msg)
 static void *malloc_or_die_(size_t size)
 {
 	void *x = malloc(size);
-	if(0 == x) {
+	if(nullptr == x) {
 		fprintf(stderr, "ERROR: out of memory allocating %u bytes\n", (uint32_t)size);
 		exit(1);
 	}
@@ -49,7 +49,7 @@ static void *malloc_or_die_(size_t size)
 static char *strdup_or_die_(const char *s)
 {
 	char *x = strdup(s);
-	if(0 == x) {
+	if(nullptr == x) {
 		fprintf(stderr, "ERROR: out of memory copying string \"%s\"\n", s);
 		exit(1);
 	}
@@ -81,7 +81,7 @@ static bool track_is_equal_(const ::FLAC__StreamMetadata_CueSheet_Track *track, 
 		return false;
 	if(trackcopy->num_indices != track->num_indices)
 		return false;
-	if(0 == track->indices || 0 == trackcopy->indices) {
+	if(nullptr == track->indices || nullptr == trackcopy->indices) {
 		if(track->indices != trackcopy->indices)
 			return false;
 	}
@@ -464,9 +464,9 @@ bool test_metadata_object_streaminfo()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::StreamInfo *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::StreamInfo *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::StreamInfo *>(clone_) != block)
 		return die_("clone is not identical");
@@ -625,9 +625,9 @@ bool test_metadata_object_padding()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::Padding *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::Padding *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::Padding *>(clone_) != block)
 		return die_("clone is not identical");
@@ -795,9 +795,9 @@ bool test_metadata_object_application()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::Application *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::Application *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::Application *>(clone_) != block)
 		return die_("clone is not identical");
@@ -994,9 +994,9 @@ bool test_metadata_object_seektable()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::SeekTable *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::SeekTable *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::SeekTable *>(clone_) != block)
 		return die_("clone is not identical");
@@ -1410,9 +1410,9 @@ bool test_metadata_object_vorbiscomment()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::VorbisComment *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::VorbisComment *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::VorbisComment *>(clone_) != block)
 		return die_("clone is not identical");
@@ -1441,7 +1441,7 @@ bool test_metadata_object_cuesheet()
 	{
 		printf("testing Track::get_track()... ");
 		const ::FLAC__StreamMetadata_CueSheet_Track *trackp = track0.get_track();
-		if(0 == trackp)
+		if(nullptr == trackp)
 			return die_("returned pointer is NULL");
 		printf("OK\n");
 
@@ -1790,9 +1790,9 @@ bool test_metadata_object_cuesheet()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::CueSheet *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::CueSheet *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::CueSheet *>(clone_) != block)
 		return die_("clone is not identical");
@@ -2050,9 +2050,9 @@ bool test_metadata_object_picture()
 
 	printf("testing FLAC::Metadata::clone(const FLAC::Metadata::Prototype *)... ");
 	FLAC::Metadata::Prototype *clone_ = FLAC::Metadata::clone(&block);
-	if(0 == clone_)
+	if(nullptr == clone_)
 		return die_("returned NULL");
-	if(0 == dynamic_cast<FLAC::Metadata::Picture *>(clone_))
+	if(nullptr == dynamic_cast<FLAC::Metadata::Picture *>(clone_))
 		return die_("downcast is NULL");
 	if(*dynamic_cast<FLAC::Metadata::Picture *>(clone_) != block)
 		return die_("clone is not identical");

@@ -86,7 +86,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if((fout = fopen(argv[2], "wb")) == NULL) {
+	if((fout = fopen(argv[2], "wb")) == nullptr) {
 		fprintf(stderr, "ERROR: opening %s for output\n", argv[2]);
 		return 1;
 	}

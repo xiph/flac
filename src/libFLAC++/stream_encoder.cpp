@@ -58,7 +58,7 @@ namespace FLAC {
 
 		Stream::~Stream()
 		{
-			if(0 != encoder_) {
+			if(nullptr != encoder_) {
 				(void)::FLAC__stream_encoder_finish(encoder_);
 				::FLAC__stream_encoder_delete(encoder_);
 			}
@@ -66,7 +66,7 @@ namespace FLAC {
 
 		bool Stream::is_valid() const
 		{
-			return 0 != encoder_;
+			return nullptr != encoder_;
 		}
 
 		bool Stream::set_ogg_serial_number(long value)

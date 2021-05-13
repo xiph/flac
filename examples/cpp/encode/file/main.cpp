@@ -69,7 +69,7 @@ int main(int argc, char *argv[])
 		return 1;
 	}
 
-	if((fin = fopen(argv[1], "rb")) == NULL) {
+	if((fin = fopen(argv[1], "rb")) == nullptr) {
 		fprintf(stderr, "ERROR: opening %s for output\n", argv[1]);
 		return 1;
 	}
@@ -107,8 +107,8 @@ int main(int argc, char *argv[])
 	/* now add some metadata; we'll add some tags and a padding block */
 	if(ok) {
 		if(
-			(metadata[0] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) == NULL ||
-			(metadata[1] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)) == NULL ||
+			(metadata[0] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) == nullptr ||
+			(metadata[1] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)) == nullptr ||
 			/* there are many tag (vorbiscomment) functions but these are convenient for this particular use: */
 			!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, "ARTIST", "Some Artist") ||
 			!FLAC__metadata_object_vorbiscomment_append_comment(metadata[0], entry, /*copy=*/false) || /* copy=false: let metadata object take control of entry's allocated string */

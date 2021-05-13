@@ -180,7 +180,7 @@ class StreamDecoder : public FLAC::Decoder::Stream, public DecoderCommon {
 public:
 	FILE *file_;
 
-	StreamDecoder(Layer layer): FLAC::Decoder::Stream(), DecoderCommon(layer), file_(0) { }
+	StreamDecoder(Layer layer): FLAC::Decoder::Stream(), DecoderCommon(layer), file_(nullptr) { }
 	~StreamDecoder() override = default;
 
 	StreamDecoder(const StreamDecoder&) = delete;
@@ -313,7 +313,7 @@ bool StreamDecoder::test_respond(bool is_ogg)
 	printf("testing init%s()... ", is_ogg? "_ogg":"");
 	init_status = is_ogg? init_ogg() : init();
 	if(init_status != ::FLAC__STREAM_DECODER_INIT_STATUS_OK)
-		return die_s_(0, this);
+		return die_s_(nullptr, this);
 	printf("OK\n");
 
 	current_metadata_number_ = 0;
@@ -385,7 +385,7 @@ bool FileDecoder::test_respond(bool is_ogg)
 			{
 				printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
 				FILE *file = ::flac_fopen(flacfilename(is_ogg), "rb");
-				if(0 == file) {
+				if(nullptr == file) {
 					printf("ERROR (%s)\n", strerror(errno));
 					return false;
 				}
@@ -404,7 +404,7 @@ bool FileDecoder::test_respond(bool is_ogg)
 			return false;
 	}
 	if(init_status != ::FLAC__STREAM_DECODER_INIT_STATUS_OK)
-		return die_s_(0, this);
+		return die_s_(nullptr, this);
 	printf("OK\n");
 
 	current_metadata_number_ = 0;
@@ -450,7 +450,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	//
 	printf("allocating decoder instance... ");
 	decoder = new_by_layer(layer);
-	if(0 == decoder) {
+	if(nullptr == decoder) {
 		printf("FAILED, new returned NULL\n");
 		return false;
 	}
@@ -473,7 +473,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	//
 	printf("allocating decoder instance... ");
 	decoder = new_by_layer(layer);
-	if(0 == decoder) {
+	if(nullptr == decoder) {
 		printf("FAILED, new returned NULL\n");
 		return false;
 	}
@@ -510,7 +510,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 			return false;
 	}
 	if(init_status != ::FLAC__STREAM_DECODER_INIT_STATUS_OK)
-		return die_s_(0, decoder);
+		return die_s_(nullptr, decoder);
 	printf("OK\n");
 
 	printf("freeing decoder instance... ");
@@ -525,7 +525,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	printf("allocating decoder instance... ");
 	decoder = new_by_layer(layer);
-	if(0 == decoder) {
+	if(nullptr == decoder) {
 		printf("FAILED, new returned NULL\n");
 		return false;
 	}
@@ -556,7 +556,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		case LAYER_SEEKABLE_STREAM:
 			printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
 			dynamic_cast<StreamDecoder*>(decoder)->file_ = ::flac_fopen(flacfilename(is_ogg), "rb");
-			if(0 == dynamic_cast<StreamDecoder*>(decoder)->file_) {
+			if(nullptr == dynamic_cast<StreamDecoder*>(decoder)->file_) {
 				printf("ERROR (%s)\n", strerror(errno));
 				return false;
 			}
@@ -569,7 +569,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 			{
 				printf("opening FLAC file... ");
 				FILE *file = ::flac_fopen(flacfilename(is_ogg), "rb");
-				if(0 == file) {
+				if(nullptr == file) {
 					printf("ERROR (%s)\n", strerror(errno));
 					return false;
 				}
@@ -592,7 +592,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 			return false;
 	}
 	if(init_status != ::FLAC__STREAM_DECODER_INIT_STATUS_OK)
-		return die_s_(0, decoder);
+		return die_s_(nullptr, decoder);
 	printf("OK\n");
 
 	printf("testing get_state()... ");
