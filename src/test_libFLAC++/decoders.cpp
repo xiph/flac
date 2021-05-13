@@ -181,17 +181,17 @@ public:
 	FILE *file_;
 
 	StreamDecoder(Layer layer): FLAC::Decoder::Stream(), DecoderCommon(layer), file_(0) { }
-	~StreamDecoder() { }
+	~StreamDecoder() override { }
 
 	// from FLAC::Decoder::Stream
-	::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
-	::FLAC__StreamDecoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
-	::FLAC__StreamDecoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
-	::FLAC__StreamDecoderLengthStatus length_callback(FLAC__uint64 *stream_length);
-	bool eof_callback();
-	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]);
-	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
-	void error_callback(::FLAC__StreamDecoderErrorStatus status);
+	::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) override;
+	::FLAC__StreamDecoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) override;
+	::FLAC__StreamDecoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) override;
+	::FLAC__StreamDecoderLengthStatus length_callback(FLAC__uint64 *stream_length) override;
+	bool eof_callback() override;
+	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) override;
+	void metadata_callback(const ::FLAC__StreamMetadata *metadata) override;
+	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 
 	bool test_respond(bool is_ogg);
 private:
@@ -345,12 +345,12 @@ bool StreamDecoder::test_respond(bool is_ogg)
 class FileDecoder : public FLAC::Decoder::File, public DecoderCommon {
 public:
 	FileDecoder(Layer layer): FLAC::Decoder::File(), DecoderCommon(layer) { }
-	~FileDecoder() { }
+	~FileDecoder() override { }
 
 	// from FLAC::Decoder::Stream
-	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]);
-	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
-	void error_callback(::FLAC__StreamDecoderErrorStatus status);
+	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) override;
+	void metadata_callback(const ::FLAC__StreamMetadata *metadata) override;
+	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 
 	bool test_respond(bool is_ogg);
 };

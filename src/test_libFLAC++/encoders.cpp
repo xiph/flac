@@ -103,14 +103,14 @@ public:
 	FILE *file_;
 
 	StreamEncoder(Layer layer): FLAC::Encoder::Stream(), layer_(layer), file_(0) { }
-	~StreamEncoder() { }
+	~StreamEncoder() override { }
 
 	// from FLAC::Encoder::Stream
-	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
-	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame);
-	::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
-	::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
-	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
+	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes) override;
+	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame) override;
+	::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset) override;
+	::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset) override;
+	void metadata_callback(const ::FLAC__StreamMetadata *metadata) override;
 private:
 	StreamEncoder(const StreamEncoder&);
 	StreamEncoder&operator=(const StreamEncoder&);
@@ -174,10 +174,10 @@ public:
 	Layer layer_;
 
 	FileEncoder(Layer layer): FLAC::Encoder::File(), layer_(layer) { }
-	~FileEncoder() { }
+	~FileEncoder() override { }
 
 	// from FLAC::Encoder::File
-	void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate);
+	void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate) override;
 };
 
 void FileEncoder::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate)

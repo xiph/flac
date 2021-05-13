@@ -61,9 +61,9 @@ public:
 	bool ignore_metadata_;
 	bool error_occurred_;
 protected:
-	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]);
-	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
-	void error_callback(::FLAC__StreamDecoderErrorStatus status);
+	::FLAC__StreamDecoderWriteStatus write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[]) override;
+	void metadata_callback(const ::FLAC__StreamMetadata *metadata) override;
+	void error_callback(::FLAC__StreamDecoderErrorStatus status) override;
 };
 
 struct OurMetadata {
