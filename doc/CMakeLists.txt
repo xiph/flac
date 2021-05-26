@@ -25,7 +25,7 @@ else()
         "${PROJECT_SOURCE_DIR}/include/FLAC"
         "${PROJECT_SOURCE_DIR}/include/FLAC++")
 
-    install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/html/"
+    install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/html/"
         DESTINATION "${CMAKE_INSTALL_DOCDIR}/html/api")
 
 endif()
