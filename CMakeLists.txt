@@ -22,8 +22,11 @@ option(INSTALL_PKGCONFIG_MODULES "Install PkgConfig modules" ON)
 option(INSTALL_CMAKE_CONFIG_MODULE "Install CMake package-config module" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
 
+set(VERSION ${PROJECT_VERSION})
+
 if(WITH_OGG)
     find_package(Ogg REQUIRED)
+    set(OGG_PACKAGE "ogg")
 endif()
 
 find_package(Iconv)
