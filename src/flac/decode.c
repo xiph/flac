@@ -1007,7 +1007,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->is_unsigned_samples
 	));
 	uint32_t wide_samples = frame->header.blocksize, wide_sample, sample, channel;
-	uint32_t frame_bytes = 0;
+	FLAC__uint64 frame_bytes = 0;
 
 	static union
 	{	/* The arrays defined within this union are all the same size. */
@@ -1117,7 +1117,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	if(decoder_session->analysis_mode) {
 		FLAC__uint64 dpos;
 		FLAC__stream_decoder_get_decode_position(decoder_session->decoder, &dpos);
-		frame_bytes = (uint32_t)(dpos-decoder_session->decode_position);
+		frame_bytes = (dpos-decoder_session->decode_position);
 		decoder_session->decode_position = dpos;
 	}
 
@@ -1305,9 +1305,10 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		FLAC__stream_decoder_get_decode_position(decoder, &decoder_session->decode_position);
 
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
+		FLAC__byte emptyMD5[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		FLAC__uint64 skip, until;
 		decoder_session->got_stream_info = true;
-		decoder_session->has_md5sum = memcmp(metadata->data.stream_info.md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16);
+		decoder_session->has_md5sum = memcmp(metadata->data.stream_info.md5sum, emptyMD5, 16);
 		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
 		decoder_session->channels = metadata->data.stream_info.channels;
 		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
