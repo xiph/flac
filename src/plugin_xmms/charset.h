@@ -3,7 +3,7 @@
  *
  * Almost from charset.h - 2001/12/04
  *  EasyTAG - Tag editor for MP3 and OGG files
- *  Copyright (C) 1999-2001  H蛆ard Kv虱en <havardk@xmms.org>
+ *  Copyright (C) 1999-2001  Håvard Kvålen <havardk@xmms.org>
  *
  *  This program is free software; you can redistribute it and/or modify
  *  it under the terms of the GNU General Public License as published by
