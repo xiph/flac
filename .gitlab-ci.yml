@@ -1,0 +1,53 @@
+default:
+  tags:
+    - docker
+  # Image from https://hub.docker.com/_/gcc/ based on Debian
+  image: gcc:9
+
+autotools:
+  stage: build
+  before_script:
+    - apt-get update &&
+      apt-get install -y libogg-dev
+        libtool-bin gettext zip
+        doxygen graphviz
+    # Create an unpriviledged user, required for tests.
+    - adduser --disabled-password --gecos "Gitlab CI" flac
+  script:
+    - ./autogen.sh
+    - ./configure
+    - make
+    - su -c 'make distcheck' flac
+
+cmake:
+  stage: build
+  before_script:
+    - apt-get update &&
+      apt-get install -y libogg-dev
+        cmake ninja-build
+        doxygen graphviz
+    # Create an unpriviledged user, required for tests.
+    - adduser --disabled-password --gecos "Gitlab CI" flac
+  script:
+    - mkdir _build
+    - cmake -S . -B _build -G "Ninja" -DCMAKE_BUILD_TYPE=Release
+    - chown -R flac .
+    - su -c 'cmake --build _build' flac
+    - su -c 'cd _build && ctest -V' flac
+
+makefile:
+  stage: build
+  before_script:
+    - apt-get update &&
+      apt-get install -y libogg-dev
+    # Create an unpriviledged user, required for tests.
+    - adduser --disabled-password --gecos "Gitlab CI" flac
+  script:
+    # The makefile doesn't create the `objs` tree it expects to use.
+    - mkdir -p objs/release/lib
+    - mkdir -p objs/release/bin
+    - mkdir -p objs/debug/lib
+    - mkdir -p objs/debug/bin
+    - chown -R flac .
+    - su -c 'make -f Makefile.lite' flac
+    - su -c 'make -f Makefile.lite test' flac
