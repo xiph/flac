@@ -121,7 +121,7 @@ jobs:
           brew update
           brew install automake pkg-config libogg
 
-      - name: Install Lunux dependencies
+      - name: Install Linux dependencies
         if: startsWith(matrix.os,'ubuntu')
         run: |
           sudo apt-get update
