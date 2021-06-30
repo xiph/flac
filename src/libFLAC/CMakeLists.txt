@@ -58,7 +58,6 @@ add_library(FLAC
     float.c
     format.c
     lpc.c
-    lpc_intrin_sse.c
     lpc_intrin_sse2.c
     lpc_intrin_sse41.c
     lpc_intrin_avx2.c

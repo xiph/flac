@@ -334,10 +334,6 @@
 				>
 			</File>
 			<File
-				RelativePath=".\lpc_intrin_sse.c"
-				>
-			</File>
-			<File
 				RelativePath=".\lpc_intrin_sse2.c"
 				>
 			</File>
