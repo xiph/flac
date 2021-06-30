@@ -70,11 +70,11 @@ void FLAC__lpc_window_data(const FLAC__int32 in[], const FLAC__real window[], FL
 		out[i] = in[i] * window[i];
 }
 
-void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	/* a readable, but slower, version */
 #if 0
-	FLAC__real d;
+	double d;
 	uint32_t i;
 
 	FLAC__ASSERT(lag > 0);
@@ -89,7 +89,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 	 */
 	while(lag--) {
 		for(i = lag, d = 0.0; i < data_len; i++)
-			d += data[i] * data[i - lag];
+			d += data[i] * (double)data[i - lag];
 		autoc[lag] = d;
 	}
 #endif
@@ -98,7 +98,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 	 * this version tends to run faster because of better data locality
 	 * ('data_len' is usually much larger than 'lag')
 	 */
-	FLAC__real d;
+	double d;
 	uint32_t sample, coeff;
 	const uint32_t limit = data_len - lag;
 
@@ -119,7 +119,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 	}
 }
 
-void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], uint32_t *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
+void FLAC__lpc_compute_lp_coefficients(const double autoc[], uint32_t *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
 {
 	uint32_t i, j;
 	double r, err, lpc[FLAC__MAX_LPC_ORDER];

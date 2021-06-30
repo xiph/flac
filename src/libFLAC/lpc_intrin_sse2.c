@@ -50,6 +50,172 @@
 #define RESIDUAL32_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 #define     DATA32_RESULT(xmmN) data[i] = residual[i] + (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 
+
+FLAC__SSE_TARGET("sse2")
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+	// This function calculates autocorrelation with SSE2
+	// vector functions up to a lag of 10 (or max LPC order of 9)
+	int i;
+	__m128d sum0, sum1, sum2, sum3;
+	__m128d d0, d1, d2, d3;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 8);
+
+	// Initialize all sum vectors with zero
+	sum0 = _mm_setzero_pd();
+	sum1 = _mm_setzero_pd();
+	sum2 = _mm_setzero_pd();
+	sum3 = _mm_setzero_pd();
+	d0 = _mm_setzero_pd();
+	d1 = _mm_setzero_pd();
+	d2 = _mm_setzero_pd();
+	d3 = _mm_setzero_pd();
+
+	// Loop backwards through samples from data_len to limit
+	for(i = data_len-1; i >= 0; i--) {
+		__m128d d = _mm_set1_pd(data[i]); // both elements of d are set to data[i]
+
+		// The next lines of code work like a queue. The queue
+		// is spread over vectors d0..d3. All items are shifted
+		// one position, the last item (data[i+9]) is dequeued
+		// and a new first item is added (data[i])
+		d3 = _mm_shuffle_pd(d2, d3, _MM_SHUFFLE(0,0,0,1)); // d3 is made of second element of d2 and first element of d3
+		d2 = _mm_shuffle_pd(d1, d2, _MM_SHUFFLE(0,0,0,1)); // d2 is made of second element of d1 and first element of d2
+		d1 = _mm_shuffle_pd(d0, d1, _MM_SHUFFLE(0,0,0,1)); // d1 is made of second element of d0 and first element of d1
+		d0 = _mm_shuffle_pd(d,  d0, _MM_SHUFFLE(0,0,0,1)); // d0 is made of second element of d and first element of d0
+
+		// sumn += d*dn
+		sum0 = _mm_add_pd(sum0, _mm_mul_pd(d, d0));
+		sum1 = _mm_add_pd(sum1, _mm_mul_pd(d, d1));
+		sum2 = _mm_add_pd(sum2, _mm_mul_pd(d, d2));
+		sum3 = _mm_add_pd(sum3, _mm_mul_pd(d, d3));
+	}
+
+	// Store sum0..sum6 in autoc[0..14]
+	_mm_storeu_pd(autoc,   sum0);
+	_mm_storeu_pd(autoc+2, sum1);
+	_mm_storeu_pd(autoc+4, sum2);
+	_mm_storeu_pd(autoc+6 ,sum3);
+}
+
+FLAC__SSE_TARGET("sse2")
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+	// This function calculates autocorrelation with SSE2
+	// vector functions up to a lag of 10 (or max LPC order of 9)
+	int i;
+	__m128d sum0, sum1, sum2, sum3, sum4;
+	__m128d d0, d1, d2, d3, d4;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 10);
+
+	// Initialize all sum vectors with zero
+	sum0 = _mm_setzero_pd();
+	sum1 = _mm_setzero_pd();
+	sum2 = _mm_setzero_pd();
+	sum3 = _mm_setzero_pd();
+	sum4 = _mm_setzero_pd();
+	d0 = _mm_setzero_pd();
+	d1 = _mm_setzero_pd();
+	d2 = _mm_setzero_pd();
+	d3 = _mm_setzero_pd();
+	d4 = _mm_setzero_pd();
+
+	// Loop backwards through samples from data_len to limit
+	for(i = data_len-1; i >= 0; i--) {
+		__m128d d = _mm_set1_pd(data[i]);
+
+		// The next lines of code work like a queue. For more
+		// information see the lag8 version of this function
+		d4 = _mm_shuffle_pd(d3, d4, _MM_SHUFFLE(0,0,0,1));
+		d3 = _mm_shuffle_pd(d2, d3, _MM_SHUFFLE(0,0,0,1));
+		d2 = _mm_shuffle_pd(d1, d2, _MM_SHUFFLE(0,0,0,1));
+		d1 = _mm_shuffle_pd(d0, d1, _MM_SHUFFLE(0,0,0,1));
+		d0 = _mm_shuffle_pd(d,  d0, _MM_SHUFFLE(0,0,0,1));
+
+		// sumn += d*dn
+		sum0 = _mm_add_pd(sum0, _mm_mul_pd(d, d0));
+		sum1 = _mm_add_pd(sum1, _mm_mul_pd(d, d1));
+		sum2 = _mm_add_pd(sum2, _mm_mul_pd(d, d2));
+		sum3 = _mm_add_pd(sum3, _mm_mul_pd(d, d3));
+		sum4 = _mm_add_pd(sum4, _mm_mul_pd(d, d4));
+	}
+
+	// Store sum0..sum6 in autoc[0..14]
+	_mm_storeu_pd(autoc,   sum0);
+	_mm_storeu_pd(autoc+2, sum1);
+	_mm_storeu_pd(autoc+4, sum2);
+	_mm_storeu_pd(autoc+6 ,sum3);
+	_mm_storeu_pd(autoc+8, sum4);
+}
+
+
+FLAC__SSE_TARGET("sse2")
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+	// This function calculates autocorrelation with SSE2
+	// vector functions up to a lag of 14 (or max LPC order of 13)
+	int i;
+	__m128d sum0, sum1, sum2, sum3, sum4, sum5, sum6;
+	__m128d d0, d1, d2, d3, d4, d5, d6;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 14);
+
+	// Initialize all sum vectors with zero
+	sum0 = _mm_setzero_pd();
+	sum1 = _mm_setzero_pd();
+	sum2 = _mm_setzero_pd();
+	sum3 = _mm_setzero_pd();
+	sum4 = _mm_setzero_pd();
+	sum5 = _mm_setzero_pd();
+	sum6 = _mm_setzero_pd();
+	d0 = _mm_setzero_pd();
+	d1 = _mm_setzero_pd();
+	d2 = _mm_setzero_pd();
+	d3 = _mm_setzero_pd();
+	d4 = _mm_setzero_pd();
+	d5 = _mm_setzero_pd();
+	d6 = _mm_setzero_pd();
+
+	// Loop backwards through samples from data_len to limit
+	for(i = data_len-1; i >= 0; i--) {
+		__m128d d = _mm_set1_pd(data[i]);
+
+		// The next lines of code work like a queue. For more
+		// information see the lag8 version of this function
+		d6 = _mm_shuffle_pd(d5, d6, _MM_SHUFFLE(0,0,0,1));
+		d5 = _mm_shuffle_pd(d4, d5, _MM_SHUFFLE(0,0,0,1));
+		d4 = _mm_shuffle_pd(d3, d4, _MM_SHUFFLE(0,0,0,1));
+		d3 = _mm_shuffle_pd(d2, d3, _MM_SHUFFLE(0,0,0,1));
+		d2 = _mm_shuffle_pd(d1, d2, _MM_SHUFFLE(0,0,0,1));
+		d1 = _mm_shuffle_pd(d0, d1, _MM_SHUFFLE(0,0,0,1));
+		d0 = _mm_shuffle_pd(d,  d0, _MM_SHUFFLE(0,0,0,1));
+
+		// sumn += d*dn
+		sum0 = _mm_add_pd(sum0, _mm_mul_pd(d, d0));
+		sum1 = _mm_add_pd(sum1, _mm_mul_pd(d, d1));
+		sum2 = _mm_add_pd(sum2, _mm_mul_pd(d, d2));
+		sum3 = _mm_add_pd(sum3, _mm_mul_pd(d, d3));
+		sum4 = _mm_add_pd(sum4, _mm_mul_pd(d, d4));
+		sum5 = _mm_add_pd(sum5, _mm_mul_pd(d, d5));
+		sum6 = _mm_add_pd(sum6, _mm_mul_pd(d, d6));
+
+	}
+
+	// Store sum0..sum6 in autoc[0..14]
+	_mm_storeu_pd(autoc,   sum0);
+	_mm_storeu_pd(autoc+2, sum1);
+	_mm_storeu_pd(autoc+4, sum2);
+	_mm_storeu_pd(autoc+6 ,sum3);
+	_mm_storeu_pd(autoc+8, sum4);
+	_mm_storeu_pd(autoc+10,sum5);
+	_mm_storeu_pd(autoc+12,sum6);
+}
+
 FLAC__SSE_TARGET("sse2")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
 {
