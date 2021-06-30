@@ -50,6 +50,235 @@
 #define RESIDUAL32_RESULT(xmmN) residual[i] = data[i] - (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 #define     DATA32_RESULT(xmmN) data[i] = residual[i] + (_mm_cvtsi128_si32(xmmN) >> lp_quantization);
 
+
+FLAC__SSE_TARGET("sse2")
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+	// This function calculates autocorrelation with SSE2
+	// vector functions up to a lag of 10 (or max LPC order of 9)
+	// For comments, please see FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14
+	int i;
+	int limit = data_len - 8;
+	__m128d sum0, sum1, sum2, sum3;
+	__m128 sumtemp;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 8);
+	FLAC__ASSERT(lag <= data_len);
+
+	sum0 = _mm_setzero_pd();
+	sum1 = _mm_setzero_pd();
+	sum2 = _mm_setzero_pd();
+	sum3 = _mm_setzero_pd();
+
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0, d1;
+		d0 = _mm_loadu_ps(data+i);
+		d1 = _mm_loadu_ps(data+i+4);
+		d = _mm_shuffle_ps(d0, d0, 0);
+		sumtemp = _mm_mul_ps(d0, d);
+		sum0 = _mm_add_pd(sum0, _mm_cvtps_pd(sumtemp));
+		sum1 = _mm_add_pd(sum1, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2))));
+		sumtemp = _mm_mul_ps(d1, d);
+		sum2 = _mm_add_pd(sum2, _mm_cvtps_pd(sumtemp));
+		sum3 = _mm_add_pd(sum3, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2))));
+	}
+
+	{
+		__m128 d0 = _mm_setzero_ps();
+		__m128 d1 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0);
+			d1 = _mm_shuffle_ps(d1, d1, _MM_SHUFFLE(2,1,0,3));
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));
+			d1 = _mm_move_ss(d1, d0);
+			d0 = _mm_move_ss(d0, d);
+			sumtemp = _mm_mul_ps(d0, d);
+			sum0 = _mm_add_pd(sum0, _mm_cvtps_pd(sumtemp));
+			sum1 = _mm_add_pd(sum1, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+			sumtemp = _mm_mul_ps(d1, d);
+			sum2 = _mm_add_pd(sum2, _mm_cvtps_pd(sumtemp));
+			sum3 = _mm_add_pd(sum3, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+		}
+	}
+
+	_mm_storeu_pd(autoc,   sum0);
+	_mm_storeu_pd(autoc+2, sum1);
+	_mm_storeu_pd(autoc+4, sum2);
+	_mm_storeu_pd(autoc+6 ,sum3);
+}
+
+FLAC__SSE_TARGET("sse2")
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+	// This function calculates autocorrelation with SSE2
+	// vector functions up to a lag of 10 (or max LPC order of 9)
+	// For comments, please see FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14
+	int i;
+	int limit = data_len - 10;
+	__m128d sum0, sum1, sum2, sum3, sum4;
+	__m128 sumtemp;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 10);
+	FLAC__ASSERT(lag <= data_len);
+
+	sum0 = _mm_setzero_pd();
+	sum1 = _mm_setzero_pd();
+	sum2 = _mm_setzero_pd();
+	sum3 = _mm_setzero_pd();
+	sum4 = _mm_setzero_pd();
+
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0, d1, d2;
+		d0 = _mm_loadu_ps(data+i);
+		d1 = _mm_loadu_ps(data+i+4);
+		d2 = _mm_loadu_ps(data+i+8);
+		d = _mm_shuffle_ps(d0, d0, 0);
+		sumtemp = _mm_mul_ps(d0, d);
+		sum0 = _mm_add_pd(sum0, _mm_cvtps_pd(sumtemp));
+		sum1 = _mm_add_pd(sum1, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2))));
+		sumtemp = _mm_mul_ps(d1, d);
+		sum2 = _mm_add_pd(sum2, _mm_cvtps_pd(sumtemp));
+		sum3 = _mm_add_pd(sum3, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2))));
+		sumtemp = _mm_mul_ps(d2, d);
+		sum4 = _mm_add_pd(sum4, _mm_cvtps_pd(sumtemp));
+	}
+
+	{
+		__m128 d0 = _mm_setzero_ps();
+		__m128 d1 = _mm_setzero_ps();
+		__m128 d2 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0);
+			d2 = _mm_shuffle_ps(d2, d2, _MM_SHUFFLE(2,1,0,3));
+			d1 = _mm_shuffle_ps(d1, d1, _MM_SHUFFLE(2,1,0,3));
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));
+			d2 = _mm_move_ss(d2, d1);
+			d1 = _mm_move_ss(d1, d0);
+			d0 = _mm_move_ss(d0, d);
+			sumtemp = _mm_mul_ps(d0, d);
+			sum0 = _mm_add_pd(sum0, _mm_cvtps_pd(sumtemp));
+			sum1 = _mm_add_pd(sum1, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+			sumtemp = _mm_mul_ps(d1, d);
+			sum2 = _mm_add_pd(sum2, _mm_cvtps_pd(sumtemp));
+			sum3 = _mm_add_pd(sum3, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+			sumtemp = _mm_mul_ps(d2, d);
+			sum4 = _mm_add_pd(sum4, _mm_cvtps_pd(sumtemp));
+		}
+	}
+
+	_mm_storeu_pd(autoc,   sum0);
+	_mm_storeu_pd(autoc+2, sum1);
+	_mm_storeu_pd(autoc+4, sum2);
+	_mm_storeu_pd(autoc+6 ,sum3);
+	_mm_storeu_pd(autoc+8, sum4);
+}
+
+
+FLAC__SSE_TARGET("sse2")
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+	// This function calculates autocorrelation with SSE2
+	// vector functions up to a lag of 14 (or max LPC order of 13)
+	int i;
+	int limit = data_len - 14;
+	__m128d sum0, sum1, sum2, sum3, sum4, sum5, sum6;
+	__m128 sumtemp;
+
+	(void) lag;
+	FLAC__ASSERT(lag <= 14);
+	FLAC__ASSERT(lag <= data_len);
+
+	// Initialize all sum vectors with zero
+	sum0 = _mm_setzero_pd();
+	sum1 = _mm_setzero_pd();
+	sum2 = _mm_setzero_pd();
+	sum3 = _mm_setzero_pd();
+	sum4 = _mm_setzero_pd();
+	sum5 = _mm_setzero_pd();
+	sum6 = _mm_setzero_pd();
+
+	// Loop forwards through samples until limit
+	for(i = 0; i <= limit; i++) {
+		__m128 d, d0, d1, d2, d3;
+		// Load data[i..i+15] in d0..d3
+		d0 = _mm_loadu_ps(data+i);
+		d1 = _mm_loadu_ps(data+i+4);
+		d2 = _mm_loadu_ps(data+i+8);
+		d3 = _mm_loadu_ps(data+i+12);
+		d = _mm_shuffle_ps(d0, d0, 0);                                    // Create vector with 4 entries data[i]
+		sumtemp = _mm_mul_ps(d0, d);                                      // Multiply data[i] with data[i+0..3]
+		sum0 = _mm_add_pd(sum0, _mm_cvtps_pd(sumtemp));                   // Add data[i]*data[i+0..1] to sum0
+		sumtemp = _mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2)); // Swap lower and upper half of vector sumtemp
+		sum1 = _mm_add_pd(sum1, _mm_cvtps_pd(sumtemp));                   // Add data[i]*data[i+2..3] to sum1
+		sumtemp = _mm_mul_ps(d1, d);                                      // Multiply data[i] with data[i+4..7]
+		sum2 = _mm_add_pd(sum2, _mm_cvtps_pd(sumtemp));                   // Add data[i]*data[i+4..5] to sum2
+		sumtemp = _mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2)); // Swap lower and upper half of vector sumtemp
+		sum3 = _mm_add_pd(sum3, _mm_cvtps_pd(sumtemp));                   // Add data[i]*data[i+2..3] to sum3
+		sumtemp = _mm_mul_ps(d2, d);                                      // etc.
+		sum4 = _mm_add_pd(sum4, _mm_cvtps_pd(sumtemp));
+		sumtemp = _mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(1,0,3,2));
+		sum5 = _mm_add_pd(sum5, _mm_cvtps_pd(sumtemp));
+		sumtemp = _mm_mul_ps(d3, d);
+		sum6 = _mm_add_pd(sum6, _mm_cvtps_pd(sumtemp));
+	}
+
+	{
+		// Initialize data vectors with zero
+		__m128 d0 = _mm_setzero_ps();
+		__m128 d1 = _mm_setzero_ps();
+		__m128 d2 = _mm_setzero_ps();
+		__m128 d3 = _mm_setzero_ps();
+		limit++; if(limit < 0) limit = 0;
+
+		// Loop backwards through samples from data_len to limit
+		for(i = data_len-1; i >= limit; i--) {
+			__m128 d;
+			d = _mm_load_ss(data+i); d = _mm_shuffle_ps(d, d, 0); // Create vector with 4 entries data[i]
+			// The next 7 lines of code left-shift the elements through the 4 vectors d0..d3.
+			// The 8th line adds the newly loaded element to d0. This works like a stack, where
+			// data[i] is pushed onto the stack every time
+			d3 = _mm_shuffle_ps(d3, d3, _MM_SHUFFLE(2,1,0,3));    // Left rotate vector d3
+			d2 = _mm_shuffle_ps(d2, d2, _MM_SHUFFLE(2,1,0,3));    // Left rotate vector d2
+			d1 = _mm_shuffle_ps(d1, d1, _MM_SHUFFLE(2,1,0,3));    // Left rotate vector d1
+			d0 = _mm_shuffle_ps(d0, d0, _MM_SHUFFLE(2,1,0,3));    // Left rotate vector d0
+			d3 = _mm_move_ss(d3, d2); // Copy last element of d2 to last element of d3
+			d2 = _mm_move_ss(d2, d1); // Copy last element of d1 to last element of d2
+			d1 = _mm_move_ss(d1, d0); // etc.
+			d0 = _mm_move_ss(d0, d);  // Copy data[i] to last element of d0
+
+			// The next 11 lines of code work just like in the forwards-working loop above
+			sumtemp = _mm_mul_ps(d0, d);
+			sum0 = _mm_add_pd(sum0, _mm_cvtps_pd(sumtemp));
+			sum1 = _mm_add_pd(sum1, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+			sumtemp = _mm_mul_ps(d1, d);
+			sum2 = _mm_add_pd(sum2, _mm_cvtps_pd(sumtemp));
+			sum3 = _mm_add_pd(sum3, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+			sumtemp = _mm_mul_ps(d2, d);
+			sum4 = _mm_add_pd(sum4, _mm_cvtps_pd(sumtemp));
+			sum5 = _mm_add_pd(sum5, _mm_cvtps_pd(_mm_shuffle_ps(sumtemp, sumtemp, _MM_SHUFFLE(2,3,0,1))));
+			sumtemp = _mm_mul_ps(d3, d);
+			sum6 = _mm_add_pd(sum6, _mm_cvtps_pd(sumtemp));
+		}
+	}
+
+	// Store sum0..sum6 in autoc[0..14]
+	_mm_storeu_pd(autoc,   sum0);
+	_mm_storeu_pd(autoc+2, sum1);
+	_mm_storeu_pd(autoc+4, sum2);
+	_mm_storeu_pd(autoc+6 ,sum3);
+	_mm_storeu_pd(autoc+8, sum4);
+	_mm_storeu_pd(autoc+10,sum5);
+	_mm_storeu_pd(autoc+12,sum6);
+}
+
 FLAC__SSE_TARGET("sse2")
 void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
 {
