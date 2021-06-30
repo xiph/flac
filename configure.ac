@@ -193,6 +193,16 @@ if test x"$have_cpu_power9" = xyes ; then
   AH_TEMPLATE(FLAC__HAS_TARGET_POWER9, [define if compiler has __attribute__((target("cpu=power9"))) support])
 fi
 
+if test x"$have_cpu_power8" = xyes || test x"$have_cpu_power9" = xyes ; then
+  AC_MSG_CHECKING([whether altivec.h has vec_doubleh()])
+  AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <altivec.h>]],
+	[[vector float d = {0.0f,0.0f,0.0f,0.0f}; vec_doubleh(d);]])],
+	[AC_MSG_RESULT([yes])
+	 has_vec_doubleh=true],
+	[AC_MSG_RESULT([no])])
+fi
+
 fi
 
 case "$host" in
@@ -266,7 +276,7 @@ AC_HELP_STRING([--disable-vsx], [Disable VSX optimizations]),
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-vsx) ;;
 esac],[use_vsx=true])
 AM_CONDITIONAL(FLaC__USE_VSX, test "x$use_vsx" = xtrue)
-if test "x$use_vsx" = xtrue ; then
+if test "x$use_vsx$has_vec_doubleh" = xtruetrue ; then
 AC_DEFINE(FLAC__USE_VSX)
 AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
 fi
