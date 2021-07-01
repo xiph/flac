@@ -21,3 +21,7 @@ endmacro(CHECK_CPU_ARCH_X64)
 macro(CHECK_CPU_ARCH_X86 VARIABLE)
     _CHECK_CPU_ARCH(x86 "defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) ||defined( __i386) || defined(_M_IX86)" ${VARIABLE})
 endmacro(CHECK_CPU_ARCH_X86)
+
+macro(CHECK_CPU_ARCH_PPC64 VARIABLE)
+    _CHECK_CPU_ARCH(ppc64 "defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) ||defined(_ARCH_PPC64)" ${VARIABLE})
+endmacro(CHECK_CPU_ARCH_PPC64)

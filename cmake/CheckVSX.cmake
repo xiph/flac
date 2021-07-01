@@ -1,0 +1,13 @@
+macro(CHECK_VSX VARIABLE)
+    if(NOT DEFINED HAVE_${VARIABLE})
+        message(STATUS "Check whether VSX can be used")
+        configure_file(${PROJECT_SOURCE_DIR}/cmake/CheckVSX.c.in ${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckVSX.c @ONLY)
+        try_compile(HAVE_${VARIABLE} "${PROJECT_BINARY_DIR}"
+            "${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckVSX.c")
+        if(HAVE_${VARIABLE})
+            message(STATUS "Check whether VSX can be used - yes")
+        else ()
+            message(STATUS "Check whether VSX can be used - no")
+        endif()
+    endif ()
+endmacro(CHECK_VSX)
