@@ -97,7 +97,7 @@ all default: $(DEFAULT_BUILD)
 # GNU makefile fragment for emulating stuff normally done by configure
 #
 
-VERSION=\"1.3.3\"
+VERSION=\"1.3.4\"
 
 CONFIG_CFLAGS=$(CUSTOM_CFLAGS) -DHAVE_STDINT_H -DHAVE_INTTYPES_H -DHAVE_CXX_VARARRAYS -D_LARGEFILE_SOURCE -D_FILE_OFFSET_BITS=64
 
