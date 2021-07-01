@@ -9,6 +9,12 @@
 /* Target processor is little endian. */
 #cmakedefine01 CPU_IS_LITTLE_ENDIAN
 
+/* Target processor PPC */
+#cmakedefine FLAC__CPU_PPC
+
+/* Target processor PPC64 */
+#cmakedefine FLAC__CPU_PPC64
+
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 
