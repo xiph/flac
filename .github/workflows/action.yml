@@ -149,3 +149,10 @@ jobs:
           cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
           cmake --build .
           ctest -V
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          path: ./**/*.log
