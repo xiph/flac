@@ -64,7 +64,6 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8(const FLAC__real data[]
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 8);
-	FLAC__ASSERT(lag <= data_len);
 
 	sum0 = _mm_setzero_pd();
 	sum1 = _mm_setzero_pd();
@@ -118,13 +117,12 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10(const FLAC__real data[
 	// vector functions up to a lag of 10 (or max LPC order of 9)
 	// For comments, please see FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14
 	int i;
-	int limit = data_len - 10;
+	int limit = data_len - 12;
 	__m128d sum0, sum1, sum2, sum3, sum4;
 	__m128 sumtemp;
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 10);
-	FLAC__ASSERT(lag <= data_len);
 
 	sum0 = _mm_setzero_pd();
 	sum1 = _mm_setzero_pd();
@@ -188,13 +186,12 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[
 	// This function calculates autocorrelation with SSE2
 	// vector functions up to a lag of 14 (or max LPC order of 13)
 	int i;
-	int limit = data_len - 14;
+	int limit = data_len - 16;
 	__m128d sum0, sum1, sum2, sum3, sum4, sum5, sum6;
 	__m128 sumtemp;
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 14);
-	FLAC__ASSERT(lag <= data_len);
 
 	// Initialize all sum vectors with zero
 	sum0 = _mm_setzero_pd();
