@@ -18,6 +18,7 @@ jobs:
             ubuntu-latest-clang-cmake,
             macos-latest-clang-autotools,
             macos-latest-clang-cmake,
+            windows-latest-cmake,
             ubuntu-latest-gcc-autotools-64-bit-words,
             ubuntu-latest-clang-autotools-64-bit-words,
             ubuntu-latest-gcc-cmake-64-bit-words,
@@ -67,6 +68,11 @@ jobs:
             cxx: clang++
             build-system: cmake
             configure-opts: ''
+
+          - name: windows-latest-cmake
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DWITH_OGG=OFF'
 
           - name: ubuntu-latest-gcc-autotools-64-bit-words
             os: ubuntu-latest
