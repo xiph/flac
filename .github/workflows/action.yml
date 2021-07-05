@@ -144,17 +144,36 @@ jobs:
           make
           make check
 
-      - name: Build with CMake
+      - name: Prepare CMake build directory
         if: startsWith(matrix.build-system,'cmake')
         env:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
-        run: |
-          mkdir cmake-build
-          cd cmake-build
-          cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
-          cmake --build .
-          ctest -V
+        run: mkdir cmake-build
+
+      - name: CMake generator
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
+
+      - name: CMake build
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: cmake --build .
+
+      - name: CMake test
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: ctest -V
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
