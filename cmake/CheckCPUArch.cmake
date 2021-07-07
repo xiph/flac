@@ -25,3 +25,7 @@ endmacro(CHECK_CPU_ARCH_X86)
 macro(CHECK_CPU_ARCH_PPC64 VARIABLE)
     _CHECK_CPU_ARCH(ppc64 "defined(__powerpc64__) || defined(__ppc64__) || defined(__PPC64__) ||defined(_ARCH_PPC64)" ${VARIABLE})
 endmacro(CHECK_CPU_ARCH_PPC64)
+
+macro(CHECK_CPU_ARCH_AARCH64 VARIABLE)
+    _CHECK_CPU_ARCH(aarch64 "defined(__aarch64__)" ${VARIABLE})
+endmacro(CHECK_CPU_ARCH_AARCH64)

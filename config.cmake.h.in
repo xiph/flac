@@ -9,6 +9,9 @@
 /* Target processor is little endian. */
 #cmakedefine01 CPU_IS_LITTLE_ENDIAN
 
+/* Target processor AARCH64 (64-bit ARM) */
+#cmakedefine01 FLAC__CPU_AARCH64
+
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 
@@ -36,6 +39,9 @@
 
 /* Set to 1 if <arm_neon.h> is available. */
 #cmakedefine01 FLAC__HAS_NEONINTRIN
+
+/* Set to 1 if <arm_neon.h> has A64 functions. */
+#cmakedefine01 FLAC__HAS_A64NEONINTRIN
 
 /* define if building for Darwin / MacOS X */
 #cmakedefine FLAC__SYS_DARWIN

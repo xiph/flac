@@ -915,7 +915,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	}
 #endif
 #endif
-#if defined FLAC__CPU_ARM
+#if defined FLAC__CPU_AARCH64 && FLAC__HAS_A64NEONINTRIN
 	if(encoder->protected_->max_lpc_order < 4)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_4;
 		else if(encoder->protected_->max_lpc_order < 8)

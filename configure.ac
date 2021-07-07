@@ -156,10 +156,10 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		asm_optimisation=$asm_opt
 		;;
-	arm64|aarch64)
-		cpu_arm=true
-		AC_DEFINE(FLAC__CPU_ARM)
-		AH_TEMPLATE(FLAC__CPU_ARM, [define if building for ARM])
+	aarch64)
+		cpu_aarch64=true
+		AC_DEFINE(FLAC__CPU_AARCH64)
+		AH_TEMPLATE(FLAC__CPU_AARCH64, [define if building for AARCH64])
 		asm_optimisation=$asm_opt
 		;;
 	sparc)
@@ -173,7 +173,7 @@ AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
-AM_CONDITIONAL(FLAC__CPU_ARM, test "x$cpu_arm" = xtrue)
+AM_CONDITIONAL(FLAC__CPU_AARCH64, test "x$cpu_aarch64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes; then
@@ -186,6 +186,19 @@ neon=no
 if test "x$ac_cv_header_arm_neon_h" = xyes; then
 AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
 neon=yes
+  AC_MSG_CHECKING([whether arm_neon.h has A64 functions])
+  AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <arm_neon.h>]],
+	[[float64x2_t sum5; sum5 = vdupq_n_f64(0.0f);]])],
+	[AC_MSG_RESULT([yes])
+	 has_a64neon=yes],
+	[AC_MSG_RESULT([no])])
+if test "x$has_a64neon" = xyes; then
+AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 1, [Set to 1 if <arm_neon.h> has A64 instructions.])
+else
+AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 0)
+fi
+
 else
 AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
 fi
