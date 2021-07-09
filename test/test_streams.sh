@@ -34,16 +34,16 @@ run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_streams.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_streams.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail "$@" 4>>test_streams.valgrind.log
 	else
-		flac${EXE} --no-error-on-compression-fail $*
+		flac${EXE} --no-error-on-compression-fail "$@"
 	fi
 }
 
 echo "Generating streams..."
-if [ ! -f wacky1.wav ] ; then
+[ -f wacky1.wav ] || {
 	test_streams || die "ERROR: missing files"
-fi
+}
 
 #
 # single-file test routines
@@ -56,24 +56,30 @@ test_file ()
 	bps=$3
 	encode_options="$4"
 
-	echo $ECHO_N "$name (--channels=$channels --bps=$bps $encode_options): encode..." $ECHO_C
+	echo "$ECHO_N" "$name (--channels=$channels --bps=$bps $encode_options): encode..." "$ECHO_C"
 	cmd="run_flac --verify --silent --force --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding $name.raw"
-	echo "### ENCODE $name #######################################################" >> ./streams.log
-	echo "###    cmd=$cmd" >> ./streams.log
+	{
+	echo "### ENCODE $name #######################################################"
+	echo "###    cmd=$cmd"
+	} >> ./streams.log
 	$cmd 2>>./streams.log || die "ERROR during encode of $name"
 
-	echo $ECHO_N "decode..." $ECHO_C
+	echo "$ECHO_N" "decode..." "$ECHO_C"
 	cmd="run_flac --silent --force --endian=little --sign=signed --decode --force-raw-format --output-name=$name.cmp $name.flac"
-	echo "### DECODE $name #######################################################" >> ./streams.log
-	echo "###    cmd=$cmd" >> ./streams.log
+	{
+	echo "### DECODE $name #######################################################"
+	echo "###    cmd=$cmd"
+	} >> ./streams.log
 	$cmd 2>>./streams.log || die "ERROR during decode of $name"
 
-	ls -1l $name.raw >> ./streams.log
-	ls -1l $name.flac >> ./streams.log
-	ls -1l $name.cmp >> ./streams.log
+	{
+	ls -1l "$name.raw"
+	ls -1l "$name.flac"
+	ls -1l "$name.cmp"
+	} >> ./streams.log
 
-	echo $ECHO_N "compare..." $ECHO_C
-	cmp $name.raw $name.cmp || die "ERROR during compare of $name"
+	echo "$ECHO_N" "compare..." "$ECHO_C"
+	cmp "$name.raw" "$name.cmp" || die "ERROR during compare of $name"
 
 	echo OK
 }
@@ -85,42 +91,53 @@ test_file_piped ()
 	bps=$3
 	encode_options="$4"
 
-	if [ `env | grep -ic '^comspec='` != 0 ] ; then
+	if [ "$(env | grep -ic '^comspec=')" != 0 ] ; then
 		is_win=yes
 	else
 		is_win=no
 	fi
 
-	echo $ECHO_N "$name: encode via pipes..." $ECHO_C
+	echo "$ECHO_N" "$name: encode via pipes..." "$ECHO_C"
 	if [ $is_win = yes ] ; then
 		cmd="run_flac --verify --silent --force --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding --stdout $name.raw"
-		echo "### ENCODE $name #######################################################" >> ./streams.log
-		echo "###    cmd=$cmd" >> ./streams.log
-		$cmd 1>$name.flac 2>>./streams.log || die "ERROR during encode of $name"
+		{
+		echo "### ENCODE $name #######################################################"
+		echo "###    cmd=$cmd"
+		} >> ./streams.log
+		$cmd 1> "$name.flac" 2>>./streams.log || die "ERROR during encode of $name"
 	else
 		cmd="run_flac --verify --silent --force --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding --stdout -"
-		echo "### ENCODE $name #######################################################" >> ./streams.log
-		echo "###    cmd=$cmd" >> ./streams.log
-		cat $name.raw | $cmd 1>$name.flac 2>>./streams.log || die "ERROR during encode of $name"
+		{
+		echo "### ENCODE $name #######################################################"
+		echo "###    cmd=$cmd"
+		} >> ./streams.log
+		$cmd < "$name.raw" 1> "$name.flac" 2>>./streams.log || die "ERROR during encode of $name"
 	fi
-	echo $ECHO_N "decode via pipes..." $ECHO_C
+	echo "$ECHO_N" "decode via pipes..." "$ECHO_C"
 	if [ $is_win = yes ] ; then
 		cmd="run_flac --silent --force --endian=little --sign=signed --decode --force-raw-format --stdout $name.flac"
-		echo "### DECODE $name #######################################################" >> ./streams.log
-		echo "###    cmd=$cmd" >> ./streams.log
-		$cmd 1>$name.cmp 2>>./streams.log || die "ERROR during decode of $name"
+		{
+		echo "### DECODE $name #######################################################"
+		echo "###    cmd=$cmd"
+		} >> ./streams.log
+		$cmd 1> "$name.cmp" 2>> ./streams.log || die "ERROR during decode of $name"
 	else
 		cmd="run_flac --silent --force --endian=little --sign=signed --decode --force-raw-format --stdout -"
-		echo "### DECODE $name #######################################################" >> ./streams.log
-		echo "###    cmd=$cmd" >> ./streams.log
-		cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log || die "ERROR during decode of $name"
+		{
+		echo "### DECODE $name #######################################################"
+		echo "###    cmd=$cmd"
+		} >> ./streams.log
+		$cmd < "$name.flac" 1> "$name.cmp" 2>>./streams.log || die "ERROR during decode of $name"
 	fi
-	ls -1l $name.raw >> ./streams.log
-	ls -1l $name.flac >> ./streams.log
-	ls -1l $name.cmp >> ./streams.log
 
-	echo $ECHO_N "compare..." $ECHO_C
-	cmp $name.raw $name.cmp || die "ERROR during compare of $name"
+	{
+	ls -1l "$name.raw"
+	ls -1l "$name.flac"
+	ls -1l "$name.cmp"
+	} >> ./streams.log
+
+	echo "$ECHO_N" "compare..." "$ECHO_C"
+	cmp "$name.raw" "$name.cmp" || die "ERROR during compare of $name"
 
 	echo OK
 }

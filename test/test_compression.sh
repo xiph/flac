@@ -19,11 +19,11 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
+PATH=$(pwd)/../src/flac:$PATH
 
-echo "Using FLAC binary :" $(which flac)
+echo "Using FLAC binary :" "$(command -v flac)"
 
-date=`date "+%Y%m%dT%H%M%S"`
+date=$(date "+%Y%m%dT%H%M%S")
 fname="comp${date}.flac"
 
 last_k=0
@@ -32,15 +32,15 @@ last_size=$(wc -c < noisy-sine.wav)
 echo "Original file size ${last_size} bytes."
 
 for k in 0 1 2 3 4 5 6 7 8 ; do
-	flac${EXE} -${k} --silent noisy-sine.wav -o ${fname}
-	size=$(wc -c < ${fname})
+	flac${EXE} -${k} --silent noisy-sine.wav -o "${fname}"
+	size=$(wc -c < "${fname}")
 	echo "Compression level ${k}, file size ${size} bytes."
-	if test ${last_size} -lt ${size} ; then
+	[ "${last_size}" -lt "${size}" ] && {
 		echo "Error : Compression ${last_k} size ${last_size} >= compression ${k} size ${size}."
 		exit 1
-		fi
+	}
 	# Need this because OSX's 'wc -c' returns a number with leading whitespace.
-	last_size=$((${size}+10))
+	last_size=$((size+10))
 	last_k=${k}
-	rm -f ${fname}
+	rm -f "${fname}"
 	done

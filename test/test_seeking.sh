@@ -37,9 +37,9 @@ run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_seeking.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} --no-error-on-compression-fail $* 4>>test_seeking.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} --no-error-on-compression-fail "$@" 4>>test_seeking.valgrind.log
 	else
-		flac${EXE} --no-error-on-compression-fail $*
+		flac${EXE} --no-error-on-compression-fail "$@"
 	fi
 }
 
@@ -47,9 +47,9 @@ run_metaflac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_seeking.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 4>>test_seeking.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} "$@" 4>>test_seeking.valgrind.log
 	else
-		metaflac${EXE} $*
+		metaflac${EXE} "$@"
 	fi
 }
 
@@ -57,14 +57,14 @@ run_test_seeking ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 test_seeking $*" >>test_seeking.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_seeking $* 4>>test_seeking.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_seeking "$@" 4>>test_seeking.valgrind.log
 	else
-		test_seeking${EXE} $*
+		test_seeking${EXE} "$@"
 	fi
 }
 
-echo $ECHO_N "Checking for --ogg support in flac ... " $ECHO_C
-if flac${EXE} --ogg --no-error-on-compression-fail --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
+echo "$ECHO_N" "Checking for --ogg support in flac ... " "$ECHO_C"
+if flac${EXE} --ogg --no-error-on-compression-fail --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c "$0" 1>/dev/null 2>&1 ; then
 	has_ogg=yes;
 else
 	has_ogg=no;
@@ -72,9 +72,9 @@ fi
 echo ${has_ogg}
 
 echo "Generating streams..."
-if [ ! -f noise.raw ] ; then
+[ -f noise.raw ] || {
 	test_streams || die "ERROR during test_streams"
-fi
+}
 
 echo "generating FLAC files for seeking:"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 -S- --output-name=tiny.flac noise8m32.raw || die "ERROR generating FLAC file"
@@ -82,8 +82,8 @@ run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 -S10x --output-name=tiny-s.flac noise8m32.raw || die "ERROR generating FLAC file"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 -S10x --output-name=small-s.flac noise.raw || die "ERROR generating FLAC file"
 
-tiny_samples=`metaflac${EXE} --show-total-samples tiny.flac`
-small_samples=`metaflac${EXE} --show-total-samples small.flac`
+tiny_samples=$(metaflac${EXE} --show-total-samples tiny.flac)
+small_samples=$(metaflac${EXE} --show-total-samples small.flac)
 
 tiny_seek_count=100
 if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
@@ -94,12 +94,12 @@ fi
 
 for suffix in '' '-s' ; do
 	echo "testing tiny$suffix.flac:"
-	if run_test_seeking tiny$suffix.flac $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
+	if run_test_seeking tiny$suffix.flac $tiny_seek_count "$tiny_samples" noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small$suffix.flac:"
-	if run_test_seeking small$suffix.flac $small_seek_count $small_samples noise.raw ; then : ; else
+	if run_test_seeking small$suffix.flac $small_seek_count "$small_samples" noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
@@ -109,12 +109,12 @@ for suffix in '' '-s' ; do
 	fi
 
 	echo "testing tiny$suffix.flac with total_samples=0:"
-	if run_test_seeking tiny$suffix.flac $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
+	if run_test_seeking tiny$suffix.flac $tiny_seek_count "$tiny_samples" noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small$suffix.flac with total_samples=0:"
-	if run_test_seeking small$suffix.flac $small_seek_count $small_samples noise.raw ; then : ; else
+	if run_test_seeking small$suffix.flac $small_seek_count "$small_samples" noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 done
@@ -127,12 +127,12 @@ if [ $has_ogg = "yes" ] ; then
 	# seek tables are not used in Ogg FLAC
 
 	echo "testing tiny.oga:"
-	if run_test_seeking tiny.oga $tiny_seek_count $tiny_samples noise8m32.raw ; then : ; else
+	if run_test_seeking tiny.oga $tiny_seek_count "$tiny_samples" noise8m32.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 
 	echo "testing small.oga:"
-	if run_test_seeking small.oga $small_seek_count $small_samples noise.raw ; then : ; else
+	if run_test_seeking small.oga $small_seek_count "$small_samples" noise.raw ; then : ; else
 		die "ERROR: during test_seeking"
 	fi
 

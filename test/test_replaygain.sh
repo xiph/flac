@@ -20,14 +20,9 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
-PATH=`pwd`/../src/metaflac:$PATH
-PATH=`pwd`/../objs/$BUILD/bin:$PATH
-
-if echo a | (grep -E '(a|b)') >/dev/null 2>&1
-	then EGREP='grep -E'
-	else EGREP='egrep'
-fi
+PATH=$(pwd)/../src/flac:$PATH
+PATH=$(pwd)/../src/metaflac:$PATH
+PATH=$(pwd)/../objs/$BUILD/bin:$PATH
 
 testdir="metaflac-test-files"
 flacfile="replaygain.flac"
@@ -36,9 +31,9 @@ run_flac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_replaygain.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_replaygain.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail "$@" 4>>test_replaygain.valgrind.log
 	else
-		flac${EXE} --no-error-on-compression-fail $*
+		flac${EXE} --no-error-on-compression-fail "$@"
 	fi
 }
 
@@ -46,22 +41,22 @@ run_metaflac ()
 {
 	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
-		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 4>>test_replaygain.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac "$@" 4>>test_replaygain.valgrind.log
 	else
-		metaflac${EXE} $*
+		metaflac${EXE} "$@"
 	fi
 }
 
 run_metaflac_silent ()
 {
 	if [ -z "$SILENT" ] ; then
-		run_metaflac $*
+		run_metaflac "$@"
 	else
 		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
 			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
-			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 2>/dev/null 4>>test_replaygain.valgrind.log
+			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac "$@" 2>/dev/null 4>>test_replaygain.valgrind.log
 		else
-			metaflac${EXE} $* 2>/dev/null
+			metaflac${EXE} "$@" 2>/dev/null
 		fi
 	fi
 }
@@ -86,7 +81,7 @@ check_flac
 
 tonegenerator ()
 {
-    flac${EXE} --force --output-name=$2 --silent --no-seektable --no-error-on-compression-fail rpg-tone-$1.wav
+    flac${EXE} --force --output-name="$2" --silent --no-seektable --no-error-on-compression-fail "rpg-tone-$1.wav"
 }
 
 REPLAYGAIN_FREQ=
@@ -122,19 +117,17 @@ for ACTION in $REPLAYGAIN_FREQ ; do
     else
       HARMONICS="${HARMONICS#*:}"
     fi
-    RATE=$(($MULTIPLE * FREQ))
-    [ $MULTIPLE -eq 1 -o -n "${REPLAYGAIN_FREQ##* $RATE/*}" ] || break
-    echo $ECHO_N "Testing FLAC replaygain $RATE ($FREQ x $MULTIPLE) ... " $ECHO_C
+    RATE=$((MULTIPLE * FREQ))
+    [ "$MULTIPLE" -eq 1 ] || [ -n "${REPLAYGAIN_FREQ##* $RATE/*}" ] || break
+    echo "$ECHO_N" "Testing FLAC replaygain $RATE ($FREQ x $MULTIPLE) ... " "$ECHO_C"
     tonegenerator $RATE $flacfile
     run_metaflac --scan-replay-gain $flacfile
     run_metaflac --add-replay-gain $flacfile
-    run_metaflac --list $flacfile | grep REPLAYGAIN.*GAIN= |
+    run_metaflac --list $flacfile | grep "REPLAYGAIN.*GAIN=" |
     while read -r REPLAYGAIN ; do
       MEASUREDGAIN="${REPLAYGAIN##*=}"
       MEASUREDGAIN="${MEASUREDGAIN%% *}"
-      if [ x"$MEASUREDGAIN" != x"$GAIN" ] ; then
-        die "ERROR, Expected $GAIN db instead of $REPLAYGAIN"
-      fi
+      [ x"$MEASUREDGAIN" = x"$GAIN" ] || die "ERROR, Expected $GAIN db instead of $REPLAYGAIN"
     done
     echo OK
   done

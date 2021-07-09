@@ -1,3 +1,4 @@
+
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
 #  Copyright (C) 2011-2016  Xiph.Org Foundation
@@ -26,13 +27,13 @@ else
 fi
 
 LD_LIBRARY_PATH=../objs/$BUILD/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/libFLAC/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/getopt/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/grabbag/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/utf8/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../objs/$BUILD/lib:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../src/libFLAC/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../src/share/getopt/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../src/share/grabbag/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH=$(pwd)/../src/share/utf8/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/libFLAC++/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/getopt/.libs:$LD_LIBRARY_PATH
@@ -51,7 +52,7 @@ top_srcdir=@top_srcdir@
 top_builddir=@top_builddir@
 
 # Set `is_win` variable which is used in other scripts that source this one.
-if test $(env | grep -ic '^comspec=') != 0 ; then
+if [ "$(env | grep -ic '^comspec=')" != 0 ]; then
 	is_win=yes
 else
 	is_win=no
@@ -70,14 +71,14 @@ fi
 
 die ()
 {
-	echo $* 1>&2
+	echo "$*" 1>&2
 	exit 1
 }
 
 make_streams ()
 {
 	echo "Generating streams..."
-	if [ ! -f wacky1.wav ] ; then
+	[ -f wacky1.wav ] || {
 		test_streams${EXE} || die "ERROR during test_streams"
-	fi
+	}
 }
