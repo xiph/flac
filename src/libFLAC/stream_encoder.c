@@ -2736,7 +2736,7 @@ void update_metadata_(const FLAC__StreamEncoder *encoder)
 {
 	FLAC__byte b[flac_max(6u, FLAC__STREAM_METADATA_SEEKPOINT_LENGTH)];
 	const FLAC__StreamMetadata *metadata = &encoder->private_->streaminfo;
-	const FLAC__uint64 samples = metadata->data.stream_info.total_samples;
+	FLAC__uint64 samples = metadata->data.stream_info.total_samples;
 	const uint32_t min_framesize = metadata->data.stream_info.min_framesize;
 	const uint32_t max_framesize = metadata->data.stream_info.max_framesize;
 	const uint32_t bps = metadata->data.stream_info.bits_per_sample;
@@ -2793,6 +2793,8 @@ void update_metadata_(const FLAC__StreamEncoder *encoder)
 				FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN
 				- 4
 			) / 8;
+		if(samples > (FLAC__U64L(1) << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
+			samples = 0;
 
 		b[0] = ((FLAC__byte)(bps-1) << 4) | (FLAC__byte)((samples >> 32) & 0x0F);
 		b[1] = (FLAC__byte)((samples >> 24) & 0xFF);
