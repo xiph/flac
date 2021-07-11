@@ -1,10 +1,23 @@
-if(NOT UNIX)
-    return()
-endif()
-
 if(WIN32)
     set(EXEEXT .exe)
 endif()
+
+if(NOT UNIX)
+    add_test(NAME libFLAC
+      COMMAND $<TARGET_FILE:test_libFLAC>
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    add_test(NAME libFLAC++
+      COMMAND $<TARGET_FILE:test_libFLAC++>
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    add_test(NAME flac_help
+      COMMAND $<TARGET_FILE:flacapp> --help
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    add_test(NAME metaflac_help
+      COMMAND $<TARGET_FILE:metaflac> --help
+      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    return()
+endif()
+
 set(top_srcdir "${PROJECT_SOURCE_DIR}")
 set(top_builddir "${PROJECT_BINARY_DIR}")
 configure_file(common.sh.in common.sh @ONLY)
