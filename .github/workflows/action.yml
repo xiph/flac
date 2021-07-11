@@ -173,7 +173,7 @@ jobs:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         working-directory: cmake-build
-        run: ctest -V
+        run: ctest -V -C Debug
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
