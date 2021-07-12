@@ -1249,6 +1249,29 @@ flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
 
+test_total_samples_overflow ()
+{
+	total_samples=$1
+	expected_stored_total_samples=$2
+	echo $ECHO_N "total_samples overflow test (samples=$total_samples) encode... " $ECHO_C
+	head -c $total_samples /dev/zero | run_flac --force --verify --sign=signed --sample-rate=96000 -b 16384 --channels=1 --endian=little --bps=8 -o big-$total_samples.flac - || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac -t big-$total_samples.flac || die "ERROR"
+	echo $ECHO_N "check... " $ECHO_C
+	run_metaflac --show-total-samples big-$total_samples.flac > big-$total_samples.cmp1
+	echo $expected_stored_total_samples >  big-$total_samples.cmp2
+	diff -q -w big-$total_samples.cmp1 big-$total_samples.cmp2  || die "ERROR"
+	echo "OK"
+	rm -f big-$total_samples.flac big-$total_samples.cmp1 big-$total_samples.cmp2
+}
+
+if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
+	test_total_samples_overflow 68719476735 68719476735
+	test_total_samples_overflow 68719476736 0
+	test_total_samples_overflow 68719476737 0
+fi
+
+
 rm -f out.flac out.meta out1.meta
 
 #@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
