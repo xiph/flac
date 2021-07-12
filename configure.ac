@@ -69,7 +69,7 @@ AC_C_INLINE
 AC_C_VARARRAYS
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h])
+AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
 
 XIPH_C_BSWAP32
 XIPH_C_BSWAP16
@@ -156,6 +156,12 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		asm_optimisation=$asm_opt
 		;;
+	arm64|aarch64)
+		cpu_arm=true
+		AC_DEFINE(FLAC__CPU_ARM)
+		AH_TEMPLATE(FLAC__CPU_ARM, [define if building for ARM])
+		asm_optimisation=$asm_opt
+		;;
 	sparc)
 		cpu_sparc=true
 		AC_DEFINE(FLAC__CPU_SPARC)
@@ -167,12 +173,21 @@ AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
+AM_CONDITIONAL(FLAC__CPU_ARM, test "x$cpu_arm" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes; then
 AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
 else
 AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
+fi
+
+neon=no
+if test "x$ac_cv_header_arm_neon_h" = xyes; then
+AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
+neon=yes
+else
+AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
 fi
 
 if test x"$cpu_ppc64" = xtrue ; then
@@ -237,13 +252,17 @@ fi
 
 AM_CONDITIONAL([DEBUG], [test "x${ax_enable_debug}" = "xyes" || test "x${ax_enable_debug}" = "xinfo"])
 
-AC_ARG_ENABLE(sse,
-AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
-[case "${enableval}" in
-	yes) sse_os=yes ;;
-	no)  sse_os=no ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
-esac],[sse_os=yes])
+if test "x$ac_cv_header_x86intrin_h" = xyes; then
+	AC_ARG_ENABLE(sse,
+	AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
+	[case "${enableval}" in
+		yes) sse_os=yes ;;
+		no)  sse_os=no ;;
+		*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
+	esac],[sse_os=yes])
+else
+	sse_os=no
+fi
 
 AC_ARG_ENABLE(altivec,
 AC_HELP_STRING([--disable-altivec], [Disable Altivec optimizations]),
@@ -627,6 +646,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
 	echo "    SSE optimizations : ....................... ${sse_os}"
+	echo "    Neon optimizations : ...................... ${neon}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"

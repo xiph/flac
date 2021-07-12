@@ -6,17 +6,16 @@ check_include_file("sys/param.h" HAVE_SYS_PARAM_H)
 set(CMAKE_REQUIRED_LIBRARIES m)
 check_function_exists(lround HAVE_LROUND)
 
-include(CheckCSourceCompiles)
-include(CheckCPUArch)
-
-check_cpu_arch_x64(FLAC__CPU_X86_64)
-if(NOT FLAC__CPU_X86_64)
-    check_cpu_arch_x86(FLAC__CPU_IA32)
-endif()
-
-if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
-    set(FLAC__ALIGN_MALLOC_DATA 1)
-    option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
+if(CMAKE_SYSTEM_PROCESSOR MATCHES "[xX]86_64|(AMD|amd)64")
+    if(CMAKE_SIZEOF_VOID_P EQUAL 4)
+        set(IA32 TRUE)
+    endif()
+    add_definitions(-DFLAC__CPU_X86_64 -DFLAC__ALIGN_MALLOC_DATA)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "([xX]|i[346])86")
+    set(IA32 TRUE)
+    add_definitions(-DFLAC__CPU_IA32 -DFLAC__ALIGN_MALLOC_DATA)
+elseif(CMAKE_SYSTEM_PROCESSOR MATCHES "(arm64|aarch64)")
+    add_definitions(-DFLAC__CPU_ARM)
 endif()
 
 include(CheckLanguage)
@@ -58,6 +57,7 @@ add_library(FLAC
     float.c
     format.c
     lpc.c
+    lpc_intrin_neon.c
     lpc_intrin_sse.c
     lpc_intrin_sse2.c
     lpc_intrin_sse41.c
