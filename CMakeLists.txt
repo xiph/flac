@@ -17,6 +17,7 @@ option(BUILD_PROGRAMS "Build and install programs" ON)
 option(BUILD_EXAMPLES "Build and install examples" ON)
 option(BUILD_TESTING "Build tests" ON)
 option(BUILD_DOCS "Build and install doxygen documents" ON)
+option(WITH_FORTIFY_SOURCE "Enable protection against buffer overflows" ON)
 option(WITH_STACK_PROTECTOR "Enable GNU GCC stack smash protection" ON)
 option(INSTALL_MANPAGES "Install MAN pages" ON)
 option(INSTALL_PKGCONFIG_MODULES "Install PkgConfig modules" ON)
@@ -78,6 +79,15 @@ check_c_compiler_flag(-Wdeclaration-after-statement HAVE_DECL_AFTER_STMT_FLAG)
 check_c_compiler_flag(-mstackrealign HAVE_STACKREALIGN_FLAG)
 check_cxx_compiler_flag(-Weffc++ HAVE_WEFFCXX_FLAG)
 
+if(MINGW AND (WITH_FORTIFY_SOURCE OR WITH_STACK_PROTECTOR))
+  check_library_exists(ssp __stack_chk_fail "" HAVE_LIBSSP)
+  if(NOT HAVE_LIBSSP)
+    message(WARNING "Could not find libssp in MinGW, stack protection and/or FORTIFY_SOURCE are unavailable")
+  endif()
+elseif(NOT MSVC)
+  set(HAVE_LIBSSP 1)
+endif()
+
 if(WITH_STACK_PROTECTOR)
   if(NOT MSVC)
     check_c_compiler_flag("-fstack-protector-strong" HAVE_STACK_PROTECTOR_FLAG)
@@ -95,7 +105,13 @@ add_compile_options(
     $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${HAVE_WEFFCXX_FLAG}>>:-Weffc++>
     $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_DECL_AFTER_STMT_FLAG}>>:-Wdeclaration-after-statement>)
 
-if(HAVE_STACK_PROTECTOR_FLAG)
+if(HAVE_LIBSSP) # Implies WITH_FORTIFY_SOURCE
+  add_definitions(-D_FORTIFY_SOURCE=2)
+else(WITH_FORTIFY_SOURCE)
+  add_definitions(-D_FORTIFY_SOURCE=1)
+endif()
+
+if(HAVE_STACK_PROTECTOR_FLAG AND HAVE_LIBSSP)
     add_compile_options($<$<OR:$<COMPILE_LANGUAGE:C>,$<COMPILE_LANGUAGE:CXX>>:-fstack-protector-strong>)
 endif()
 

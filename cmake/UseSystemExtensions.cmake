@@ -1,16 +1,6 @@
 include(CheckCSourceCompiles)
 
 check_c_source_compiles("
-    int main()
-    {
-    #ifndef _FORTIFY_SOURCE
-        return 0;
-    #else
-        this_is_an_error;
-    #endif
-    }"
-    DODEFINE_FORTIFY_SOURCE)
-check_c_source_compiles("
     #include <wchar.h>
     mbstate_t x;
     int main() { return 0; }"
