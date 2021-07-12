@@ -174,7 +174,7 @@
 #define _GNU_SOURCE
 #endif
 
-#ifndef _FORTIFY_SOURCE
+#if !defined(_FORTIFY_SOURCE) && !defined(__MINGW32__)
 #cmakedefine DODEFINE_FORTIFY_SOURCE 2
 #define _FORTIFY_SOURCE DODEFINE_FORTIFY_SOURCE
 #endif
