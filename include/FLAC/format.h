@@ -125,7 +125,7 @@ extern "C" {
  *  ((2 ^ 16) - 1) * 10; see <A HREF="../format.html">FLAC format</A>
  *  as to why.
  */
-#define FLAC__MAX_SAMPLE_RATE (655350u)
+#define FLAC__MAX_SAMPLE_RATE (1048575u)
 
 /** The maximum LPC order permitted by the format. */
 #define FLAC__MAX_LPC_ORDER (32u)
