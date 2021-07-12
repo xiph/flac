@@ -8,6 +8,9 @@ check_function_exists(lround HAVE_LROUND)
 
 include(CheckCSourceCompiles)
 include(CheckCPUArch)
+include(CheckAttribute)
+include(CheckVSX)
+include(CheckA64NEON)
 
 check_cpu_arch_x64(FLAC__CPU_X86_64)
 if(NOT FLAC__CPU_X86_64)
@@ -17,6 +20,18 @@ endif()
 if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
     set(FLAC__ALIGN_MALLOC_DATA 1)
     option(WITH_AVX "Enable AVX, AVX2 optimizations" ON)
+else()
+    check_cpu_arch_ppc64(FLAC__CPU_PPC64)
+    if(FLAC__CPU_PPC64)
+        check_attribute_power8(FLAC__HAS_TARGET_POWER8)
+        check_attribute_power9(FLAC__HAS_TARGET_POWER9)
+        check_vsx(FLAC__USE_VSX)
+    else()
+        check_cpu_arch_aarch64(FLAC__CPU_AARCH64)
+        if(FLAC__CPU_AARCH64)
+            check_a64neon(FLAC__HAS_A64NEONINTRIN)
+        endif()
+    endif()
 endif()
 
 include(CheckLanguage)
@@ -58,6 +73,7 @@ add_library(FLAC
     float.c
     format.c
     lpc.c
+    lpc_intrin_neon.c
     lpc_intrin_sse.c
     lpc_intrin_sse2.c
     lpc_intrin_sse41.c

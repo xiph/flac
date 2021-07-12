@@ -1,0 +1,6 @@
+#include <arm_neon.h>
+int main (void)
+{
+    float64x2_t sum5;
+    sum5 = vdupq_n_f64(0.0f);
+}

@@ -54,11 +54,12 @@
 /* new routines: faster on current Intel (starting from Core i aka Nehalem) and all AMD CPUs */
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	int i;
 	int limit = data_len - 4;
 	__m128 sum0;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 4);
@@ -86,15 +87,19 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_new(const FLAC__real dat
 		}
 	}
 
-	_mm_storeu_ps(autoc,   sum0);
+	_mm_storeu_ps(_autoc,   sum0);
+	for(i = 0; i < 4; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	int i;
 	int limit = data_len - 8;
 	__m128 sum0, sum1;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 8);
@@ -129,16 +134,20 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_new(const FLAC__real dat
 		}
 	}
 
-	_mm_storeu_ps(autoc,   sum0);
-	_mm_storeu_ps(autoc+4, sum1);
+	_mm_storeu_ps(_autoc,   sum0);
+	_mm_storeu_ps(_autoc+4, sum1);
+	for(i = 0; i < 8; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	int i;
 	int limit = data_len - 12;
 	__m128 sum0, sum1, sum2;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 12);
@@ -180,17 +189,21 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_new(const FLAC__real da
 		}
 	}
 
-	_mm_storeu_ps(autoc,   sum0);
-	_mm_storeu_ps(autoc+4, sum1);
-	_mm_storeu_ps(autoc+8, sum2);
+	_mm_storeu_ps(_autoc,   sum0);
+	_mm_storeu_ps(_autoc+4, sum1);
+	_mm_storeu_ps(_autoc+8, sum2);
+	for(i = 0; i < 12; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	int i;
 	int limit = data_len - 16;
 	__m128 sum0, sum1, sum2, sum3;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag <= 16);
@@ -239,18 +252,22 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_new(const FLAC__real da
 		}
 	}
 
-	_mm_storeu_ps(autoc,   sum0);
-	_mm_storeu_ps(autoc+4, sum1);
-	_mm_storeu_ps(autoc+8, sum2);
-	_mm_storeu_ps(autoc+12,sum3);
+	_mm_storeu_ps(_autoc,   sum0);
+	_mm_storeu_ps(_autoc+4, sum1);
+	_mm_storeu_ps(_autoc+8, sum2);
+	_mm_storeu_ps(_autoc+12,sum3);
+	for(i = 0; i < 16; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 /* old routines: faster on older Intel CPUs (up to Core 2) */
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	__m128 xmm0, xmm2, xmm5;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag > 0);
@@ -281,13 +298,17 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_4_old(const FLAC__real dat
 		data_len--;
 	}
 
-	_mm_storeu_ps(autoc, xmm5);
+	_mm_storeu_ps(_autoc, xmm5);
+	for(int i = 0; i < 4; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm5, xmm6;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag > 0);
@@ -326,14 +347,18 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_8_old(const FLAC__real dat
 		data_len--;
 	}
 
-	_mm_storeu_ps(autoc,   xmm5);
-	_mm_storeu_ps(autoc+4, xmm6);
+	_mm_storeu_ps(_autoc,   xmm5);
+	_mm_storeu_ps(_autoc+4, xmm6);
+	for(int i = 0; i < 8; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag > 0);
@@ -379,15 +404,19 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_12_old(const FLAC__real da
 		data_len--;
 	}
 
-	_mm_storeu_ps(autoc,   xmm5);
-	_mm_storeu_ps(autoc+4, xmm6);
-	_mm_storeu_ps(autoc+8, xmm7);
+	_mm_storeu_ps(_autoc,   xmm5);
+	_mm_storeu_ps(_autoc+4, xmm6);
+	_mm_storeu_ps(_autoc+8, xmm7);
+	for(int i = 0; i < 12; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 FLAC__SSE_TARGET("sse")
-void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_old(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	__m128 xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9;
+	FLAC__real _autoc[FLAC__MAX_LPC_ORDER+1];
 
 	(void) lag;
 	FLAC__ASSERT(lag > 0);
@@ -442,10 +471,13 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse_lag_16_old(const FLAC__real da
 		data_len--;
 	}
 
-	_mm_storeu_ps(autoc,   xmm6);
-	_mm_storeu_ps(autoc+4, xmm7);
-	_mm_storeu_ps(autoc+8, xmm8);
-	_mm_storeu_ps(autoc+12,xmm9);
+	_mm_storeu_ps(_autoc,   xmm6);
+	_mm_storeu_ps(_autoc+4, xmm7);
+	_mm_storeu_ps(_autoc+8, xmm8);
+	_mm_storeu_ps(_autoc+12,xmm9);
+	for(int i = 0; i < 16; i++){
+		autoc[i] = _autoc[i];
+	}
 }
 
 #endif /* FLAC__SSE_SUPPORTED */

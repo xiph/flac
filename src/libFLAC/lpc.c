@@ -70,7 +70,7 @@ void FLAC__lpc_window_data(const FLAC__int32 in[], const FLAC__real window[], FL
 		out[i] = in[i] * window[i];
 }
 
-void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_len, uint32_t lag, FLAC__real autoc[])
+void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 	/* a readable, but slower, version */
 #if 0
@@ -119,7 +119,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 	}
 }
 
-void FLAC__lpc_compute_lp_coefficients(const FLAC__real autoc[], uint32_t *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
+void FLAC__lpc_compute_lp_coefficients(const double autoc[], uint32_t *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
 {
 	uint32_t i, j;
 	double r, err, lpc[FLAC__MAX_LPC_ORDER];
