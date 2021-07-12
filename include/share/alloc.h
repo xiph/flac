@@ -200,8 +200,10 @@ static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
 {
 	if(!size1 || !size2)
 		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
-	if(size1 > SIZE_MAX / size2)
+	if(size1 > SIZE_MAX / size2) {
+		free(ptr);
 		return 0;
+	}
 	return safe_realloc_(ptr, size1*size2);
 }
 
