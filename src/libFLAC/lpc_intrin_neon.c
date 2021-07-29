@@ -319,6 +319,6 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_16(const FLAC__real data[
     vst1q_f64(autoc + 12, sum6);
     vst1q_f64(autoc + 14, sum7);
 }
-#endif /* FLAC__CPU_ARM && FLAC__HAS_ARCH64INTRIN */
+#endif /* FLAC__CPU_AARCH64 && FLAC__HAS_A64NEONINTRIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */
