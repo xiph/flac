@@ -12,6 +12,12 @@
 /* Target processor AARCH64 (64-bit ARM) */
 #cmakedefine01 FLAC__CPU_AARCH64
 
+/* Target processor PPC */
+#cmakedefine FLAC__CPU_PPC
+
+/* Target processor PPC64 */
+#cmakedefine FLAC__CPU_PPC64
+
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 
