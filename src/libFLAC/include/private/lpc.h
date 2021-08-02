@@ -89,16 +89,14 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[
 #  endif
 #if defined(FLAC__CPU_PPC64) && defined(FLAC__USE_VSX)
 #ifdef FLAC__HAS_TARGET_POWER9
-void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_4(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
-void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
+void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 #endif
 #ifdef FLAC__HAS_TARGET_POWER8
-void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_4(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
-void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
+void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 #endif
 #endif
 #if defined FLAC__CPU_AARCH64 && FLAC__HAS_A64NEONINTRIN
