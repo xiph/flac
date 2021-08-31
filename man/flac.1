@@ -3,7 +3,7 @@
 .\" <http://shell.ipoline.com/~elmert/comp/docbook2X/> 
 .\" Please send any bug reports, improvements, comments, patches, 
 .\" etc. to Steve Cheng <steve@ggi-project.org>.
-.TH "FLAC" "1" "2013/09/18" "" ""
+.TH "FLAC" "1" "2021/08/31" "" ""
 
 .SH NAME
 flac \- Free Lossless Audio Codec
@@ -230,7 +230,7 @@ Add a FLAC tag.  The comment must adhere to the Vorbis comment spec; i.e. the FI
 Like --tag, except FILENAME is a file whose contents will be read verbatim to set the tag value.  The contents will be converted to UTF-8 from the local charset.  This can be used to store a cuesheet in a tag (e.g.  --tag-from-file="CUESHEET=image.cue").  Do not try to store binary data in tag fields!  Use APPLICATION blocks for that.
 .TP
 \fB-b \fI#\fB, --blocksize=\fI#\fB\fR
-Specify the block size in samples.  Subset streams must use one of 192, 576, 1152, 2304, 4608, 256, 512, 1024, 2048, 4096 (and 8192 or 16384 if the sample rate is >48kHz).
+Specify the blocksize in samples. The default is 1152 for -l 0, else 4096. For subset streams this must be <= 4608 if the samplerate <= 48kHz, for subset streams with higher samplerates it must be <= 16384.
 .TP
 \fB-m, --mid-side\fR
 Try mid-side coding for each frame (stereo input only)
