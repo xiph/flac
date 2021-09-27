@@ -74,7 +74,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 {
 	/* a readable, but slower, version */
 #if 0
-	FLAC__real d;
+	double d;
 	uint32_t i;
 
 	FLAC__ASSERT(lag > 0);
@@ -89,7 +89,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 	 */
 	while(lag--) {
 		for(i = lag, d = 0.0; i < data_len; i++)
-			d += data[i] * data[i - lag];
+			d += data[i] * (double)data[i - lag];
 		autoc[lag] = d;
 	}
 #endif
@@ -98,7 +98,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 	 * this version tends to run faster because of better data locality
 	 * ('data_len' is usually much larger than 'lag')
 	 */
-	FLAC__real d;
+	double d;
 	uint32_t sample, coeff;
 	const uint32_t limit = data_len - lag;
 
