@@ -348,6 +348,9 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			return false;
 	}
 
+	if(d->analysis_mode)
+		FLAC__stream_decoder_get_decode_position(d->decoder, &d->decode_position);
+
 	if(d->abort_flag)
 		return false;
 
@@ -1301,8 +1304,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 
-	if(decoder_session->analysis_mode)
-		FLAC__stream_decoder_get_decode_position(decoder, &decoder_session->decode_position);
+	(void)decoder;
 
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__byte emptyMD5[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
