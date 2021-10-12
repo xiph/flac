@@ -63,69 +63,6 @@ FLAC__SSE_TARGET("ssse3")
 uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
 {
 	FLAC__uint32 total_error_0, total_error_1, total_error_2, total_error_3, total_error_4;
-
-#ifdef FLAC__CPU_IA32
-	uint32_t i, order;
-	__m128i total_err0, total_err1, total_err2;
-
-	{
-		FLAC__int32 itmp;
-		__m128i last_error;
-
-		last_error = _mm_cvtsi32_si128(data[-1]);							// 0   0   0   le0
-		itmp = data[-2];
-		last_error = _mm_shuffle_epi32(last_error, _MM_SHUFFLE(2,1,0,0));
-		last_error = _mm_sub_epi32(last_error, _mm_cvtsi32_si128(itmp));	// 0   0   le0 le1
-		itmp -= data[-3];
-		last_error = _mm_shuffle_epi32(last_error, _MM_SHUFFLE(2,1,0,0));
-		last_error = _mm_sub_epi32(last_error, _mm_cvtsi32_si128(itmp));	// 0   le0 le1 le2
-		itmp -= data[-3] - data[-4];
-		last_error = _mm_shuffle_epi32(last_error, _MM_SHUFFLE(2,1,0,0));
-		last_error = _mm_sub_epi32(last_error, _mm_cvtsi32_si128(itmp));	// le0 le1 le2 le3
-
-		total_err0 = total_err1 = _mm_setzero_si128();
-		for(i = 0; i < data_len; i++) {
-			__m128i err0, err1;
-			err0 = _mm_cvtsi32_si128(data[i]);								// 0   0   0   e0
-			err1 = _mm_shuffle_epi32(err0, _MM_SHUFFLE(0,0,0,0));			// e0  e0  e0  e0
-#if 1 /* OPT_SSE */
-			err1 = _mm_sub_epi32(err1, last_error);
-			last_error = _mm_srli_si128(last_error, 4);						// 0   le0 le1 le2
-			err1 = _mm_sub_epi32(err1, last_error);
-			last_error = _mm_srli_si128(last_error, 4);						// 0   0   le0 le1
-			err1 = _mm_sub_epi32(err1, last_error);
-			last_error = _mm_srli_si128(last_error, 4);						// 0   0   0   le0
-			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
-#else
-			last_error = _mm_add_epi32(last_error, _mm_srli_si128(last_error, 8));	// le0  le1  le2+le0  le3+le1
-			last_error = _mm_add_epi32(last_error, _mm_srli_si128(last_error, 4));	// le0  le1+le0  le2+le0+le1  le3+le1+le2+le0
-			err1 = _mm_sub_epi32(err1, last_error);							// e1  e2  e3  e4
-#endif
-			last_error = _mm_alignr_epi8(err0, err1, 4);					// e0  e1  e2  e3
-
-			err0 = _mm_abs_epi32(err0);
-			err1 = _mm_abs_epi32(err1);
-
-			total_err0 = _mm_add_epi32(total_err0, err0);					// 0   0   0   te0
-			total_err1 = _mm_add_epi32(total_err1, err1);					// te1 te2 te3 te4
-		}
-	}
-
-	total_error_0 = _mm_cvtsi128_si32(total_err0);
-	total_err2 = total_err1;											// te1  te2  te3  te4
-	total_err1 = _mm_srli_si128(total_err1, 8);							//  0    0   te1  te2
-	total_error_4 = _mm_cvtsi128_si32(total_err2);
-	total_error_2 = _mm_cvtsi128_si32(total_err1);
-	total_err2 = _mm_srli_si128(total_err2,	4);							//  0   te1  te2  te3
-	total_err1 = _mm_srli_si128(total_err1, 4);							//  0    0    0   te1
-	total_error_3 = _mm_cvtsi128_si32(total_err2);
-	total_error_1 = _mm_cvtsi128_si32(total_err1);
-#else   /* #ifdef FLAC__CPU_IA32, so else should be FLAC__CPU_X86_64 */
-	/* This code is about 3 times as fast as the code above, but
-	 * it needs more than the 8 SSE registers available in IA32,
-	 * so it can only be used on X86_64, where 16 registers are
-	 * available
-	 */
 	FLAC__int32 i, data_len_int;
 	uint32_t order;
 	__m128i total_err0, total_err1, total_err2, total_err3, total_err4;
@@ -206,7 +143,6 @@ uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[
 		}
 	}
 
-#endif
 	/* prefer higher order */
 	if(total_error_0 < flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
 		order = 0;
