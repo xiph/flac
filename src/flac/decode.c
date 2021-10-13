@@ -485,6 +485,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		flac__utils_printf(stderr, 1, "ERROR, MD5 signature mismatch\n");
 		ok = d->continue_through_decode_errors;
 	}
+	else if(d->got_stream_info && d->total_samples && (d->total_samples > d->samples_processed)){
+		stats_print_name(1, d->inbasefilename);
+		flac__utils_printf(stderr, 1, "ERROR, decoded number of samples is smaller than the total number of samples set in the STREAMINFO\n");
+		ok = d->continue_through_decode_errors;
+	}
 	else {
 		if(!d->got_stream_info) {
 			stats_print_name(1, d->inbasefilename);
@@ -494,6 +499,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		else if(!d->has_md5sum) {
 			stats_print_name(1, d->inbasefilename);
 			flac__utils_printf(stderr, 1, "WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n");
+			ok = !d->treat_warnings_as_errors;
+		}
+		else if(!d->total_samples) {
+			stats_print_name(1, d->inbasefilename);
+			flac__utils_printf(stderr, 1, "WARNING, cannot check total number of samples since it was unset in the STREAMINFO\n");
 			ok = !d->treat_warnings_as_errors;
 		}
 		stats_print_name(2, d->inbasefilename);
@@ -1308,6 +1318,15 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
 		FLAC__uint64 skip, until;
+
+		if(decoder_session->got_stream_info){
+			/* There was already a STREAMINFO received */
+			flac__utils_printf(stderr, 1, "%s: ERROR, more than one STREAMINFO found\n", decoder_session->inbasefilename);
+			if(!decoder_session->continue_through_decode_errors)
+				decoder_session->abort_flag = true;
+			return;
+		}
+
 		decoder_session->got_stream_info = true;
 		decoder_session->has_md5sum = memcmp(metadata->data.stream_info.md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) != 0;
 		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
