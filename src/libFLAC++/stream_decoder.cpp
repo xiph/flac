@@ -116,6 +116,12 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_decoder_set_metadata_ignore_all(decoder_));
 		}
 
+		bool Stream::set_ogg_allow_chaining(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_decoder_set_ogg_allow_chaining(decoder_, value));
+		}
+
 		Stream::State Stream::get_state() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -168,6 +174,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_get_decode_position(decoder_, position);
+		}
+
+		bool Stream::get_ogg_allow_chaining() const
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_decoder_get_ogg_allow_chaining(decoder_));
 		}
 
 		::FLAC__StreamDecoderInitStatus Stream::init()

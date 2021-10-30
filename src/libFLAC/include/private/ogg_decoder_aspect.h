@@ -42,12 +42,14 @@ typedef struct FLAC__OggDecoderAspect {
 	/* these are storage for values that can be set through the API */
 	FLAC__bool use_first_serial_number;
 	long serial_number;
+	FLAC__bool allow_chaining;
 
 	/* these are for internal state related to Ogg decoding */
 	ogg_stream_state stream_state;
 	ogg_sync_state sync_state;
 	uint32_t version_major, version_minor;
 	FLAC__bool need_serial_number;
+	FLAC__bool restart_stream;
 	FLAC__bool end_of_stream;
 	FLAC__bool have_working_page; /* only if true will the following vars be valid */
 	ogg_page working_page;
@@ -56,6 +58,8 @@ typedef struct FLAC__OggDecoderAspect {
 } FLAC__OggDecoderAspect;
 
 void FLAC__ogg_decoder_aspect_set_serial_number(FLAC__OggDecoderAspect *aspect, long value);
+void FLAC__ogg_decoder_aspect_set_allow_chaining(FLAC__OggDecoderAspect *aspect, FLAC__bool value);
+FLAC__bool FLAC__ogg_decoder_aspect_get_allow_chaining(FLAC__OggDecoderAspect *aspect);
 void FLAC__ogg_decoder_aspect_set_defaults(FLAC__OggDecoderAspect *aspect);
 FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect);
 void FLAC__ogg_decoder_aspect_finish(FLAC__OggDecoderAspect *aspect);
@@ -65,6 +69,7 @@ void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect);
 typedef enum {
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK = 0,
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM,
+	FLAC__OGG_DECODER_ASPECT_READ_STATUS_RESET_STREAM,
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC,
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC,
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION,

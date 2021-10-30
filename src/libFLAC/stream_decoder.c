@@ -167,6 +167,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__uint64 target_sample;
 	uint32_t unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine to check when process_single() actually writes a frame */
+	FLAC__bool reset_next; /* reset stream if Ogg stream ended and chaining support is enabled */
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -833,6 +834,21 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDec
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_allow_chaining(FLAC__StreamDecoder *decoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->protected_);
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+#if FLAC__HAS_OGG
+	FLAC__ogg_decoder_aspect_set_allow_chaining(&decoder->protected_->ogg_decoder_aspect, value);
+	return true;
+#else
+	(void)value;
+	return false;
+#endif
+}
+
 FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -915,6 +931,17 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamD
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_allow_chaining(const FLAC__StreamDecoder *decoder)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->protected_);
+#if FLAC__HAS_OGG
+	return FLAC__ogg_decoder_aspect_get_allow_chaining(&decoder->protected_->ogg_decoder_aspect);
+#else
+	return false;
+#endif
+}
+
 FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -939,6 +966,36 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 
 	return true;
+}
+
+static void reset_decoder(FLAC__StreamDecoder *decoder)
+{
+	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
+
+	decoder->private_->has_stream_info = false;
+
+	free(decoder->private_->seek_table.data.seek_table.points);
+	decoder->private_->seek_table.data.seek_table.points = 0;
+	decoder->private_->has_seek_table = false;
+
+	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
+	/*
+	 * This goes in reset() and not flush() because according to the spec, a
+	 * fixed-blocksize stream must stay that way through the whole stream.
+	 */
+	decoder->private_->fixed_block_size = decoder->private_->next_fixed_block_size = 0;
+
+	/* We initialize the FLAC__MD5Context even though we may never use it.  This
+	 * is because md5 checking may be turned on to start and then turned off if
+	 * a seek occurs.  So we init the context here and finalize it in
+	 * FLAC__stream_decoder_finish() to make sure things are always cleaned up
+	 * properly.
+	 */
+	FLAC__MD5Init(&decoder->private_->md5context);
+
+	decoder->private_->first_frame_offset = 0;
+	decoder->private_->unparseable_frame_count = 0;
+	decoder->private_->reset_next = false;
 }
 
 FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
@@ -972,32 +1029,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	else
 		decoder->private_->internal_reset_hack = false;
 
-	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
-
-	decoder->private_->has_stream_info = false;
-
-	free(decoder->private_->seek_table.data.seek_table.points);
-	decoder->private_->seek_table.data.seek_table.points = 0;
-	decoder->private_->has_seek_table = false;
-
-	decoder->private_->do_md5_checking = decoder->protected_->md5_checking;
-	/*
-	 * This goes in reset() and not flush() because according to the spec, a
-	 * fixed-blocksize stream must stay that way through the whole stream.
-	 */
-	decoder->private_->fixed_block_size = decoder->private_->next_fixed_block_size = 0;
-
-	/* We initialize the FLAC__MD5Context even though we may never use it.  This
-	 * is because md5 checking may be turned on to start and then turned off if
-	 * a seek occurs.  So we init the context here and finalize it in
-	 * FLAC__stream_decoder_finish() to make sure things are always cleaned up
-	 * properly.
-	 */
-	FLAC__MD5Init(&decoder->private_->md5context);
-
-	decoder->private_->first_frame_offset = 0;
-	decoder->private_->unparseable_frame_count = 0;
-
+	reset_decoder(decoder);
 	return true;
 }
 
@@ -1006,6 +1038,12 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 	FLAC__bool got_a_frame;
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
+
+#if FLAC__HAS_OGG
+	if (decoder->private_->reset_next) {
+		reset_decoder(decoder);
+	}
+#endif
 
 	while(1) {
 		switch(decoder->protected_->state) {
@@ -1043,6 +1081,12 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__Str
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
 
+#if FLAC__HAS_OGG
+	if (decoder->private_->reset_next) {
+		reset_decoder(decoder);
+	}
+#endif
+
 	while(1) {
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
@@ -1070,6 +1114,12 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 	FLAC__bool dummy;
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
+
+#if FLAC__HAS_OGG
+	if (decoder->private_->reset_next) {
+		reset_decoder(decoder);
+	}
+#endif
 
 	while(1) {
 		switch(decoder->protected_->state) {
@@ -2899,6 +2949,10 @@ FLAC__StreamDecoderReadStatus read_callback_ogg_aspect_(const FLAC__StreamDecode
 			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM:
 			return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_RESET_STREAM:
+			/* hack: tell stream to restart! */
+			decoder->private_->reset_next = true;
+			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC:
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION:
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT:

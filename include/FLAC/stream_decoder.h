@@ -879,6 +879,25 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__S
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDecoder *decoder);
 
+/** Set the "allow Ogg chaining" flag. If set, the Ogg decoder will
+ *  prepare to receive a new stream once the last Ogg page arrives for
+ *  the stream encapsulating the FLAC audio data. This can be used to
+ *  support chained Ogg FLAC streams; a new \c STREAMINFO signals the
+ *  beginning of a new stream.
+ *
+ * \note
+ * This function has no effect with native FLAC decoding.
+ *
+ * \default \c false
+ * \param  decoder          A decoder instance to set.
+ * \param  allow_chaining   Whether to allow chained streams.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_allow_chaining(FLAC__StreamDecoder *decoder, FLAC__bool allow_chaining);
+
 /** Get the current decoder state.
  *
  * \param  decoder  A decoder instance to query.
@@ -1005,6 +1024,17 @@ FLAC_API uint32_t FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *
  *    \c FLAC__STREAM_DECODER_TELL_STATUS_UNSUPPORTED.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamDecoder *decoder, FLAC__uint64 *position);
+
+/** Get the "allow Ogg chaining" flag as described in
+ *  \code FLAC__stream_decoder_set_ogg_allow_chaining \endcode.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_allow_chaining(const FLAC__StreamDecoder *decoder);
 
 /** Initialize the decoder instance to decode native FLAC streams.
  *

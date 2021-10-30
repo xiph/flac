@@ -79,9 +79,20 @@ void FLAC__ogg_decoder_aspect_set_serial_number(FLAC__OggDecoderAspect *aspect, 
 	aspect->serial_number = value;
 }
 
+void FLAC__ogg_decoder_aspect_set_allow_chaining(FLAC__OggDecoderAspect *aspect, FLAC__bool value)
+{
+	aspect->allow_chaining = value;
+}
+
+FLAC__bool FLAC__ogg_decoder_aspect_get_allow_chaining(FLAC__OggDecoderAspect *aspect)
+{
+	return aspect->allow_chaining;
+}
+
 void FLAC__ogg_decoder_aspect_set_defaults(FLAC__OggDecoderAspect *aspect)
 {
 	aspect->use_first_serial_number = true;
+	aspect->allow_chaining = false;
 }
 
 void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect)
@@ -98,6 +109,7 @@ void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
 
 	if(aspect->use_first_serial_number)
 		aspect->need_serial_number = true;
+	aspect->restart_stream = false;
 }
 
 FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], size_t *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data)
@@ -132,6 +144,13 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 	 * requested.
 	 */
 	*bytes = 0;
+	if (aspect->restart_stream) {
+		/* tell FLAC stream to reset itself */
+		aspect->restart_stream = false;
+		/* accept next serial number */
+		aspect->need_serial_number = true;
+		return FLAC__OGG_DECODER_ASPECT_READ_STATUS_RESET_STREAM;
+	}
 	while (*bytes < bytes_requested && !aspect->end_of_stream) {
 		if (aspect->have_working_page) {
 			if (aspect->have_working_packet) {
@@ -203,6 +222,11 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 				if(ogg_stream_pagein(&aspect->stream_state, &aspect->working_page) == 0) {
 					aspect->have_working_page = true;
 					aspect->have_working_packet = false;
+				}
+				if(aspect->allow_chaining && ogg_page_eos(&aspect->working_page)) {
+					/* tell decoder to reset next time around and exit now */
+					aspect->restart_stream = true;
+					break;
 				}
 				/* else do nothing, could be a page from another stream */
 			}
