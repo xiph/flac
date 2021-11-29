@@ -3441,7 +3441,7 @@ FLAC__bool process_subframe_(
 	/* verbatim subframe is the baseline against which we measure other compressed subframes */
 	_best_subframe = 0;
 	if(encoder->private_->disable_verbatim_subframes && frame_header->blocksize >= FLAC__MAX_FIXED_ORDER)
-		_best_bits = UINT_MAX;
+		_best_bits = UINT32_MAX;
 	else
 		_best_bits = evaluate_verbatim_subframe_(encoder, integer_signal, frame_header->blocksize, subframe_bps, subframe[_best_subframe]);
 
@@ -3611,7 +3611,7 @@ FLAC__bool process_subframe_(
 	}
 
 	/* under rare circumstances this can happen when all but lpc subframe types are disabled: */
-	if(_best_bits == UINT_MAX) {
+	if(_best_bits == UINT32_MAX) {
 		FLAC__ASSERT(_best_subframe == 0);
 		_best_bits = evaluate_verbatim_subframe_(encoder, integer_signal, frame_header->blocksize, subframe_bps, subframe[_best_subframe]);
 	}
@@ -3766,7 +3766,11 @@ uint32_t evaluate_fixed_subframe_(
 	for(i = 0; i < order; i++)
 		subframe->data.fixed.warmup[i] = signal[i];
 
-	estimate = FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + subframe->wasted_bits + (order * subframe_bps) + residual_bits;
+	estimate = FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + subframe->wasted_bits + (order * subframe_bps);
+	if(residual_bits < UINT32_MAX - estimate) // To make sure estimate doesn't overflow
+		estimate += residual_bits;
+	else
+		estimate = UINT32_MAX;
 
 #if SPOTCHECK_ESTIMATE
 	spotcheck_subframe_estimate_(encoder, blocksize, subframe_bps, subframe, estimate);
@@ -3850,7 +3854,11 @@ uint32_t evaluate_lpc_subframe_(
 	for(i = 0; i < order; i++)
 		subframe->data.lpc.warmup[i] = signal[i];
 
-	estimate = FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + subframe->wasted_bits + FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN + FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN + (order * (qlp_coeff_precision + subframe_bps)) + residual_bits;
+	estimate = FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + subframe->wasted_bits + FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN + FLAC__SUBFRAME_LPC_QLP_SHIFT_LEN + (order * (qlp_coeff_precision + subframe_bps));
+	if(residual_bits < UINT32_MAX - estimate) // To make sure estimate doesn't overflow
+		estimate += residual_bits;
+	else
+		estimate = UINT32_MAX;
 
 #if SPOTCHECK_ESTIMATE
 	spotcheck_subframe_estimate_(encoder, blocksize, subframe_bps, subframe, estimate);
@@ -4109,7 +4117,7 @@ static inline uint32_t count_rice_bits_in_partition_(
 	;
 	for(i = 0; i < partition_samples; i++)
 		partition_bits += ( (FLAC__uint32)((residual[i]<<1)^(residual[i]>>31)) >> rice_parameter );
-	return (uint32_t)(flac_min(partition_bits,(uint32_t)(-1))); // To make sure the return value doesn't overflow
+	return (uint32_t)(flac_min(partition_bits,UINT32_MAX)); // To make sure the return value doesn't overflow
 }
 #else
 static inline uint32_t count_rice_bits_in_partition_(
@@ -4126,7 +4134,7 @@ static inline uint32_t count_rice_bits_in_partition_(
 				(abs_residual_partition_sum >> (rice_parameter-1)) /* rice_parameter-1 because the real coder sign-folds instead of using a sign bit */
 				: (abs_residual_partition_sum << 1) /* can't shift by negative number, so reverse */
 		)
-		- (partition_samples >> 1),(uint32_t)(-1)));
+		- (partition_samples >> 1),UINT32_MAX));
 		/* -(partition_samples>>1) to subtract out extra contributions to the abs_residual_partition_sum.
 		 * The actual number of bits used is closer to the sum(for all i in the partition) of  abs(residual[i])>>(rice_parameter-1)
 		 * By using the abs_residual_partition sum, we also add in bits in the LSBs that would normally be shifted out.
@@ -4226,7 +4234,7 @@ FLAC__bool set_partitioned_rice_(
 			rice_parameter = rice_parameter_limit - 1;
 		}
 
-		best_partition_bits = (uint32_t)(-1);
+		best_partition_bits = UINT32_MAX;
 #ifdef ENABLE_RICE_PARAMETER_SEARCH
 		if(rice_parameter_search_dist) {
 			if(rice_parameter < rice_parameter_search_dist)
@@ -4269,10 +4277,10 @@ FLAC__bool set_partitioned_rice_(
 				raw_bits[partition] = 0;
 		}
 		parameters[partition] = best_rice_parameter;
-		if(best_partition_bits < UINT_MAX - bits_) // To make sure _bits doesn't overflow
+		if(best_partition_bits < UINT32_MAX - bits_) // To make sure _bits doesn't overflow
 			bits_ += best_partition_bits;
 		else
-			bits_ = UINT_MAX;
+			bits_ = UINT32_MAX;
 		residual_sample += partition_samples;
 	}
 
