@@ -6,15 +6,19 @@ if(NOT UNIX)
     add_test(NAME libFLAC
       COMMAND $<TARGET_FILE:test_libFLAC>
       WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    add_test(NAME libFLAC++
-      COMMAND $<TARGET_FILE:test_libFLAC++>
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    add_test(NAME flac_help
-      COMMAND $<TARGET_FILE:flacapp> --help
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
-    add_test(NAME metaflac_help
-      COMMAND $<TARGET_FILE:metaflac> --help
-      WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    if(BUILD_CXXLIBS)
+        add_test(NAME libFLAC++
+          COMMAND $<TARGET_FILE:test_libFLAC++>
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    endif()
+    if(BUILD_PROGRAMS)
+        add_test(NAME flac_help
+          COMMAND $<TARGET_FILE:flacapp> --help
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+        add_test(NAME metaflac_help
+          COMMAND $<TARGET_FILE:metaflac> --help
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+    endif()
     return()
 endif()
 
