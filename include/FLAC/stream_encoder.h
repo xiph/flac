@@ -1198,6 +1198,24 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_total_samples_estimate(FLAC__Stream
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encoder, FLAC__StreamMetadata **metadata, uint32_t num_blocks);
 
+/** Set to \c true to make the encoder not output frames which contain
+ *  only constant subframes. This is beneficial for streaming
+ *  applications: very small frames can cause problems with buffering
+ *  as bitrates can drop as low 1kbit/s for CDDA audio encoded within
+ *  subset. The minimum bitrate for a FLAC file encoded with this
+ *  function used is raised to 1bit/sample (i.e. 48kbit/s for 48kHz
+ *  material).
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Flag value (see above).
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_set_limit_min_bitrate(FLAC__StreamEncoder *encoder, FLAC__bool value);
+
 /** Get the current encoder state.
  *
  * \param  encoder  An encoder instance to query.
@@ -1424,6 +1442,16 @@ FLAC_API uint32_t FLAC__stream_encoder_get_rice_parameter_search_dist(const FLAC
  *    See FLAC__stream_encoder_get_total_samples_estimate().
  */
 FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC__StreamEncoder *encoder);
+
+/** Get the "limit_min_bitrate" flag.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See FLAC__stream_encoder_set_limit_min_bitrate().
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_get_limit_min_bitrate(const FLAC__StreamEncoder *encoder);
 
 /** Initialize the encoder instance to encode native FLAC streams.
  *

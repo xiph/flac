@@ -235,13 +235,14 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
 	}
 
-	if(total_error_0 < flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
+	/* prefer lower order */
+	if(total_error_0 <= flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
 		order = 0;
-	else if(total_error_1 < flac_min(flac_min(total_error_2, total_error_3), total_error_4))
+	else if(total_error_1 <= flac_min(flac_min(total_error_2, total_error_3), total_error_4))
 		order = 1;
-	else if(total_error_2 < flac_min(total_error_3, total_error_4))
+	else if(total_error_2 <= flac_min(total_error_3, total_error_4))
 		order = 2;
-	else if(total_error_3 < total_error_4)
+	else if(total_error_3 <= total_error_4)
 		order = 3;
 	else
 		order = 4;
@@ -297,13 +298,14 @@ uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint3
 		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
 	}
 
-	if(total_error_0 < flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
+	/* prefer lower order */
+	if(total_error_0 <= flac_min(flac_min(flac_min(total_error_1, total_error_2), total_error_3), total_error_4))
 		order = 0;
-	else if(total_error_1 < flac_min(flac_min(total_error_2, total_error_3), total_error_4))
+	else if(total_error_1 <= flac_min(flac_min(total_error_2, total_error_3), total_error_4))
 		order = 1;
-	else if(total_error_2 < flac_min(total_error_3, total_error_4))
+	else if(total_error_2 <= flac_min(total_error_3, total_error_4))
 		order = 2;
-	else if(total_error_3 < total_error_4)
+	else if(total_error_3 <= total_error_4)
 		order = 3;
 	else
 		order = 4;
