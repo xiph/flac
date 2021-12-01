@@ -211,6 +211,12 @@ namespace FLAC {
 			return ok;
 		}
 
+		bool Stream::set_limit_min_bitrate(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_set_limit_min_bitrate(encoder_, value));
+		}
+
 		Stream::State Stream::get_state() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -329,6 +335,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_total_samples_estimate(encoder_);
+		}
+
+		bool Stream::get_limit_min_bitrate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_get_limit_min_bitrate(encoder_));
 		}
 
 		::FLAC__StreamEncoderInitStatus Stream::init()

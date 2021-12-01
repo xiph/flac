@@ -1905,6 +1905,17 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encod
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__stream_encoder_set_limit_min_bitrate(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->limit_min_bitrate = value;
+	return true;
+}
+
 /*
  * These three functions are not static, but not publicly exposed in
  * include/FLAC/ either.  They are used by the test suite.
@@ -2135,6 +2146,14 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
 	return encoder->protected_->total_samples_estimate;
 }
 
+FLAC_API FLAC__bool FLAC__stream_encoder_get_limit_min_bitrate(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	return encoder->protected_->limit_min_bitrate;
+}
+
 FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], uint32_t samples)
 {
 	uint32_t i, j = 0, k = 0, channel;
@@ -2330,6 +2349,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->max_residual_partition_order = 0;
 	encoder->protected_->rice_parameter_search_dist = 0;
 	encoder->protected_->total_samples_estimate = 0;
+	encoder->protected_->limit_min_bitrate = false;
 	encoder->protected_->metadata = 0;
 	encoder->protected_->num_metadata_blocks = 0;
 
@@ -3127,7 +3147,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 {
 	FLAC__FrameHeader frame_header;
 	uint32_t channel, min_partition_order = encoder->protected_->min_residual_partition_order, max_partition_order;
-	FLAC__bool do_independent, do_mid_side;
+	FLAC__bool do_independent, do_mid_side, backup_disable_constant_subframes = encoder->private_->disable_constant_subframes, all_subframes_constant = true;
 
 	/*
 	 * Calculate the min,max Rice partition orders
@@ -3204,6 +3224,12 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 	 */
 	if(do_independent) {
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
+			if(encoder->protected_->limit_min_bitrate && all_subframes_constant && (channel + 1) == encoder->protected_->channels){
+				/* This frame contains only constant subframes at this point.
+				 * To prevent the frame from becoming too small, make sure
+				 * the last subframe isn't constant */
+				encoder->private_->disable_constant_subframes = true;
+			}
 			if(!
 				process_subframe_(
 					encoder,
@@ -3220,6 +3246,8 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 				)
 			)
 				return false;
+			if(encoder->private_->subframe_workspace[channel][encoder->private_->best_subframe[channel]].type != FLAC__SUBFRAME_TYPE_CONSTANT)
+				all_subframes_constant = false;
 		}
 	}
 
@@ -3365,6 +3393,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 	}
 
 	encoder->private_->last_channel_assignment = frame_header.channel_assignment;
+	encoder->private_->disable_constant_subframes = backup_disable_constant_subframes;
 
 	return true;
 }
