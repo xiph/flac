@@ -50,9 +50,11 @@ doc:
 	(cd $@ && $(MAKE) -f Makefile.lite)
 
 src examples:
+	(mkdir -p objs/release/bin objs/release/lib objs/debug/bin objs/debug/lib)
 	(cd $@ && $(MAKE) -f Makefile.lite $(CONFIG))
 
 libFLAC libFLAC++ share flac metaflac plugin_common plugin_xmms test_libs_common test_seeking test_streams test_grabbag test_libFLAC test_libFLAC++:
+	(mkdir -p objs/release/bin objs/release/lib objs/debug/bin objs/debug/lib)
 	(cd src/$@ && $(MAKE) -f Makefile.lite $(CONFIG))
 
 flacdiff flactimer:

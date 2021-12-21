@@ -109,7 +109,7 @@ $(DEBUG_DYNAMIC_LIB) : $(DEBUG_OBJS) $(DEBUG_PIC_OBJS)
 ifeq ($(OS),Darwin)
 	echo Not building dynamic lib, command is: $(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS) -lc
 else
-ifeq ($(PROC),x86_64)
+ifeq ($(PROC),$(filter $(PROC), x86_64 aarch64))
 	$(LINKD) -o $@ $(DEBUG_PIC_OBJS) $(LFLAGS) $(LIBS)
 else
 	$(LINKD) -o $@ $(DEBUG_OBJS) $(LFLAGS) $(LIBS)

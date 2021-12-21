@@ -68,10 +68,9 @@ CXXFLAGS := -O3 -fomit-frame-pointer -funroll-loops $(GCC_INLINE) -DFLaC__INLINE
 endif
 
 LFLAGS   = -L$(LIBPATH)
-
 DEBUG_OBJS = $(SRCS_C:%.c=%.debug.o) $(SRCS_CC:%.cc=%.debug.o) $(SRCS_CPP:%.cpp=%.debug.o) $(SRCS_NASM:%.nasm=%.debug.o)
 RELEASE_OBJS = $(SRCS_C:%.c=%.release.o) $(SRCS_CC:%.cc=%.release.o) $(SRCS_CPP:%.cpp=%.release.o) $(SRCS_NASM:%.nasm=%.release.o)
-ifeq ($(PROC),x86_64)
+ifeq ($(PROC),$(filter $(PROC), x86_64 aarch64))
 DEBUG_PIC_OBJS = $(SRCS_C:%.c=%.debug.pic.o) $(SRCS_CC:%.cc=%.debug.pic.o) $(SRCS_CPP:%.cpp=%.debug.pic.o) $(SRCS_NASM:%.nasm=%.debug.pic.o)
 RELEASE_PIC_OBJS = $(SRCS_C:%.c=%.release.pic.o) $(SRCS_CC:%.cc=%.release.pic.o) $(SRCS_CPP:%.cpp=%.release.pic.o) $(SRCS_NASM:%.nasm=%.release.pic.o)
 endif

@@ -114,7 +114,7 @@ else
 endif
 
 ifeq ($(OS),Linux)
-	ifeq ($(PROC),x86_64)
+	ifeq ($(PROC),$(filter $(PROC), x86_64 aarch64))
         CONFIG_CFLAGS += -fPIC
 	endif
 endif
