@@ -2528,13 +2528,19 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32
 		return true;
 	}
 	else if(x <= 24) {
+		uint32_t predictor_order = (x>>1)&7;
 		if(decoder->private_->frame.header.bits_per_sample > 24){
 			/* Decoder isn't equipped for fixed subframes with more than 24 bps */
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 			return true;
 		}
-		if(!read_subframe_fixed_(decoder, channel, bps, (x>>1)&7, do_full_decode))
+		if(decoder->private_->frame.header.blocksize <= predictor_order){
+			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
+		}
+		if(!read_subframe_fixed_(decoder, channel, bps, predictor_order, do_full_decode))
 			return false;
 		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means bad sync or got corruption */
 			return true;
@@ -2545,7 +2551,13 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32
 		return true;
 	}
 	else {
-		if(!read_subframe_lpc_(decoder, channel, bps, ((x>>1)&31)+1, do_full_decode))
+		uint32_t predictor_order = ((x>>1)&31)+1;
+		if(decoder->private_->frame.header.blocksize <= predictor_order){
+			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
+		}
+		if(!read_subframe_lpc_(decoder, channel, bps, predictor_order, do_full_decode))
 			return false;
 		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means bad sync or got corruption */
 			return true;
