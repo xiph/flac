@@ -169,9 +169,6 @@
     <ClCompile Include="lpc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="lpc_intrin_sse.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="lpc_intrin_sse2.c">
       <Filter>Source Files</Filter>
     </ClCompile>
