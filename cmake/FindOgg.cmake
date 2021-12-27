@@ -1,13 +1,17 @@
 find_package(PkgConfig)
 pkg_check_modules(_OGG QUIET ogg)
 
+file(GLOB _OGG_DIR ../libogg-*)
+
 find_path(OGG_INCLUDE_DIR
     NAMES "ogg/ogg.h"
-    PATHS ${_OGG_INCLUDE_DIRS})
+    PATHS ${_OGG_INCLUDE_DIRS}
+	HINTS "${_OGG_DIR}/include")
 
 find_library(OGG_LIBRARY
     NAMES ogg libogg
-    HINTS ${_OGG_LIBRARY_DIRS})
+    HINTS ${_OGG_LIBRARY_DIRS}
+    HINTS "${_OGG_DIR}/Release")
 
 mark_as_advanced(
     OGG_INCLUDE_DIR
