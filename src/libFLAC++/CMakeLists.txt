@@ -16,6 +16,7 @@ add_library(FLAC++
     metadata.cpp
     stream_decoder.cpp
     stream_encoder.cpp)
+set_property(TARGET FLAC++ PROPERTY PROJECT_LABEL "libFLAC++")
 target_compile_definitions(FLAC++
     PRIVATE $<$<BOOL:${BUILD_SHARED_LIBS}>:FLACPP_API_EXPORTS>
     PUBLIC $<$<NOT:$<BOOL:${BUILD_SHARED_LIBS}>>:FLAC__NO_DLL>)

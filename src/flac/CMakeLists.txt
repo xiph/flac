@@ -13,6 +13,7 @@ add_executable(flacapp
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
     $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>)
 set_property(TARGET flacapp PROPERTY RUNTIME_OUTPUT_NAME flac)
+set_property(TARGET flacapp PROPERTY PROJECT_LABEL "flac")
 target_link_libraries(flacapp
     FLAC
     getopt
