@@ -80,6 +80,7 @@ add_library(FLAC
     $<$<BOOL:${OGG_FOUND}>:ogg_encoder_aspect.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_helper.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_mapping.c>)
+set_property(TARGET FLAC PROPERTY PROJECT_LABEL "libFLAC")
 if(TARGET FLAC-asm)
     target_sources(FLAC PRIVATE $<TARGET_OBJECTS:FLAC-asm>)
 endif()
