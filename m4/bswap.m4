@@ -43,11 +43,9 @@ AC_DEFUN([XIPH_C_BSWAP32],
   ac_cv_c_bswap32=no
   HAVE_BSWAP32=0
 
-  [AC_TRY_LINK([],
-    return __builtin_bswap32 (0) ;,
-    ac_cv_c_bswap32=yes
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[return __builtin_bswap32 (0) ;]])],[ac_cv_c_bswap32=yes
     HAVE_BSWAP32=1
-  )]
+  ],[])]
   AC_DEFINE_UNQUOTED(HAVE_BSWAP32, ${HAVE_BSWAP32},
     [Compiler has the __builtin_bswap32 intrinsic])
 
@@ -70,11 +68,9 @@ AC_DEFUN([XIPH_C_BSWAP16],
   ac_cv_c_bswap16=no
   HAVE_BSWAP16=0
 
-  [AC_TRY_LINK([],
-    return __builtin_bswap16 (0) ;,
-    ac_cv_c_bswap16=yes
+  [AC_LINK_IFELSE([AC_LANG_PROGRAM([[]], [[return __builtin_bswap16 (0) ;]])],[ac_cv_c_bswap16=yes
     HAVE_BSWAP16=1
-  )]
+  ],[])]
   AC_DEFINE_UNQUOTED(HAVE_BSWAP16, ${HAVE_BSWAP16},
     [Compiler has the __builtin_bswap16 intrinsic])
 
