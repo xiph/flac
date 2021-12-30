@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_PREREQ(2.60)
-AC_INIT([flac], [1.3.4], [flac-dev@xiph.org], [flac], [https://www.xiph.org/flac/])
+AC_INIT([flac],[1.3.4],[flac-dev@xiph.org],[flac],[https://www.xiph.org/flac/])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/flac/main.c])
 AC_CONFIG_MACRO_DIR([m4])
@@ -90,7 +90,7 @@ AC_DEFINE_UNQUOTED(CPU_IS_LITTLE_ENDIAN, ${ac_cv_c_little_endian},
 AC_DEFINE_UNQUOTED(WORDS_BIGENDIAN, ${ac_cv_c_big_endian},
 					[Target processor is big endian.])
 
-AC_ARG_ENABLE(asm-optimizations, AC_HELP_STRING([--disable-asm-optimizations], [Don't use any assembly optimization routines]), asm_opt=no, asm_opt=yes)
+AC_ARG_ENABLE(asm-optimizations, AS_HELP_STRING([--disable-asm-optimizations],[Don't use any assembly optimization routines]), asm_opt=no, asm_opt=yes)
 dnl ' Terminate the damn single quote
 AM_CONDITIONAL(FLaC__NO_ASM, test "x$asm_opt" = xno)
 if test "x$asm_opt" = xno ; then
@@ -238,7 +238,7 @@ fi
 AM_CONDITIONAL([DEBUG], [test "x${ax_enable_debug}" = "xyes" || test "x${ax_enable_debug}" = "xinfo"])
 
 AC_ARG_ENABLE(sse,
-AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
+AS_HELP_STRING([--disable-sse],[Disable passing of -msse2 to the compiler]),
 [case "${enableval}" in
 	yes) sse_os=yes ;;
 	no)  sse_os=no ;;
@@ -246,7 +246,7 @@ AC_HELP_STRING([--disable-sse], [Disable passing of -msse2 to the compiler]),
 esac],[sse_os=yes])
 
 AC_ARG_ENABLE(altivec,
-AC_HELP_STRING([--disable-altivec], [Disable Altivec optimizations]),
+AS_HELP_STRING([--disable-altivec],[Disable Altivec optimizations]),
 [case "${enableval}" in
 	yes) use_altivec=true ;;
 	no)  use_altivec=false ;;
@@ -259,7 +259,7 @@ AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
 fi
 
 AC_ARG_ENABLE(vsx,
-AC_HELP_STRING([--disable-vsx], [Disable VSX optimizations]),
+AS_HELP_STRING([--disable-vsx],[Disable VSX optimizations]),
 [case "${enableval}" in
 	yes) use_vsx=true ;;
 	no)  use_vsx=false ;;
@@ -272,7 +272,7 @@ AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
 fi
 
 AC_ARG_ENABLE(avx,
-AC_HELP_STRING([--disable-avx], [Disable AVX, AVX2 optimizations]),
+AS_HELP_STRING([--disable-avx],[Disable AVX, AVX2 optimizations]),
 [case "${enableval}" in
 	yes) use_avx=true ;;
 	no)  use_avx=false ;;
@@ -285,14 +285,14 @@ AH_TEMPLATE(FLAC__USE_AVX, [define to enable use of AVX instructions])
 fi
 
 AC_ARG_ENABLE(thorough-tests,
-AC_HELP_STRING([--disable-thorough-tests], [Disable thorough (long) testing, do only basic tests]),
+AS_HELP_STRING([--disable-thorough-tests],[Disable thorough (long) testing, do only basic tests]),
 [case "${enableval}" in
 	yes) thorough_tests=true ;;
 	no)  thorough_tests=false ;;
 	*) AC_MSG_ERROR(bad value ${enableval} for --enable-thorough-tests) ;;
 esac],[thorough_tests=true])
 AC_ARG_ENABLE(exhaustive-tests,
-AC_HELP_STRING([--enable-exhaustive-tests], [Enable exhaustive testing (VERY long)]),
+AS_HELP_STRING([--enable-exhaustive-tests],[Enable exhaustive testing (VERY long)]),
 [case "${enableval}" in
 	yes) exhaustive_tests=true ;;
 	no)  exhaustive_tests=false ;;
@@ -308,7 +308,7 @@ fi
 AC_SUBST(FLAC__TEST_LEVEL)
 
 AC_ARG_ENABLE(werror,
-	AC_HELP_STRING([--enable-werror], [Enable -Werror in all Makefiles]))
+	AS_HELP_STRING([--enable-werror],[Enable -Werror in all Makefiles]))
 
 AC_ARG_ENABLE([stack-smash-protection],
     [AS_HELP_STRING([--disable-stack-smash-protection],[Disable GNU GCC stack smash protection])],,
@@ -316,7 +316,7 @@ AC_ARG_ENABLE([stack-smash-protection],
         [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
 
 AC_ARG_ENABLE(64-bit-words,
-	AC_HELP_STRING([--enable-64-bit-words], [Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
+	AS_HELP_STRING([--enable-64-bit-words],[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
 if test "x$enable_64_bit_words" = xyes ; then
 	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],1,[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)])
 else
@@ -325,7 +325,7 @@ else
 AC_SUBST(ENABLE_64_BIT_WORDS)
 
 AC_ARG_ENABLE(valgrind-testing,
-AC_HELP_STRING([--enable-valgrind-testing], [Run all tests inside Valgrind]),
+AS_HELP_STRING([--enable-valgrind-testing],[Run all tests inside Valgrind]),
 [case "${enableval}" in
 	yes) FLAC__TEST_WITH_VALGRIND=yes ;;
 	no)  FLAC__TEST_WITH_VALGRIND=no ;;
@@ -334,7 +334,7 @@ esac],[FLAC__TEST_WITH_VALGRIND=no])
 AC_SUBST(FLAC__TEST_WITH_VALGRIND)
 
 AC_ARG_ENABLE(doxygen-docs,
-AC_HELP_STRING([--disable-doxygen-docs], [Disable API documentation building via Doxygen]),
+AS_HELP_STRING([--disable-doxygen-docs],[Disable API documentation building via Doxygen]),
 [case "${enableval}" in
 	yes) enable_doxygen_docs=true ;;
 	no)  enable_doxygen_docs=false ;;
@@ -346,7 +346,7 @@ fi
 AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
 
 AC_ARG_ENABLE(local-xmms-plugin,
-AC_HELP_STRING([--enable-local-xmms-plugin], [Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
+AS_HELP_STRING([--enable-local-xmms-plugin],[Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
 [case "${enableval}" in
 	yes) install_xmms_plugin_locally=true ;;
 	no)  install_xmms_plugin_locally=false ;;
@@ -355,7 +355,7 @@ esac],[install_xmms_plugin_locally=false])
 AM_CONDITIONAL(FLaC__INSTALL_XMMS_PLUGIN_LOCALLY, test "x$install_xmms_plugin_locally" = xtrue)
 
 AC_ARG_ENABLE(xmms-plugin,
-AC_HELP_STRING([--disable-xmms-plugin], [Do not build XMMS plugin]),
+AS_HELP_STRING([--disable-xmms-plugin],[Do not build XMMS plugin]),
 [case "${enableval}" in
 	yes) enable_xmms_plugin=true ;;
 	no)  enable_xmms_plugin=false ;;
@@ -368,7 +368,7 @@ AM_CONDITIONAL(FLaC__HAS_XMMS, test -n "$XMMS_INPUT_PLUGIN_DIR")
 
 dnl build FLAC++ or not
 AC_ARG_ENABLE([cpplibs],
-AC_HELP_STRING([--disable-cpplibs], [Do not build libFLAC++]),
+AS_HELP_STRING([--disable-cpplibs],[Do not build libFLAC++]),
 [case "${enableval}" in
 	yes) disable_cpplibs=false ;;
 	no)  disable_cpplibs=true ;;
@@ -404,7 +404,7 @@ AC_SUBST([LIB_FUZZING_ENGINE])
 
 dnl check for ogg library
 AC_ARG_ENABLE([ogg],
-	AC_HELP_STRING([--disable-ogg], [Disable ogg support (default: test for libogg)]),
+	AS_HELP_STRING([--disable-ogg],[Disable ogg support (default: test for libogg)]),
 	[ want_ogg=$enableval ], [ want_ogg=yes ] )
 
 if test "x$want_ogg" != "xno"; then
