@@ -36,7 +36,7 @@ AX_CHECK_ENABLE_DEBUG
 user_cflags=$CFLAGS
 
 #Prefer whatever the current ISO standard is.
-AC_PROG_CC_STDC
+AC_PROG_CC
 AC_USE_SYSTEM_EXTENSIONS
 m4_ifdef([AM_PROG_AR], [AM_PROG_AR])
 LT_INIT([win32-dll disable-static pic-only])
@@ -63,7 +63,6 @@ fi
 AC_LANG_POP([C++])
 
 # c flavor
-AC_HEADER_STDC
 AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_VARARRAYS
