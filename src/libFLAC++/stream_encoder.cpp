@@ -198,26 +198,17 @@ namespace FLAC {
 		bool Stream::set_metadata(FLAC::Metadata::Prototype **metadata, uint32_t num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
-#ifndef HAVE_CXX_VARARRAYS
-			// some compilers (MSVC++, Borland C, SunPro, some GCCs w/ -pedantic) can't handle:
-			// ::FLAC__StreamMetadata *m[num_blocks];
-			// so we do this ugly workaround
+			// because C++ doesn't have VLA's (variable length arrays)
+			// this ugly workaround is needed
 			::FLAC__StreamMetadata **m = new ::FLAC__StreamMetadata*[num_blocks];
-#else
-			::FLAC__StreamMetadata *m[num_blocks];
-#endif
 			for(uint32_t i = 0; i < num_blocks; i++) {
 				// we can get away with the const_cast since we know the encoder will only correct the is_last flags
 				m[i] = const_cast< ::FLAC__StreamMetadata*>(static_cast<const ::FLAC__StreamMetadata*>(*metadata[i]));
 			}
-#ifndef HAVE_CXX_VARARRAYS
 			// complete the hack
 			const bool ok = static_cast<bool>(::FLAC__stream_encoder_set_metadata(encoder_, m, num_blocks));
 			delete [] m;
 			return ok;
-#else
-			return static_cast<bool>(::FLAC__stream_encoder_set_metadata(encoder_, m, num_blocks));
-#endif
 		}
 
 		Stream::State Stream::get_state() const
