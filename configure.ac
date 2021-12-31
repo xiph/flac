@@ -54,18 +54,8 @@ AC_CHECK_SIZEOF(off_t,1)	# Fake default value.
 AC_CHECK_SIZEOF([void*])
 AC_SEARCH_LIBS([lround],[m], [AC_DEFINE(HAVE_LROUND,1,lround support)])
 
-AC_LANG_PUSH([C++])
-# c++ flavor first
-AC_C_VARARRAYS
-if test $ac_cv_c_vararrays = yes; then
-	AC_DEFINE([HAVE_CXX_VARARRAYS], 1, [Define to 1 if C++ supports variable-length arrays.])
-fi
-AC_LANG_POP([C++])
-
-# c flavor
 AM_PROG_CC_C_O
 AC_C_INLINE
-AC_C_VARARRAYS
 AC_C_TYPEOF
 
 AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h])
