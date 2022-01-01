@@ -531,7 +531,7 @@ AH_VERBATIM([FLAC_API_EXPORTS],
 #endif
 #endif])
 
-if test x$enable_shared != "xyes" ; then
+if test x$enable_static = "xyes" ; then
 dnl for correct FLAC_API
 	CPPFLAGS="-DFLAC__NO_DLL $CPPFLAGS"
 	fi
