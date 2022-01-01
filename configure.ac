@@ -199,6 +199,8 @@ case "$host" in
 	*mingw*)
 		CPPFLAGS="-D__MSVCRT_VERSION__=0x0601 $CPPFLAGS"
 		os_is_windows=yes
+		AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
+		AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
 		;;
 esac
 
@@ -301,7 +303,7 @@ AC_ARG_ENABLE(werror,
 
 AC_ARG_ENABLE([stack-smash-protection],
     [AS_HELP_STRING([--disable-stack-smash-protection],[Disable GNU GCC stack smash protection])],,
-    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "$os_is_windows" = "no"],
+    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "x$mingw_has_stack_chk_fail" != "xno"],
         [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
 
 AC_ARG_ENABLE(64-bit-words,
@@ -460,7 +462,11 @@ if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; the
 	dnl some distributions (such as Gentoo) have _FORTIFY_SOURCE always
 	dnl enabled. We test for this situation in order to prevent polluting
 	dnl the console with messages of macro redefinitions.
-	AX_ADD_FORTIFY_SOURCE
+
+	if test "x$mingw_has_memset_chk" != "xno"
+	then
+		AX_ADD_FORTIFY_SOURCE
+	fi
 
 	AC_LANG_PUSH([C++])
 	XIPH_ADD_CXXFLAGS([-Weffc++])
