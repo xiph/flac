@@ -226,7 +226,7 @@
     <ClCompile Include="window.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="windows_unicode_filenames.c">
+    <ClCompile Include="..\share\windows_unicode_filenames.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

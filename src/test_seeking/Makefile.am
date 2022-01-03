@@ -27,11 +27,16 @@ AM_CFLAGS = @OGG_CFLAGS@
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
+if OS_IS_WINDOWS
+windows_unicode_compat = $(top_builddir)/src/share/windows_unicode_filenames.c
+endif
+
 check_PROGRAMS = test_seeking
 test_seeking_LDADD = \
 	$(top_builddir)/src/libFLAC/libFLAC.la
 
 test_seeking_SOURCES = \
-	main.c
+	main.c \
+	$(windows_unicode_compat)
 
 CLEANFILES = test_seeking.exe

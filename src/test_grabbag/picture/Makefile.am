@@ -23,14 +23,16 @@ EXTRA_DIST = \
 	test_picture.vcxproj \
 	test_picture.vcxproj.filters
 
+if OS_IS_WINDOWS
+windows_unicode_compat = $(top_builddir)/src/share/windows_unicode_filenames.c
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 check_PROGRAMS = test_picture
 test_picture_SOURCES = \
-	main.c
-
-if OS_IS_WINDOWS
-win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
-endif
+	main.c \
+	$(windows_unicode_compat)
 
 test_picture_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \

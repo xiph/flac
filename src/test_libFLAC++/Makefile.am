@@ -28,6 +28,7 @@ check_PROGRAMS = test_libFLAC++
 
 if OS_IS_WINDOWS
 win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+windows_unicode_compat = $(top_builddir)/src/share/windows_unicode_filenames.c
 endif
 
 test_libFLAC___LDADD = \
@@ -49,6 +50,7 @@ test_libFLAC___SOURCES = \
 	metadata_object.cpp \
 	decoders.h \
 	encoders.h \
-	metadata.h
+	metadata.h \
+	$(windows_unicode_compat)
 
 CLEANFILES = test_libFLAC++.exe

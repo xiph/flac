@@ -451,7 +451,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows_unicode_filenames.c"
+				RelativePath="..\share\windows_unicode_filenames.c"
 				>
 			</File>
 		</Filter>

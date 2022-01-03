@@ -16,7 +16,8 @@ add_executable(test_libFLAC
     "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/crc.c"
     "$<TARGET_PROPERTY:FLAC,SOURCE_DIR>/md5.c"
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
-    $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>)
+    $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>
+    $<$<BOOL:${WIN32}>:../share/windows_unicode_filenames.c>)
 
 target_compile_definitions(test_libFLAC PRIVATE
     $<$<BOOL:${ENABLE_64_BIT_WORDS}>:ENABLE_64_BIT_WORDS>)

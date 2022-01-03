@@ -11,7 +11,8 @@ add_executable(flacapp
     utils.c
     vorbiscomment.c
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
-    $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>)
+    $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>
+    $<$<BOOL:${WIN32}>:../share/windows_unicode_filenames.c>)
 set_property(TARGET flacapp PROPERTY RUNTIME_OUTPUT_NAME flac)
 target_link_libraries(flacapp
     FLAC

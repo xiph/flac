@@ -217,7 +217,7 @@
     <ClCompile Include="stream_encoder_intrin_sse2.c" />
     <ClCompile Include="stream_encoder_intrin_ssse3.c" />
     <ClCompile Include="window.c" />
-    <ClCompile Include="windows_unicode_filenames.c" />
+    <ClCompile Include="..\share\windows_unicode_filenames.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ia32\cpu_asm.nasm">

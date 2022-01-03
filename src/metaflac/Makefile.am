@@ -27,6 +27,11 @@ EXTRA_DIST = \
 	metaflac.vcxproj \
 	metaflac.vcxproj.filters
 
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+windows_unicode_compat = $(top_builddir)/src/share/windows_unicode_filenames.c
+endif
+
 metaflac_SOURCES = \
 	main.c \
 	operations.c \
@@ -42,12 +47,10 @@ metaflac_SOURCES = \
 	operations_shorthand.h \
 	options.h \
 	usage.h \
-	utils.h
-metaflac_LDFLAGS = $(AM_LDFLAGS)
+	utils.h \
+	$(windows_unicode_compat)
 
-if OS_IS_WINDOWS
-win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
-endif
+metaflac_LDFLAGS = $(AM_LDFLAGS)
 
 metaflac_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \

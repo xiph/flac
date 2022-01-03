@@ -74,8 +74,7 @@ add_library(FLAC
     stream_encoder_intrin_avx2.c
     stream_encoder_framing.c
     window.c
-    $<$<BOOL:${WIN32}>:../../include/share/windows_unicode_filenames.h>
-    $<$<BOOL:${WIN32}>:windows_unicode_filenames.c>
+    $<$<BOOL:${WIN32}>:../share/windows_unicode_filenames.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_decoder_aspect.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_encoder_aspect.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_helper.c>

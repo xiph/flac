@@ -23,10 +23,15 @@ EXTRA_DIST = \
 	test_cuesheet.vcxproj \
 	test_cuesheet.vcxproj.filters
 
+if OS_IS_WINDOWS
+windows_unicode_compat = $(top_builddir)/src/share/windows_unicode_filenames.c
+endif
+
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 check_PROGRAMS = test_cuesheet
 test_cuesheet_SOURCES = \
-	main.c
+	main.c \
+	$(windows_unicode_compat)
 test_cuesheet_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
