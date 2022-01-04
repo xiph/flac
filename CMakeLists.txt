@@ -23,6 +23,7 @@ option(INSTALL_MANPAGES "Install MAN pages" ON)
 option(INSTALL_PKGCONFIG_MODULES "Install PkgConfig modules" ON)
 option(INSTALL_CMAKE_CONFIG_MODULE "Install CMake package-config module" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
+option(BUILD_SHARED_LIBS "Build shared instead of static libraries" OFF)
 
 set(VERSION ${PROJECT_VERSION})
 
