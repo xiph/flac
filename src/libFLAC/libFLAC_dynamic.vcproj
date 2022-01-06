@@ -406,7 +406,7 @@
 				>
 			</File>
 			<File
-				RelativePath=".\windows_unicode_filenames.c"
+				RelativePath="..\share\win_utf8_io\win_utf8_io.c"
 				>
 			</File>
 		</Filter>
@@ -474,7 +474,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\share\windows_unicode_filenames.h"
+				RelativePath="..\..\include\share\win_utf8_io.h"
 				>
 			</File>
 		</Filter>

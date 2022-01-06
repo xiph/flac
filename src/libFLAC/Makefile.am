@@ -88,7 +88,7 @@ EXTRA_DIST = \
 	deduplication/lpc_compute_autocorrelation_intrin_neon.c
 
 if OS_IS_WINDOWS
-windows_unicode_compat = windows_unicode_filenames.c
+windows_unicode_compat = ../share/win_utf8_io/win_utf8_io.c
 endif
 
 if FLaC__HAS_OGG

@@ -147,14 +147,12 @@
 #define flac_printf printf_utf8
 #define flac_fprintf fprintf_utf8
 #define flac_vfprintf vfprintf_utf8
-
-#include "share/windows_unicode_filenames.h"
-#define flac_fopen flac_internal_fopen_utf8
-#define flac_chmod flac_internal_chmod_utf8
-#define flac_utime flac_internal_utime_utf8
-#define flac_unlink flac_internal_unlink_utf8
-#define flac_rename flac_internal_rename_utf8
-#define flac_stat flac_internal_stat64_utf8
+#define flac_fopen fopen_utf8
+#define flac_chmod chmod_utf8
+#define flac_utime utime_utf8
+#define flac_unlink unlink_utf8
+#define flac_rename rename_utf8
+#define flac_stat stat64_utf8
 
 #else
 

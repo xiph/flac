@@ -28,8 +28,14 @@ AM_CFLAGS = @OGG_CFLAGS@
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 check_PROGRAMS = test_seeking
+
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 test_seeking_LDADD = \
-	$(top_builddir)/src/libFLAC/libFLAC.la
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	$(win_utf8_lib)
 
 test_seeking_SOURCES = \
 	main.c

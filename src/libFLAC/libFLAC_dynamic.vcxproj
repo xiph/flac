@@ -190,7 +190,7 @@
     <ClInclude Include="..\..\include\share\macros.h" />
     <ClInclude Include="..\..\include\share\private.h" />
     <ClInclude Include="..\..\include\share\safe_str.h" />
-    <ClInclude Include="..\..\include\share\windows_unicode_filenames.h" />
+    <ClInclude Include="..\..\include\share\win_utf8_io.h" />
     <ClInclude Include="ia32\nasm.h" />
     <ClInclude Include="include\private\all.h" />
     <ClInclude Include="include\private\bitmath.h" />
@@ -256,7 +256,7 @@
     <ClCompile Include="stream_encoder_intrin_sse2.c" />
     <ClCompile Include="stream_encoder_intrin_ssse3.c" />
     <ClCompile Include="window.c" />
-    <ClCompile Include="windows_unicode_filenames.c" />
+    <ClCompile Include="..\share\win_utf8_io\win_utf8_io.c" />
   </ItemGroup>
   <ItemGroup>
     <CustomBuild Include="ia32\cpu_asm.nasm">
