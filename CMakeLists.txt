@@ -27,6 +27,12 @@ option(BUILD_SHARED_LIBS "Build shared instead of static libraries" OFF)
 
 set(VERSION ${PROJECT_VERSION})
 
+if(NOT UNIX)
+    # This is to make sure testing works when building with a DLL
+    set (CMAKE_LIBRARY_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/objs)
+    set (CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/objs)
+endif()
+
 if(WITH_OGG)
     find_package(Ogg REQUIRED)
     set(OGG_PACKAGE "ogg")
