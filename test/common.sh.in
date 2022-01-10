@@ -43,6 +43,9 @@ LD_LIBRARY_PATH=../src/share/utf8/.libs:$LD_LIBRARY_PATH
 
 export LD_LIBRARY_PATH
 
+PATH=`pwd`/../objs/$CMAKE_CONFIG_TYPE:$PATH
+PATH=`pwd`/../objs:$PATH
+
 EXE=@EXEEXT@
 
 # Needed for building out-of-tree where source files are in the $top_srcdir tree
