@@ -1249,6 +1249,25 @@ flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
 
+############################################################################
+# test limiting minimum bitrate
+############################################################################
+
+echo $ECHO_N "Testing --limit-min-bitrate" $ECHO_C
+
+run_flac -f -o out.flac --no-padding --no-seektable --limit-min-bitrate "$testdatadir/input-VA.flac"
+size=$(wc -c < out.flac)
+
+if [ "$size" -lt "1022" ]; then
+    die "ERROR: filesize of flac file encoded with --limit-min-bitrate is smaller than expected"
+fi
+
+echo OK
+
+############################################################################
+# test overflow of total samples field in STREAMINFO
+############################################################################
+
 test_total_samples_overflow ()
 {
 	total_samples=$1
@@ -1270,7 +1289,6 @@ if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
 	test_total_samples_overflow 68719476736 0
 	test_total_samples_overflow 68719476737 0
 fi
-
 
 rm -f out.flac out.meta out1.meta
 

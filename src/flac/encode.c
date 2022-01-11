@@ -2147,6 +2147,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		FLAC__stream_encoder_set_apodization(e->encoder, apodizations);
 	FLAC__stream_encoder_set_total_samples_estimate(e->encoder, e->total_samples_to_encode);
 	FLAC__stream_encoder_set_metadata(e->encoder, (num_metadata > 0)? metadata : 0, num_metadata);
+	FLAC__stream_encoder_set_limit_min_bitrate(e->encoder, options.limit_min_bitrate);
 
 	FLAC__stream_encoder_disable_constant_subframes(e->encoder, options.debug.disable_constant_subframes);
 	FLAC__stream_encoder_disable_fixed_subframes(e->encoder, options.debug.disable_fixed_subframes);
