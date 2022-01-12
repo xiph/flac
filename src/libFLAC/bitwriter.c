@@ -38,7 +38,9 @@
 #include <string.h>
 #include "private/bitwriter.h"
 #include "private/crc.h"
+#include "private/format.h"
 #include "private/macros.h"
+#include "private/stream_encoder.h"
 #include "FLAC/assert.h"
 #include "share/alloc.h"
 #include "share/compat.h"
@@ -115,6 +117,11 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 	 */
 	if(bw->capacity >= new_capacity)
 		return true;
+
+	if(new_capacity * sizeof(bwword) > FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * (FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE + FLAC__MAX_EXTRA_RESIDUAL_BPS) / 8)
+		/* Requested new capacity is larger than the largest sane framesize.
+		 * That means something went very wrong somewhere. To prevent chrashing, give up */
+		return false;
 
 	/* round up capacity increase to the nearest FLAC__BITWRITER_DEFAULT_INCREMENT */
 	if((new_capacity - bw->capacity) % FLAC__BITWRITER_DEFAULT_INCREMENT)
