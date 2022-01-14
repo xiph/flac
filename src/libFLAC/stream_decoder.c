@@ -2081,7 +2081,11 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	frame_crc = FLAC__bitreader_get_read_crc16(decoder->private_->input);
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__FRAME_FOOTER_CRC_LEN))
 		return false; /* read_callback_ sets the state for us */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	if(1){
+#else
 	if(frame_crc == x) {
+#endif
 		if(do_full_decode) {
 			/* Undo any special channel coding */
 			switch(decoder->private_->frame.header.channel_assignment) {
@@ -2355,9 +2359,11 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 			break;
 	}
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/* check to make sure that reserved bit is 0 */
 	if(raw_header[3] & 0x01) /* MAGIC NUMBER */
 		is_unparseable = true;
+#endif
 
 	/* read the frame's starting sample number (or frame number as the case may be) */
 	if(
@@ -2429,11 +2435,13 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 		return false; /* read_callback_ sets the state for us */
 	crc8 = (FLAC__byte)x;
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	if(FLAC__crc8(raw_header, raw_header_len) != crc8) {
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER);
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
+#endif
 
 	/* calculate the sample number from the frame number if needed */
 	decoder->private_->next_fixed_block_size = 0;
@@ -2797,10 +2805,12 @@ FLAC__bool read_zero_padding_(FLAC__StreamDecoder *decoder)
 		FLAC__uint32 zero = 0;
 		if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &zero, FLAC__bitreader_bits_left_for_byte_alignment(decoder->private_->input)))
 			return false; /* read_callback_ sets the state for us */
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 		if(zero != 0) {
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		}
+#endif
 	}
 	return true;
 }
