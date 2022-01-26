@@ -2123,13 +2123,10 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		}
 	}
 	else {
-		/* Bad frame, emit error and zero the output signal */
+		/* Frame CRC doesn't match, emit error and return */
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH);
-		if(do_full_decode) {
-			for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
-				memset(decoder->private_->output[channel], 0, sizeof(FLAC__int32) * decoder->private_->frame.header.blocksize);
-			}
-		}
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return true;
 	}
 
 	*got_a_frame = true;
