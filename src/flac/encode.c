@@ -2758,7 +2758,7 @@ void print_verify_error(EncoderSession *e)
 	flac__utils_printf(stderr, 1, "           http://xiph.org/flac/faq.html#tools__hardware_prob\n");
 	flac__utils_printf(stderr, 1, "       If it does fail in the exact same place every time, keep\n");
 	flac__utils_printf(stderr, 1, "       %s and submit a bug report to:\n", e->outfilename);
-	flac__utils_printf(stderr, 1, "           https://sourceforge.net/p/flac/bugs/\n");
+	flac__utils_printf(stderr, 1, "           https://github.com/xiph/flac/issues\n");
 	flac__utils_printf(stderr, 1, "       Make sure to upload the FLAC file and use the \"Monitor\" feature to\n");
 	flac__utils_printf(stderr, 1, "       monitor the bug status.\n");
 	flac__utils_printf(stderr, 1, "Verify FAILED!  Do not trust %s\n", e->outfilename);
