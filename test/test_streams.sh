@@ -125,6 +125,48 @@ test_file_piped ()
 	echo OK
 }
 
+test_corrupted_file ()
+{
+	name=$1
+	channels=$2
+	bps=$3
+	bs=$4
+	encode_options="$5"
+
+	echo $ECHO_N "$name (--channels=$channels --bps=$bps $encode_options): encode..." $ECHO_C
+	cmd="run_flac --verify --silent --no-padding --force --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding $name.raw"
+	echo "### ENCODE $name #######################################################" >> ./streams.log
+	echo "###    cmd=$cmd" >> ./streams.log
+	$cmd 2>>./streams.log || die "ERROR during encode of $name"
+
+	# Overwrite 8KiB with 'garbagegarbagegarbage....'
+	yes garbage 2>/dev/null | dd of=$name.flac conv=notrunc bs=$bs seek=1 count=2 2>> ./streams.log
+	# Overwrite 8KiB with 0x00
+	dd if=/dev/zero of=$name.flac conv=notrunc bs=$bs seek=4 count=2 2>> ./streams.log
+	# Overwrite 8KiB 0xFF
+	tr '\0' '\377' < /dev/zero | dd of=$name.flac conv=notrunc bs=$bs seek=7 count=2 2>> ./streams.log
+	# Remove 8kiB
+	cp $name.flac $name.tmp.flac
+	dd if=$name.tmp.flac of=$name.flac bs=$bs skip=12 seek=10 2>> ./streams.log
+
+	echo $ECHO_N "decode..." $ECHO_C
+	cmd="run_flac --silent --decode-through-errors --force --endian=little --sign=signed --decode --force-raw-format --output-name=$name.cmp $name.flac"
+	echo "### DECODE $name.corrupt #######################################################" >> ./streams.log
+	echo "###    cmd=$cmd" >> ./streams.log
+	$cmd 2>>./streams.log || die "ERROR during decode of $name"
+
+	ls -1l $name.raw >> ./streams.log
+	ls -1l $name.flac >> ./streams.log
+	ls -1l $name.cmp >> ./streams.log
+
+	echo $ECHO_N "compare..." $ECHO_C
+	if [ $(wc -c < $name.raw) -ne $(wc -c < $name.cmp) ]; then
+		die "ERROR, length of decoded file not equal to length of original"
+	fi
+
+	echo OK
+}
+
 if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
 	max_lpc_order=32
 else
@@ -227,6 +269,27 @@ for f in 10 11 12 13 14 15 16 17 18 19 ; do
 				test_file sine16-$f 2 16 "-b 16384 -m -r 8 -l $max_lpc_order --lax -e -p $disable"
 			fi
 		fi
+	done
+done
+
+echo "Testing corruption handling..."
+for bps in 8 16 24 ; do
+	for f in 00 01 02 03 04 10 11 12 13 14 15 16 17 18 19; do
+		for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
+			if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+				for opt in 0 1 2 4 5 6 8 ; do
+					for extras in '' '-p' '-e' ; do
+						if ([ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ]) && (([ "$bps" -eq 16 ] && [ "$f" -lt 15 ]) || [ "$FLAC__TEST_LEVEL" -gt 1 ]) ; then
+							if [ "$f" -lt 10 ] ; then
+								test_corrupted_file sine$bps-$f 1 $bps $((bps*256)) "-$opt $extras $disable"
+							else
+								test_corrupted_file sine$bps-$f 2 $bps $((bps*384)) "-$opt $extras $disable"
+							fi
+						fi
+					done
+				done
+			fi
+		done
 	done
 done
 
