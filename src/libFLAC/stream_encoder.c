@@ -140,8 +140,8 @@ static void update_metadata_(const FLAC__StreamEncoder *encoder);
 #if FLAC__HAS_OGG
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
 #endif
-static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block, FLAC__bool is_last_block);
-static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block);
+static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block);
+static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder);
 
 static FLAC__bool process_subframe_(
 	FLAC__StreamEncoder *encoder,
@@ -1476,9 +1476,8 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
-			const FLAC__bool is_fractional_block = encoder->protected_->blocksize != encoder->private_->current_sample_number;
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
-			if(!process_frame_(encoder, is_fractional_block, /*is_last_block=*/true))
+			if(!process_frame_(encoder, /*is_last_block=*/true))
 				error = true;
 		}
 	}
@@ -2216,7 +2215,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 		if(encoder->private_->current_sample_number > blocksize) {
 			FLAC__ASSERT(encoder->private_->current_sample_number == blocksize+OVERREAD_);
 			FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
-			if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
+			if(!process_frame_(encoder, /*is_last_block=*/false))
 				return false;
 			/* move unprocessed overread samples to beginnings of arrays */
 			for(channel = 0; channel < channels; channel++)
@@ -2277,7 +2276,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 			encoder->private_->current_sample_number = i;
 			/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
 			if(i > blocksize) {
-				if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
+				if(!process_frame_(encoder, /*is_last_block=*/false))
 					return false;
 				/* move unprocessed overread samples to beginnings of arrays */
 				FLAC__ASSERT(i == blocksize+OVERREAD_);
@@ -2311,7 +2310,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 			encoder->private_->current_sample_number = i;
 			/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
 			if(i > blocksize) {
-				if(!process_frame_(encoder, /*is_fractional_block=*/false, /*is_last_block=*/false))
+				if(!process_frame_(encoder, /*is_last_block=*/false))
 					return false;
 				/* move unprocessed overread samples to beginnings of arrays */
 				FLAC__ASSERT(i == blocksize+OVERREAD_);
@@ -3095,7 +3094,7 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 }
 #endif
 
-FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block, FLAC__bool is_last_block)
+FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block)
 {
 	FLAC__uint16 crc;
 	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
@@ -3111,7 +3110,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional
 	/*
 	 * Process the frame header and subframes into the frame bitbuffer
 	 */
-	if(!process_subframes_(encoder, is_fractional_block)) {
+	if(!process_subframes_(encoder)) {
 		/* the above function sets the state for us in case of an error */
 		return false;
 	}
@@ -3154,7 +3153,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional
 	return true;
 }
 
-FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fractional_block)
+FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 {
 	FLAC__FrameHeader frame_header;
 	uint32_t channel, min_partition_order = encoder->protected_->min_residual_partition_order, max_partition_order;
@@ -3163,13 +3162,9 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__bool is_fracti
 	/*
 	 * Calculate the min,max Rice partition orders
 	 */
-	if(is_fractional_block) {
-		max_partition_order = 0;
-	}
-	else {
-		max_partition_order = FLAC__format_get_max_rice_partition_order_from_blocksize(encoder->protected_->blocksize);
-		max_partition_order = flac_min(max_partition_order, encoder->protected_->max_residual_partition_order);
-	}
+
+	max_partition_order = FLAC__format_get_max_rice_partition_order_from_blocksize(encoder->protected_->blocksize);
+	max_partition_order = flac_min(max_partition_order, encoder->protected_->max_residual_partition_order);
 	min_partition_order = flac_min(min_partition_order, max_partition_order);
 
 	/*
