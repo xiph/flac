@@ -117,8 +117,8 @@ if(TARGET Ogg::ogg)
 endif()
 if(BUILD_SHARED_LIBS)
     set_target_properties(FLAC PROPERTIES
-        VERSION 8.3.0
-        SOVERSION 8)
+        VERSION 12.0.0
+        SOVERSION 12)
     if(NOT WIN32)
         set_target_properties(FLAC PROPERTIES C_VISIBILITY_PRESET hidden)
     endif()

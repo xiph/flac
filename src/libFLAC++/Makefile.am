@@ -56,7 +56,7 @@ libFLAC___sources = \
 	stream_encoder.cpp
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 9:0:3
+libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 10:0:0
 libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
 libFLAC___la_SOURCES = $(libFLAC___sources)
 

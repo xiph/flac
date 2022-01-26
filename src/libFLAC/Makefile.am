@@ -100,7 +100,7 @@ extra_ogg_sources = \
 endif
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 11:0:3 $(LOCAL_EXTRA_LDFLAGS)
+libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 12:0:0 $(LOCAL_EXTRA_LDFLAGS)
 
 libFLAC_sources = \
 	bitmath.c \
