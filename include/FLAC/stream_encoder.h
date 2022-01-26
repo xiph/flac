@@ -991,10 +991,6 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_max_lpc_order(FLAC__StreamEncoder *
  *  coefficients, or \c 0 to let the encoder select it based on the
  *  blocksize.
  *
- * \note
- * In the current implementation, qlp_coeff_precision + bits_per_sample must
- * be less than 32.
- *
  * \default \c 0
  * \param  encoder  An encoder instance to set.
  * \param  value    See above.
