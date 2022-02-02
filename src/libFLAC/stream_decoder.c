@@ -3334,8 +3334,14 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		 * FLAC__stream_decoder_process_single() to return false.
 		 */
 		decoder->private_->unparseable_frame_count = 0;
-		if(!FLAC__stream_decoder_process_single(decoder) ||
-		   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
+		if(!FLAC__stream_decoder_process_single(decoder) && decoder->private_->eof_callback(decoder, decoder->private_->client_data)){
+			/* decoder has hit end of stream while processing corrupt
+			 * frame, try again. This is very inefficient but shouldn't
+			 * happen often, and a more efficient solution would require
+			 * quite a bit more code */
+			upper_bound--;
+			continue;
+		}else if(decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
