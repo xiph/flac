@@ -840,7 +840,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 			/* fact GUID 74636166-ACF3-11D3-8CD1-00C04F8EDB8A */
 			if(fwrite("\x66\x61\x63\x74\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) < 16)
 				goto foo;
-			if(!write_little_endian_uint64(f, 4)) /* chunk size */
+			if(!write_little_endian_uint64(f, 8)) /* chunk size */
 				goto foo;
 			if(!write_little_endian_uint64(f, samples)) /* dwSampleLength */
 				goto foo;

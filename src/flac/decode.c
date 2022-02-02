@@ -753,7 +753,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 				if(flac__utils_fwrite("\x66\x61\x63\x74\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
 					return false;
 
-				if(!write_little_endian_uint64(f, 16+8+8)) /* chunk size +16+8+8 for GUID, size and sample length */
+				if(!write_little_endian_uint64(f, 8)) /* chunk size = 8 because all Wave64 fields are 64-bit */
 					return false;
 
 				if(!write_little_endian_uint64(f, samples))
