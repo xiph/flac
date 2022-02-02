@@ -547,19 +547,20 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			 *
 			 * The checking here isn't going to be excessive because the dwSampleLength field
 			 * is already fairly redundant. The main things to check here are that the 'fact'
-			 * chunk doesn't exist in an unsupported format, the 'fact' chunk exists in the
+			 * chunk doesn't exist where it shouldn't, the 'fact' chunk exists in the
 			 * correct location, and is the correct size. For now, we aren't validating the
 			 * data itself as it is redundant.
 			*/
 
-			/* fact chunk should exist in WAVE_FORMAT_EXTENSIBLE or non-PCM formats */
-			if(e->format!=FORMAT_WAVE && e->format!=FORMAT_WAVE64 && e->format!=FORMAT_RF64) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: unsupported format type for fact chunk\n", e->inbasefilename);
+			if(!got_fmt_chunk) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: got 'fact' chunk before 'fmt' chunk\n", e->inbasefilename);
 				return false;
 			}
 
-			if(!got_fmt_chunk) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: got 'fact' chunk before 'fmt' chunk\n", e->inbasefilename);
+			/* fact chunk should only exist in WAVE_FORMAT_EXTENSIBLE */
+			if(bps == 8 || bps == 16 &&
+				(e->format == FORMAT_WAVE || e->format == FORMAT_WAVE64 || e->format == FORMAT_RF64)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: unsupported format type for fact chunk\n", e->inbasefilename);
 				return false;
 			}
 
@@ -582,7 +583,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 					return false;
 				}
 				data_bytes -= (16+8);
-			} 
+			}
 			if(data_bytes < 4) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: non-standard 'fact ' chunk has length = %u\n", e->inbasefilename, (uint32_t)data_bytes);
 				return false;
