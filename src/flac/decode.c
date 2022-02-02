@@ -634,14 +634,16 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		/* 4 for WAVE form bytes */
 		/* +{36,0} for ds64 chunk */
 		/* +8+{40,16} for fmt chunk header and body */
+		/* +8+4 for fact chunk header and body if WAVE_FORMAT_EXTENSIBLE */
 		/* +8 for data chunk header */
-		iff_size = 4 + (format==FORMAT_RF64?36:0) + 8+(is_waveformatextensible?40:16) + 8 + foreign_metadata_size + aligned_data_size;
+		iff_size = 4 + (format==FORMAT_RF64?36:0) + 8+(is_waveformatextensible?40:16) + (is_waveformatextensible?(8+4):0) + 8 + foreign_metadata_size + aligned_data_size;
 	else if(format == FORMAT_WAVE64)
 		/* 16+8 for RIFF GUID and size field */
 		/* +16 for WAVE GUID */
 		/* +16+8+{40,16} for fmt chunk header (GUID and size field) and body */
+		/* +16+8+8 for fact chunk header and body if WAVE_FORMAT_EXTENSIBLE */
 		/* +16+8 for data chunk header (GUID and size field) */
-		iff_size = 16+8 + 16 + 16+8+(is_waveformatextensible?40:16) + 16+8 + foreign_metadata_size + aligned_data_size;
+		iff_size = 16+8 + 16 + 16+8+(is_waveformatextensible?40:16) + (is_waveformatextensible?(16+8+8):0) + 16+8 + foreign_metadata_size + aligned_data_size;
 	else /* AIFF */
 		iff_size = 46 + foreign_metadata_size + aligned_data_size;
 
@@ -733,6 +735,31 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 
 		if(!write_riff_wave_fmt_chunk_body(f, is_waveformatextensible, decoder_session->bps, decoder_session->channels, decoder_session->sample_rate, decoder_session->channel_mask))
 			return false;
+
+		/* fact chunk for WAVE_FORMAT_EXTENSIBLE */
+		if (is_waveformatextensible) {
+			if(format != FORMAT_WAVE64) {
+				if(flac__utils_fwrite("fact", 1, 4, f) != 4)
+					return false;
+
+				if(!write_little_endian_uint32(f, 4)) /* chunk size = 4 */
+					return false;
+
+				if(!write_little_endian_uint32(f, (FLAC__uint32)samples))
+					return false;	
+			}
+			else { /* Wave64 */
+				/* fact GUID 74636166-ACF3-11D3-8CD1-00C04F8EDB8A */
+				if(flac__utils_fwrite("\x66\x61\x63\x74\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
+					return false;
+
+				if(!write_little_endian_uint64(f, 16+8+8)) /* chunk size +16+8+8 for GUID, size and sample length */
+					return false;
+
+				if(!write_little_endian_uint64(f, samples))
+					return false;
+			}
+		}
 
 		decoder_session->fm_offset2 = ftello(f);
 

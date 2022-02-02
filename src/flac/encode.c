@@ -538,6 +538,63 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			got_fmt_chunk = true;
 		}
 		else if(
+			!memcmp(chunk_id, "fact", 4) &&
+			(e->format!=FORMAT_WAVE64 || !memcmp(chunk_id, "fact\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16))
+		) { /* fact chunk */
+			FLAC__uint32 xx, data_bytes;
+
+			/* http://www-mmsp.ece.mcgill.ca/Documents/AudioFormats/WAVE/WAVE.html
+			 *
+			 * The checking here isn't going to be excessive because the dwSampleLength field
+			 * is already fairly redundant. The main things to check here are that the 'fact'
+			 * chunk doesn't exist in an unsupported format, the 'fact' chunk exists in the
+			 * correct location, and is the correct size. For now, we aren't validating the
+			 * data itself as it is redundant.
+			*/
+
+			/* fact chunk should exist in WAVE_FORMAT_EXTENSIBLE or non-PCM formats */
+			if(e->format!=FORMAT_WAVE && e->format!=FORMAT_WAVE64 && e->format!=FORMAT_RF64) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: unsupported format type for fact chunk\n", e->inbasefilename);
+				return false;
+			}
+
+			if(!got_fmt_chunk) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: got 'fact' chunk before 'fmt' chunk\n", e->inbasefilename);
+				return false;
+			}
+
+			/* fact chunk size */
+			if(!read_uint32(e->fin, /*big_endian=*/false, &xx, e->inbasefilename))
+				return false;
+			data_bytes = xx;
+
+			if(e->format == FORMAT_WAVE64) {
+				/* other half of the size field should be 0 */
+				if(!read_uint32(e->fin, /*big_endian=*/false, &xx, e->inbasefilename))
+					return false;
+				if(xx) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: freakishly large Wave64 'fact ' chunk has length = 0x%08X%08X\n", e->inbasefilename, (uint32_t)xx, (uint32_t)data_bytes);
+					return false;
+				}
+				/* subtract size of header */
+				if (data_bytes < 16+8) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: freakishly small Wave64 'fact ' chunk has length = 0x%08X%08X\n", e->inbasefilename, (uint32_t)xx, (uint32_t)data_bytes);
+					return false;
+				}
+				data_bytes -= (16+8);
+			} 
+			if(data_bytes < 4) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: non-standard 'fact ' chunk has length = %u\n", e->inbasefilename, (uint32_t)data_bytes);
+				return false;
+			}
+
+			/* skip any extra data in the fact chunk */
+			if(!fskip_ahead(e->fin, data_bytes)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR during read while skipping over extra 'fact' data\n", e->inbasefilename);
+				return false;
+			}
+		}
+		else if(
 			!memcmp(chunk_id, "data", 4) &&
 			(e->format!=FORMAT_WAVE64 || !memcmp(chunk_id, "data\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16))
 		) { /* data chunk */
