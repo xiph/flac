@@ -25,7 +25,9 @@ option(WITH_OGG "ogg support (default: test for libogg)" ON)
 set(VERSION ${PROJECT_VERSION})
 
 if(WITH_OGG)
-    find_package(Ogg REQUIRED)
+    if(NOT TARGET Ogg::ogg)
+        find_package(Ogg REQUIRED)
+    endif()
     set(OGG_PACKAGE "ogg")
 endif()
 
