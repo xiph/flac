@@ -872,7 +872,7 @@ incomplete_lsbs:
 			cwords = br->consumed_words;
 			words = br->words;
 			ucbits = FLAC__BITS_PER_WORD - br->consumed_bits;
-			b = cwords < br->capacity ? br->buffer[cwords] << br->consumed_bits : 0;
+			b = br->buffer[cwords] << br->consumed_bits;
 		} while(cwords >= words && val < end);
 	}
 
