@@ -67,6 +67,10 @@ FLAC__uint16 FLAC__bitreader_get_read_crc16(FLAC__BitReader *br);
 FLAC__bool FLAC__bitreader_is_consumed_byte_aligned(const FLAC__BitReader *br);
 uint32_t FLAC__bitreader_bits_left_for_byte_alignment(const FLAC__BitReader *br);
 uint32_t FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader *br);
+void FLAC__bitreader_set_limit(FLAC__BitReader *br, uint32_t limit);
+void FLAC__bitreader_remove_limit(FLAC__BitReader *br);
+uint32_t FLAC__bitreader_limit_remaining(FLAC__BitReader *br);
+void FLAC__bitreader_limit_invalidate(FLAC__BitReader *br);
 
 /*
  * read functions

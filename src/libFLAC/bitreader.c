@@ -111,6 +111,8 @@ struct FLAC__BitReader {
 	uint32_t read_crc16; /* the running frame CRC */
 	uint32_t crc16_offset; /* the number of words in the current buffer that should not be CRC'd */
 	uint32_t crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
+	FLAC__bool read_limit_set; /* whether reads are limited */
+	uint32_t read_limit; /* the remaining size of what can be read */
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
 };
@@ -275,6 +277,8 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback
 		return false;
 	br->read_callback = rcb;
 	br->client_data = cd;
+	br->read_limit_set = false;
+	br->read_limit = -1;
 
 	return true;
 }
@@ -291,12 +295,16 @@ void FLAC__bitreader_free(FLAC__BitReader *br)
 	br->consumed_words = br->consumed_bits = 0;
 	br->read_callback = 0;
 	br->client_data = 0;
+	br->read_limit_set = false;
+	br->read_limit = -1;
 }
 
 FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br)
 {
 	br->words = br->bytes = 0;
 	br->consumed_words = br->consumed_bits = 0;
+	br->read_limit_set = false;
+	br->read_limit = -1;
 	return true;
 }
 
@@ -376,6 +384,28 @@ inline uint32_t FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader 
 	return (br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits;
 }
 
+void FLAC__bitreader_set_limit(FLAC__BitReader *br, uint32_t limit)
+{
+	br->read_limit = limit;
+	br->read_limit_set = true;
+}
+
+void FLAC__bitreader_remove_limit(FLAC__BitReader *br)
+{
+	br->read_limit_set = false;
+	br->read_limit = -1;
+}
+
+uint32_t FLAC__bitreader_limit_remaining(FLAC__BitReader *br)
+{
+	FLAC__ASSERT(br->read_limit_set);
+	return br->read_limit;
+}
+void FLAC__bitreader_limit_invalidate(FLAC__BitReader *br)
+{
+	br->read_limit = -1;
+}
+
 FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *val, uint32_t bits)
 {
 	FLAC__ASSERT(0 != br);
@@ -391,6 +421,15 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
 	if(bits == 0) { /* OPT: investigate if this can ever happen, maybe change to assertion */
 		*val = 0;
 		return true;
+	}
+
+	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
+		if(br->read_limit < bits) {
+			br->read_limit = -1;
+			return false;
+		}
+		else
+			br->read_limit -= bits;
 	}
 
 	while((br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits < bits) {
@@ -559,6 +598,13 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 	FLAC__ASSERT(0 != br->buffer);
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
 
+	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
+		if(br->read_limit < nvals*8){
+			br->read_limit = -1;
+			return false;
+		}
+	}
+
 	/* step 1: skip over partial head word to get word aligned */
 	while(nvals && br->consumed_bits) { /* i.e. run until we read 'nvals' bytes or we hit the end of the head word */
 		if(!FLAC__bitreader_read_raw_uint32(br, &x, 8))
@@ -567,11 +613,14 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 	}
 	if(0 == nvals)
 		return true;
+
 	/* step 2: skip whole words in chunks */
 	while(nvals >= FLAC__BYTES_PER_WORD) {
 		if(br->consumed_words < br->words) {
 			br->consumed_words++;
 			nvals -= FLAC__BYTES_PER_WORD;
+			if(br->read_limit_set)
+				br->read_limit -= FLAC__BITS_PER_WORD;
 		}
 		else if(!bitreader_read_from_client_(br))
 			return false;
@@ -593,6 +642,13 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 	FLAC__ASSERT(0 != br);
 	FLAC__ASSERT(0 != br->buffer);
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
+
+	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
+		if(br->read_limit < nvals*8){
+			br->read_limit = -1;
+			return false;
+		}
+	}
 
 	/* step 1: read from partial head word to get word aligned */
 	while(nvals && br->consumed_bits) { /* i.e. run until we read 'nvals' bytes or we hit the end of the head word */
@@ -627,6 +683,8 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 #endif
 			val += FLAC__BYTES_PER_WORD;
 			nvals -= FLAC__BYTES_PER_WORD;
+			if(br->read_limit_set)
+				br->read_limit -= FLAC__BITS_PER_WORD;
 		}
 		else if(!bitreader_read_from_client_(br))
 			return false;
