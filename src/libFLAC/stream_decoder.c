@@ -83,7 +83,7 @@ static FLAC__bool read_metadata_streaminfo_(FLAC__StreamDecoder *decoder, FLAC__
 static FLAC__bool read_metadata_seektable_(FLAC__StreamDecoder *decoder, FLAC__bool is_last, uint32_t length);
 static FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__StreamMetadata_VorbisComment *obj, uint32_t length);
 static FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMetadata_CueSheet *obj);
-static FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMetadata_Picture *obj);
+static FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMetadata_Picture *obj, uint32_t length);
 static FLAC__bool skip_id3v2_tag_(FLAC__StreamDecoder *decoder);
 static FLAC__bool frame_sync_(FLAC__StreamDecoder *decoder);
 static FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FLAC__bool do_full_decode);
@@ -1483,7 +1483,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 						ok = false;
 					break;
 				case FLAC__METADATA_TYPE_PICTURE:
-					if(!read_metadata_picture_(decoder, &block.data.picture))
+					if(!read_metadata_picture_(decoder, &block.data.picture, real_length))
 						ok = false;
 					break;
 				case FLAC__METADATA_TYPE_STREAMINFO:
@@ -1868,12 +1868,36 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
 	return true;
 }
 
-FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMetadata_Picture *obj)
+#define CHECK_OVERREAD_BYTES(a,b) { \
+	if(a < b){                     \
+		/* Corrupt metadata, stop processing it and start looking for audio data */ \
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;    \
+		return false;               \
+	}                               \
+	else {                          \
+		a -= b;                     \
+	}                               \
+}
+
+#define CHECK_OVERREAD_BITS(a,b) {  \
+	FLAC__ASSERT((b) % 8 == 0);     \
+	if(a < ((b)/8)){                \
+		/* Corrupt metadata, stop processing it and start looking for audio data */ \
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;    \
+		return false;               \
+	}                               \
+	else {                          \
+		a -= ((b)/8);               \
+	}                               \
+}
+
+FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMetadata_Picture *obj, uint32_t length)
 {
 	FLAC__uint32 x;
 
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(decoder->private_->input));
 
+	CHECK_OVERREAD_BITS(length, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN + FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN)
 	/* read type */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_TYPE_LEN))
 		return false; /* read_callback_ sets the state for us */
@@ -1882,6 +1906,7 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read MIME type */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
+	CHECK_OVERREAD_BYTES(length, x)
 	if(0 == (obj->mime_type = safe_malloc_add_2op_(x, /*+*/1))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1893,8 +1918,10 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	obj->mime_type[x] = '\0';
 
 	/* read description */
+	CHECK_OVERREAD_BITS(length, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN)
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
+	CHECK_OVERREAD_BYTES(length, x)
 	if(0 == (obj->description = safe_malloc_add_2op_(x, /*+*/1))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1904,6 +1931,12 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 			return false; /* read_callback_ sets the state for us */
 	}
 	obj->description[x] = '\0';
+
+	CHECK_OVERREAD_BITS(length, FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN +
+	                            FLAC__STREAM_METADATA_PICTURE_HEIGHT_LEN +
+	                            FLAC__STREAM_METADATA_PICTURE_DEPTH_LEN +
+	                            FLAC__STREAM_METADATA_PICTURE_COLORS_LEN +
+	                            FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN)
 
 	/* read width */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &obj->width, FLAC__STREAM_METADATA_PICTURE_WIDTH_LEN))
@@ -1924,6 +1957,7 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read data */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &(obj->data_length), FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
+	CHECK_OVERREAD_BYTES(length, obj->data_length)
 	if(0 == (obj->data = safe_malloc_(obj->data_length))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1931,6 +1965,12 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	if(obj->data_length > 0) {
 		if(!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->data, obj->data_length))
 			return false; /* read_callback_ sets the state for us */
+	}
+
+	if(length > 0) {
+		/* Leftover data, probably corrupt block, stop processing it and start looking for audio data */
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return false;
 	}
 
 	return true;
