@@ -1455,6 +1455,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 		}
 		else {
 			FLAC__bool ok = true;
+			FLAC__bitreader_set_limit(decoder->private_->input, real_length*8);
 			switch(type) {
 				case FLAC__METADATA_TYPE_PADDING:
 					/* skip the padding bytes */
@@ -1503,6 +1504,15 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 						block.data.unknown.data = 0;
 					break;
 			}
+			if(FLAC__bitreader_limit_remaining(decoder->private_->input) > 0) {
+				/* Content in metadata block didn't fit in block length
+				 * We cannot know whether the length or the content was
+				 * corrupt, so stop parsing metadata */
+				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+				ok = false;
+			}
+			FLAC__bitreader_remove_limit(decoder->private_->input);
 			if(ok && !decoder->private_->is_seeking && decoder->private_->metadata_callback)
 				decoder->private_->metadata_callback(decoder, &block, decoder->private_->client_data);
 
@@ -1882,6 +1892,10 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read MIME type */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
+	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < x){
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
+	}
 	if(0 == (obj->mime_type = safe_malloc_add_2op_(x, /*+*/1))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1895,6 +1909,10 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read description */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
+	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < x){
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
+	}
 	if(0 == (obj->description = safe_malloc_add_2op_(x, /*+*/1))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
@@ -1924,6 +1942,10 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read data */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &(obj->data_length), FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
+	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < obj->data_length){
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
+	}
 	if(0 == (obj->data = safe_malloc_(obj->data_length))) {
 		decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
 		return false;
