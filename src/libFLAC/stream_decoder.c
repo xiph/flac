@@ -3448,7 +3448,7 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 	return feof(decoder->private_->file)? true : false;
 }
 
-FLAC_API const void *FLAC__get_decoder_client_data(FLAC__StreamDecoder *decoder)
+void *get_client_data_from_decoder(FLAC__StreamDecoder *decoder)
 {
 	return decoder->private_->client_data;
 }
