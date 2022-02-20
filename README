@@ -19,10 +19,7 @@
 
 
 FLAC is an Open Source lossless audio codec developed by Josh Coalson from 2001
-to 2009.
-
-From January 2012 FLAC is being maintained by Erik de Castro Lopo under the
-auspices of the Xiph.org Foundation.
+to 2009. From 2012 to 2021 it was maintained by Erik de Castro Lopo. It continues to be maintained by various volunteers under the auspices of the Xiph.org Foundation.
 
 FLAC is comprised of
   * `libFLAC', a library which implements reference encoders and
