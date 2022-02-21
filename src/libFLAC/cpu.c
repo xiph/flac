@@ -53,10 +53,8 @@
 #define dfprintf(file, format, ...)
 #endif
 
-#if defined FLAC__CPU_PPC
-#if defined(__linux__) || defined(__FreeBSD__)
+#if defined(HAVE_SYS_AUXV_H)
 #include <sys/auxv.h>
-#endif
 #endif
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN) && !defined FLAC__NO_ASM
@@ -247,13 +245,13 @@ ppc_cpu_info (FLAC__CPUInfo *info)
 #define PPC_FEATURE2_ARCH_2_07		0x80000000
 #endif
 
-#ifdef __linux__
+#if defined (__linux__) && defined(HAVE_GETAUXVAL)
 	if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_3_00) {
 		info->ppc.arch_3_00 = true;
 	} else if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07) {
 		info->ppc.arch_2_07 = true;
 	}
-#elif defined(__FreeBSD__)
+#elif defined(__FreeBSD__) && defined(HAVE_GETAUXVAL)
 	unsigned long hwcaps;
 	elf_aux_info(AT_HWCAP2, &hwcaps, sizeof(hwcaps));
 	if (hwcaps & PPC_FEATURE2_ARCH_3_00) {
@@ -266,7 +264,8 @@ ppc_cpu_info (FLAC__CPUInfo *info)
 	info->ppc.arch_2_07 = false;
 	info->ppc.arch_3_00 = false;
 #else
-#error Unsupported platform! Please add support for reading ppc hwcaps.
+	info->ppc.arch_2_07 = false;
+	info->ppc.arch_3_00 = false;
 #endif
 
 #else
