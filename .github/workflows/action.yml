@@ -170,7 +170,7 @@ jobs:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         working-directory: cmake-build
-        run: cmake --build .
+        run: cmake --build . --config Release
 
       - name: CMake test
         if: startsWith(matrix.build-system,'cmake')
@@ -178,7 +178,7 @@ jobs:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         working-directory: cmake-build
-        run: ctest -V -C Debug
+        run: ctest -V -C Release
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
