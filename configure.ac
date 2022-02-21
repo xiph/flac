@@ -58,7 +58,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
+AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
 
 XIPH_C_BSWAP32
 XIPH_C_BSWAP16
@@ -89,6 +89,9 @@ fi
 
 # For the XMMS plugin.
 AC_CHECK_TYPES(socklen_t, [], [])
+
+dnl check for getauxval in standard library
+AC_CHECK_FUNCS(getauxval)
 
 dnl check for getopt in standard library
 dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
