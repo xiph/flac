@@ -27,7 +27,6 @@
 #include <fcntl.h> /* for _O_BINARY */
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
-#include <utime.h> /* for utime() */
 #endif
 #if defined __EMX__
 #include <io.h> /* for setmode(), O_BINARY */
@@ -47,16 +46,23 @@
 #include <winbase.h>
 #endif
 #include "share/grabbag.h"
+#include "share/compat.h"
 
 
 void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 {
 	struct flac_stat_s srcstat;
-	struct utimbuf srctime;
 
 	if(0 == flac_stat(srcpath, &srcstat)) {
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+		struct timespec srctime[2] = {};
+		srctime[0].tv_sec = srcstat.st_atime;
+		srctime[1].tv_sec = srcstat.st_mtime;
+#else
+		struct utimbuf srctime;
 		srctime.actime = srcstat.st_atime;
 		srctime.modtime = srcstat.st_mtime;
+#endif
 		(void)flac_chmod(destpath, srcstat.st_mode);
 		(void)flac_utime(destpath, &srctime);
 	}
@@ -116,9 +122,9 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 {
-#if defined _MSC_VER || defined __MINGW32__
+#if defined _WIN32 && !defined __CYGWIN__
 	/* see
-	 * http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
+	 *  http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/getfileinformationbyhandle.asp
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/by_handle_file_information_str.asp
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/createfile.asp

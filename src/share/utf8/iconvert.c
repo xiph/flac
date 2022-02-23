@@ -25,6 +25,7 @@
 #include <assert.h>
 #include <errno.h>
 #include <iconv.h>
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -77,18 +78,17 @@ int iconvert(const char *fromcode, const char *tocode,
       tocode[4] != '8' ||
       tocode[5] != '\0') {
     char *tocode1;
-	size_t dest_len = strlen(tocode) + 11;
+    int rc;
     /*
      * Try using this non-standard feature of glibc and libiconv.
      * This is deliberately not a config option as people often
      * change their iconv library without rebuilding applications.
      */
-    tocode1 = safe_malloc_(dest_len);
-    if (!tocode1)
+
+    rc = asprintf(&tocode1, "%s//TRANSLIT", tocode);
+    if (rc < 0 || ! tocode1)
       goto fail;
 
-    safe_strncpy(tocode1, tocode, dest_len);
-    safe_strncat(tocode1, "//TRANSLIT", dest_len);
     cd2 = iconv_open(tocode1, "UTF-8");
     free(tocode1);
 

@@ -25,6 +25,7 @@ libtest_libs_common_la_SOURCES = \
 	metadata_utils.c
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	README \
 	test_libs_common_static.vcproj \

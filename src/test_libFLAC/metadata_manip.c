@@ -29,7 +29,6 @@
 #include <io.h> /* for chmod() */
 #else
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
-#include <utime.h> /* for utime() */
 #include <unistd.h> /* for chown(), unlink() */
 #endif
 #include <sys/stat.h> /* for stat(), maybe chmod() */
@@ -189,12 +188,15 @@ static FLAC__bool open_tempfile_(const char *filename, FILE **tempfile, char **t
 {
 	static const char *tempfile_suffix = ".metadata_edit";
 	size_t dest_len = strlen(filename) + strlen(tempfile_suffix) + 1;
-	if(0 == (*tempfilename = malloc(dest_len)))
+
+	*tempfilename = malloc(dest_len);
+	if (*tempfilename == NULL)
 		return false;
 	safe_strncpy(*tempfilename, filename, dest_len);
 	safe_strncat(*tempfilename, tempfile_suffix, dest_len);
 
-	if(0 == (*tempfile = flac_fopen(*tempfilename, "wb")))
+	*tempfile = flac_fopen(*tempfilename, "wb");
+	if (*tempfile == NULL)
 		return false;
 
 	return true;
@@ -202,12 +204,12 @@ static FLAC__bool open_tempfile_(const char *filename, FILE **tempfile, char **t
 
 static void cleanup_tempfile_(FILE **tempfile, char **tempfilename)
 {
-	if(0 != *tempfile) {
+	if (*tempfile != NULL) {
 		(void)fclose(*tempfile);
 		*tempfile = 0;
 	}
 
-	if(0 != *tempfilename) {
+	if (*tempfilename != NULL) {
 		(void)flac_unlink(*tempfilename);
 		free(*tempfilename);
 		*tempfilename = 0;
@@ -253,13 +255,18 @@ static FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stat
 
 static void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+	struct timespec srctime[2] = {};
+	srctime[0].tv_sec = stats->st_atime;
+	srctime[1].tv_sec = stats->st_mtime;
+#else
 	struct utimbuf srctime;
-
+	srctime.actime = stats->st_atime;
+	srctime.modtime = stats->st_mtime;
+#endif
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
 
-	srctime.actime = stats->st_atime;
-	srctime.modtime = stats->st_mtime;
 	(void)flac_chmod(filename, stats->st_mode);
 	(void)flac_utime(filename, &srctime);
 #if !defined _MSC_VER && !defined __MINGW32__
@@ -465,7 +472,7 @@ static void decoder_metadata_callback_null_(const FLAC__StreamDecoder *decoder, 
 {
 	(void)decoder, (void)metadata, (void)client_data;
 
-	printf("%d... ", mc_our_block_number_);
+	printf("%u... ", mc_our_block_number_);
 	fflush(stdout);
 
 	mc_our_block_number_++;
@@ -482,7 +489,7 @@ static void decoder_metadata_callback_compare_(const FLAC__StreamDecoder *decode
 	if(dcd->error_occurred)
 		return;
 
-	printf("%d... ", mc_our_block_number_);
+	printf("%u... ", mc_our_block_number_);
 	fflush(stdout);
 
 	if(mc_our_block_number_ >= our_metadata_.num_blocks) {

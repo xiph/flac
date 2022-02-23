@@ -6,7 +6,7 @@
 <!-- or any later version published by the Free Software Foundation; -->
 <!-- with no invariant sections. -->
 <!-- A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html -->
-<html>
+<html xmlns="http://www.w3.org/1999/xhtml">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=ISO-8859-1" />
 	<meta name="author" content="Josh Coalson" />
@@ -175,7 +175,7 @@
 		<br />
 		<a name="definitions"><font size="+1"><b><u>Definitions</u></b></font></a><br />
 		<br />
-		Many terms like "block" and "frame" are used to mean different things in differenct encoding schemes.  For example, a frame in MP3 corresponds to many samples across several channels, whereas an S/PDIF frame represents just one sample for each channel.  The definitions we use for FLAC follow.  Note that when we talk about blocks and subblocks we are referring to the raw unencoded audio data that is the input to the encoder, and when we talk about frames and subframes, we are referring to the FLAC-encoded data.
+		Many terms like "block" and "frame" are used to mean different things in different encoding schemes.  For example, a frame in MP3 corresponds to many samples across several channels, whereas an S/PDIF frame represents just one sample for each channel.  The definitions we use for FLAC follow.  Note that when we talk about blocks and subblocks we are referring to the raw unencoded audio data that is the input to the encoder, and when we talk about frames and subframes, we are referring to the FLAC-encoded data.
 		<ul>
 			<li>
 				<b>Block</b>: One or more audio samples that span several channels.
@@ -241,7 +241,7 @@
 		<br />
 		FLAC currently defines two similar methods for the coding of the error signal from the prediction stage.  The error signal is coded using Rice codes in one of two ways: 1) the encoder estimates a single Rice parameter based on the variance of the residual and Rice codes the entire residual using this parameter; 2) the residual is partitioned into several equal-length regions of contiguous samples, and each region is coded with its own Rice parameter based on the region's mean.  (Note that the first method is a special case of the second method with one partition, except the Rice parameter is based on the residual variance instead of the mean.)<br />
 		<br />
-		The FLAC format has reserved space for other coding methods.  Some possiblities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <a href="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</a> and <a href="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</a> for descriptions of several universal codes.<br />
+		The FLAC format has reserved space for other coding methods.  Some possibilities for volunteers would be to explore better context-modeling of the Rice parameter, or Huffman coding.  See <a href="http://www.hpl.hp.com/techreports/98/HPL-98-193.html">LOCO-I</a> and <a href="http://www.cs.tut.fi/~albert/Dev/pucrunch/packing.html">pucrunch</a> for descriptions of several universal codes.<br />
 		<br />
 		<a name="format_overview"><font size="+1"><b><u>Format</u></b></font></a><br />
 		<br />
@@ -1737,13 +1737,13 @@
 				Encoded residual.  The number of samples (n) in the partition is determined as follows:<br />
 				<ul>
 				<li>
-					if the partition order is zero, n = frame's blocksize - predictor order
+					partition size = (frame's blocksize / (2^partition order))
 				</li>
 				<li>
-					else if this is not the first partition of the subframe, n = (frame's blocksize / (2^partition order))
+					for first partition of the subframe, n = partition size - predictor
 				</li>
 				<li>
-					else n = (frame's blocksize / (2^partition order)) - predictor order
+					for remaining partitions, n = partition size
 				</li>
 				</ul>
 			</td>
@@ -1816,13 +1816,13 @@
 				Encoded residual.  The number of samples (n) in the partition is determined as follows:<br />
 				<ul>
 				<li>
-					if the partition order is zero, n = frame's blocksize - predictor order
+					partition size = (frame's blocksize / (2^partition order))
 				</li>
 				<li>
-					else if this is not the first partition of the subframe, n = (frame's blocksize / (2^partition order))
+					for first partition of the subframe, n = partition size - predictor
 				</li>
 				<li>
-					else n = (frame's blocksize / (2^partition order)) - predictor order
+					for remaining partitions, n = partition size
 				</li>
 				</ul>
 			</td>
@@ -1840,9 +1840,6 @@
 				Copyright (c) 2000-2009  Josh Coalson
 				<br/>
 				Copyright (c) 2011-2016  Xiph.Org Foundation
-			</td>
-			<td width="1%" align="right">
-				<a href="http://validator.w3.org/check?uri=referer"><img src="http://www.w3.org/Icons/valid-xhtml10" alt="Valid XHTML 1.0!" height="31" width="88" border="0" hspace="0" /></a>
 			</td>
 		</tr>
 	</table>

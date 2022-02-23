@@ -72,6 +72,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = flac.pc
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	flac.pc.in \
 	libFLAC_dynamic.vcproj \
@@ -114,6 +115,7 @@ libFLAC_sources = \
 	lpc_intrin_sse2.c \
 	lpc_intrin_sse41.c \
 	lpc_intrin_avx2.c \
+	lpc_intrin_vsx.c \
 	md5.c \
 	memory.c \
 	metadata_iterators.c \

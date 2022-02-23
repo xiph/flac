@@ -1,0 +1,183 @@
+name: GitHub Actions
+
+on:
+  push:
+  pull_request:
+  schedule:
+    - cron: '0 0 1 * *'
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        name:
+          [
+            ubuntu-latest-gcc-autotools,
+            ubuntu-latest-clang-autotools,
+            ubuntu-latest-gcc-cmake,
+            ubuntu-latest-clang-cmake,
+            macos-latest-clang-autotools,
+            macos-latest-clang-cmake,
+            windows-latest-cmake,
+            ubuntu-latest-gcc-autotools-64-bit-words,
+            ubuntu-latest-clang-autotools-64-bit-words,
+            ubuntu-latest-gcc-cmake-64-bit-words,
+            ubuntu-latest-clang-cmake-64-bit-words,
+            macos-latest-clang-autotools-64-bit-words,
+            macos-latest-clang-cmake-64-bit-words
+          ]
+        include:
+          - name: ubuntu-latest-gcc-autotools
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            build-system: autotools
+            configure-opts: ''
+
+          - name: ubuntu-latest-clang-autotools
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: autotools
+            configure-opts: ''
+
+          - name: ubuntu-latest-gcc-cmake
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            build-system: cmake
+            configure-opts: ''
+
+          - name: ubuntu-latest-clang-cmake
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            configure-opts: ''
+
+          - name: macos-latest-clang-autotools
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: autotools
+            configure-opts: ''
+
+          - name: macos-latest-clang-cmake
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            configure-opts: ''
+
+          - name: windows-latest-cmake
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DWITH_OGG=OFF'
+
+          - name: ubuntu-latest-gcc-autotools-64-bit-words
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            build-system: autotools
+            configure-opts: --enable-64-bit-words
+
+          - name: ubuntu-latest-clang-autotools-64-bit-words
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: autotools
+            configure-opts: --enable-64-bit-words
+
+          - name: ubuntu-latest-gcc-cmake-64-bit-words
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            build-system: cmake
+            configure-opts: -DENABLE_64_BIT_WORDS=ON
+
+          - name: ubuntu-latest-clang-cmake-64-bit-words
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            configure-opts: -DENABLE_64_BIT_WORDS=ON
+
+          - name: macos-latest-clang-autotools-64-bit-words
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: autotools
+            configure-opts: --enable-64-bit-words
+
+          - name: macos-latest-clang-cmake-64-bit-words
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            configure-opts: -DENABLE_64_BIT_WORDS=ON
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Install MacOS dependencies
+        if: startsWith(matrix.os,'macos')
+        run: |
+          brew update
+          brew install automake pkg-config libogg
+
+      - name: Install Linux dependencies
+        if: startsWith(matrix.os,'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib
+
+      - name: Build with Autotools
+        if: startsWith(matrix.build-system,'autotools')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          ./autogen.sh
+          ./configure ${{ matrix.configure-opts }}
+          make
+          make check
+
+      - name: Prepare CMake build directory
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: mkdir cmake-build
+
+      - name: CMake generator
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
+
+      - name: CMake build
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: cmake --build .
+
+      - name: CMake test
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: ctest -V -C Debug
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          path: ./**/*.log

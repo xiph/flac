@@ -21,6 +21,7 @@ bin_PROGRAMS = metaflac
 AM_CFLAGS = @OGG_CFLAGS@
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	metaflac.vcproj \
 	metaflac.vcxproj \

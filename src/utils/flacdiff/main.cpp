@@ -166,7 +166,7 @@ static FLAC__off_t get_diff_offset(AutoFILE &f1, AutoFILE &f2)
 {
 	FLAC__off_t off = 0;
 	while(1) {
-		if(feof((FILE*)f1) && feof((FILE*)f1)) {
+		if(feof((FILE*)f1) && feof((FILE*)f2)) {
 			fprintf(stderr, "ERROR: files are identical\n");
 			return -1;
 		}

@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_PREREQ(2.60)
-AC_INIT([flac], [1.3.2], [flac-dev@xiph.org], [flac], [https://www.xiph.org/flac/])
+AC_INIT([flac], [1.3.4], [flac-dev@xiph.org], [flac], [https://www.xiph.org/flac/])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/flac/main.c])
 AC_CONFIG_MACRO_DIR([m4])
@@ -141,7 +141,16 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
 		asm_optimisation=$asm_opt
 		;;
-	powerpc|powerpc64)
+	powerpc64|powerpc64le)
+		cpu_ppc64=true
+		cpu_ppc=true
+		AC_DEFINE(FLAC__CPU_PPC)
+		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
+		AC_DEFINE(FLAC__CPU_PPC64)
+		AH_TEMPLATE(FLAC__CPU_PPC64, [define if building for PowerPC64])
+		asm_optimisation=$asm_opt
+		;;
+	powerpc|powerpcle)
 		cpu_ppc=true
 		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
@@ -157,12 +166,33 @@ esac
 AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
+AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes; then
 AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
 else
 AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
+fi
+
+if test x"$cpu_ppc64" = xtrue ; then
+
+AC_C_ATTRIBUTE([target("cpu=power8")],
+  [have_cpu_power8=yes],
+  [have_cpu_power8=no])
+if test x"$have_cpu_power8" = xyes ; then
+  AC_DEFINE(FLAC__HAS_TARGET_POWER8)
+  AH_TEMPLATE(FLAC__HAS_TARGET_POWER8, [define if compiler has __attribute__((target("cpu=power8"))) support])
+fi
+
+AC_C_ATTRIBUTE([target("cpu=power9")],
+  [have_cpu_power9=yes],
+  [have_cpu_power9=no])
+if test x"$have_cpu_power9" = xyes ; then
+  AC_DEFINE(FLAC__HAS_TARGET_POWER9)
+  AH_TEMPLATE(FLAC__HAS_TARGET_POWER9, [define if compiler has __attribute__((target("cpu=power9"))) support])
+fi
+
 fi
 
 case "$host" in
@@ -174,14 +204,6 @@ case "$host" in
 	*) OBJ_FORMAT=elf ;;
 esac
 AC_SUBST(OBJ_FORMAT)
-case "$host" in
-	*-gnuspe)
-		abi_spe=true
-		AC_DEFINE(FLAC__CPU_PPC_SPE)
-		AH_TEMPLATE(FLAC__CPU_PPC_SPE, [define if building for PowerPC with SPE ABI])
-		;;
-esac
-AM_CONDITIONAL(FLaC__CPU_PPC_SPE, test "x$abi_spe" = xtrue)
 
 os_is_windows=no
 case "$host" in
@@ -236,6 +258,19 @@ AC_DEFINE(FLAC__USE_ALTIVEC)
 AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
 fi
 
+AC_ARG_ENABLE(vsx,
+AC_HELP_STRING([--disable-vsx], [Disable VSX optimizations]),
+[case "${enableval}" in
+	yes) use_vsx=true ;;
+	no)  use_vsx=false ;;
+	*) AC_MSG_ERROR(bad value ${enableval} for --enable-vsx) ;;
+esac],[use_vsx=true])
+AM_CONDITIONAL(FLaC__USE_VSX, test "x$use_vsx" = xtrue)
+if test "x$use_vsx" = xtrue ; then
+AC_DEFINE(FLAC__USE_VSX)
+AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
+fi
+
 AC_ARG_ENABLE(avx,
 AC_HELP_STRING([--disable-avx], [Disable AVX, AVX2 optimizations]),
 [case "${enableval}" in
@@ -275,8 +310,10 @@ AC_SUBST(FLAC__TEST_LEVEL)
 AC_ARG_ENABLE(werror,
 	AC_HELP_STRING([--enable-werror], [Enable -Werror in all Makefiles]))
 
-AC_ARG_ENABLE(stack-smash-protection,
-	AC_HELP_STRING([--enable-stack-smash-protection], [Enable GNU GCC stack smash protection]))
+AC_ARG_ENABLE([stack-smash-protection],
+    [AS_HELP_STRING([--disable-stack-smash-protection],[Disable GNU GCC stack smash protection])],,
+    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "$os_is_windows" = "no"],
+        [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
 
 AC_ARG_ENABLE(64-bit-words,
 	AC_HELP_STRING([--enable-64-bit-words], [Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
@@ -339,13 +376,39 @@ AC_HELP_STRING([--disable-cpplibs], [Do not build libFLAC++]),
 esac], [disable_cpplibs=false])
 AM_CONDITIONAL(FLaC__WITH_CPPLIBS, [test "x$disable_cpplibs" != xtrue])
 
+AC_ARG_ENABLE([oss-fuzzers],
+  [AS_HELP_STRING([--enable-oss-fuzzers],
+    [Whether to generate the fuzzers for OSS-Fuzz (Clang only)])],
+  [have_oss_fuzzers=yes], [have_oss_fuzzers=no])
+
+if test "x$have_oss_fuzzers" = "xyes"; then
+  if test "x$xiph_cv_c_compiler_clang" = "xyes" ; then
+    AM_CONDITIONAL([USE_OSSFUZZERS], [test "x$have_oss_fuzzers" = "xyes"])
+    if test "x$LIB_FUZZING_ENGINE" = "x" ; then
+      # Only set this if it is empty.
+	  LIB_FUZZING_ENGINE=-fsanitize=fuzzer
+    fi
+  else
+    AM_CONDITIONAL([USE_OSSFUZZERS], [test "false" = "true"])
+    # Disable fuzzer if the compiler is not Clang.
+    AC_MSG_WARN([*** Ozz-Fuzz is disabled because that requres the  Clang compiler.])
+    have_oss_fuzzers="no (compiler is GCC)"
+  fi
+else
+  AM_CONDITIONAL([USE_OSSFUZZERS], [test "false" = "true"])
+fi
+
+AM_CONDITIONAL([USE_OSSFUZZ_FLAG], [test "x$LIB_FUZZING_ENGINE" = "x-fsanitize=fuzzer"])
+AM_CONDITIONAL([USE_OSSFUZZ_STATIC], [test -f "$LIB_FUZZING_ENGINE"])
+AC_SUBST([LIB_FUZZING_ENGINE])
+
 dnl check for ogg library
 AC_ARG_ENABLE([ogg],
 	AC_HELP_STRING([--disable-ogg], [Disable ogg support (default: test for libogg)]),
 	[ want_ogg=$enableval ], [ want_ogg=yes ] )
 
 if test "x$want_ogg" != "xno"; then
-	XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development enviroment not installed - Ogg support will not be built]))
+	XIPH_PATH_OGG(have_ogg=yes, AC_MSG_WARN([*** Ogg development environment not installed - Ogg support will not be built]))
 fi
 
 FLAC__HAS_OGG=0
@@ -376,11 +439,11 @@ AC_DEFINE(FLAC__HAS_DOCBOOK_TO_MAN)
 AH_TEMPLATE(FLAC__HAS_DOCBOOK_TO_MAN, [define if you have docbook-to-man or docbook2man])
 fi
 
-AC_CHECK_LIB(rt, clock_gettime, have_clock_gettime=yes)
-if test x$have_clock_gettime = xyes; then
+AC_CHECK_LIB(rt, clock_gettime,
+        LIB_CLOCK_GETTIME=-lrt
         AC_DEFINE(HAVE_CLOCK_GETTIME)
-        AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime])
-fi
+        AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime]))
+AC_SUBST(LIB_CLOCK_GETTIME)
 
 # only matters for x86
 AC_CHECK_PROGS(NASM, nasm)
@@ -394,11 +457,12 @@ dnl If debugging is disabled AND no CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
 dnl are provided, we can set defaults to our liking
 AS_IF([test "x${ax_enable_debug}" = "xno" && test "x${enable_flags_setting}" = "xyes"], [
 	CFLAGS="-O3 -funroll-loops"
+	CXXFLAGS="-O3"
 ])
 
-XIPH_GCC_VERSION
+XIPH_GCC_VERSION dnl Sets a non-zero GCC_XXX_VERSION for gcc, not clang. checks below rely on that..
 
-if test x$ac_cv_c_compiler_gnu = xyes ; then
+if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; then
 	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Wconversion
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
@@ -413,13 +477,22 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	XIPH_ADD_CXXFLAGS([-Weffc++])
 	AC_LANG_POP([C++])
 
-	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
+	if test x$xiph_cv_c_compiler_clang = xyes -a "$OBJ_FORMAT" = elf; then
+		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
+		CFLAGS="$CFLAGS -fvisibility=hidden"
+		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+	elif test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = elf; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
 		CFLAGS="$CFLAGS -fvisibility=hidden"
 		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
 		fi
 
-	if test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = macho; then
+
+	if test x$xiph_cv_c_compiler_clang = xyes -a "$OBJ_FORMAT" = macho; then
+		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
+		CFLAGS="$CFLAGS -fvisibility=hidden"
+		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
+	elif test "$GCC_MAJOR_VERSION" -ge 4 && test "$OBJ_FORMAT" = macho; then
 		CPPFLAGS="$CPPFLAGS -DFLAC__USE_VISIBILITY_ATTR"
 		CFLAGS="$CFLAGS -fvisibility=hidden"
 		CXXFLAGS="$CXXFLAGS -fvisibility=hidden"
@@ -458,10 +531,21 @@ if test x$enable_stack_smash_protection = "xyes" ; then
 	XIPH_GXX_STACK_PROTECTOR
 	fi
 
-if test "x$sys_linux" = xtrue ; then
-       LIB_CLOCK_GETTIME=-lrt
-       fi
-AC_SUBST(LIB_CLOCK_GETTIME)
+AH_VERBATIM([FLAC_API_EXPORTS],
+[/* libtool defines DLL_EXPORT for windows dll builds,
+   but flac code relies on FLAC_API_EXPORTS instead. */
+#ifdef DLL_EXPORT
+#ifdef __cplusplus
+# define FLACPP_API_EXPORTS
+#else
+# define FLAC_API_EXPORTS
+#endif
+#endif])
+
+if test x$enable_shared != "xyes" ; then
+dnl for correct FLAC_API
+	CPPFLAGS="-DFLAC__NO_DLL $CPPFLAGS"
+	fi
 
 AC_CONFIG_FILES([ \
 	Makefile \
@@ -520,14 +604,8 @@ AC_CONFIG_FILES([ \
 	test/metaflac-test-files/Makefile \
 	test/pictures/Makefile \
 	build/Makefile \
-	objs/Makefile \
-	objs/debug/Makefile \
-	objs/debug/bin/Makefile \
-	objs/debug/lib/Makefile \
-	objs/release/Makefile \
-	objs/release/bin/Makefile \
-	objs/release/lib/Makefile \
-	microbench/Makefile
+	microbench/Makefile \
+	oss-fuzz/Makefile
 ])
 AC_OUTPUT
 
@@ -536,19 +614,21 @@ AC_MSG_RESULT([
 
   Configuration summary :
 
-    FLAC version : ........................ ${VERSION}
+    FLAC version : ............................ ${VERSION}
 
-    Host CPU : ............................ ${host_cpu}
-    Host Vendor : ......................... ${host_vendor}
-    Host OS : ............................. ${host_os}
+    Host CPU : ................................ ${host_cpu}
+    Host Vendor : ............................. ${host_vendor}
+    Host OS : ................................. ${host_os}
 ])
 
-	echo "    Compiler is GCC : ..................... ${ac_cv_c_compiler_gnu}"
+	echo "    Compiler is GCC : ......................... ${ac_cv_c_compiler_gnu}"
 if test x$ac_cv_c_compiler_gnu = xyes ; then
-	echo "    GCC version : ......................... ${GCC_VERSION}"
+	echo "    GCC version : ............................. ${GCC_VERSION}"
 fi
-	echo "    Compiler is Clang : ................... ${xiph_cv_c_compiler_clang}"
-	echo "    SSE optimizations : ................... ${sse_os}"
-	echo "    Asm optimizations : ................... ${asm_optimisation}"
-	echo "    Ogg/FLAC support : .................... ${have_ogg}"
+	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
+	echo "    SSE optimizations : ....................... ${sse_os}"
+	echo "    Asm optimizations : ....................... ${asm_optimisation}"
+	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
+	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
+	echo "    Fuzzing support (Clang only) : ............ ${have_oss_fuzzers}"
 echo

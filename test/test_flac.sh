@@ -726,6 +726,43 @@ if [ $is_win = no ] ; then
 	echo OK
 fi
 
+############################################################################
+# test --output-prefix
+############################################################################
+
+in_dir=./tmp_in
+out_dir=./tmp_out
+mkdir $in_dir $out_dir || die "ERROR failed to create temp directories"
+
+cp 50c.raw 50c.flac $in_dir
+
+#
+# test --output-prefix when encoding
+#
+
+echo $ECHO_N "testing --output-prefix=$out_dir/ (encode)... " $ECHO_C
+run_flac $raw_eopt --output-prefix=$out_dir/ $in_dir/50c.raw || die "ERROR generating FLAC file in $out_dir (encode)"
+[ -f $out_dir/50c.flac ] || die "ERROR FLAC file not in $out_dir (encode)"
+run_flac $raw_dopt $out_dir/50c.flac || die "ERROR decoding FLAC file (encode)"
+[ -f $out_dir/50c.raw ] || die "ERROR RAW file not in $out_dir (encode)"
+cmp 50c.raw $out_dir/50c.raw || die "ERROR: file mismatch for --output-prefix=$out_dir (encode)"
+rm -f $out_dir/50c.flac $out_dir/50c.raw
+echo OK
+
+#
+# test --ouput-prefix when decoding
+#
+
+echo $ECHO_N "testing --output-prefix=$out_dir/ (decode)... " $ECHO_C
+run_flac $raw_dopt --output-prefix=$out_dir/ $in_dir/50c.flac || die "ERROR deocding FLAC file in $out_dir (decode)"
+[ -f $out_dir/50c.raw ] || die "ERROR RAW file not in $out_dir (decode)"
+run_flac $raw_eopt $out_dir/50c.raw || die "ERROR generating FLAC file (decode)"
+[ -f $out_dir/50c.flac ] || die "ERROR FLAC file not in $out_dir (decode)"
+cmp 50c.flac $out_dir/50c.flac || die "ERROR: file mismatch for --output-prefix=$out_dir (decode)"
+rm -f $out_dir/50c.flac $out_dir/50c.raw
+echo OK
+
+rm -rf $in_dir $out_dir
 
 ############################################################################
 # test --cue
@@ -1166,7 +1203,9 @@ flac2flac ()
 	# The 'make distcheck' target needs this.
 	chmod u+w $file
 	run_flac -f -o out.flac $args $file || die "ERROR encoding FLAC file"
-	run_metaflac --list out.flac | filter > out.meta || die "ERROR listing metadata of output FLAC file"
+	run_metaflac --list out.flac | filter > out1.meta || die "ERROR listing metadata of output FLAC file"
+    # Ignore lengths which can be affected by the version string.
+    sed "s/length:.*/length: XXX/" out1.meta > out.meta
 	diff -q -w $expect out.meta 2>/dev/null || die "ERROR: metadata does not match expected $expect"
 	echo OK
 }
@@ -1210,7 +1249,7 @@ flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
 
-rm -f out.flac out.meta
+rm -f out.flac out.meta out1.meta
 
 #@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
 

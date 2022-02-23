@@ -95,7 +95,8 @@ filter ()
 	# grep pattern 2: remove minimum/maximum frame and block size from STREAMINFO
 	# grep pattern 3: remove hexdump data from PICTURE metadata blocks
 	# sed pattern 1: remove stream offset values from SEEKTABLE points
-	$EGREP -v '^  vendor string: |^  m..imum .....size: |^    0000[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]: ' | sed -e 's/, stream_offset.*//'
+	$EGREP -v '^  vendor string: |^  m..imum .....size: |^    0000[0-9a-fA-F][0-9a-fA-F][0-9a-fA-F][0-9a-fA-F]: ' \
+		| sed -e 's/, stream_offset.*//'
 }
 metaflac_test ()
 {
@@ -104,7 +105,9 @@ metaflac_test ()
 	args="$3"
 	expect="$case-expect.meta"
 	echo $ECHO_N "test $1: $desc... " $ECHO_C
-	run_metaflac $args $flacfile | filter > $testdir/out.meta || die "ERROR running metaflac"
+	run_metaflac $args $flacfile | filter > $testdir/out1.meta || die "ERROR running metaflac"
+	# Ignore lengths which can be affected by the version string.
+	sed "s/length:.*/length: XXX/" $testdir/out1.meta > $testdir/out.meta
 	diff -w $expect $testdir/out.meta > /dev/null 2>&1 || die "ERROR: metadata does not match expected $expect"
 	# To blindly accept (and check later): cp -f $testdir/out.meta $expect
 	echo OK
@@ -370,3 +373,5 @@ cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
 run_metaflac --remove --block-type=VORBIS_COMMENT --dont-use-padding $flacfile
 cmp $flacfile ${top_srcdir}/test/metaflac.flac.ok || die "ERROR, $flacfile and metaflac.flac.ok differ"
 echo OK
+
+rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta

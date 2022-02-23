@@ -41,6 +41,7 @@
 
 #include <string.h> /* for memset() */
 #include <math.h>
+#include "share/compat.h"
 #include "share/replaygain_synthesis.h"
 #include "FLAC/assert.h"
 

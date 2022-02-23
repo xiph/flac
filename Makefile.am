@@ -31,13 +31,20 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = doc include m4 man src test build objs microbench
+SUBDIRS = doc include m4 man src test build microbench oss-fuzz
 
 if EXAMPLES
 SUBDIRS += examples
 endif
 
 EXTRA_DIST = \
+	CMakeLists.txt \
+	config.cmake.h.in \
+	flac-config.cmake.in \
+	cmake/FindOgg.cmake \
+	cmake/UseSystemExtensions.cmake \
+	cmake/CheckCPUArch.cmake \
+	cmake/CheckCPUArch.c.in \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \

@@ -1,6 +1,6 @@
 #  test_libFLAC - Unit tester for libFLAC
 #  Copyright (C) 2000-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2018  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -32,11 +32,17 @@ INCLUDES = -I../libFLAC/include -I$(topdir)/include
 ifeq ($(OS),Darwin)
     EXPLICIT_LIBS = $(libdir)/libgrabbag.a $(libdir)/libreplaygain_analysis.a $(libdir)/libtest_libs_common.a $(libdir)/libFLAC.a $(OGG_EXPLICIT_LIBS) -lm
 else
+ifeq ($(findstring Windows,$(OS)),Windows)
+    LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lFLAC -lwin_utf8_io $(OGG_LIBS) -lm
+else
     LIBS = -lgrabbag -lreplaygain_analysis -ltest_libs_common -lFLAC $(OGG_LIBS) -lm
+endif
 endif
 
 SRCS_C = \
+	bitreader.c \
 	bitwriter.c \
+	crc.c \
 	decoders.c \
 	encoders.c \
 	endswap.c \

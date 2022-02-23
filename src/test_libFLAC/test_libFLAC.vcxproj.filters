@@ -11,7 +11,13 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="bitreader.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="bitwriter.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="crc.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="decoders.h">
@@ -34,7 +40,13 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bitreader.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
     <ClCompile Include="bitwriter.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="crc.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="decoders.c">

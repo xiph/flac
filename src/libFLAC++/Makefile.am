@@ -30,6 +30,7 @@
 #  SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 lib_LTLIBRARIES = libFLAC++.la
+noinst_LTLIBRARIES = libFLAC++-static.la
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libFLAC++.m4
@@ -38,6 +39,7 @@ pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = flac++.pc
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	flac++.pc.in \
 	libFLAC++_dynamic.vcproj \
@@ -48,11 +50,15 @@ EXTRA_DIST = \
 	libFLAC++_static.vcxproj.filters \
 	libFLAC++.m4
 
-# see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 9:0:3
-libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
-
-libFLAC___la_SOURCES = \
+libFLAC___sources = \
 	metadata.cpp \
 	stream_decoder.cpp \
 	stream_encoder.cpp
+
+# see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
+libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 9:0:3
+libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
+libFLAC___la_SOURCES = $(libFLAC___sources)
+
+libFLAC___static_la_SOURCES = $(libFLAC___sources)
+libFLAC___static_la_LIBADD = ../libFLAC/libFLAC-static.la

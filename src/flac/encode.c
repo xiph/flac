@@ -223,7 +223,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				flac__utils_printf(stderr, 1, "%s: ERROR: file has multiple 'ds64' chunks\n", e->inbasefilename);
 				return false;
 			}
-			if(got_fmt_chunk || got_data_chunk) {
+			if(got_fmt_chunk) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: 'ds64' chunk appears after 'fmt ' or 'data' chunk\n", e->inbasefilename);
 				return false;
 			}
@@ -1676,7 +1676,7 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 		}
 	}
 
-	if (e->compression_ratio >= 1.0) {
+	if (e->compression_ratio >= 1.0 && error_on_compression_fail) {
 		flac__utils_printf(stderr, 1,
 			"FAILURE: Compression failed (ratio %0.3f, should be < 1.0).\n"
 			"This happens for some files for one or more of the following reasons:\n"
@@ -1684,8 +1684,7 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 			" * Insufficient input data  (e.g. very short files, < 10000 frames).\n"
 			" * The audio data is not compressible (e.g. a full range white noise signal).\n"
 			, e->compression_ratio);
-		if (error_on_compression_fail)
-			ret = 1;
+		ret = 1;
 	}
 
 	EncoderSession_destroy(e);
@@ -2464,13 +2463,13 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 
 	const FLAC__uint64 uesize = e->unencoded_size;
 
-	e->progress = e->total_samples_to_encode ? (double)samples_written / (double)e->total_samples_to_encode : 0;
-	e->compression_ratio = (e->progress && uesize) ? (double)e->bytes_written / ((double)uesize * min(1.0, e->progress)) : 0;
-
 	(void)encoder, (void)total_frames_estimate;
 
 	e->bytes_written = bytes_written;
 	e->samples_written = samples_written;
+
+	e->progress = e->total_samples_to_encode ? (double)samples_written / (double)e->total_samples_to_encode : 0;
+	e->compression_ratio = (e->progress && uesize) ? (double)e->bytes_written / ((double)uesize * min(1.0, e->progress)) : 0;
 
 	if(e->total_samples_to_encode > 0 && frames_written - e->old_frames_written > e->stats_frames_interval) {
 		print_stats(e);
@@ -2759,7 +2758,7 @@ void print_verify_error(EncoderSession *e)
 	flac__utils_printf(stderr, 1, "           http://xiph.org/flac/faq.html#tools__hardware_prob\n");
 	flac__utils_printf(stderr, 1, "       If it does fail in the exact same place every time, keep\n");
 	flac__utils_printf(stderr, 1, "       %s and submit a bug report to:\n", e->outfilename);
-	flac__utils_printf(stderr, 1, "           https://sourceforge.net/p/flac/bugs/\n");
+	flac__utils_printf(stderr, 1, "           https://github.com/xiph/flac/issues\n");
 	flac__utils_printf(stderr, 1, "       Make sure to upload the FLAC file and use the \"Monitor\" feature to\n");
 	flac__utils_printf(stderr, 1, "       monitor the bug status.\n");
 	flac__utils_printf(stderr, 1, "Verify FAILED!  Do not trust %s\n", e->outfilename);

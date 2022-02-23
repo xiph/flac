@@ -384,9 +384,12 @@ ValidGainFrequency ( long samplefreq )
 {
     struct ReplayGainFilter* gainfilter = CreateGainFilter( samplefreq );
 
-    free(gainfilter);
-
-    return gainfilter != 0;
+    if (gainfilter == 0) {
+        return 0;
+    } else {
+        free(gainfilter);
+        return 1;
+    }
 }
 
 int

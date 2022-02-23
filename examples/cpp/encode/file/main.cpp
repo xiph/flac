@@ -117,11 +117,13 @@ int main(int argc, char *argv[])
 		) {
 			fprintf(stderr, "ERROR: out of memory or tag error\n");
 			ok = false;
-		}
+		} else {
 
-		metadata[1]->length = 1234; /* set the padding length */
+			metadata[1]->length = 1234; /* set the padding length */
 
-		ok = encoder.set_metadata(metadata, 2);
+			ok = encoder.set_metadata(metadata, 2);
+
+                }
 	}
 
 	/* initialize encoder */

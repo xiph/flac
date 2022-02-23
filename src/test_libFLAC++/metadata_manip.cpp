@@ -27,8 +27,6 @@
 #include <sys/types.h> /* some flavors of BSD (like OS X) require this to get time_t */
 #ifdef _MSC_VER
 #include <sys/utime.h>
-#else
-#include <utime.h> /* for utime() */
 #endif
 #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
 #include <unistd.h> /* for chown(), unlink() */
@@ -206,11 +204,13 @@ bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 	static const char *tempfile_suffix = ".metadata_edit";
 	size_t destlen = strlen(filename) + strlen(tempfile_suffix) + 1;
 
-	if(0 == (*tempfilename = (char*)malloc(destlen)))
+	*tempfilename = (char*)malloc(destlen);
+	if (*tempfilename == 0)
 		return false;
 	flac_snprintf(*tempfilename, destlen, "%s%s", filename, tempfile_suffix);
 
-	if(0 == (*tempfile = flac_fopen(*tempfilename, "wb")))
+	*tempfile = flac_fopen(*tempfilename, "wb");
+	if (*tempfile == 0)
 		return false;
 
 	return true;
@@ -218,12 +218,12 @@ bool open_tempfile_(const char *filename, FILE **tempfile, char **tempfilename)
 
 void cleanup_tempfile_(FILE **tempfile, char **tempfilename)
 {
-	if(0 != *tempfile) {
+	if (*tempfile != 0) {
 		(void)fclose(*tempfile);
 		*tempfile = 0;
 	}
 
-	if(0 != *tempfilename) {
+	if (*tempfilename != 0) {
 		(void)flac_unlink(*tempfilename);
 		free(*tempfilename);
 		*tempfilename = 0;
@@ -269,13 +269,18 @@ bool get_file_stats_(const char *filename, struct flac_stat_s *stats)
 
 void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
-	struct utimbuf srctime;
-
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
 
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+	struct timespec srctime[2] = {};
+	srctime[0].tv_sec = stats->st_atime;
+	srctime[1].tv_sec = stats->st_mtime;
+#else
+	struct utimbuf srctime;
 	srctime.actime = stats->st_atime;
 	srctime.modtime = stats->st_mtime;
+#endif
 	(void)flac_chmod(filename, stats->st_mode);
 	(void)flac_utime(filename, &srctime);
 #if !defined _MSC_VER && !defined __MINGW32__ && !defined __EMX__
@@ -470,7 +475,7 @@ void OurFileDecoder::metadata_callback(const ::FLAC__StreamMetadata *metadata)
 	if(error_occurred_)
 		return;
 
-	printf("%d... ", mc_our_block_number_);
+	printf("%u... ", mc_our_block_number_);
 	fflush(stdout);
 
 	if(!ignore_metadata_) {

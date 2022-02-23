@@ -650,7 +650,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->protected_->loose_mid_side_stereo = false;
 
 	if(encoder->protected_->bits_per_sample >= 32)
-		encoder->protected_->do_mid_side_stereo = false; /* since we currenty do 32-bit math, the side channel would have 33 bps and overflow */
+		encoder->protected_->do_mid_side_stereo = false; /* since we currently do 32-bit math, the side channel would have 33 bps and overflow */
 
 	if(encoder->protected_->bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || encoder->protected_->bits_per_sample > FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BITS_PER_SAMPLE;
@@ -806,6 +806,36 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	/* now override with asm where appropriate */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 # ifndef FLAC__NO_ASM
+#if defined(FLAC__CPU_PPC64) && defined(FLAC__USE_VSX)
+#ifdef FLAC__HAS_TARGET_POWER8
+#ifdef FLAC__HAS_TARGET_POWER9
+	if (encoder->private_->cpuinfo.ppc.arch_3_00) {
+		if(encoder->protected_->max_lpc_order < 4)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_4;
+		else if(encoder->protected_->max_lpc_order < 8)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_8;
+		else if(encoder->protected_->max_lpc_order < 12)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_12;
+		else if(encoder->protected_->max_lpc_order < 16)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_16;
+		else
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+	} else
+#endif
+	if (encoder->private_->cpuinfo.ppc.arch_2_07) {
+		if(encoder->protected_->max_lpc_order < 4)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_4;
+		else if(encoder->protected_->max_lpc_order < 8)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8;
+		else if(encoder->protected_->max_lpc_order < 12)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_12;
+		else if(encoder->protected_->max_lpc_order < 16)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_16;
+		else
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+	}
+#endif
+#endif
 	if(encoder->private_->cpuinfo.use_asm) {
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
@@ -1962,7 +1992,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encod
 }
 
 /*
- * These three functions are not static, but not publically exposed in
+ * These three functions are not static, but not publicly exposed in
  * include/FLAC/ either.  They are used by the test suite.
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value)
@@ -2629,7 +2659,9 @@ FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC
 			encoder->private_->verify.needs_magic_hack = true;
 		}
 		else {
-			if(!FLAC__stream_decoder_process_single(encoder->private_->verify.decoder)) {
+			if(!FLAC__stream_decoder_process_single(encoder->private_->verify.decoder)
+			    || (!is_last_block
+				    && (FLAC__stream_encoder_get_verify_decoder_state(encoder) == FLAC__STREAM_DECODER_END_OF_STREAM))) {
 				FLAC__bitwriter_release_buffer(encoder->private_->frame);
 				FLAC__bitwriter_clear(encoder->private_->frame);
 				if(encoder->protected_->state != FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
@@ -4129,13 +4161,14 @@ static inline uint32_t count_rice_bits_in_partition_(
 	const FLAC__int32 *residual
 )
 {
-	uint32_t i, partition_bits =
+	uint32_t i;
+	uint64_t partition_bits =
 		FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + /* actually could end up being FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN but err on side of 16bps */
 		(1+rice_parameter) * partition_samples /* 1 for unary stop bit + rice_parameter for the binary portion */
 	;
 	for(i = 0; i < partition_samples; i++)
 		partition_bits += ( (FLAC__uint32)((residual[i]<<1)^(residual[i]>>31)) >> rice_parameter );
-	return partition_bits;
+	return (uint32_t)(flac_min(partition_bits,(uint32_t)(-1))); // To make sure the return value doesn't overflow
 }
 #else
 static inline uint32_t count_rice_bits_in_partition_(
@@ -4144,15 +4177,15 @@ static inline uint32_t count_rice_bits_in_partition_(
 	const FLAC__uint64 abs_residual_partition_sum
 )
 {
-	return
+	return (uint32_t)(flac_min( // To make sure the return value doesn't overflow
 		FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN + /* actually could end up being FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN but err on side of 16bps */
 		(1+rice_parameter) * partition_samples + /* 1 for unary stop bit + rice_parameter for the binary portion */
 		(
 			rice_parameter?
-				(uint32_t)(abs_residual_partition_sum >> (rice_parameter-1)) /* rice_parameter-1 because the real coder sign-folds instead of using a sign bit */
-				: (uint32_t)(abs_residual_partition_sum << 1) /* can't shift by negative number, so reverse */
+				(abs_residual_partition_sum >> (rice_parameter-1)) /* rice_parameter-1 because the real coder sign-folds instead of using a sign bit */
+				: (abs_residual_partition_sum << 1) /* can't shift by negative number, so reverse */
 		)
-		- (partition_samples >> 1)
+		- (partition_samples >> 1),(uint32_t)(-1)));
 		/* -(partition_samples>>1) to subtract out extra contributions to the abs_residual_partition_sum.
 		 * The actual number of bits used is closer to the sum(for all i in the partition) of  abs(residual[i])>>(rice_parameter-1)
 		 * By using the abs_residual_partition sum, we also add in bits in the LSBs that would normally be shifted out.
@@ -4243,7 +4276,10 @@ FLAC__bool set_partitioned_rice_(
 				raw_bits[0] = 0;
 		}
 		parameters[0] = best_rice_parameter;
-		bits_ += best_partition_bits;
+		if(best_partition_bits < UINT_MAX - bits_) // To make sure _bits doesn't overflow
+			bits_ += best_partition_bits;
+		else
+			bits_ = UINT_MAX;
 	}
 	else {
 		uint32_t partition, residual_sample;
@@ -4346,7 +4382,10 @@ FLAC__bool set_partitioned_rice_(
 					raw_bits[partition] = 0;
 			}
 			parameters[partition] = best_rice_parameter;
-			bits_ += best_partition_bits;
+			if(best_partition_bits < UINT_MAX - bits_) // To make sure _bits doesn't overflow
+				bits_ += best_partition_bits;
+			else
+				bits_ = UINT_MAX;
 			residual_sample += partition_samples;
 		}
 	}

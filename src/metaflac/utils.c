@@ -61,21 +61,22 @@ char *local_strdup(const char *source)
 
 void local_strcat(char **dest, const char *source)
 {
-	size_t ndest, nsource;
+	size_t ndest, nsource, outlen;
 
 	FLAC__ASSERT(0 != dest);
 	FLAC__ASSERT(0 != source);
 
-	ndest = *dest? strlen(*dest) : 0;
+	ndest = *dest ? strlen(*dest) : 0;
 	nsource = strlen(source);
+	outlen = ndest + nsource + 1;
 
 	if(nsource == 0)
 		return;
 
 	*dest = safe_realloc_add_3op_(*dest, ndest, /*+*/nsource, /*+*/1);
-	if(0 == *dest)
+	if(*dest == NULL)
 		die("out of memory growing string");
-	safe_strncpy((*dest)+ndest, source, nsource + 1);
+	safe_strncat(*dest, source, outlen);
 }
 
 static inline int local_isprint(int c)

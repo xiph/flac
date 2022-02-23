@@ -97,11 +97,11 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 					mm_sum = _mm_add_epi32(mm_sum, mm_res);
 				}
 
-				mm_sum = _mm_add_epi32(mm_sum, _mm_srli_si128(mm_sum, 8));
-				mm_sum = _mm_add_epi32(mm_sum, _mm_srli_si128(mm_sum, 4));
+				mm_sum = _mm_add_epi32(mm_sum, _mm_shuffle_epi32(mm_sum, _MM_SHUFFLE(1,0,3,2)));
+				mm_sum = _mm_add_epi32(mm_sum, _mm_shufflelo_epi16(mm_sum, _MM_SHUFFLE(1,0,3,2)));
 				abs_residual_partition_sums[partition] = (FLAC__uint32)_mm_cvtsi128_si32(mm_sum);
-/* workaround for a bug in MSVC2015U2 - see https://connect.microsoft.com/VisualStudio/feedback/details/2659191/incorrect-code-generation-for-x86-64 */
-#if (defined _MSC_VER) && (_MSC_FULL_VER == 190023918) && (defined FLAC__CPU_X86_64)
+/* workaround for MSVC bugs (at least versions 2015 and 2017 are affected) */
+#if (defined _MSC_VER) && (defined FLAC__CPU_X86_64)
 				abs_residual_partition_sums[partition] &= 0xFFFFFFFF;
 #endif
 			}

@@ -35,5 +35,6 @@ libplugin_common_la_SOURCES = \
 	tags.c
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	README

@@ -165,7 +165,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="bitreader.h" />
     <ClInclude Include="bitwriter.h" />
+    <ClInclude Include="crc.h" />
     <ClInclude Include="decoders.h" />
     <ClInclude Include="encoders.h" />
     <ClInclude Include="endswap.h" />
@@ -174,7 +176,9 @@
     <ClInclude Include="metadata.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="bitreader.c" />
     <ClCompile Include="bitwriter.c" />
+    <ClCompile Include="crc.c" />
     <ClCompile Include="decoders.c" />
     <ClCompile Include="encoders.c" />
     <ClCompile Include="endswap.c" />

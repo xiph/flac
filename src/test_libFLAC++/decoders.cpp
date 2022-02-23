@@ -152,7 +152,7 @@ void DecoderCommon::common_metadata_callback_(const ::FLAC__StreamMetadata *meta
 	if(error_occurred_)
 		return;
 
-	printf("%d... ", current_metadata_number_);
+	printf("%u... ", current_metadata_number_);
 	fflush(stdout);
 
 	if(current_metadata_number_ >= num_expected_) {
@@ -459,6 +459,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!decoder->is_valid()) {
 		printf("FAILED, returned false\n");
+		delete decoder;
 		return false;
 	}
 	printf("OK\n");
@@ -481,6 +482,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!decoder->is_valid()) {
 		printf("FAILED, returned false\n");
+		delete decoder;
 		return false;
 	}
 	printf("OK\n");
@@ -532,6 +534,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	printf("testing is_valid()... ");
 	if(!decoder->is_valid()) {
 		printf("FAILED, returned false\n");
+		delete decoder;
 		return false;
 	}
 	printf("OK\n");

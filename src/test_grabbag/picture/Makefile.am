@@ -17,6 +17,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
+	CMakeLists.txt \
 	Makefile.lite \
 	test_picture.vcproj \
 	test_picture.vcxproj \
@@ -27,9 +28,14 @@ check_PROGRAMS = test_picture
 test_picture_SOURCES = \
 	main.c
 
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 test_picture_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
-	$(top_builddir)/src/libFLAC/libFLAC.la
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	$(win_utf8_lib)
 
 CLEANFILES = test_picture.exe

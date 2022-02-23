@@ -1520,7 +1520,7 @@ void show_explain(void)
 	printf("             mean that FILE is actually a URL to an image, though this use is\n");
 	printf("             discouraged.\n");
 	printf("           DESCRIPTION is optional; the default is an empty string\n");
-	printf("           The next part specfies the resolution and color information.  If\n");
+	printf("           The next part specifies the resolution and color information.  If\n");
 	printf("             the MIME-TYPE is image/jpeg, image/png, or image/gif, you can\n");
 	printf("             usually leave this empty and they can be detected from the file.\n");
 	printf("             Otherwise, you must specify the width in pixels, height in pixels,\n");
@@ -1610,7 +1610,7 @@ void show_explain(void)
 	printf("                                     does nothing if using -l 0\n");
 	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits of quantized\n");
 	printf("                                     linear-predictor coefficients; 0 => let\n");
-	printf("                                     encoder decide (the minimun is %u, the\n", FLAC__MIN_QLP_COEFF_PRECISION);
+	printf("                                     encoder decide (the minimum is %u, the\n", FLAC__MIN_QLP_COEFF_PRECISION);
 	printf("                                     default is -q 0)\n");
 	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
 	printf("                                     (# is 0 to 15 inclusive; min defaults to 0;\n");
@@ -1694,6 +1694,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	const char *outfilename = get_encoded_outfilename(infilename); /* the final name of the encoded file */
 	/* internal_outfilename is the file we will actually write to; it will be a temporary name if infilename==outfilename */
 	char *internal_outfilename = 0; /* NULL implies 'use outfilename' */
+	size_t infilename_length;
 
 	if(0 == outfilename) {
 		flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", infilename);
@@ -1714,21 +1715,22 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 	if(!option_values.force_raw_format) {
 		/* first set format based on name */
-		if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".wav"))
+		infilename_length = strlen(infilename);
+		if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".wav"))
 			input_format = FORMAT_WAVE;
-		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".rf64"))
+		else if(infilename_length >= 5 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-5), ".rf64"))
 			input_format = FORMAT_RF64;
-		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".w64"))
+		else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".w64"))
 			input_format = FORMAT_WAVE64;
-		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".aif"))
+		else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".aif"))
 			input_format = FORMAT_AIFF;
-		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".aiff"))
+		else if(infilename_length >= 5 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-5), ".aiff"))
 			input_format = FORMAT_AIFF;
-		else if(strlen(infilename) >= 5 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-5), ".flac"))
+		else if(infilename_length >= 5 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-5), ".flac"))
 			input_format = FORMAT_FLAC;
-		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".oga"))
+		else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".oga"))
 			input_format = FORMAT_OGGFLAC;
-		else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".ogg"))
+		else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".ogg"))
 			input_format = FORMAT_OGGFLAC;
 
 		/* attempt to guess the file type based on the first 12 bytes */
@@ -1928,13 +1930,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		static const char *tmp_suffix = ".tmp,fl-ac+en'c";
 		size_t dest_len = strlen(outfilename) + strlen(tmp_suffix) + 1;
 		/*@@@@ still a remote possibility that a file with this filename exists */
-		if(0 == (internal_outfilename = safe_malloc_(dest_len))) {
+		if((internal_outfilename = safe_malloc_(dest_len)) == NULL) {
 			flac__utils_printf(stderr, 1, "ERROR allocating memory for tempfile name\n");
 			conditional_fclose(encode_infile);
 			return 1;
 		}
-		safe_strncpy(internal_outfilename, outfilename, dest_len);
-		safe_strncat(internal_outfilename, tmp_suffix, dest_len);
+		flac_snprintf(internal_outfilename, dest_len, "%s%s", outfilename, tmp_suffix);
 	}
 
 	if(input_format == FORMAT_RAW) {
@@ -2037,6 +2038,7 @@ int decode_file(const char *infilename)
 	FileFormat output_format = FORMAT_WAVE;
 	decode_options_t decode_options;
 	const char *outfilename = get_decoded_outfilename(infilename);
+	size_t infilename_length;
 
 	if(0 == outfilename) {
 		flac__utils_printf(stderr, 1, "ERROR: filename too long: %s", infilename);
@@ -2085,11 +2087,12 @@ int decode_file(const char *infilename)
 			return usage_error("ERROR: --keep-foreign-metadata can only be used with WAVE, Wave64, RF64, or AIFF output\n");
 	}
 
+	infilename_length = strlen(infilename);
 	if(option_values.use_ogg)
 		treat_as_ogg = true;
-	else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".oga"))
+	else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".oga"))
 		treat_as_ogg = true;
-	else if(strlen(infilename) >= 4 && 0 == FLAC__STRCASECMP(infilename+(strlen(infilename)-4), ".ogg"))
+	else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".ogg"))
 		treat_as_ogg = true;
 	else
 		treat_as_ogg = false;
@@ -2173,12 +2176,30 @@ int decode_file(const char *infilename)
 const char *get_encoded_outfilename(const char *infilename)
 {
 	const char *suffix = (option_values.use_ogg? ".oga" : ".flac");
-	return get_outfilename(infilename, suffix);
+	const char *p;
+
+	if(option_values.output_prefix) {
+		p = grabbag__file_get_basename(infilename);
+	}
+	else {
+		p = infilename;
+	}
+
+	return get_outfilename(p, suffix);
 }
 
 const char *get_decoded_outfilename(const char *infilename)
 {
 	const char *suffix;
+	const char *p;
+
+	if(option_values.output_prefix) {
+		p = grabbag__file_get_basename(infilename);
+	}
+	else {
+		p = infilename;
+	}
+
 	if(option_values.analyze) {
 		suffix = ".ana";
 	}
@@ -2197,7 +2218,7 @@ const char *get_decoded_outfilename(const char *infilename)
 	else {
 		suffix = ".wav";
 	}
-	return get_outfilename(infilename, suffix);
+	return get_outfilename(p, suffix);
 }
 
 const char *get_outfilename(const char *infilename, const char *suffix)

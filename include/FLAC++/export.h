@@ -36,7 +36,7 @@
 /** \file include/FLAC++/export.h
  *
  *  \brief
- *  This module contains #defines and symbols for exporting function
+ *  This module contains \#defines and symbols for exporting function
  *  calls, and providing version information and compiled-in features.
  *
  *  See the \link flacpp_export export \endlink module.
@@ -46,7 +46,7 @@
  *  \ingroup flacpp
  *
  *  \brief
- *  This module contains #defines and symbols for exporting function
+ *  This module contains \#defines and symbols for exporting function
  *  calls, and providing version information and compiled-in features.
  *
  *  If you are compiling with MSVC and will link to the static library
@@ -59,7 +59,7 @@
 #if defined(FLAC__NO_DLL)
 #define FLACPP_API
 
-#elif defined(_MSC_VER)
+#elif defined(_WIN32)
 #ifdef FLACPP_API_EXPORTS
 #define	FLACPP_API __declspec(dllexport)
 #else
@@ -74,7 +74,7 @@
 
 #endif
 
-/* These #defines will mirror the libtool-based library version number, see
+/* These \#defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
  */
 #define FLACPP_API_VERSION_CURRENT 9

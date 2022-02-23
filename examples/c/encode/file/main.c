@@ -109,11 +109,13 @@ int main(int argc, char *argv[])
 		) {
 			fprintf(stderr, "ERROR: out of memory or tag error\n");
 			ok = false;
-		}
+		} else {
 
-		metadata[1]->length = 1234; /* set the padding length */
+			metadata[1]->length = 1234; /* set the padding length */
 
-		ok = FLAC__stream_encoder_set_metadata(encoder, metadata, 2);
+			ok = FLAC__stream_encoder_set_metadata(encoder, metadata, 2);
+
+                }
 	}
 
 	/* initialize encoder */
