@@ -54,7 +54,7 @@
 #endif
 
 #if defined FLAC__CPU_PPC
-#if defined(__linux__) || (defined(__FreeBSD__) && (__FreeBSD__ >= 12))
+#if defined(__linux__) || defined(__FreeBSD__)
 #include <sys/auxv.h>
 #endif
 #endif
@@ -253,9 +253,8 @@ ppc_cpu_info (FLAC__CPUInfo *info)
 	} else if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07) {
 		info->ppc.arch_2_07 = true;
 	}
-#elif defined(__FreeBSD__) && (__FreeBSD__ >= 12)
-	long hwcaps;
-	/* elf_aux_info() appeared in FreeBSD 12.0 */
+#elif defined(__FreeBSD__)
+	unsigned long hwcaps;
 	elf_aux_info(AT_HWCAP2, &hwcaps, sizeof(hwcaps));
 	if (hwcaps & PPC_FEATURE2_ARCH_3_00) {
 		info->ppc.arch_3_00 = true;
