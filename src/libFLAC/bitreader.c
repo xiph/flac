@@ -159,6 +159,9 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	size_t bytes;
 	FLAC__byte *target;
 
+	/* invalidate last seen framesync */
+	br->last_seen_framesync = -1;
+
 	/* first shift the unconsumed buffer data toward the front as much as possible */
 	if(br->consumed_words > 0) {
 		crc16_update_block_(br); /* CRC consumed words */
@@ -226,7 +229,6 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	end = br->words*FLAC__BYTES_PER_WORD + br->bytes + (uint32_t)bytes;
 	br->words = end / FLAC__BYTES_PER_WORD;
 	br->bytes = end % FLAC__BYTES_PER_WORD;
-	br->last_seen_framesync = -1;
 
 	return true;
 }

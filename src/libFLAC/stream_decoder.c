@@ -2089,22 +2089,32 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		/*
 		 * now read it
 		 */
-		if(!read_subframe_(decoder, channel, bps, do_full_decode))
-			return false;
+		if(!read_subframe_(decoder, channel, bps, do_full_decode)){
+			/* read_callback_ sets the state for us */
+			if(decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM)
+				break;
+			else
+				return false;
+		}
 	}
-	if(!read_zero_padding_(decoder))
-		return false;
+
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_STREAM)
+		if(!read_zero_padding_(decoder))
+			return false;
 
 	/*
 	 * Read the frame CRC-16 from the footer and check
 	 */
-	frame_crc = FLAC__bitreader_get_read_crc16(decoder->private_->input);
-	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__FRAME_FOOTER_CRC_LEN))
-		return false; /* read_callback_ sets the state for us */
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	if(1){
-#else
-	if(frame_crc == x) {
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME) {
+		frame_crc = FLAC__bitreader_get_read_crc16(decoder->private_->input);
+		if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__FRAME_FOOTER_CRC_LEN)) {
+			/* read_callback_ sets the state for us */
+			if(decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_STREAM)
+				return false;
+		}
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	}
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME && frame_crc == x) {
 #endif
 		if(do_full_decode) {
 			/* Undo any special channel coding */
@@ -2152,14 +2162,12 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 	}
 
-	/* Check whether frame are missing, if so, add silence to compensate */
-	if(decoder->private_->last_frame_is_set) {
+	/* Check whether frames are missing, if so, add silence to compensate */
+	if(decoder->private_->last_frame_is_set && decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME && !decoder->private_->is_seeking && do_full_decode) {
 		FLAC__ASSERT(decoder->private_->frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 		FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
-		if(!decoder->private_->is_seeking &&
-		   do_full_decode &&
-		   decoder->private_->last_frame.header.number.sample_number + decoder->private_->last_frame.header.blocksize < decoder->private_->frame.header.number.sample_number) {
-			uint32_t padding_samples_needed = decoder->private_->frame.header.number.sample_number - decoder->private_->last_frame.header.number.sample_number - decoder->private_->frame.header.blocksize;
+		if(decoder->private_->last_frame.header.number.sample_number + decoder->private_->last_frame.header.blocksize < decoder->private_->frame.header.number.sample_number) {
+			uint32_t padding_samples_needed = decoder->private_->frame.header.number.sample_number - (decoder->private_->last_frame.header.number.sample_number + decoder->private_->last_frame.header.blocksize);
 
 			/* Do some extra validation to assure last frame an current frame
 			 * header are both valid before adding silence inbetween
@@ -2170,68 +2178,41 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			   decoder->private_->last_frame.header.bits_per_sample == decoder->private_->frame.header.bits_per_sample) {
 				FLAC__Frame empty_frame;
 				empty_frame.header = decoder->private_->last_frame.header;
-				empty_frame.header.number.sample_number += decoder->private_->last_frame.header.blocksize;
 				empty_frame.footer.crc = 0;
-				/* No repairs larger than FLAC__MAX_BLOCK_SIZE are made, to not unexpectedly create
+				/* No repairs larger than 5 seconds are made, to not unexpectedly create
 				 * enormous files when one of the headers was corrupt after all */
-				empty_frame.header.blocksize = (padding_samples_needed < FLAC__MAX_BLOCK_SIZE) ? padding_samples_needed : FLAC__MAX_BLOCK_SIZE;
-				decoder->protected_->blocksize = empty_frame.header.blocksize;
+				if(padding_samples_needed > (5*empty_frame.header.sample_rate))
+					padding_samples_needed = 5*empty_frame.header.sample_rate;
+				while(padding_samples_needed){
+					empty_frame.header.number.sample_number += empty_frame.header.blocksize;
+					if(padding_samples_needed < empty_frame.header.blocksize)
+						empty_frame.header.blocksize = padding_samples_needed;
+					padding_samples_needed -= empty_frame.header.blocksize;
+					decoder->protected_->blocksize = empty_frame.header.blocksize;
 
-				FLAC__ASSERT(decoder->private_->frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
-				decoder->private_->samples_decoded = decoder->private_->frame.header.number.sample_number + empty_frame.header.blocksize;
+					FLAC__ASSERT(empty_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+					decoder->private_->samples_decoded = empty_frame.header.number.sample_number + empty_frame.header.blocksize;
 
-				if(!allocate_output_(decoder, empty_frame.header.blocksize, empty_frame.header.channels))
-					return false;
+					if(!allocate_output_(decoder, empty_frame.header.blocksize, empty_frame.header.channels))
+						return false;
 
-				for(channel = 0; channel < empty_frame.header.channels; channel++) {
-					empty_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_CONSTANT;
-					empty_frame.subframes[channel].data.constant.value = 0;
-					memset(decoder->private_->output[channel], 0, sizeof(FLAC__int32) * empty_frame.header.blocksize);
-				}
+					for(channel = 0; channel < empty_frame.header.channels; channel++) {
+						empty_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_CONSTANT;
+						empty_frame.subframes[channel].data.constant.value = 0;
+						empty_frame.subframes[channel].wasted_bits = 0;
+						memset(decoder->private_->output[channel], 0, sizeof(FLAC__int32) * empty_frame.header.blocksize);
+					}
 
-				if(write_audio_frame_to_client_(decoder, &empty_frame, (const FLAC__int32 * const *)decoder->private_->output) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE) {
-					decoder->protected_->state = FLAC__STREAM_DECODER_ABORTED;
-					return false;
+					if(write_audio_frame_to_client_(decoder, &empty_frame, (const FLAC__int32 * const *)decoder->private_->output) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE) {
+						decoder->protected_->state = FLAC__STREAM_DECODER_ABORTED;
+						return false;
+					}
 				}
 			}
 		}
 	}
 
-	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) {
-		/* means bad sync or got corruption in subframes, padding bits or frame_crc, zero output */
-		if(do_full_decode) {
-			for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
-				memset(decoder->private_->output[channel], 0, sizeof(FLAC__int32) * decoder->private_->frame.header.blocksize);
-			}
-		}
-	}
-	else {
-		*got_a_frame = true;
-	}
-
-	/* we wait to update fixed_block_size until here, when we're sure we've got a proper frame and hence a correct blocksize */
-	if(decoder->private_->next_fixed_block_size)
-		decoder->private_->fixed_block_size = decoder->private_->next_fixed_block_size;
-
-	/* put the latest values into the public section of the decoder instance */
-	decoder->protected_->channels = decoder->private_->frame.header.channels;
-	decoder->protected_->channel_assignment = decoder->private_->frame.header.channel_assignment;
-	decoder->protected_->bits_per_sample = decoder->private_->frame.header.bits_per_sample;
-	decoder->protected_->sample_rate = decoder->private_->frame.header.sample_rate;
-	decoder->protected_->blocksize = decoder->private_->frame.header.blocksize;
-
-	FLAC__ASSERT(decoder->private_->frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
-	decoder->private_->samples_decoded = decoder->private_->frame.header.number.sample_number + decoder->private_->frame.header.blocksize;
-
-	/* write it */
-	if(do_full_decode) {
-		if(write_audio_frame_to_client_(decoder, &decoder->private_->frame, (const FLAC__int32 * const *)decoder->private_->output) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_ABORTED;
-			return false;
-		}
-	}
-
-	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) {
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC || decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM) {
 		/* Got corruption, rewind if possible. Return value of seek
 		* isn't checked, if the seek fails the decoder will continue anyway */
 		if(!FLAC__bitreader_rewind_to_after_last_seen_framesync(decoder->private_->input)){
@@ -2260,6 +2241,31 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			fprintf(stderr, "Rewinding, seeking not necessary\n");
 		}
 #endif
+	}
+	else {
+		*got_a_frame = true;
+
+		/* we wait to update fixed_block_size until here, when we're sure we've got a proper frame and hence a correct blocksize */
+		if(decoder->private_->next_fixed_block_size)
+			decoder->private_->fixed_block_size = decoder->private_->next_fixed_block_size;
+
+		/* put the latest values into the public section of the decoder instance */
+		decoder->protected_->channels = decoder->private_->frame.header.channels;
+		decoder->protected_->channel_assignment = decoder->private_->frame.header.channel_assignment;
+		decoder->protected_->bits_per_sample = decoder->private_->frame.header.bits_per_sample;
+		decoder->protected_->sample_rate = decoder->private_->frame.header.sample_rate;
+		decoder->protected_->blocksize = decoder->private_->frame.header.blocksize;
+
+		FLAC__ASSERT(decoder->private_->frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+		decoder->private_->samples_decoded = decoder->private_->frame.header.number.sample_number + decoder->private_->frame.header.blocksize;
+
+		/* write it */
+		if(do_full_decode) {
+			if(write_audio_frame_to_client_(decoder, &decoder->private_->frame, (const FLAC__int32 * const *)decoder->private_->output) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE) {
+				decoder->protected_->state = FLAC__STREAM_DECODER_ABORTED;
+				return false;
+			}
+		}
 	}
 
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
@@ -2915,10 +2921,16 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, uint32_
 			if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &rice_parameter, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
 				return false; /* read_callback_ sets the state for us */
 			partitioned_rice_contents->raw_bits[partition] = rice_parameter;
-			for(u = (partition == 0)? predictor_order : 0; u < partition_samples; u++, sample++) {
-				if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &i, rice_parameter))
-					return false; /* read_callback_ sets the state for us */
-				residual[sample] = i;
+			if(rice_parameter == 0) {
+				for(u = (partition == 0)? predictor_order : 0; u < partition_samples; u++, sample++)
+					residual[sample] = 0;
+			}
+			else{
+				for(u = (partition == 0)? predictor_order : 0; u < partition_samples; u++, sample++) {
+					if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &i, rice_parameter))
+						return false; /* read_callback_ sets the state for us */
+					residual[sample] = i;
+				}
 			}
 		}
 	}
