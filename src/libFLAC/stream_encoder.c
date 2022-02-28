@@ -536,6 +536,8 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void)
 
 	encoder->private_->file = 0;
 
+	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+
 	set_defaults_(encoder);
 
 	encoder->private_->is_being_deleted = false;
@@ -567,8 +569,6 @@ FLAC_API FLAC__StreamEncoder *FLAC__stream_encoder_new(void)
 	}
 	for(i = 0; i < 2; i++)
 		FLAC__format_entropy_coding_method_partitioned_rice_contents_init(&encoder->private_->partitioned_rice_contents_extra[i]);
-
-	encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
 
 	return encoder;
 }
