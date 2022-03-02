@@ -44,10 +44,19 @@
 #include "private/format.h"
 #include "private/macros.h"
 
+#if (defined GIT_COMMIT_HASH && defined GIT_COMMIT_DATE)
+# ifdef GIT_COMMIT_TAG
+FLAC_API const char *FLAC__VERSION_STRING = GIT_COMMIT_TAG;
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " GIT_COMMIT_TAG " " GIT_COMMIT_DATE;
+# else
+FLAC_API const char *FLAC__VERSION_STRING = "git-" GIT_COMMIT_HASH;
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC git-" GIT_COMMIT_HASH " " GIT_COMMIT_DATE;
+# endif
+#else
 /* PACKAGE_VERSION should come from configure */
 FLAC_API const char *FLAC__VERSION_STRING = PACKAGE_VERSION;
-
 FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20220220";
+#endif
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
 FLAC_API const uint32_t FLAC__STREAM_SYNC = 0x664C6143;

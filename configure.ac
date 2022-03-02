@@ -547,6 +547,28 @@ dnl for correct FLAC_API
 	CPPFLAGS="-DFLAC__NO_DLL $CPPFLAGS"
 	fi
 
+AC_CHECK_PROG(GIT_FOUND,git,yes)
+
+if test x$GIT_FOUND = "xyes"; then
+	GIT_COMMIT_TAG=`git -C $srcdir describe --tags --exact-match 2>/dev/null`
+	GIT_COMMIT_HASH=`git -C $srcdir log -1 --pretty=format:%h 2>/dev/null`
+	GIT_COMMIT_DATE=`git -C $srcdir log -1 --pretty=format:%cd --date=format:%Y%m%d 2>/dev/null`
+	if test ${#GIT_COMMIT_HASH} = 8 && test ${#GIT_COMMIT_DATE} = 8; then
+		GIT_COMMIT_VERSION_AVAIL=yes
+		if test ${#GIT_COMMIT_TAG} != 0 ; then
+			GIT_COMMIT_TAG_AVAIL=yes
+			AC_DEFINE_UNQUOTED(GIT_COMMIT_TAG, "${GIT_COMMIT_TAG}", "Define to the tag of the current git HEAD")
+		else
+			GIT_COMMIT_VERSION_HASH=yes
+		fi
+		AC_DEFINE_UNQUOTED(GIT_COMMIT_HASH, "${GIT_COMMIT_HASH}", "Define to the short hash of the current git HEAD")
+		AC_DEFINE_UNQUOTED(GIT_COMMIT_DATE, "${GIT_COMMIT_DATE}", "Define to the commit date of the current git HEAD")
+	fi
+fi
+
+AC_SUBST(GIT_COMMIT_VERSION_HASH)
+
+
 AC_CONFIG_FILES([ \
 	Makefile \
 	src/Makefile \
@@ -621,6 +643,12 @@ AC_MSG_RESULT([
     Host OS : ................................. ${host_os}
 ])
 
+if test x$GIT_COMMIT_TAG_AVAIL = xyes ; then
+	echo "    Version string : reference libFLAC ${GIT_COMMIT_TAG} ${GIT_COMMIT_DATE}"
+elif test x$GIT_COMMIT_VERSION_AVAIL = xyes ; then
+	echo "    Version string : reference libFLAC git-${GIT_COMMIT_HASH} ${GIT_COMMIT_DATE}"
+fi
+	echo ""
 	echo "    Compiler is GCC : ......................... ${ac_cv_c_compiler_gnu}"
 if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ............................. ${GCC_VERSION}"

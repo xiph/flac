@@ -49,6 +49,7 @@ EXE=@EXEEXT@
 # and build products in the $top_builddir tree.
 top_srcdir=@top_srcdir@
 top_builddir=@top_builddir@
+git_commit_version_hash=@GIT_COMMIT_VERSION_HASH@
 
 # Set `is_win` variable which is used in other scripts that source this one.
 if test $(env | grep -ic '^comspec=') != 0 ; then

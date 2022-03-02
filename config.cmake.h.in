@@ -50,6 +50,15 @@
 /* define to enable use of VSX instructions */
 #cmakedefine FLAC__USE_VSX
 
+/* Define to the commit date of the current git HEAD */
+#cmakedefine GIT_COMMIT_DATE "@GIT_COMMIT_DATE@"
+
+/* Define to the short hash of the current git HEAD */
+#cmakedefine GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
+
+/* Define to the tag of the current git HEAD */
+#cmakedefine GIT_COMMIT_TAG "@GIT_COMMIT_TAG@"
+
 /* Compiler has the __builtin_bswap16 intrinsic */
 #cmakedefine01 HAVE_BSWAP16
 
