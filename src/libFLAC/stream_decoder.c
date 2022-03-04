@@ -1986,15 +1986,6 @@ FLAC__bool frame_sync_(FLAC__StreamDecoder *decoder)
 	FLAC__uint32 x;
 	FLAC__bool first = true;
 
-	/* If we know the total number of samples in the stream, stop if we've read that many. */
-	/* This will stop us, for example, from wasting time trying to sync on an ID3V1 tag. */
-	if(FLAC__stream_decoder_get_total_samples(decoder) > 0) {
-		if(decoder->private_->samples_decoded >= FLAC__stream_decoder_get_total_samples(decoder)) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_END_OF_STREAM;
-			return true;
-		}
-	}
-
 	/* make sure we're byte aligned */
 	if(!FLAC__bitreader_is_consumed_byte_aligned(decoder->private_->input)) {
 		if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__bitreader_bits_left_for_byte_alignment(decoder->private_->input)))
