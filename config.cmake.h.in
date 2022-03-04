@@ -44,8 +44,10 @@
 #cmakedefine FLAC__USE_ALTIVEC
 
 /* define to enable use of AVX instructions */
-#cmakedefine01 WITH_AVX
-#define FLAC__USE_AVX WITH_AVX
+#cmakedefine WITH_AVX
+#ifdef WITH_AVX
+  #define FLAC__USE_AVX
+#endif
 
 /* define to enable use of VSX instructions */
 #cmakedefine FLAC__USE_VSX
