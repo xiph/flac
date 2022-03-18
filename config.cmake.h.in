@@ -176,7 +176,9 @@
 
 #ifndef _XOPEN_SOURCE
 #cmakedefine DODEFINE_XOPEN_SOURCE 500
+#ifdef DODEFINE_XOPEN_SOURCE
 #define _XOPEN_SOURCE DODEFINE_XOPEN_SOURCE
+#endif
 #endif
 
 /* Enable threading extensions on Solaris.  */
@@ -190,7 +192,9 @@
 /* Enable general extensions on Solaris.  */
 #ifndef __EXTENSIONS__
 #cmakedefine DODEFINE_EXTENSIONS
+#ifdef DODEFINE_EXTENSIONS
 #define __EXTENSIONS__ DODEFINE_EXTENSIONS
+#endif
 #endif
 
 
