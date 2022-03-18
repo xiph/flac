@@ -54,7 +54,7 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 	struct flac_stat_s srcstat;
 
 	if(0 == flac_stat(srcpath, &srcstat)) {
-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
 		struct timespec srctime[2] = {};
 		srctime[0].tv_sec = srcstat.st_atime;
 		srctime[1].tv_sec = srcstat.st_mtime;
