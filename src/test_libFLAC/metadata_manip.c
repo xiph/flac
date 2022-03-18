@@ -255,7 +255,7 @@ static FLAC__bool get_file_stats_(const char *filename, struct flac_stat_s *stat
 
 static void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
 	struct timespec srctime[2] = {};
 	srctime[0].tv_sec = stats->st_atime;
 	srctime[1].tv_sec = stats->st_mtime;
