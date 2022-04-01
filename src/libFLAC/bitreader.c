@@ -529,7 +529,7 @@ FLAC__bool FLAC__bitreader_read_raw_int32(FLAC__BitReader *br, FLAC__int32 *val,
 		return false;
 	/* sign-extend *val assuming it is currently bits wide. */
 	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
-	mask = bits >= 33 ? 0 : 1u << (bits - 1);
+	mask = bits >= 33 ? 0 : 1lu << (bits - 1);
 	*val = (uval ^ mask) - mask;
 	return true;
 }
@@ -552,6 +552,19 @@ FLAC__bool FLAC__bitreader_read_raw_uint64(FLAC__BitReader *br, FLAC__uint64 *va
 			return false;
 		*val = lo;
 	}
+	return true;
+}
+
+FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val, uint32_t bits)
+{
+	FLAC__uint64 uval, mask;
+	/* OPT: inline raw uint64 code here, or make into a macro if possible in the .h file */
+	if (bits < 1 || ! FLAC__bitreader_read_raw_uint64(br, &uval, bits))
+		return false;
+	/* sign-extend *val assuming it is currently bits wide. */
+	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
+	mask = bits >= 65 ? 0 : 1llu << (bits - 1);
+	*val = (uval ^ mask) - mask;
 	return true;
 }
 

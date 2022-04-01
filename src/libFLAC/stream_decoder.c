@@ -74,7 +74,7 @@ static const FLAC__byte ID3V2_TAG_[3] = { 'I', 'D', '3' };
 
 static void set_defaults_(FLAC__StreamDecoder *decoder);
 static FILE *get_binary_stdin_(void);
-static FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_t channels);
+static FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_t channels, uint32_t bps);
 static FLAC__bool has_id_filtered_(FLAC__StreamDecoder *decoder, FLAC__byte *id);
 static FLAC__bool find_metadata_(FLAC__StreamDecoder *decoder);
 static FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder);
@@ -133,6 +133,8 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__BitReader *input;
 	FLAC__int32 *output[FLAC__MAX_CHANNELS];
 	FLAC__int32 *residual[FLAC__MAX_CHANNELS]; /* WATCHOUT: these are the aligned pointers; the real pointers that should be free()'d are residual_unaligned[] below */
+	FLAC__int64 *side_subframe;
+	FLAC__bool side_subframe_in_use;
 	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents[FLAC__MAX_CHANNELS];
 	uint32_t output_capacity, output_channels;
 	FLAC__uint32 fixed_block_size, next_fixed_block_size;
@@ -280,6 +282,8 @@ FLAC_API FLAC__StreamDecoder *FLAC__stream_decoder_new(void)
 		decoder->private_->output[i] = 0;
 		decoder->private_->residual_unaligned[i] = decoder->private_->residual[i] = 0;
 	}
+
+	decoder->private_->side_subframe = 0;
 
 	decoder->private_->output_capacity = 0;
 	decoder->private_->output_channels = 0;
@@ -616,6 +620,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 			free(decoder->private_->residual_unaligned[i]);
 			decoder->private_->residual_unaligned[i] = decoder->private_->residual[i] = 0;
 		}
+	}
+	if(0 != decoder->private_->side_subframe) {
+		free(decoder->private_->side_subframe);
+		decoder->private_->side_subframe = 0;
 	}
 	decoder->private_->output_capacity = 0;
 	decoder->private_->output_channels = 0;
@@ -1225,12 +1233,13 @@ FILE *get_binary_stdin_(void)
 	return stdin;
 }
 
-FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_t channels)
+FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_t channels, uint32_t bps)
 {
 	uint32_t i;
 	FLAC__int32 *tmp;
 
-	if(size <= decoder->private_->output_capacity && channels <= decoder->private_->output_channels)
+	if(size <= decoder->private_->output_capacity && channels <= decoder->private_->output_channels &&
+	   (bps < 32 || decoder->private_->side_subframe != 0))
 		return true;
 
 	/* simply using realloc() is not practical because the number of channels may change mid-stream */
@@ -1244,6 +1253,11 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_
 			free(decoder->private_->residual_unaligned[i]);
 			decoder->private_->residual_unaligned[i] = decoder->private_->residual[i] = 0;
 		}
+	}
+
+	if(0 != decoder->private_->side_subframe) {
+		free(decoder->private_->side_subframe);
+		decoder->private_->side_subframe = 0;
 	}
 
 	for(i = 0; i < channels; i++) {
@@ -1266,6 +1280,9 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_
 			return false;
 		}
 	}
+
+	if(bps == 32)
+		decoder->private_->side_subframe = safe_malloc_mul_2op_p(sizeof(FLAC__int64), /*times (*/size);
 
 	decoder->private_->output_capacity = size;
 	decoder->private_->output_channels = channels;
@@ -2010,6 +2027,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	FLAC__uint32 x;
 
 	*got_a_frame = false;
+	decoder->private_->side_subframe_in_use = false;
 
 	/* init the CRC */
 	frame_crc = 0;
@@ -2021,7 +2039,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		return false;
 	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means we didn't sync on a valid header */
 		return true;
-	if(!allocate_output_(decoder, decoder->private_->frame.header.blocksize, decoder->private_->frame.header.channels))
+	if(!allocate_output_(decoder, decoder->private_->frame.header.blocksize, decoder->private_->frame.header.channels, decoder->private_->frame.header.bits_per_sample))
 		return false;
 	for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
 		/*
@@ -2143,7 +2161,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 					FLAC__ASSERT(empty_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 					decoder->private_->samples_decoded = empty_frame.header.number.sample_number + empty_frame.header.blocksize;
 
-					if(!allocate_output_(decoder, empty_frame.header.blocksize, empty_frame.header.channels))
+					if(!allocate_output_(decoder, empty_frame.header.blocksize, empty_frame.header.channels, empty_frame.header.bits_per_sample))
 						return false;
 
 					for(channel = 0; channel < empty_frame.header.channels; channel++) {
@@ -2399,6 +2417,9 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 		case 2:
 			decoder->private_->frame.header.bits_per_sample = 12;
 			break;
+		case 3:
+			is_unparseable = true;
+			break;
 		case 4:
 			decoder->private_->frame.header.bits_per_sample = 16;
 			break;
@@ -2408,18 +2429,11 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 		case 6:
 			decoder->private_->frame.header.bits_per_sample = 24;
 			break;
-		case 3:
 		case 7:
-			is_unparseable = true;
-			break;
+			decoder->private_->frame.header.bits_per_sample = 32;
 		default:
 			FLAC__ASSERT(0);
 			break;
-	}
-
-	if(decoder->private_->frame.header.bits_per_sample == 32 && decoder->private_->frame.header.channel_assignment != FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT){
-		/* Decoder isn't equipped for 33-bit side frame */
-		is_unparseable = true;
 	}
 
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
@@ -2587,12 +2601,6 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32
 	}
 	else if(x <= 24) {
 		uint32_t predictor_order = (x>>1)&7;
-		if(decoder->private_->frame.header.bits_per_sample > 24){
-			/* Decoder isn't equipped for fixed subframes with more than 24 bps */
-			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
-			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
-			return true;
-		}
 		if(decoder->private_->frame.header.blocksize <= predictor_order){
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
@@ -2623,9 +2631,21 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32
 
 	if(wasted_bits && do_full_decode) {
 		x = decoder->private_->frame.subframes[channel].wasted_bits;
-		for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
-			uint32_t val = decoder->private_->output[channel][i];
-			decoder->private_->output[channel][i] = (val << x);
+		if((bps + x) < 33) {
+			for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+				uint32_t val = decoder->private_->output[channel][i];
+				decoder->private_->output[channel][i] = (val << x);
+			}
+		}
+		else {
+			/* When there are wasted bits, bps is never 33 and so
+			 * side_subframe is never already in use */
+			FLAC__ASSERT(!decoder->private_->side_subframe_in_use);
+			decoder->private_->side_subframe_in_use = true;
+			for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+				uint64_t val = decoder->private_->output[channel][i];
+				decoder->private_->side_subframe[i] = (val << x);
+			}
 		}
 	}
 
@@ -2635,13 +2655,13 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32
 FLAC__bool read_subframe_constant_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, FLAC__bool do_full_decode)
 {
 	FLAC__Subframe_Constant *subframe = &decoder->private_->frame.subframes[channel].data.constant;
-	FLAC__int32 x;
+	FLAC__int64 x;
 	uint32_t i;
 	FLAC__int32 *output = decoder->private_->output[channel];
 
 	decoder->private_->frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_CONSTANT;
 
-	if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &x, bps))
+	if(!FLAC__bitreader_read_raw_int64(decoder->private_->input, &x, bps))
 		return false; /* read_callback_ sets the state for us */
 
 	subframe->value = x;
@@ -2658,7 +2678,7 @@ FLAC__bool read_subframe_constant_(FLAC__StreamDecoder *decoder, uint32_t channe
 FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, const uint32_t order, FLAC__bool do_full_decode)
 {
 	FLAC__Subframe_Fixed *subframe = &decoder->private_->frame.subframes[channel].data.fixed;
-	FLAC__int32 i32;
+	FLAC__int64 i64;
 	FLAC__uint32 u32;
 	uint32_t u;
 
@@ -2669,9 +2689,9 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, uint32_t channel, 
 
 	/* read warm-up samples */
 	for(u = 0; u < order; u++) {
-		if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &i32, bps))
+		if(!FLAC__bitreader_read_raw_int64(decoder->private_->input, &i64, bps))
 			return false; /* read_callback_ sets the state for us */
-		subframe->warmup[u] = i32;
+		subframe->warmup[u] = i64;
 	}
 
 	/* read entropy coding method info */
@@ -2711,8 +2731,19 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, uint32_t channel, 
 
 	/* decode the subframe */
 	if(do_full_decode) {
-		memcpy(decoder->private_->output[channel], subframe->warmup, sizeof(FLAC__int32) * order);
-		FLAC__fixed_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, order, decoder->private_->output[channel]+order);
+		if(bps < 33){
+			for(uint32_t i = 0; i < order; i++)
+				decoder->private_->output[channel][i] = subframe->warmup[i];
+			if(bps+order <= 32)
+				FLAC__fixed_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, order, decoder->private_->output[channel]+order);
+			else
+				FLAC__fixed_restore_signal_wide(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, order, decoder->private_->output[channel]+order);
+		}
+		else {
+			decoder->private_->side_subframe_in_use = true;
+			memcpy(decoder->private_->side_subframe, subframe->warmup, sizeof(FLAC__int64) * order);
+			FLAC__fixed_restore_signal_wide_33bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, order, decoder->private_->side_subframe+order);
+		}
 	}
 
 	return true;
@@ -2722,6 +2753,7 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t channel, ui
 {
 	FLAC__Subframe_LPC *subframe = &decoder->private_->frame.subframes[channel].data.lpc;
 	FLAC__int32 i32;
+	FLAC__int64 i64;
 	FLAC__uint32 u32;
 	uint32_t u;
 
@@ -2732,9 +2764,9 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t channel, ui
 
 	/* read warm-up samples */
 	for(u = 0; u < order; u++) {
-		if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &i32, bps))
+		if(!FLAC__bitreader_read_raw_int64(decoder->private_->input, &i64, bps))
 			return false; /* read_callback_ sets the state for us */
-		subframe->warmup[u] = i32;
+		subframe->warmup[u] = i64;
 	}
 
 	/* read qlp coeff precision */
@@ -2801,12 +2833,20 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t channel, ui
 
 	/* decode the subframe */
 	if(do_full_decode) {
-		memcpy(decoder->private_->output[channel], subframe->warmup, sizeof(FLAC__int32) * order);
-		if(FLAC__lpc_max_residual_bps(bps, subframe->qlp_coeff, order, subframe->quantization_level) <= 32 &&
-		   FLAC__lpc_max_prediction_before_shift_bps(bps, subframe->qlp_coeff, order) <= 32)
-			FLAC__lpc_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
-		else
-			FLAC__lpc_restore_signal_wide(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+		if(bps <= 32) {
+			for(uint32_t i = 0; i < order; i++)
+				decoder->private_->output[channel][i] = subframe->warmup[i];
+			if(FLAC__lpc_max_residual_bps(bps, subframe->qlp_coeff, order, subframe->quantization_level) <= 32 &&
+			   FLAC__lpc_max_prediction_before_shift_bps(bps, subframe->qlp_coeff, order) <= 32)
+				FLAC__lpc_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+			else
+				FLAC__lpc_restore_signal_wide(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
+		}
+		else {
+			decoder->private_->side_subframe_in_use = true;
+			memcpy(decoder->private_->side_subframe, subframe->warmup, sizeof(FLAC__int64) * order);
+			FLAC__lpc_restore_signal_wide_33bit(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->side_subframe+order);
+		}
 	}
 
 	return true;
@@ -2815,22 +2855,39 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t channel, ui
 FLAC__bool read_subframe_verbatim_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, FLAC__bool do_full_decode)
 {
 	FLAC__Subframe_Verbatim *subframe = &decoder->private_->frame.subframes[channel].data.verbatim;
-	FLAC__int32 x, *residual = decoder->private_->residual[channel];
 	uint32_t i;
 
 	decoder->private_->frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_VERBATIM;
 
-	subframe->data = residual;
+	if(bps < 33) {
+		FLAC__int32 x, *residual = decoder->private_->residual[channel];
 
-	for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
-		if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &x, bps))
-			return false; /* read_callback_ sets the state for us */
-		residual[i] = x;
+		subframe->data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32;
+		subframe->data.int32 = residual;
+
+		for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+			if(!FLAC__bitreader_read_raw_int32(decoder->private_->input, &x, bps))
+				return false; /* read_callback_ sets the state for us */
+			residual[i] = x;
+		}
+
+		/* decode the subframe */
+		if(do_full_decode)
+			memcpy(decoder->private_->output[channel], subframe->data.int32, sizeof(FLAC__int32) * decoder->private_->frame.header.blocksize);
 	}
+	else {
+		FLAC__int64 x, *side = decoder->private_->side_subframe;
 
-	/* decode the subframe */
-	if(do_full_decode)
-		memcpy(decoder->private_->output[channel], subframe->data, sizeof(FLAC__int32) * decoder->private_->frame.header.blocksize);
+		subframe->data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64;
+		subframe->data.int64 = side;
+		decoder->private_->side_subframe_in_use = true;
+
+		for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+			if(!FLAC__bitreader_read_raw_int64(decoder->private_->input, &x, bps))
+				return false; /* read_callback_ sets the state for us */
+			side[i] = x;
+		}
+	}
 
 	return true;
 }
@@ -3000,37 +3057,48 @@ FLAC__bool read_callback_(FLAC__byte buffer[], size_t *bytes, void *client_data)
 __attribute__((no_sanitize("signed-integer-overflow")))
 #endif
 void undo_channel_coding(FLAC__StreamDecoder *decoder) {
-	FLAC__int32 mid, side;
 	switch(decoder->private_->frame.header.channel_assignment) {
 	case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
 		/* do nothing */
 		break;
 	case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
 		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
+		FLAC__ASSERT(decoder->private_->side_subframe_in_use != /* logical XOR */ (decoder->private_->frame.header.bits_per_sample < 32));
 		for(uint32_t i = 0; i < decoder->private_->frame.header.blocksize; i++)
-			decoder->private_->output[1][i] = decoder->private_->output[0][i] - decoder->private_->output[1][i];
+			if(decoder->private_->side_subframe_in_use)
+				decoder->private_->output[1][i] = decoder->private_->output[0][i] - decoder->private_->side_subframe[i];
+			else
+				decoder->private_->output[1][i] = decoder->private_->output[0][i] - decoder->private_->output[1][i];
 		break;
 	case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
 		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
+		FLAC__ASSERT(decoder->private_->side_subframe_in_use != /* logical XOR */ (decoder->private_->frame.header.bits_per_sample < 32));
 		for(uint32_t i = 0; i < decoder->private_->frame.header.blocksize; i++)
-			decoder->private_->output[0][i] += decoder->private_->output[1][i];
+			if(decoder->private_->side_subframe_in_use)
+				decoder->private_->output[0][i] = decoder->private_->output[1][i] + decoder->private_->side_subframe[i];
+			else
+				decoder->private_->output[0][i] += decoder->private_->output[1][i];
 		break;
 	case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
 		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
+		FLAC__ASSERT(decoder->private_->side_subframe_in_use != /* logical XOR */ (decoder->private_->frame.header.bits_per_sample < 32));
 		for(uint32_t i = 0; i < decoder->private_->frame.header.blocksize; i++) {
-#if 1
-			mid = decoder->private_->output[0][i];
-			side = decoder->private_->output[1][i];
-			mid = ((uint32_t) mid) << 1;
-			mid |= (side & 1); /* i.e. if 'side' is odd... */
-			decoder->private_->output[0][i] = (mid + side) >> 1;
-			decoder->private_->output[1][i] = (mid - side) >> 1;
-#else
-			/* OPT: without 'side' temp variable */
-			mid = (decoder->private_->output[0][i] << 1) | (decoder->private_->output[1][i] & 1); /* i.e. if 'side' is odd... */
-			decoder->private_->output[0][i] = (mid + decoder->private_->output[1][i]) >> 1;
-			decoder->private_->output[1][i] = (mid - decoder->private_->output[1][i]) >> 1;
-#endif
+			if(!decoder->private_->side_subframe_in_use){
+				FLAC__int32 mid, side;
+				mid = decoder->private_->output[0][i];
+				side = decoder->private_->output[1][i];
+				mid = ((uint32_t) mid) << 1;
+				mid |= (side & 1); /* i.e. if 'side' is odd... */
+				decoder->private_->output[0][i] = (mid + side) >> 1;
+				decoder->private_->output[1][i] = (mid - side) >> 1;
+			}
+			else { /* bps == 32 */
+				FLAC__int64 mid;
+				mid = ((uint64_t)decoder->private_->output[0][i]) << 1;
+				mid |= (decoder->private_->side_subframe[i] & 1); /* i.e. if 'side' is odd... */
+				decoder->private_->output[0][i] = (mid + decoder->private_->side_subframe[i]) >> 1;
+				decoder->private_->output[1][i] = (mid - decoder->private_->side_subframe[i]) >> 1;
+			}
 		}
 		break;
 	default:
