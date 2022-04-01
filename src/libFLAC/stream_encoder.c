@@ -3934,7 +3934,8 @@ uint32_t evaluate_verbatim_subframe_(
 
 	subframe->type = FLAC__SUBFRAME_TYPE_VERBATIM;
 
-	subframe->data.verbatim.data = signal;
+	subframe->data.verbatim.data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32;
+	subframe->data.verbatim.data.int32 = signal;
 
 	estimate = FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN + subframe->wasted_bits + (blocksize * subframe_bps);
 

@@ -103,5 +103,7 @@ void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, u
  *	OUT data[0,data_len-1]            original signal
  */
 void FLAC__fixed_restore_signal(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int32 data[]);
+void FLAC__fixed_restore_signal_wide(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int32 data[]);
+void FLAC__fixed_restore_signal_wide_33bit(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[]);
 
 #endif

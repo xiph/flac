@@ -1290,6 +1290,32 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				}
 				bytes_to_write = sample;
 			}
+			else if(bps+shift == 32) {
+				if(is_unsigned_samples) {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							ubuf.u32buffer[sample] = buffer[channel][wide_sample];
+				}
+				else {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							ubuf.s32buffer[sample] = buffer[channel][wide_sample];
+				}
+				if(is_big_endian != is_big_endian_host_) {
+					uint8_t tmp;
+					const uint32_t bytes = sample * 4;
+					uint32_t b;
+					for(b = 0; b < bytes; b += 4) {
+						tmp = ubuf.u8buffer[b];
+						ubuf.u8buffer[b] = ubuf.u8buffer[b+3];
+						ubuf.u8buffer[b+3] = tmp;
+						tmp = ubuf.u8buffer[b+1];
+						ubuf.u8buffer[b+1] = ubuf.u8buffer[b+2];
+						ubuf.u8buffer[b+2] = tmp;
+					}
+				}
+				bytes_to_write = 4 * sample;
+			}
 			else {
 				FLAC__ASSERT(0);
 				/* double protection */
@@ -1365,14 +1391,14 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
 		}
 
-		if(decoder_session->format == FORMAT_RAW && ((decoder_session->bps % 8) != 0  || decoder_session->bps < 4 || decoder_session->bps > 24)) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
+		if(decoder_session->format == FORMAT_RAW && ((decoder_session->bps % 8) != 0  || decoder_session->bps < 4)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24/32 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
 			decoder_session->abort_flag = true;
 			return;
 		}
 
-		if(decoder_session->bps < 4 || decoder_session->bps > 24) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 4-24\n", decoder_session->inbasefilename, decoder_session->bps);
+		if(decoder_session->bps < 4 || decoder_session->bps > 32) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 4-32\n", decoder_session->inbasefilename, decoder_session->bps);
 			decoder_session->abort_flag = true;
 			return;
 		}

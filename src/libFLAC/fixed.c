@@ -412,3 +412,71 @@ void FLAC__fixed_restore_signal(const FLAC__int32 residual[], uint32_t data_len,
 			FLAC__ASSERT(0);
 	}
 }
+
+void FLAC__fixed_restore_signal_wide(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int32 data[])
+{
+	int i, idata_len = (int)data_len;
+
+	switch(order) {
+		case 0:
+			FLAC__ASSERT(sizeof(residual[0]) == sizeof(data[0]));
+			memcpy(data, residual, sizeof(residual[0])*data_len);
+			break;
+		case 1:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + (FLAC__int64)data[i-1];
+			break;
+		case 2:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + 2*(FLAC__int64)data[i-1] - (FLAC__int64)data[i-2];
+			break;
+		case 3:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + 3*(FLAC__int64)data[i-1] - 3*(FLAC__int64)data[i-2] + (FLAC__int64)data[i-3];
+			break;
+		case 4:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + 4*(FLAC__int64)data[i-1] - 6*(FLAC__int64)data[i-2] + 4*(FLAC__int64)data[i-3] - (FLAC__int64)data[i-4];
+			break;
+		default:
+			FLAC__ASSERT(0);
+	}
+}
+
+#ifdef FUZZING_BUILD_MODE_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+/* The attribute below is to silence the undefined sanitizer of oss-fuzz.
+ * Because fuzzing feeds bogus predictors and residual samples to the
+ * decoder, having overflows in this section is unavoidable. Also,
+ * because the calculated values are audio path only, there is no
+ * potential for security problems */
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
+void FLAC__fixed_restore_signal_wide_33bit(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[])
+{
+	int i, idata_len = (int)data_len;
+
+	switch(order) {
+		case 0:
+			for(i = 0; i < idata_len; i++)
+				data[i] = residual[i];
+			break;
+		case 1:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + data[i-1];
+			break;
+		case 2:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + 2*data[i-1] - data[i-2];
+			break;
+		case 3:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + 3*data[i-1] - 3*data[i-2] + data[i-3];
+			break;
+		case 4:
+			for(i = 0; i < idata_len; i++)
+				data[i] = (FLAC__int64)residual[i] + 4*data[i-1] - 6*data[i-2] + 4*data[i-3] - data[i-4];
+			break;
+		default:
+			FLAC__ASSERT(0);
+	}
+}

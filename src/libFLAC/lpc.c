@@ -260,31 +260,6 @@ int FLAC__lpc_quantize_coefficients(const FLAC__real lp_coeff[], uint32_t order,
 	return 0;
 }
 
-
-uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order)
-{
-	/* This used to be subframe_bps + qlp_coeff_precision + FLAC__bitmath_ilog2(order)
-	 * but that treats both the samples as well as the predictor as unknown. The
-	 * predictor is known however, so taking the log2 of the sum of the absolute values
-	 * of all coefficients is a more accurate representation of the predictor */
-	FLAC__int32 abs_sum_of_qlp_coeff = 0;
-	for(uint32_t i = 0; i < order; i++)
-		abs_sum_of_qlp_coeff += abs(qlp_coeff[i]);
-	if(abs_sum_of_qlp_coeff == 0)
-		abs_sum_of_qlp_coeff = 1;
-	return subframe_bps + FLAC__bitmath_silog2(abs_sum_of_qlp_coeff);
-}
-
-
-uint32_t FLAC__lpc_max_residual_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order, int lp_quantization)
-{
-	FLAC__int32 predictor_sum_bps = FLAC__lpc_max_prediction_before_shift_bps(subframe_bps, qlp_coeff, order) - lp_quantization;
-	if((int)subframe_bps > predictor_sum_bps)
-		return subframe_bps + 1;
-	else
-		return predictor_sum_bps + 1;
-}
-
 #if defined(_MSC_VER)
 // silence MSVC warnings about __restrict modifier
 #pragma warning ( disable : 4028 )
@@ -807,6 +782,29 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 * f
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
+uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order)
+{
+	/* This used to be subframe_bps + qlp_coeff_precision + FLAC__bitmath_ilog2(order)
+	 * but that treats both the samples as well as the predictor as unknown. The
+	 * predictor is known however, so taking the log2 of the sum of the absolute values
+	 * of all coefficients is a more accurate representation of the predictor */
+	FLAC__int32 abs_sum_of_qlp_coeff = 0;
+	for(uint32_t i = 0; i < order; i++)
+		abs_sum_of_qlp_coeff += abs(qlp_coeff[i]);
+	if(abs_sum_of_qlp_coeff == 0)
+		abs_sum_of_qlp_coeff = 1;
+	return subframe_bps + FLAC__bitmath_silog2(abs_sum_of_qlp_coeff);
+}
+
+
+uint32_t FLAC__lpc_max_residual_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order, int lp_quantization)
+{
+	FLAC__int32 predictor_sum_bps = FLAC__lpc_max_prediction_before_shift_bps(subframe_bps, qlp_coeff, order) - lp_quantization;
+	if((int)subframe_bps > predictor_sum_bps)
+		return subframe_bps + 1;
+	else
+		return predictor_sum_bps + 1;
+}
 
 #ifdef FUZZING_BUILD_MODE_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
 /* The attribute below is to silence the undefined sanitizer of oss-fuzz.
@@ -839,8 +837,10 @@ void FLAC__lpc_restore_signal(const FLAC__int32 * flac_restrict residual, uint32
 		for(j = 0; j < order; j++) {
 			sum += qlp_coeff[j] * (*(--history));
 			sumo += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*history);
+#ifdef FLAC__OVERFLOW_DETECT
 			if(sumo > 2147483647ll || sumo < -2147483648ll)
 				fprintf(stderr,"FLAC__lpc_restore_signal: OVERFLOW, i=%u, j=%u, c=%d, d=%d, sumo=%" PRId64 "\n",i,j,qlp_coeff[j],*history,sumo);
+#endif
 		}
 		*(data++) = *(r++) + (sum >> lp_quantization);
 	}
@@ -1097,14 +1097,12 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 * flac_restrict residual, u
 		history = data;
 		for(j = 0; j < order; j++)
 			sum += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*(--history));
-		if(FLAC__bitmath_silog2(sum >> lp_quantization) > 32) {
-			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, sum=%" PRId64 "\n", i, (sum >> lp_quantization));
-			break;
-		}
+#ifdef FLAC__OVERFLOW_DETECT
 		if(FLAC__bitmath_silog2((FLAC__int64)(*r) + (sum >> lp_quantization)) > 32) {
 			fprintf(stderr,"FLAC__lpc_restore_signal_wide: OVERFLOW, i=%u, residual=%d, sum=%" PRId64 ", data=%" PRId64 "\n", i, *r, (sum >> lp_quantization), ((FLAC__int64)(*r) + (sum >> lp_quantization)));
 			break;
 		}
+#endif
 		*(data++) = *(r++) + (FLAC__int32)(sum >> lp_quantization);
 	}
 }
@@ -1327,6 +1325,87 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 * flac_restrict residual, u
 			}
 			data[i] = (FLAC__int32) (residual[i] + (sum >> lp_quantization));
 		}
+	}
+}
+#endif
+
+#ifdef FUZZING_BUILD_MODE_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+/* The attribute below is to silence the undefined sanitizer of oss-fuzz.
+ * Because fuzzing feeds bogus predictors and residual samples to the
+ * decoder, having overflows in this section is unavoidable. Also,
+ * because the calculated values are audio path only, there is no
+ * potential for security problems */
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
+void FLAC__lpc_restore_signal_wide_33bit(const FLAC__int32 * flac_restrict residual, uint32_t data_len, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order, int lp_quantization, FLAC__int64 * flac_restrict data)
+#if defined(FLAC__OVERFLOW_DETECT) || !defined(FLAC__LPC_UNROLLED_FILTER_LOOPS)
+{
+	uint32_t i, j;
+	FLAC__int64 sum;
+	const FLAC__int32 *r = residual;
+	const FLAC__int64 *history;
+
+	FLAC__ASSERT(order > 0);
+
+	for(i = 0; i < data_len; i++) {
+		sum = 0;
+		history = data;
+		for(j = 0; j < order; j++)
+			sum += (FLAC__int64)qlp_coeff[j] * (FLAC__int64)(*(--history));
+#ifdef FLAC__OVERFLOW_DETECT
+		if(FLAC__bitmath_silog2((FLAC__int64)(*r) + (sum >> lp_quantization)) > 33) {
+			fprintf(stderr,"FLAC__lpc_restore_signal_33bit: OVERFLOW, i=%u, residual=%d, sum=%" PRId64 ", data=%" PRId64 "\n", i, *r, (sum >> lp_quantization), ((FLAC__int64)(*r) + (sum >> lp_quantization)));
+			break;
+		}
+#endif
+		*(data++) = (FLAC__int64)(*(r++)) + (sum >> lp_quantization);
+	}
+}
+#else /* unrolled version for normal use */
+{
+	int i;
+	FLAC__int64 sum;
+
+	FLAC__ASSERT(order > 0);
+	FLAC__ASSERT(order <= 32);
+
+	for(i = 0; i < (int)data_len; i++) {
+		sum = 0;
+		switch(order) {
+			case 32: sum += qlp_coeff[31] * data[i-32]; /* Falls through. */
+			case 31: sum += qlp_coeff[30] * data[i-31]; /* Falls through. */
+			case 30: sum += qlp_coeff[29] * data[i-30]; /* Falls through. */
+			case 29: sum += qlp_coeff[28] * data[i-29]; /* Falls through. */
+			case 28: sum += qlp_coeff[27] * data[i-28]; /* Falls through. */
+			case 27: sum += qlp_coeff[26] * data[i-27]; /* Falls through. */
+			case 26: sum += qlp_coeff[25] * data[i-26]; /* Falls through. */
+			case 25: sum += qlp_coeff[24] * data[i-25]; /* Falls through. */
+			case 24: sum += qlp_coeff[23] * data[i-24]; /* Falls through. */
+			case 23: sum += qlp_coeff[22] * data[i-23]; /* Falls through. */
+			case 22: sum += qlp_coeff[21] * data[i-22]; /* Falls through. */
+			case 21: sum += qlp_coeff[20] * data[i-21]; /* Falls through. */
+			case 20: sum += qlp_coeff[19] * data[i-20]; /* Falls through. */
+			case 19: sum += qlp_coeff[18] * data[i-19]; /* Falls through. */
+			case 18: sum += qlp_coeff[17] * data[i-18]; /* Falls through. */
+			case 17: sum += qlp_coeff[16] * data[i-17]; /* Falls through. */
+			case 16: sum += qlp_coeff[15] * data[i-16]; /* Falls through. */
+			case 15: sum += qlp_coeff[14] * data[i-15]; /* Falls through. */
+			case 14: sum += qlp_coeff[13] * data[i-14]; /* Falls through. */
+			case 13: sum += qlp_coeff[12] * data[i-13]; /* Falls through. */
+			case 12: sum += qlp_coeff[11] * data[i-12]; /* Falls through. */
+			case 11: sum += qlp_coeff[10] * data[i-11]; /* Falls through. */
+			case 10: sum += qlp_coeff[ 9] * data[i-10]; /* Falls through. */
+			case  9: sum += qlp_coeff[ 8] * data[i- 9]; /* Falls through. */
+			case  8: sum += qlp_coeff[ 7] * data[i- 8]; /* Falls through. */
+			case  7: sum += qlp_coeff[ 6] * data[i- 7]; /* Falls through. */
+			case  6: sum += qlp_coeff[ 5] * data[i- 6]; /* Falls through. */
+			case  5: sum += qlp_coeff[ 4] * data[i- 5]; /* Falls through. */
+			case  4: sum += qlp_coeff[ 3] * data[i- 4]; /* Falls through. */
+			case  3: sum += qlp_coeff[ 2] * data[i- 3]; /* Falls through. */
+			case  2: sum += qlp_coeff[ 1] * data[i- 2]; /* Falls through. */
+			case  1: sum += qlp_coeff[ 0] * data[i- 1];
+		}
+		data[i] = residual[i] + (sum >> lp_quantization);
 	}
 }
 #endif
