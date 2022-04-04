@@ -2899,8 +2899,17 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, uint32_
 		if(rice_parameter < pesc) {
 			partitioned_rice_contents->raw_bits[partition] = 0;
 			u = (partition == 0) ? partition_samples - predictor_order : partition_samples;
-			if(!FLAC__bitreader_read_rice_signed_block(decoder->private_->input, residual + sample, u, rice_parameter))
-				return false; /* read_callback_ sets the state for us */
+			if(!FLAC__bitreader_read_rice_signed_block(decoder->private_->input, residual + sample, u, rice_parameter)){
+				if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME) {
+					/* no error was set, read_callback_ didn't set it, so
+					 * invalid rice symbol was found */
+					send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+					decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+					return true;
+				}
+				else
+					return false; /* read_callback_ sets the state for us */
+			}
 			sample += u;
 		}
 		else {
