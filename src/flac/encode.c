@@ -1027,7 +1027,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		flac__utils_printf(stderr, 1, "%s: ERROR: unsupported sample rate %u\n", encoder_session.inbasefilename, encoder_session.info.sample_rate);
 		return EncoderSession_finish_error(&encoder_session);
 	}
-	if(encoder_session.info.bits_per_sample-encoder_session.info.shift < 4 || encoder_session.info.bits_per_sample-encoder_session.info.shift > 24) {
+	if(encoder_session.info.bits_per_sample-encoder_session.info.shift < 4 || encoder_session.info.bits_per_sample-encoder_session.info.shift > 32) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: unsupported bits-per-sample %u\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 		return EncoderSession_finish_error(&encoder_session);
 	}
@@ -2441,8 +2441,49 @@ FLAC__bool format_input(FLAC__int32 *dest[], uint32_t wide_samples, FLAC__bool i
 				}
 		}
 	}
+	else if(bps == 32) {
+		if(!is_big_endian) {
+			uint8_t tmp;
+			const uint32_t bytes = wide_samples * channels * (bps >> 3);
+			uint32_t b;
+			for(b = 0; b < bytes; b += 4) {
+				tmp = ubuffer.u8[b];
+				ubuffer.u8[b] = ubuffer.u8[b+3];
+				ubuffer.u8[b+3] = tmp;
+
+				tmp = ubuffer.u8[b+1];
+				ubuffer.u8[b+1] = ubuffer.u8[b+2];
+				ubuffer.u8[b+2] = tmp;
+			}
+		}
+		if(is_unsigned_samples) {
+			uint32_t b;
+			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+				for(channel = 0; channel < channels; channel++, sample++) {
+					uint32_t t;
+					t  = ubuffer.u8[b++]; t <<= 8;
+					t |= ubuffer.u8[b++]; t <<= 8;
+					t |= ubuffer.u8[b++]; t <<= 8;
+					t |= ubuffer.u8[b++];
+					out[channel][wide_sample] = (FLAC__int32)t - 0x80000000;
+				}
+		}
+		else {
+			uint32_t b;
+			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+				for(channel = 0; channel < channels; channel++, sample++) {
+					uint32_t t;
+					t  = ubuffer.s8[b++]; t <<= 8;
+					t |= ubuffer.u8[b++]; t <<= 8;
+					t |= ubuffer.u8[b++]; t <<= 8;
+					t |= ubuffer.u8[b++];
+					out[channel][wide_sample] = t;
+				}
+		}
+	}
 	else {
-		FLAC__ASSERT(0);
+		flac__utils_printf(stderr, 1, "ERROR: unsupported input format\n");
+		return false;
 	}
 	if(shift > 0) {
 		FLAC__int32 mask = (1<<shift)-1;
