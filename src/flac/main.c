@@ -391,8 +391,8 @@ int do_it(void)
 				return usage_error("ERROR: invalid number of channels '%u', must be > 0 and <= %u\n", option_values.format_channels, FLAC__MAX_CHANNELS);
 		}
 		if(option_values.format_bps >= 0) {
-			if(option_values.format_bps != 8 && option_values.format_bps != 16 && option_values.format_bps != 24)
-				return usage_error("ERROR: invalid bits per sample '%u' (must be 8/16/24)\n", option_values.format_bps);
+			if(option_values.format_bps != 8 && option_values.format_bps != 16 && option_values.format_bps != 24 && option_values.format_bps != 32)
+				return usage_error("ERROR: invalid bits per sample '%u' (must be 8/16/24/32)\n", option_values.format_bps);
 		}
 		if(option_values.format_sample_rate >= 0) {
 			if(!FLAC__format_sample_rate_is_valid(option_values.format_sample_rate))

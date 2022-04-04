@@ -47,6 +47,11 @@
 #endif
 #define local_abs(x) ((uint32_t)((x)<0? -(x) : (x)))
 
+#ifdef local_abs64
+#undef local_abs64
+#endif
+#define local_abs64(x) ((uint64_t)((x)<0? -(x) : (x)))
+
 #ifdef FLAC__INTEGER_ONLY_LIBRARY
 /* rbps stands for residual bits per sample
  *
@@ -344,6 +349,119 @@ uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint3
 	return order;
 }
 
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+#define CHECK_ORDER_IS_VALID(macro_order)		\
+if(order_##macro_order##_is_valid && total_error_##macro_order < smallest_error) { \
+	order = macro_order;				\
+	smallest_error = total_error_##macro_order ;	\
+	residual_bits_per_sample[ macro_order ] = (float)((total_error_0 > 0) ? log(M_LN2 * (double)total_error_0 / (double)data_len) / M_LN2 : 0.0); \
+}							\
+else							\
+	residual_bits_per_sample[ macro_order ] = 34.0f;
+#else
+#define CHECK_ORDER_IS_VALID(macro_order)		\
+if(order_##macro_order##_is_valid && total_error_##macro_order < smallest_error) { \
+	order = macro_order;				\
+	smallest_error = total_error_##macro_order ;	\
+	residual_bits_per_sample[ macro_order ] = (total_error_##macro_order > 0) ? local__compute_rbps_wide_integerized(total_error_##macro_order, data_len) : 0; \
+}							\
+else							\
+	residual_bits_per_sample[ macro_order ] = 34 * FLAC__FP_ONE;
+#endif
+
+
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+#else
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+#endif
+{
+	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0, smallest_error = UINT64_MAX;
+	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
+	FLAC__bool order_0_is_valid = true, order_1_is_valid = true, order_2_is_valid = true, order_3_is_valid = true, order_4_is_valid = true;
+	uint32_t order = 0;
+
+	for(int i = 0; i < (int)data_len; i++) {
+		error_0 = local_abs64((FLAC__int64)data[i]);
+		error_1 = (i > 0) ? local_abs64((FLAC__int64)data[i] - data[i-1]) : 0 ;
+		error_2 = (i > 1) ? local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]) : 0;
+		error_3 = (i > 2) ? local_abs64((FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3]) : 0;
+		error_4 = (i > 3) ? local_abs64((FLAC__int64)data[i] - 4 * (FLAC__int64)data[i-1] + 6 * (FLAC__int64)data[i-2] - 4 * (FLAC__int64)data[i-3] + data[i-4]) : 0;
+
+		total_error_0 += error_0;
+		total_error_1 += error_1;
+		total_error_2 += error_2;
+		total_error_3 += error_3;
+		total_error_4 += error_4;
+
+		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
+		if(error_0 > INT32_MAX)
+			order_0_is_valid = false;
+		if(error_1 > INT32_MAX)
+			order_1_is_valid = false;
+		if(error_2 > INT32_MAX)
+			order_2_is_valid = false;
+		if(error_3 > INT32_MAX)
+			order_3_is_valid = false;
+		if(error_4 > INT32_MAX)
+			order_4_is_valid = false;
+	}
+
+	CHECK_ORDER_IS_VALID(0);
+	CHECK_ORDER_IS_VALID(1);
+	CHECK_ORDER_IS_VALID(2);
+	CHECK_ORDER_IS_VALID(3);
+	CHECK_ORDER_IS_VALID(4);
+
+	return order;
+}
+
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int64 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+#else
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int64 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+#endif
+{
+	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0, smallest_error = UINT64_MAX;
+	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
+	FLAC__bool order_0_is_valid = true, order_1_is_valid = true, order_2_is_valid = true, order_3_is_valid = true, order_4_is_valid = true;
+	uint32_t order = 0;
+
+	for(int i = 0; i < (int)data_len; i++) {
+		error_0 = local_abs64(data[i]);
+		error_1 = (i > 0) ? local_abs64(data[i] - data[i-1]) : 0 ;
+		error_2 = (i > 1) ? local_abs64(data[i] - 2 * data[i-1] + data[i-2]) : 0;
+		error_3 = (i > 2) ? local_abs64(data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3]) : 0;
+		error_4 = (i > 3) ? local_abs64(data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4]) : 0;
+
+		total_error_0 += error_0;
+		total_error_1 += error_1;
+		total_error_2 += error_2;
+		total_error_3 += error_3;
+		total_error_4 += error_4;
+
+		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
+		if(error_0 > INT32_MAX)
+			order_0_is_valid = false;
+		if(error_1 > INT32_MAX)
+			order_1_is_valid = false;
+		if(error_2 > INT32_MAX)
+			order_2_is_valid = false;
+		if(error_3 > INT32_MAX)
+			order_3_is_valid = false;
+		if(error_4 > INT32_MAX)
+			order_4_is_valid = false;
+	}
+
+	CHECK_ORDER_IS_VALID(0);
+	CHECK_ORDER_IS_VALID(1);
+	CHECK_ORDER_IS_VALID(2);
+	CHECK_ORDER_IS_VALID(3);
+	CHECK_ORDER_IS_VALID(4);
+
+	return order;
+}
+
 void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[])
 {
 	const int idata_len = (int)data_len;
@@ -353,6 +471,68 @@ void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, u
 		case 0:
 			FLAC__ASSERT(sizeof(residual[0]) == sizeof(data[0]));
 			memcpy(residual, data, sizeof(residual[0])*data_len);
+			break;
+		case 1:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = data[i] - data[i-1];
+			break;
+		case 2:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = data[i] - 2*data[i-1] + data[i-2];
+			break;
+		case 3:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = data[i] - 3*data[i-1] + 3*data[i-2] - data[i-3];
+			break;
+		case 4:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = data[i] - 4*data[i-1] + 6*data[i-2] - 4*data[i-3] + data[i-4];
+			break;
+		default:
+			FLAC__ASSERT(0);
+	}
+}
+
+void FLAC__fixed_compute_residual_wide(const FLAC__int32 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[])
+{
+	const int idata_len = (int)data_len;
+	int i;
+
+	switch(order) {
+		case 0:
+			FLAC__ASSERT(sizeof(residual[0]) == sizeof(data[0]));
+			memcpy(residual, data, sizeof(residual[0])*data_len);
+			break;
+		case 1:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = (FLAC__int64)data[i] - data[i-1];
+			break;
+		case 2:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = (FLAC__int64)data[i] - 2*(FLAC__int64)data[i-1] + data[i-2];
+			break;
+		case 3:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = (FLAC__int64)data[i] - 3*(FLAC__int64)data[i-1] + 3*(FLAC__int64)data[i-2] - data[i-3];
+			break;
+		case 4:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = (FLAC__int64)data[i] - 4*(FLAC__int64)data[i-1] + 6*(FLAC__int64)data[i-2] - 4*(FLAC__int64)data[i-3] + data[i-4];
+			break;
+		default:
+			FLAC__ASSERT(0);
+	}
+}
+
+void FLAC__fixed_compute_residual_wide_33bit(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[])
+{
+	const int idata_len = (int)data_len;
+	int i;
+
+	switch(order) {
+		case 0:
+			for(i = 0; i < idata_len; i++)
+				residual[i] = data[i];
 			break;
 		case 1:
 			for(i = 0; i < idata_len; i++)
