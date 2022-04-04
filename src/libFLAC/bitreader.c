@@ -804,6 +804,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, uint32_t *va
 }
 #endif
 
+#if 0 /* unused */
 FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint32_t parameter)
 {
 	FLAC__uint32 lsbs = 0, msbs = 0;
@@ -830,6 +831,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint3
 
 	return true;
 }
+#endif
 
 /* this is by far the most heavily used reader call.  it ain't pretty but it's fast */
 FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter)
@@ -837,7 +839,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 	/* try and get br->consumed_words and br->consumed_bits into register;
 	 * must remember to flush them back to *br before calling other
 	 * bitreader functions that use them, and before returning */
-	uint32_t cwords, words, lsbs, msbs, x, y;
+	uint32_t cwords, words, lsbs, msbs, x, y, limit;
 	uint32_t ucbits; /* keep track of the number of unconsumed bits in word */
 	brword b;
 	int *val, *end;
@@ -849,6 +851,8 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 	FLAC__ASSERT(parameter < 32);
 	/* the above two asserts also guarantee that the binary part never straddles more than 2 words, so we don't have to loop to read it */
 
+	limit = UINT32_MAX >> parameter; /* Maximal msbs that can occur with residual bounded to int32_t */
+
 	val = vals;
 	end = vals + nvals;
 
@@ -857,7 +861,8 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 			/* read the unary MSBs and end bit */
 			if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
 				return false;
-
+			/* Checking limit here would be overzealous: coding UINT32_MAX
+			 * with parameter == 0 would take 4GiB */
 			*val++ = (int)(msbs >> 1) ^ -(int)(msbs & 1);
 		}
 
@@ -897,6 +902,9 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 		b <<= 1; /* account for stop bit */
 		ucbits = (ucbits - x - 1) % FLAC__BITS_PER_WORD;
 		msbs = x;
+
+		if(x > limit)
+			return false;
 
 		/* read the binary LSBs */
 		x = (FLAC__uint32)(b >> (FLAC__BITS_PER_WORD - parameter)); /* parameter < 32, so we can cast to 32-bit uint32_t */
