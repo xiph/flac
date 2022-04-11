@@ -428,6 +428,12 @@ AC_ARG_ENABLE([examples],
 	AS_HELP_STRING([--disable-examples], [Don't build and install examples]))
 AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" != "xno"])
 
+dnl Ask git which version FLAC is
+AC_ARG_ENABLE([version-from-git],
+	AS_HELP_STRING([--disable-version-from-git], [Don't use git tag, commit hash and commit date for version number]),
+       [ enable_version_from_git=$enableval ], [ enable_version_from_git=yes ])
+
+
 dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
 AM_LANGINFO_CODESET
@@ -549,7 +555,7 @@ dnl for correct FLAC_API
 
 AC_CHECK_PROG(GIT_FOUND,git,yes)
 
-if test x$GIT_FOUND = "xyes"; then
+if test x$GIT_FOUND$enable_version_from_git = "xyesyes"; then
 	GIT_COMMIT_TAG=`git -C $srcdir describe --tags --exact-match 2>/dev/null`
 	GIT_COMMIT_HASH=`git -C $srcdir log -1 --pretty=format:%h 2>/dev/null`
 	GIT_COMMIT_DATE=`git -C $srcdir log -1 --pretty=format:%cd --date=format:%Y%m%d 2>/dev/null`
