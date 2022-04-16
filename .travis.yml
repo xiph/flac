@@ -1,29 +1,61 @@
 language: c
 
-os:
-  - linux
-  - osx
+jobs:
+  include:
+  - os: linux
+    dist: focal
+    arch: arm64
+    compiler: gcc
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DFLAC__NO_ASM=1
+  - os: linux
+    dist: focal
+    arch: arm64
+    compiler: gcc
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=
+  - os: linux
+    dist: focal
+    arch: arm64
+    compiler: gcc
+    env: BUILD_SYSTEM="autotools" CONFIGURE_OPTS=
+#  - os: linux
+#    dist: focal
+#    arch: arm64
+#    compiler: clang
+#    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DWITH_STACK_PROTECTOR=OFF # Clang on focal arm64 seems broken, can't find a way to reproduce this on my machine
+  - os: linux
+    dist: focal
+    arch: arm64
+    compiler: gcc
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
+  - os: linux
+    dist: focal
+    arch: ppc64le
+    compiler: gcc
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DFLAC__NO_ASM=1
+  - os: linux
+    dist: focal
+    arch: ppc64le
+    compiler: gcc
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=
+  - os: linux
+    dist: focal
+    arch: ppc64le
+    compiler: gcc
+    env: BUILD_SYSTEM="autotools" CONFIGURE_OPTS=
+  - os: linux
+    dist: focal
+    arch: ppc64le
+    compiler: clang
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=
+  - os: linux
+    dist: focal
+    arch: ppc64le
+    compiler: gcc
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
 
-dist: xenial
-
-compiler:
-  - gcc
-  - clang
-
-env:
-  matrix:
-  - BUILD_SYSTEM="autotools" CONFIGURE_OPTS=
-  - BUILD_SYSTEM="autotools" CONFIGURE_OPTS=--enable-64-bit-words
-  - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=
-  - BUILD_SYSTEM="cmake"     CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
 install:
-  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib; fi
-  - if [ $TRAVIS_OS_NAME = osx ]; then brew update ; brew install libogg; fi
+  - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libtool-bin libogg-dev; fi
 
 script:
   - if [[ "${BUILD_SYSTEM}" == "autotools" ]]; then ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check; fi
-  - if [[ "${BUILD_SYSTEM}" == "cmake" ]]; then mkdir cmake-build && cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON $CONFIGURE_OPTS && cmake --build . && ctest -V; fi
-  - if [ $TRAVIS_OS_NAME = linux ] && [ ${BUILD_SYSTEM} = "autotools" ]; then
-      xmllint --valid --noout doc/html/*.html;
-      xmllint --valid --noout doc/html/api/*.html;
-    fi
+  - if [[ "${BUILD_SYSTEM}" == "cmake" ]]; then mkdir cmake-build && cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release $CONFIGURE_OPTS && cat config.h && cmake --build . && travis_wait 30 ctest --output-on-failure; fi
