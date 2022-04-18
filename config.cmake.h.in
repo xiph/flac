@@ -65,12 +65,6 @@
 /* Define to 1 if you have the <cpuid.h> header file. */
 #cmakedefine HAVE_CPUID_H
 
-/* Define to 1 if C++ supports variable-length arrays. */
-#cmakedefine HAVE_CXX_VARARRAYS
-
-/* Define to 1 if C supports variable-length arrays. */
-#cmakedefine HAVE_C_VARARRAYS
-
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #cmakedefine HAVE_FSEEKO
 
@@ -160,9 +154,6 @@
 
 /* The size of `void*', as computed by sizeof. */
 #cmakedefine SIZEOF_VOIDP
-
-/* Define to 1 if you have the ANSI C header files. */
-#cmakedefine STDC_HEADERS
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
