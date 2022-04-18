@@ -31,10 +31,10 @@
 
 /* It is assumed that this header will be included after "config.h". */
 
-#if HAVE_BSWAP32			/* GCC and Clang */
+#ifdef HAVE_BSWAP32			/* GCC and Clang */
 
 /* GCC prior to 4.8 didn't provide bswap16 on x86_64 */
-#if ! HAVE_BSWAP16
+#ifndef HAVE_BSWAP16
 static inline unsigned short __builtin_bswap16(unsigned short a)
 {
 	return (a<<8)|(a>>8);
