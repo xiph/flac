@@ -89,17 +89,11 @@
 /* lround support */
 #cmakedefine01 HAVE_LROUND
 
-/* Define to 1 if you have the <memory.h> header file. */
-#cmakedefine HAVE_MEMORY_H
-
 /* Define to 1 if the system has the type `socklen_t'. */
 #cmakedefine HAVE_SOCKLEN_T
 
 /* Define to 1 if you have the <stdint.h> header file. */
 #cmakedefine01 HAVE_STDINT_H
-
-/* Define to 1 if you have the <stdlib.h> header file. */
-#cmakedefine HAVE_STDLIB_H
 
 /* Define to 1 if you have the <string.h> header file. */
 #cmakedefine HAVE_STRING_H
@@ -110,23 +104,11 @@
 /* Define to 1 if you have the <sys/param.h> header file. */
 #cmakedefine HAVE_SYS_PARAM_H
 
-/* Define to 1 if you have the <sys/stat.h> header file. */
-#cmakedefine HAVE_SYS_STAT_H
-
-/* Define to 1 if you have the <sys/types.h> header file. */
-#cmakedefine HAVE_SYS_TYPES_H
-
 /* Define to 1 if you have the <termios.h> header file. */
 #cmakedefine HAVE_TERMIOS_H
 
 /* Define to 1 if typeof works with your compiler. */
 #cmakedefine HAVE_TYPEOF
-
-/* Define to 1 if you have the <unistd.h> header file. */
-#cmakedefine HAVE_UNISTD_H
-
-/* Define to 1 if you have the <x86intrin.h> header file. */
-#cmakedefine HAVE_X86INTRIN_H
 
 /* Define as const if the declaration of iconv() needs const. */
 #cmakedefine ICONV_CONST
