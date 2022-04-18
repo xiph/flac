@@ -1,17 +1,3 @@
-check_cxx_source_compiles("
-    #ifdef __STDC_NO_VLA__
-    syntax error;
-    #else
-    int fvla (int m, int * c)
-    {
-      int D[m];
-      return D[0] == c[0];
-    }
-
-    int main(int, char * []) { return 0; }
-    #endif"
-    HAVE_CXX_VARARRAYS)
-
 add_library(FLAC++
     metadata.cpp
     stream_decoder.cpp
