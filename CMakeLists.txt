@@ -105,6 +105,14 @@ check_function_exists(fseeko HAVE_FSEEKO)
 
 check_c_source_compiles("int main() { return __builtin_bswap16 (0) ; }" HAVE_BSWAP16)
 check_c_source_compiles("int main() { return __builtin_bswap32 (0) ; }" HAVE_BSWAP32)
+check_c_source_compiles("
+    #include <langinfo.h>
+    int main()
+    {
+        char* cs = nl_langinfo(CODESET);
+        return !cs;
+    }"
+    HAVE_LANGINFO_CODESET)
 
 test_big_endian(CPU_IS_BIG_ENDIAN)
 
