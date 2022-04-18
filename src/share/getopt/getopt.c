@@ -86,7 +86,7 @@
 
 #ifdef VMS
 # include <unixlib.h>
-# if HAVE_STRING_H - 0
+# ifdef HAVE_STRING_H
 #  include <string.h>
 # endif
 #endif
