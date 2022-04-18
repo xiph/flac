@@ -887,8 +887,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if (encoder->private_->cpuinfo.ppc.arch_3_00) {
 		if(encoder->protected_->max_lpc_order < 8)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_8;
-		else if(encoder->protected_->max_lpc_order < 12)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_12;
+		else if(encoder->protected_->max_lpc_order < 10)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_10;
 		else if(encoder->protected_->max_lpc_order < 14)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_14;
 		else
@@ -898,8 +898,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if (encoder->private_->cpuinfo.ppc.arch_2_07) {
 		if(encoder->protected_->max_lpc_order < 8)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8;
-		else if(encoder->protected_->max_lpc_order < 12)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_12;
+		else if(encoder->protected_->max_lpc_order < 10)
+			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_10;
 		else if(encoder->protected_->max_lpc_order < 14)
 			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_14;
 		else
