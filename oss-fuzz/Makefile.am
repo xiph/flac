@@ -20,7 +20,7 @@ AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/oss-fuzz
 AM_CXXFLAGS = -std=c++11
 
 EXTRA_DIST = \
-	fuzz-encoder.dict \
+	fuzzer_encoder.dict \
 	fuzzing/Readme.md \
 	fuzzing/datasource/datasource.hpp \
 	fuzzing/datasource/id.hpp \
@@ -28,31 +28,21 @@ EXTRA_DIST = \
 	fuzzing/memory.hpp \
 	fuzzing/types.hpp
 
-if USE_OSSFUZZ_FLAG
-FUZZ_FLAG = $(LIB_FUZZING_ENGINE)
-FUZZ_LDADD = -lFuzzer
-else
-if USE_OSSFUZZ_STATIC
-FUZZ_LDADD = $(LIB_FUZZING_ENGINE)
-FUZZ_FLAG = -lFuzzer
-endif
-endif
-
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzz-decoder fuzz-encoder
+noinst_PROGRAMS += fuzzer_encoder fuzzer_decoder
 endif
 
-fuzz_decoder_SOURCES = fuzz-decoder.cc
-fuzz_decoder_CXXFLAGS = $(AM_CXXFLAGS) $(FUZZ_FLAG)
-fuzz_decoder_LDFLAGS = $(AM_LDFLAGS) -static
-fuzz_decoder_LDADD = $(flac_libs) $(FUZZ_LDADD)
+fuzzer_encoder_SOURCES = fuzzer_encoder.cc
+fuzzer_encoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
+fuzzer_encoder_LDFLAGS = $(AM_LDFLAGS)
+fuzzer_encoder_LDADD = $(flac_libs)
 
-fuzz_encoder_SOURCES = fuzz-encoder.cc
-fuzz_encoder_CXXFLAGS = $(AM_CXXFLAGS) $(FUZZ_FLAG)
-fuzz_encoder_LDFLAGS = $(AM_LDFLAGS) -static
-fuzz_encoder_LDADD = $(flac_libs) $(FUZZ_LDADD)
+fuzzer_decoder_SOURCES = fuzzer_decoder.cc
+fuzzer_decoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
+fuzzer_decoder_LDFLAGS = $(AM_LDFLAGS)
+fuzzer_decoder_LDADD = $(flac_libs)
 
 flac_libs = \
 	$(top_builddir)/src/libFLAC/libFLAC-static.la \
