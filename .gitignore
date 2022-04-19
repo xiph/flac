@@ -75,8 +75,8 @@ test/picture.diff
 test/picture.log
 .dirstamp
 microbench/benchmark_residual
-oss-fuzz/fuzz-decoder
-oss-fuzz/fuzz-encoder
+oss-fuzz/fuzzer_decoder
+oss-fuzz/fuzzer_encoder
 
 /*[Bb]uild*/
 /out/

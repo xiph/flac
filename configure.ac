@@ -382,15 +382,13 @@ if test "x$have_oss_fuzzers" = "xyes"; then
   else
     AM_CONDITIONAL([USE_OSSFUZZERS], [test "false" = "true"])
     # Disable fuzzer if the compiler is not Clang.
-    AC_MSG_WARN([*** Ozz-Fuzz is disabled because that requres the  Clang compiler.])
-    have_oss_fuzzers="no (compiler is GCC)"
+    AC_MSG_WARN([*** Ozz-Fuzz is disabled because that requires the Clang compiler.])
+    have_oss_fuzzers="no (compiler is not Clang)"
   fi
 else
   AM_CONDITIONAL([USE_OSSFUZZERS], [test "false" = "true"])
 fi
 
-AM_CONDITIONAL([USE_OSSFUZZ_FLAG], [test "x$LIB_FUZZING_ENGINE" = "x-fsanitize=fuzzer"])
-AM_CONDITIONAL([USE_OSSFUZZ_STATIC], [test -f "$LIB_FUZZING_ENGINE"])
 AC_SUBST([LIB_FUZZING_ENGINE])
 
 dnl check for ogg library
