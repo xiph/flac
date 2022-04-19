@@ -568,6 +568,11 @@ void FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(FLAC__En
 	FLAC__format_entropy_coding_method_partitioned_rice_contents_init(object);
 }
 
+#if defined(_MSC_VER)
+// silence three MSVC warnings 'result of 32-bit shift implicitly converted to 64 bits (was 64-bit shift intended?)'
+#pragma warning ( disable : 4334 )
+#endif
+
 FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(FLAC__EntropyCodingMethod_PartitionedRiceContents *object, uint32_t max_partition_order)
 {
 	FLAC__ASSERT(0 != object);
@@ -585,3 +590,7 @@ FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_s
 
 	return true;
 }
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4334 )
+#endif

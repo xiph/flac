@@ -1124,6 +1124,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 		if (num > 32768) {
 			/* Set the bound and recalculate samples accordingly. */
 			num = 32768;
+#if defined(_MSC_VER)
+// silence MSVC warning 'conversion from 'FLAC__uint64' to 'uint32_t', possible loss of data'
+#pragma warning ( suppress : 4244 )
+#endif
 			samples = total_samples / num;
 		}
 
