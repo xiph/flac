@@ -1,5 +1,5 @@
 #  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2019  Xiph.Org Foundation
+#  Copyright (C) 2019-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -31,13 +31,18 @@ EXTRA_DIST = \
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzzer_encoder fuzzer_decoder
+noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder
 endif
 
 fuzzer_encoder_SOURCES = fuzzer_encoder.cc
 fuzzer_encoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
 fuzzer_encoder_LDFLAGS = $(AM_LDFLAGS)
 fuzzer_encoder_LDADD = $(flac_libs)
+
+fuzzer_encoder_v2_SOURCES = fuzzer_encoder_v2.cc
+fuzzer_encoder_v2_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
+fuzzer_encoder_v2_LDFLAGS = $(AM_LDFLAGS)
+fuzzer_encoder_v2_LDADD = $(flac_libs)
 
 fuzzer_decoder_SOURCES = fuzzer_decoder.cc
 fuzzer_decoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
