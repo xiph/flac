@@ -49,7 +49,7 @@
 FLAC_API const char *FLAC__VERSION_STRING = GIT_COMMIT_TAG;
 FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " GIT_COMMIT_TAG " " GIT_COMMIT_DATE;
 # else
-FLAC_API const char *FLAC__VERSION_STRING = "git-" GIT_COMMIT_HASH;
+FLAC_API const char *FLAC__VERSION_STRING = "git-" GIT_COMMIT_HASH " " GIT_COMMIT_DATE;
 FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC git-" GIT_COMMIT_HASH " " GIT_COMMIT_DATE;
 # endif
 #else
