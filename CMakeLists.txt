@@ -80,8 +80,6 @@ include(GNUInstallDirs)
 include(UseSystemExtensions)
 include(TestBigEndian)
 
-
-
 check_include_file("byteswap.h" HAVE_BYTESWAP_H)
 check_include_file("inttypes.h" HAVE_INTTYPES_H)
 check_include_file("stdint.h" HAVE_STDINT_H)
