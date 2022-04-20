@@ -147,7 +147,11 @@ run_metaflac --set-tag="TITLE=He_who_smelt_it_dealt_it" $flacfile
 check_flac
 metaflac_test case06 "--set-tag=TITLE" "--list"
 
-metaflac_test case07 "--show-vendor-tag --show-tag=ARTIST" "--show-vendor-tag --show-tag=ARTIST"
+if [ ! $git_commit_version_hash ] ; then
+	metaflac_test case07 "--show-vendor-tag --show-tag=ARTIST" "--show-vendor-tag --show-tag=ARTIST"
+else
+	echo "test case07 is skipped because version is taken from git"
+fi
 
 run_metaflac --remove-first-tag=ARTIST $flacfile
 check_flac

@@ -30,6 +30,10 @@ endif()
 
 set(top_srcdir "${PROJECT_SOURCE_DIR}")
 set(top_builddir "${PROJECT_BINARY_DIR}")
+if(NOT GIT_COMMIT_TAG AND GIT_COMMIT_HASH AND GIT_COMMIT_DATE)
+    set(GIT_COMMIT_VERSION_HASH yes)
+endif()
+
 configure_file(common.sh.in common.sh @ONLY)
 
 set(ALL_TESTS libFLAC grabbag flac metaflac replaygain seeking streams compression)
