@@ -42,8 +42,6 @@ m4/lt~obsolete.m4
 man/manpage.links
 man/manpage.refs
 missing
-objs/debug
-objs/release
 src/flac/flac
 src/libFLAC++/flac++.pc
 src/libFLAC/flac.pc
@@ -79,7 +77,15 @@ oss-fuzz/fuzzer_decoder
 oss-fuzz/fuzzer_encoder
 
 /*[Bb]uild*/
+/*[Oo]bj*/
 /out/
+*.iobj
+*.obj
+*.pdb
+*.log
+*.recipe
+*.tlog
+*.user
 CMakeSettings.json
 CMakeLists.txt.user
 CMakeCache.txt
