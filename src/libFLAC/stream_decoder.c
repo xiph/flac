@@ -3091,7 +3091,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	upper_bound = stream_length;
 	upper_bound_sample = total_samples > 0 ? total_samples : target_sample /*estimate it*/;
 
-	if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME) {
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC &&
+	   decoder->private_->samples_decoded != 0) {
 		if(target_sample < decoder->private_->samples_decoded) {
 			if(FLAC__stream_decoder_get_decode_position(decoder, &upper_bound))
 				upper_bound_sample = decoder->private_->samples_decoded;
