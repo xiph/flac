@@ -1433,8 +1433,14 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
 
-	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED)
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED){
+		if(encoder->protected_->metadata){ // True in case FLAC__stream_encoder_set_metadata was used but init failed
+			free(encoder->protected_->metadata);
+			encoder->protected_->metadata = 0;
+			encoder->protected_->num_metadata_blocks = 0;
+		}
 		return true;
+	}
 
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
