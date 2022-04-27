@@ -113,6 +113,7 @@ struct FLAC__BitReader {
 	uint32_t crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
 	FLAC__bool read_limit_set; /* whether reads are limited */
 	uint32_t read_limit; /* the remaining size of what can be read */
+	uint32_t last_seen_framesync; /* the location of the last seen framesync, if it is in the buffer, in bits from front of buffer */
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
 };
@@ -157,6 +158,9 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	uint32_t start, end;
 	size_t bytes;
 	FLAC__byte *target;
+
+	/* invalidate last seen framesync */
+	br->last_seen_framesync = -1;
 
 	/* first shift the unconsumed buffer data toward the front as much as possible */
 	if(br->consumed_words > 0) {
@@ -279,6 +283,7 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback
 	br->client_data = cd;
 	br->read_limit_set = false;
 	br->read_limit = -1;
+	br->last_seen_framesync = -1;
 
 	return true;
 }
@@ -297,6 +302,7 @@ void FLAC__bitreader_free(FLAC__BitReader *br)
 	br->client_data = 0;
 	br->read_limit_set = false;
 	br->read_limit = -1;
+	br->last_seen_framesync = -1;
 }
 
 FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br)
@@ -305,7 +311,26 @@ FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br)
 	br->consumed_words = br->consumed_bits = 0;
 	br->read_limit_set = false;
 	br->read_limit = -1;
+	br->last_seen_framesync = -1;
 	return true;
+}
+
+void FLAC__bitreader_set_framesync_location(FLAC__BitReader *br)
+{
+	br->last_seen_framesync = br->consumed_words * FLAC__BYTES_PER_WORD + br->consumed_bits / 8;
+}
+
+FLAC__bool FLAC__bitreader_rewind_to_after_last_seen_framesync(FLAC__BitReader *br)
+{
+	if(br->last_seen_framesync == (uint32_t)-1) {
+		br->consumed_words = br->consumed_bits = 0;
+		return false;
+	}
+	else {
+		br->consumed_words = (br->last_seen_framesync + 1) / FLAC__BYTES_PER_WORD;
+		br->consumed_bits  = ((br->last_seen_framesync + 1) % FLAC__BYTES_PER_WORD) * 8;
+		return true;
+	}
 }
 
 void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out)
