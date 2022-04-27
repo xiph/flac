@@ -72,7 +72,7 @@ jobs:
           - name: windows-latest-cmake
             os: windows-latest
             build-system: cmake
-            configure-opts: '-DWITH_OGG=OFF'
+            configure-opts: ''
 
           - name: ubuntu-latest-gcc-autotools-64-bit-words
             os: ubuntu-latest
@@ -121,8 +121,14 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
+      - uses: actions/checkout@v2
+        if: startsWith(matrix.build-system,'cmake')
+        with:
+          repository: xiph/ogg
+          path: ./ogg
+
       - name: Install MacOS dependencies
-        if: startsWith(matrix.os,'macos')
+        if: startsWith(matrix.os,'macos') && !startsWith(matrix.build-system,'cmake')
         run: |
           brew update
           brew install automake pkg-config libogg
