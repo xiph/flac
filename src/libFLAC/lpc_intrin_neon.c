@@ -1,35 +1,3 @@
-/* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
- *
- * Redistribution and use in source and binary forms, with or without
- * modification, are permitted provided that the following conditions
- * are met:
- *
- * - Redistributions of source code must retain the above copyright
- * notice, this list of conditions and the following disclaimer.
- *
- * - Redistributions in binary form must reproduce the above copyright
- * notice, this list of conditions and the following disclaimer in the
- * documentation and/or other materials provided with the distribution.
- *
- * - Neither the name of the Xiph.org Foundation nor the names of its
- * contributors may be used to endorse or promote products derived from
- * this software without specific prior written permission.
- *
- * THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
- * ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
- * LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR
- * A PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE FOUNDATION OR
- * CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
- * EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
- * PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
- * PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
- * LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
- * NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
- * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- */
-
 #include "private/cpu.h"
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
@@ -40,30 +8,6 @@
 #include "FLAC/format.h"
 #include "private/macros.h"
 #include <arm_neon.h>
-
-#ifdef FLAC__HAS_A64NEONINTRIN
-void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
-{
-#undef MAX_LAG
-#define MAX_LAG 14
-#include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
-}
-
-void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
-{
-#undef MAX_LAG
-#define MAX_LAG 10
-#include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
-}
-
-void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
-{
-#undef MAX_LAG
-#define MAX_LAG 8
-#include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
-}
-
-#endif /* ifdef FLAC__HAS_A64NEONINTRIN */
 
 
 #define MUL_32_BIT_LOOP_UNROOL_3(qlp_coeff_vec, lane) \
@@ -81,10 +25,10 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
 {
     int i;
     FLAC__int32 sum;
-    int32x4_t tmp_vec[20];
-
     FLAC__ASSERT(order > 0);
     FLAC__ASSERT(order <= 32);
+
+    int32x4_t tmp_vec[20];
 
     // Using prologue reads is valid as encoder->private_->local_lpc_compute_residual_from_qlp_coefficients(signal+order,....)
     if(order <= 12) {

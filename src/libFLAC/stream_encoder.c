@@ -907,16 +907,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	}
 #endif
 #endif
-#if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN && FLAC__HAS_A64NEONINTRIN
-	if(encoder->protected_->max_lpc_order < 8)
-		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8;
-	else if(encoder->protected_->max_lpc_order < 10)
-		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10;
-	else if(encoder->protected_->max_lpc_order < 14)
-		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14;
-	else
-		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
-#endif
 	if(encoder->private_->cpuinfo.use_asm) {
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
@@ -1014,8 +1004,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #   endif /* FLAC__HAS_X86INTRIN */
 #  endif /* FLAC__CPU_... */
 
-	#if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN
-
+	#if defined FLAC__CPU_ARM64
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
@@ -1433,14 +1422,8 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
 
-	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED){
-		if(encoder->protected_->metadata){ // True in case FLAC__stream_encoder_set_metadata was used but init failed
-			free(encoder->protected_->metadata);
-			encoder->protected_->metadata = 0;
-			encoder->protected_->num_metadata_blocks = 0;
-		}
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return true;
-	}
 
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
@@ -3934,9 +3917,9 @@ uint32_t find_best_partition_order_(
 
 		/* save best parameters and raw_bits */
 		FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(prc, flac_max(6u, best_partition_order));
-		memcpy(prc->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
+		memcpy(prc->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, sizeof(uint32_t)*(1<<(best_partition_order)));
 		if(do_escape_coding)
-			memcpy(prc->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
+			memcpy(prc->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, sizeof(uint32_t)*(1<<(best_partition_order)));
 		/*
 		 * Now need to check if the type should be changed to
 		 * FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 based on the
