@@ -1103,6 +1103,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 	return true;
 }
 
+#if defined(_MSC_VER)
+// silence MSVC warning 'conversion from 'FLAC__uint64' to 'uint32_t', possible loss of data'
+#pragma warning ( disable : 4244 )
+#endif
+
 FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(FLAC__StreamMetadata *object, uint32_t samples, FLAC__uint64 total_samples)
 {
 	FLAC__ASSERT(object != NULL);
@@ -1124,10 +1129,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 		if (num > 32768) {
 			/* Set the bound and recalculate samples accordingly. */
 			num = 32768;
-#if defined(_MSC_VER)
-// silence MSVC warning 'conversion from 'FLAC__uint64' to 'uint32_t', possible loss of data'
-#pragma warning ( suppress : 4244 )
-#endif
 			samples = total_samples / num;
 		}
 
@@ -1146,6 +1147,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 
 	return true;
 }
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4244 )
+#endif
 
 FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_sort(FLAC__StreamMetadata *object, FLAC__bool compact)
 {
