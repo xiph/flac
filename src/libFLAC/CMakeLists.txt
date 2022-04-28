@@ -29,6 +29,9 @@ else()
     endif()
 endif()
 
+check_cpu_arch_arm64(FLAC__CPU_ARM64)
+
+
 include(CheckLanguage)
 check_language(ASM_NASM)
 if(CMAKE_ASM_NASM_COMPILER)
