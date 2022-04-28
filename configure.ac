@@ -58,7 +58,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
+AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
 
 XIPH_C_BSWAP32
 XIPH_C_BSWAP16
@@ -89,9 +89,6 @@ fi
 
 # For the XMMS plugin.
 AC_CHECK_TYPES(socklen_t, [], [])
-
-dnl check for getauxval in standard library
-AC_CHECK_FUNCS(getauxval)
 
 dnl check for getopt in standard library
 dnl AC_CHECK_FUNCS(getopt_long , , [LIBOBJS="$LIBOBJS getopt.o getopt1.o"] )
@@ -178,18 +175,6 @@ neon=no
 if test "x$ac_cv_header_arm_neon_h" = xyes; then
 AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
 neon=yes
-  AC_MSG_CHECKING([whether arm_neon.h has A64 functions])
-  AC_COMPILE_IFELSE(
-	[AC_LANG_PROGRAM([[#include <arm_neon.h>]],
-	[[float64x2_t sum5; sum5 = vdupq_n_f64(0.0f);]])],
-	[AC_MSG_RESULT([yes])
-	 has_a64neon=yes],
-	[AC_MSG_RESULT([no])])
-  if test "x$has_a64neon" = xyes; then
-  AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 1, [Set to 1 if <arm_neon.h> has A64 instructions.])
-  else
-  AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 0)
-  fi
 else
 AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
 fi
