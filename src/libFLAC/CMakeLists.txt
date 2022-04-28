@@ -10,6 +10,7 @@ include(CheckCSourceCompiles)
 include(CheckCPUArch)
 include(CheckAttribute)
 include(CheckVSX)
+include(CheckA64NEON)
 
 check_cpu_arch_x64(FLAC__CPU_X86_64)
 if(NOT FLAC__CPU_X86_64)
@@ -26,10 +27,13 @@ else()
         check_attribute_power8(FLAC__HAS_TARGET_POWER8)
         check_attribute_power9(FLAC__HAS_TARGET_POWER9)
         check_vsx(FLAC__USE_VSX)
+    else()
+        check_cpu_arch_arm64(FLAC__CPU_ARM64)
+        if(FLAC__CPU_ARM64)
+             check_a64neon(FLAC__HAS_A64NEONINTRIN)
+        endif()
     endif()
 endif()
-
-check_cpu_arch_arm64(FLAC__CPU_ARM64)
 
 
 include(CheckLanguage)
