@@ -907,6 +907,16 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	}
 #endif
 #endif
+#if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN && FLAC__HAS_A64NEONINTRIN
+	if(encoder->protected_->max_lpc_order < 8)
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8;
+	else if(encoder->protected_->max_lpc_order < 10)
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10;
+	else if(encoder->protected_->max_lpc_order < 14)
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14;
+	else
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+#endif
 	if(encoder->private_->cpuinfo.use_asm) {
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
@@ -1004,7 +1014,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #   endif /* FLAC__HAS_X86INTRIN */
 #  endif /* FLAC__CPU_... */
 
-	#if defined FLAC__CPU_ARM64
+	#if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN
+
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
