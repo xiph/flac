@@ -58,7 +58,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h])
+AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
 
 XIPH_C_BSWAP32
 XIPH_C_BSWAP16
@@ -145,6 +145,12 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		asm_optimisation=$asm_opt
 		;;
+	arm64|aarch64)
+		cpu_arm64=true
+		AC_DEFINE(FLAC__CPU_ARM64)
+		AH_TEMPLATE(FLAC__CPU_ARM64, [define if building for ARM])
+		asm_optimisation=$asm_opt
+		;;
 	sparc)
 		cpu_sparc=true
 		AC_DEFINE(FLAC__CPU_SPARC)
@@ -156,12 +162,33 @@ AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
+AM_CONDITIONAL(FLAC__CPU_ARM64, test "x$cpu_arm64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes; then
 AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
 else
 AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
+fi
+
+neon=no
+if test "x$ac_cv_header_arm_neon_h" = xyes; then
+AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
+neon=yes
+  AC_MSG_CHECKING([whether arm_neon.h has A64 functions])
+  AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <arm_neon.h>]],
+	[[float64x2_t sum5; sum5 = vdupq_n_f64(0.0f);]])],
+	[AC_MSG_RESULT([yes])
+	 has_a64neon=yes],
+	[AC_MSG_RESULT([no])])
+  if test "x$has_a64neon" = xyes; then
+  AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 1, [Set to 1 if <arm_neon.h> has A64 instructions.])
+  else
+  AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 0)
+  fi
+else
+AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
 fi
 
 if test x"$cpu_ppc64" = xtrue ; then
@@ -664,6 +691,7 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
 	echo "    SSE optimizations : ....................... ${sse_os}"
+	echo "    Neon optimizations : ...................... ${neon}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"

@@ -1003,8 +1003,16 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    endif
 #   endif /* FLAC__HAS_X86INTRIN */
 #  endif /* FLAC__CPU_... */
+
+	#if defined FLAC__CPU_ARM64
+    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
+    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
+    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
+	# endif
+
 	}
 # endif /* !FLAC__NO_ASM */
+
 #endif /* !FLAC__INTEGER_ONLY_LIBRARY */
 #if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
 	if(encoder->private_->cpuinfo.use_asm) {
