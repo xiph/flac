@@ -41,6 +41,30 @@
 #include "private/macros.h"
 #include <arm_neon.h>
 
+#ifdef FLAC__HAS_A64NEONINTRIN
+void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+#undef MAX_LAG
+#define MAX_LAG 14
+#include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
+}
+
+void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+#undef MAX_LAG
+#define MAX_LAG 10
+#include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
+}
+
+void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+{
+#undef MAX_LAG
+#define MAX_LAG 8
+#include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
+}
+
+#endif /* ifdef FLAC__HAS_A64NEONINTRIN */
+
 
 #define MUL_32_BIT_LOOP_UNROOL_3(qlp_coeff_vec, lane) \
                         summ_0 = vmulq_laneq_s32(tmp_vec[0], qlp_coeff_vec, lane); \
@@ -57,10 +81,10 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
 {
     int i;
     FLAC__int32 sum;
+    int32x4_t tmp_vec[20];
+
     FLAC__ASSERT(order > 0);
     FLAC__ASSERT(order <= 32);
-
-    int32x4_t tmp_vec[20];
 
     // Using prologue reads is valid as encoder->private_->local_lpc_compute_residual_from_qlp_coefficients(signal+order,....)
     if(order <= 12) {
