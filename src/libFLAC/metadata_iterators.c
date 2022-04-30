@@ -576,7 +576,7 @@ FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metad
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 
-	return iterator->offset[iterator->depth];
+	return (off_t)iterator->offset[iterator->depth];
 }
 
 FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const FLAC__Metadata_SimpleIterator *iterator)
@@ -1099,6 +1099,11 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 		return false;
 }
 
+#if defined(_MSC_VER)
+// silence three MSVC warnings 'conversion from 'conversion from 'const __int64' to 'uint32_t', possible loss of data'
+#pragma warning ( disable : 4244 )
+#endif
+
 /* Returns the new length of the chain, or 0 if there was an error. */
 /* WATCHOUT: This can get called multiple times before a write, so
  * it should still work when this happens.
@@ -1175,6 +1180,10 @@ static FLAC__off_t chain_prepare_for_write_(FLAC__Metadata_Chain *chain, FLAC__b
 
 	return current_length;
 }
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4244 )
+#endif
 
 static FLAC__bool chain_read_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Seek seek_cb, FLAC__IOCallback_Tell tell_cb)
 {
@@ -1625,6 +1634,11 @@ typedef enum {
 	LBS_BLOCK_REMOVED
 } LastBlockState;
 
+#if defined(_MSC_VER)
+// silence three MSVC warnings 'conversion from 'conversion from 'const __int64' to 'uint32_t', possible loss of data'
+#pragma warning ( disable : 4244 )
+#endif
+
 FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata_Chain *chain, FLAC__bool use_padding)
 {
 	/* This does all the same checks that are in chain_prepare_for_write_()
@@ -1701,6 +1715,10 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
 
 	return (current_length != chain->initial_length);
 }
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4244 )
+#endif
 
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats)
 {

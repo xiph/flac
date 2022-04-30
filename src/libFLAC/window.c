@@ -42,6 +42,10 @@
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
+#if defined(_MSC_VER)
+// silence 25 MSVC warnings 'conversion from 'double' to 'float', possible loss of data'
+#pragma warning ( disable : 4244 )
+#endif
 
 void FLAC__window_bartlett(FLAC__real *window, const FLAC__int32 L)
 {
@@ -278,5 +282,9 @@ void FLAC__window_welch(FLAC__real *window, const FLAC__int32 L)
 		window[n] = (FLAC__real)(1.0f - k * k);
 	}
 }
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4244 )
+#endif
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */

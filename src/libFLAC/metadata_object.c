@@ -1124,7 +1124,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 		if (num > 32768) {
 			/* Set the bound and recalculate samples accordingly. */
 			num = 32768;
-			samples = total_samples / num;
+			samples = (uint32_t)(total_samples / num);
 		}
 
 		i = seek_table->num_points;
