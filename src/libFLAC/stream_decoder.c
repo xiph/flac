@@ -95,6 +95,7 @@ static FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t chan
 static FLAC__bool read_subframe_verbatim_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, FLAC__bool do_full_decode);
 static FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, uint32_t predictor_order, uint32_t partition_order, FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents, FLAC__int32 *residual, FLAC__bool is_extended);
 static FLAC__bool read_zero_padding_(FLAC__StreamDecoder *decoder);
+static void       undo_channel_coding(FLAC__StreamDecoder *decoder);
 static FLAC__bool read_callback_(FLAC__byte buffer[], size_t *bytes, void *client_data);
 #if FLAC__HAS_OGG
 static FLAC__StreamDecoderReadStatus read_callback_ogg_aspect_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes);
@@ -2041,7 +2042,6 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 {
 	uint32_t channel;
 	uint32_t i;
-	FLAC__int32 mid, side;
 	uint32_t frame_crc; /* the one we calculate from the input stream */
 	FLAC__uint32 x;
 
@@ -2118,42 +2118,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 #endif
 		if(do_full_decode) {
 			/* Undo any special channel coding */
-			switch(decoder->private_->frame.header.channel_assignment) {
-				case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
-					/* do nothing */
-					break;
-				case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-					FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
-					for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
-						decoder->private_->output[1][i] = decoder->private_->output[0][i] - decoder->private_->output[1][i];
-					break;
-				case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-					FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
-					for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
-						decoder->private_->output[0][i] += decoder->private_->output[1][i];
-					break;
-				case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-					FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
-					for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
-#if 1
-						mid = decoder->private_->output[0][i];
-						side = decoder->private_->output[1][i];
-						mid = ((uint32_t) mid) << 1;
-						mid |= (side & 1); /* i.e. if 'side' is odd... */
-						decoder->private_->output[0][i] = (mid + side) >> 1;
-						decoder->private_->output[1][i] = (mid - side) >> 1;
-#else
-						/* OPT: without 'side' temp variable */
-						mid = (decoder->private_->output[0][i] << 1) | (decoder->private_->output[1][i] & 1); /* i.e. if 'side' is odd... */
-						decoder->private_->output[0][i] = (mid + decoder->private_->output[1][i]) >> 1;
-						decoder->private_->output[1][i] = (mid - decoder->private_->output[1][i]) >> 1;
-#endif
-					}
-					break;
-				default:
-					FLAC__ASSERT(0);
-					break;
-			}
+			undo_channel_coding(decoder);
 			/* Check whether decoded data actually fits bps */
 			for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
 				for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
@@ -3048,6 +3013,54 @@ FLAC__bool read_callback_(FLAC__byte buffer[], size_t *bytes, void *client_data)
 	 * to the eof_callback and let the Ogg decoder aspect set the
 	 * end-of-stream state when it is needed.
 	 */
+}
+
+#if defined(__clang__)
+/* The attribute below is to silence the undefined sanitizer of oss-fuzz.
+ * Because fuzzing feeds bogus predictors and residual samples to the
+ * decoder, having overflows in this section is unavoidable. Also,
+ * because the calculated values are audio path only, there is no
+ * potential for security problems */
+__attribute__((no_sanitize("signed-integer-overflow")))
+#endif
+void undo_channel_coding(FLAC__StreamDecoder *decoder) {
+	FLAC__int32 mid, side;
+	switch(decoder->private_->frame.header.channel_assignment) {
+	case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
+		/* do nothing */
+		break;
+	case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
+		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
+		for(uint32_t i = 0; i < decoder->private_->frame.header.blocksize; i++)
+			decoder->private_->output[1][i] = decoder->private_->output[0][i] - decoder->private_->output[1][i];
+		break;
+	case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
+		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
+		for(uint32_t i = 0; i < decoder->private_->frame.header.blocksize; i++)
+			decoder->private_->output[0][i] += decoder->private_->output[1][i];
+		break;
+	case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
+		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
+		for(uint32_t i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+#if 1
+			mid = decoder->private_->output[0][i];
+			side = decoder->private_->output[1][i];
+			mid = ((uint32_t) mid) << 1;
+			mid |= (side & 1); /* i.e. if 'side' is odd... */
+			decoder->private_->output[0][i] = (mid + side) >> 1;
+			decoder->private_->output[1][i] = (mid - side) >> 1;
+#else
+			/* OPT: without 'side' temp variable */
+			mid = (decoder->private_->output[0][i] << 1) | (decoder->private_->output[1][i] & 1); /* i.e. if 'side' is odd... */
+			decoder->private_->output[0][i] = (mid + decoder->private_->output[1][i]) >> 1;
+			decoder->private_->output[1][i] = (mid - decoder->private_->output[1][i]) >> 1;
+#endif
+		}
+		break;
+	default:
+		FLAC__ASSERT(0);
+		break;
+	}
 }
 
 #if FLAC__HAS_OGG
