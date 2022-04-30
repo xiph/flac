@@ -104,6 +104,10 @@ static FLAC__bool write_little_endian_int32(FILE *f, FLAC__int32 x)
 }
 #endif
 
+#if defined(_MSC_VER)
+// silence 4 MSVC warnings 'conversion from 'FLAC__uint64' to 'int', possible loss of data'
+#pragma warning ( disable : 4244 )
+#endif
 static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 x)
 {
 	return
@@ -117,6 +121,9 @@ static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 x)
 		fputc(x >> 56, f) != EOF
 	;
 }
+#if defined(_MSC_VER)
+#pragma warning ( default : 4244 )
+#endif
 
 static FLAC__bool write_big_endian(FILE *f, FLAC__int32 x, size_t bytes)
 {
