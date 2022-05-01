@@ -42,6 +42,7 @@
 
 /* Set to 1 if <arm_neon.h> is available. */
 #cmakedefine01 FLAC__HAS_NEONINTRIN
+#cmakedefine01 FLAC__HAS_A64NEONINTRIN
 
 /* define if building for Darwin / MacOS X */
 #cmakedefine FLAC__SYS_DARWIN
