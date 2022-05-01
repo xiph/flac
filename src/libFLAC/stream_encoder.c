@@ -1015,6 +1015,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  endif /* FLAC__CPU_... */
 
 	#if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN
+
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
