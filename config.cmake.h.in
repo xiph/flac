@@ -9,6 +9,9 @@
 /* Target processor is little endian. */
 #cmakedefine01 CPU_IS_LITTLE_ENDIAN
 
+/* Target processor ARM64 */
+#cmakedefine FLAC__CPU_ARM64
+
 /* Target processor PPC */
 #cmakedefine FLAC__CPU_PPC
 
@@ -42,6 +45,9 @@
 
 /* Set to 1 if <arm_neon.h> is available. */
 #cmakedefine01 FLAC__HAS_NEONINTRIN
+
+/* Set to 1 if <arm_neon.h> contains A64 intrinsics */
+#cmakedefine01 FLAC__HAS_A64NEONINTRIN
 
 /* define if building for Darwin / MacOS X */
 #cmakedefine FLAC__SYS_DARWIN

@@ -41,7 +41,7 @@
 #include "private/macros.h"
 #include <arm_neon.h>
 
-#ifdef FLAC__HAS_A64NEONINTRIN
+#if FLAC__HAS_A64NEONINTRIN
 void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 #undef MAX_LAG
