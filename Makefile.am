@@ -51,6 +51,7 @@ EXTRA_DIST = \
 	cmake/CheckVSX.cmake \
 	cmake/FindOgg.cmake \
 	cmake/UseSystemExtensions.cmake \
+	CHANGELOG.md \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
