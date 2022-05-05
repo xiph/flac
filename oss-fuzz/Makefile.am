@@ -21,7 +21,7 @@ AM_CXXFLAGS = -std=c++11
 
 EXTRA_DIST = \
 	fuzzer_encoder.dict \
-	fuzzing/Readme.md \
+	Readme.md \
 	fuzzing/datasource/datasource.hpp \
 	fuzzing/datasource/id.hpp \
 	fuzzing/exception.hpp \
