@@ -1013,6 +1013,16 @@ FLAC_API uint32_t FLAC__stream_decoder_get_blocksize(const FLAC__StreamDecoder *
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamDecoder *decoder, FLAC__uint64 *position);
 
+/** Return client_data from decoder.
+ *  The data pointed to by the pointer should not be modified.
+ *
+ * \param  decoder  A decoder instance.
+ * \retval const void *
+ *    The callee's client data set through FLAC__stream_decoder_init_*().
+ *    Do not modify the contents.
+ */
+FLAC_API const void *FLAC__stream_decoder_get_client_data(FLAC__StreamDecoder *decoder);
+
 /** Initialize the decoder instance to decode native FLAC streams.
  *
  *  This flavor of initialization sets up the decoder to decode from a
@@ -1556,16 +1566,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
  *    \c true if successful, else \c false.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_seek_absolute(FLAC__StreamDecoder *decoder, FLAC__uint64 sample);
-
-/** Return client_data from decoder.
- *  The data pointed to by the pointer should not be modified.
- *
- * \param  decoder  A decoder instance.
- * \retval const void *
- *    The callee's client data set through FLAC__stream_decoder_init_*().
- *    Do not modify the contents.
- */
-FLAC_API const void *FLAC__get_decoder_client_data(FLAC__StreamDecoder *decoder);
 
 /* \} */
 
