@@ -1290,6 +1290,34 @@ if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
 	test_total_samples_overflow 68719476737 0
 fi
 
+############################################################################
+# test handling of UTF-8 filenames
+############################################################################
+
+
+test_utf8_handling ()
+{
+	echo $ECHO_N "Test decoding from $1... " $ECHO_C
+	run_flac -d $testdatadir/$1 -o out.wav
+	if [ -f out.wav ] ; then
+		echo "OK"
+	else
+		die "Decoding failed"
+	fi
+	echo $ECHO_N "Test encoding to $1... " $ECHO_C
+	run_flac out.wav -o $1
+	if [ -f $1 ] ; then
+		echo "OK"
+	else
+		echo "Encoding failed"
+	fi
+	rm $1 out.wav
+}
+
+test_utf8_handling שלום.flac
+test_utf8_handling 🤔.flac
+test_utf8_handling Prøve.flac
+
 rm -f out.flac out.meta out1.meta
 
 #@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
