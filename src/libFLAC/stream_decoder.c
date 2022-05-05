@@ -919,6 +919,11 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamD
 	return true;
 }
 
+FLAC_API const void *FLAC__stream_decoder_get_client_data(FLAC__StreamDecoder *decoder)
+{
+	return decoder->private_->client_data;
+}
+
 FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -3597,9 +3602,4 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 	(void)client_data;
 
 	return feof(decoder->private_->file)? true : false;
-}
-
-FLAC_API const void *FLAC__get_decoder_client_data(FLAC__StreamDecoder *decoder)
-{
-	return decoder->private_->client_data;
 }
