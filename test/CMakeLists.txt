@@ -18,6 +18,10 @@ if(NOT UNIX)
             add_test(NAME flac_help
               COMMAND $<TARGET_FILE:flacapp> --help
               WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+            add_test(NAME flac_utf8_test COMMAND $<TARGET_FILE:flacapp> -t
+              "${CMAKE_CURRENT_SOURCE_DIR}/flac-to-flac-metadata-test-files/שלום.flac"
+              "${CMAKE_CURRENT_SOURCE_DIR}/flac-to-flac-metadata-test-files/Prøve.flac"
+              "${CMAKE_CURRENT_SOURCE_DIR}/flac-to-flac-metadata-test-files/🤔.flac")
             add_test(NAME metaflac_help
               COMMAND $<TARGET_FILE:metaflac> --help
               WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
@@ -54,6 +58,11 @@ add_test(NAME grabbag
 add_test(NAME flac
     COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_flac.sh"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+# UTF-8 must be tested separately on Windows because busybox-w32 doesn't support UTF-8
+add_test(NAME flac_utf8_test COMMAND $<TARGET_FILE:flacapp> -t
+    "${CMAKE_CURRENT_SOURCE_DIR}/flac-to-flac-metadata-test-files/שלום.flac"
+    "${CMAKE_CURRENT_SOURCE_DIR}/flac-to-flac-metadata-test-files/Prøve.flac"
+    "${CMAKE_CURRENT_SOURCE_DIR}/flac-to-flac-metadata-test-files/🤔.flac")
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/metaflac-test-files")
 add_test(NAME metaflac
     COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_metaflac.sh"
@@ -73,4 +82,11 @@ add_test(NAME compression
     COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_compression.sh"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 
-set_property(TEST ${ALL_TESTS} APPEND PROPERTY ENVIRONMENT ECHO_C=\\c)
+
+set_property(TEST ${ALL_TESTS} APPEND PROPERTY ENVIRONMENT FLAC__TEST_LEVEL=1)
+if(BUSYBOX_EXE)
+    set_property(TEST ${ALL_TESTS} APPEND PROPERTY ENVIRONMENT ECHO_N=-n)
+    set_property(TEST ${ALL_TESTS} APPEND PROPERTY ENVIRONMENT WIN32BUSYBOX=yes)
+else()
+    set_property(TEST ${ALL_TESTS} APPEND PROPERTY ENVIRONMENT ECHO_C=\\c)
+endif()

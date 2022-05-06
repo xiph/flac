@@ -1309,14 +1309,16 @@ test_utf8_handling ()
 	if [ -f $1 ] ; then
 		echo "OK"
 	else
-		echo "Encoding failed"
+		die "Encoding failed"
 	fi
 	rm $1 out.wav
 }
 
-test_utf8_handling שלום.flac
-test_utf8_handling 🤔.flac
-test_utf8_handling Prøve.flac
+if [ "$WIN32BUSYBOX" = "yes" ]; then
+	test_utf8_handling שלום.flac
+	test_utf8_handling 🤔.flac
+	test_utf8_handling Prøve.flac
+fi
 
 rm -f out.flac out.meta out1.meta
 
