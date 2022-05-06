@@ -1314,7 +1314,7 @@ test_utf8_handling ()
 	rm $1 out.wav
 }
 
-if [ "$WIN32BUSYBOX" = "yes" ]; then
+if [ "$WIN32BUSYBOX" != "yes" ]; then
 	test_utf8_handling שלום.flac
 	test_utf8_handling 🤔.flac
 	test_utf8_handling Prøve.flac
