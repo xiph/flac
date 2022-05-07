@@ -119,9 +119,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		encoder_valid &= FLAC__stream_encoder_set_min_residual_partition_order(encoder, min_residual_partition_order);
 		encoder_valid &= FLAC__stream_encoder_set_max_residual_partition_order(encoder, max_residual_partition_order);
 
-		encoder_valid &= FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, data_bools[5]);
-		encoder_valid &= FLAC__stream_encoder_set_do_escape_coding(encoder, data_bools[6]);
-		encoder_valid &= FLAC__stream_encoder_set_do_exhaustive_model_search(encoder, data_bools[7]);
+		if(size < (1 << 18)) {
+			/* The following three options are **slow**, and when combined with a large input
+			 * make fuzzers timeout, so only enable them on reasonably sized inputs. 2^17 is taken
+			 * because that is the maximum blocksize * 4 (32-bit input)
+			 */
+			encoder_valid &= FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, data_bools[5]);
+			encoder_valid &= FLAC__stream_encoder_set_do_escape_coding(encoder, data_bools[6]);
+			encoder_valid &= FLAC__stream_encoder_set_do_exhaustive_model_search(encoder, data_bools[7]);
+		}
 		encoder_valid &= FLAC__stream_encoder_set_do_mid_side_stereo(encoder, data_bools[8]);
 		encoder_valid &= FLAC__stream_encoder_set_loose_mid_side_stereo(encoder, data_bools[9]);
 
