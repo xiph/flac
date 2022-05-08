@@ -3438,9 +3438,17 @@ FLAC__bool process_subframe_(
 	else
 		_best_bits = evaluate_verbatim_subframe_(encoder, integer_signal, frame_header->blocksize, subframe_bps, subframe[_best_subframe]);
 
-	if(frame_header->blocksize >= FLAC__MAX_FIXED_ORDER) {
+	if(frame_header->blocksize > FLAC__MAX_FIXED_ORDER) {
 		uint32_t signal_is_constant = false;
-		if(subframe_bps + 4 + FLAC__bitmath_ilog2((frame_header->blocksize-FLAC__MAX_FIXED_ORDER)|1) <= 32)
+		/* The next formula determines when to use a 64-bit accumulator
+		 * for the error of a fixed predictor, and when a 32-bit one. As
+		 * the error of a 4th order predictor for a given sample is the
+		 * sum of 17 sample values (1+4+6+4+1) and there are blocksize -
+		 * order error values to be summed, the maximum total error is
+		 * maximum_sample_value * (blocksize - order) * 17. As ilog2(x)
+		 * calculates floor(2log(x)), the result must be 31 or lower
+		 */
+		if(subframe_bps + FLAC__bitmath_ilog2((frame_header->blocksize-FLAC__MAX_FIXED_ORDER)*17) < 32)
 			guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 		else
 			guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor_wide(integer_signal+FLAC__MAX_FIXED_ORDER, frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
