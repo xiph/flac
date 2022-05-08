@@ -191,6 +191,11 @@ uint32_t FLAC__fixed_compute_best_predictor_intrin_sse2(const FLAC__int32 data[]
 FLAC__SSE_TARGET("sse2")
 uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_sse2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
 {
+	/* This code works up until a bitdepth of 25 bit
+	 * as 2log(17) bits are needed for error calculation
+	 * and processing happens in blocks of 7.
+	 * 2log(17*7) = 31.9
+	 */
 	FLAC__uint64 total_error_0, total_error_1, total_error_2, total_error_3, total_error_4;
 	FLAC__int32 i, data_len_int;
 	uint32_t order;
@@ -263,7 +268,7 @@ uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_sse2(const FLAC__int32 d
 		tempB   = _mm_xor_si128(tempA, bitmask);
 		tempB   = _mm_sub_epi32(tempB, bitmask);
 		total_err4 = _mm_add_epi32(total_err4,tempB);
-		if(i % 8 == 7){
+		if(i % 7 == 6){
 			_mm_storeu_si128((__m128i*)data_scalar,total_err0);
 			total_error_0 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
 			_mm_storeu_si128((__m128i*)data_scalar,total_err1);
