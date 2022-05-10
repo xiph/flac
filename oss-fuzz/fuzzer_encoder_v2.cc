@@ -58,7 +58,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	unsigned sample_rate, channels, bps;
 	uint64_t samples_estimate;
-	unsigned compression_level, input_data_width, blocksize, max_lpc_order, qlp_coeff_precision, min_residual_partition_order, max_residual_partition_order, metadata_mask;
+	unsigned compression_level, input_data_width, blocksize, max_lpc_order, qlp_coeff_precision, min_residual_partition_order, max_residual_partition_order, metadata_mask, instruction_set_disable_mask;
 	FLAC__bool ogg, interleaved;
 
 	FLAC__bool data_bools[24];
@@ -90,9 +90,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	qlp_coeff_precision = data[14];
 	min_residual_partition_order = data[15] & 0b1111;
 	max_residual_partition_order = data[15] & 0b11110000;
-	metadata_mask = (unsigned)data[16];
-
-	/* data[17] is spare */
+	metadata_mask = data[16];
+	instruction_set_disable_mask = data[17];
 
 	/* Get array of bools from configuration */
 	for(int i = 0; i < 16; i++)
@@ -107,6 +106,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	encoder_valid &= FLAC__stream_encoder_set_bits_per_sample(encoder, bps);
 	encoder_valid &= FLAC__stream_encoder_set_sample_rate(encoder, sample_rate);
 	encoder_valid &= FLAC__stream_encoder_set_total_samples_estimate(encoder, samples_estimate);
+	encoder_valid &= FLAC__stream_encoder_disable_instruction_set(encoder, instruction_set_disable_mask);
 
 	/* Set compression related parameters */
 	encoder_valid &= FLAC__stream_encoder_set_compression_level(encoder, compression_level);
