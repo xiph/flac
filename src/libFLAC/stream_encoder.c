@@ -361,6 +361,11 @@ typedef struct FLAC__StreamEncoderPrivate {
 	void (*local_lpc_compute_residual_from_qlp_coefficients_64bit)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 #endif
+	FLAC__bool disable_mmx;
+	FLAC__bool disable_sse2;
+	FLAC__bool disable_ssse3;
+	FLAC__bool disable_sse41;
+	FLAC__bool disable_avx2;
 	FLAC__bool disable_constant_subframes;
 	FLAC__bool disable_fixed_subframes;
 	FLAC__bool disable_verbatim_subframes;
@@ -866,6 +871,18 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	 * get the CPU info and set the function pointers
 	 */
 	FLAC__cpu_info(&encoder->private_->cpuinfo);
+	/* remove cpu info as requested by
+	 * FLAC__stream_encoder_disable_instruction_set */
+	if(encoder->private_->disable_mmx)
+		encoder->private_->cpuinfo.x86.mmx = false;
+	if(encoder->private_->disable_sse2)
+		encoder->private_->cpuinfo.x86.sse2 = false;
+	if(encoder->private_->disable_ssse3)
+		encoder->private_->cpuinfo.x86.ssse3 = false;
+	if(encoder->private_->disable_sse41)
+		encoder->private_->cpuinfo.x86.sse41 = false;
+	if(encoder->private_->disable_avx2)
+		encoder->private_->cpuinfo.x86.avx2 = false;
 	/* first default to the non-asm routines */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
@@ -1916,9 +1933,24 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_limit_min_bitrate(FLAC__StreamEncod
 }
 
 /*
- * These three functions are not static, but not publicly exposed in
- * include/FLAC/ either.  They are used by the test suite.
+ * These four functions are not static, but not publicly exposed in
+ * include/FLAC/ either.  They are used by the test suite and in fuzzing
  */
+FLAC_API FLAC__bool FLAC__stream_encoder_disable_instruction_set(FLAC__StreamEncoder *encoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->private_->disable_mmx = value & 1;
+	encoder->private_->disable_sse2 = value & 2;
+	encoder->private_->disable_ssse3 = value & 4;
+	encoder->private_->disable_sse41 = value & 8;
+	encoder->private_->disable_avx2 = value & 16;
+	return true;
+}
+
 FLAC_API FLAC__bool FLAC__stream_encoder_disable_constant_subframes(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -2353,6 +2385,11 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->num_metadata_blocks = 0;
 
 	encoder->private_->seek_table = 0;
+	encoder->private_->disable_mmx = false;
+	encoder->private_->disable_sse2 = false;
+	encoder->private_->disable_ssse3 = false;
+	encoder->private_->disable_sse41 = false;
+	encoder->private_->disable_avx2 = false;
 	encoder->private_->disable_constant_subframes = false;
 	encoder->private_->disable_fixed_subframes = false;
 	encoder->private_->disable_verbatim_subframes = false;
