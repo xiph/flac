@@ -238,6 +238,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		}
 	}
 
+	if(FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_OK &&
+	   FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_UNINITIALIZED &&
+	   FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_CLIENT_ERROR){
+		fprintf(stderr,"-----\nERROR: stream encoder returned %s\n-----\n",FLAC__stream_encoder_get_resolved_state_string(encoder));
+		abort();
+	}
+
 	FLAC__stream_encoder_finish(encoder);
 
 	/* now that encoding is finished, the metadata can be freed */
