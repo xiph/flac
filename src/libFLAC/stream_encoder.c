@@ -2614,7 +2614,8 @@ FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC
 		else {
 			if(!FLAC__stream_decoder_process_single(encoder->private_->verify.decoder)
 			    || (!is_last_block
-				    && (FLAC__stream_encoder_get_verify_decoder_state(encoder) == FLAC__STREAM_DECODER_END_OF_STREAM))) {
+				    && (FLAC__stream_encoder_get_verify_decoder_state(encoder) == FLAC__STREAM_DECODER_END_OF_STREAM))
+			    || encoder->protected_->state == FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR /* Happens when error callback was used */) {
 				FLAC__bitwriter_release_buffer(encoder->private_->frame);
 				FLAC__bitwriter_clear(encoder->private_->frame);
 				if(encoder->protected_->state != FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
@@ -4382,6 +4383,11 @@ FLAC__StreamDecoderWriteStatus verify_write_callback_(const FLAC__StreamDecoder 
 	const uint32_t bytes_per_block = sizeof(FLAC__int32) * blocksize;
 
 	(void)decoder;
+
+	if(encoder->protected_->state == FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
+		/* This is set when verify_error_callback_ was called */
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
 
 	for(channel = 0; channel < channels; channel++) {
 		if(0 != memcmp(buffer[channel], encoder->private_->verify.input_fifo.data[channel], bytes_per_block)) {
