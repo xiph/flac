@@ -281,7 +281,7 @@ for bps in 8 16 24 ; do
 			if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
 				for opt in 0 1 2 4 5 6 8 ; do
 					for extras in '' '-p' '-e' ; do
-						if ([ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ]) && (([ "$bps" -eq 16 ] && [ "$f" -lt 15 ]) || [ "$FLAC__TEST_LEVEL" -gt 1 ]) ; then
+						if [ -z "$extras" -o "$FLAC__TEST_LEVEL" -gt 0 ] && { [ "$bps" -eq 16 -a "$f" -lt 15 ] || [ "$FLAC__TEST_LEVEL" -gt 1 ]; } ; then
 							if [ "$f" -lt 10 ] ; then
 								test_corrupted_file sine$bps-$f 1 $bps "-$opt $extras $disable"
 							else

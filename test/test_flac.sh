@@ -400,7 +400,7 @@ test_skip_until ()
 		dopt="$wav_dopt"
 	fi
 
-	if ( [ $in_fmt = flac ] || [ $in_fmt = ogg ] ) && ( [ $out_fmt = flac ] || [ $out_fmt = ogg ] ) ; then
+	if [ $in_fmt = flac -o $in_fmt = ogg ] && [ $out_fmt = flac -o $out_fmt = ogg ]; then
 		CMP=md5cmp
 	else
 		CMP=cmp
@@ -802,7 +802,7 @@ test_cue ()
 		dopt="$wav_dopt"
 	fi
 
-	if ( [ $in_fmt = flac ] || [ $in_fmt = ogg ] ) && ( [ $out_fmt = flac ] || [ $out_fmt = ogg ] ) ; then
+	if [ $in_fmt = flac -o $in_fmt = ogg ] && [ $out_fmt = flac -o $out_fmt = ogg ]; then
 		CMP=md5cmp
 	else
 		CMP=cmp
