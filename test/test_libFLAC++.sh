@@ -32,4 +32,4 @@ run_test_libFLACpp ()
 	fi
 }
 
-run_test_libFLACpp || die "ERROR during test_libFLAC++"
+run_test_libFLACpp "$@" || die "ERROR during test_libFLAC++"
