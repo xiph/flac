@@ -160,10 +160,8 @@ add_compile_options(
     $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${HAVE_WEFFCXX_FLAG}>>:-Weffc++>
     $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_DECL_AFTER_STMT_FLAG}>>:-Wdeclaration-after-statement>)
 
-if(HAVE_LIBSSP) # Implies WITH_FORTIFY_SOURCE
+if(WITH_FORTIFY_SOURCE AND HAVE_LIBSSP)
   add_definitions(-D_FORTIFY_SOURCE=2)
-else(WITH_FORTIFY_SOURCE)
-  add_definitions(-D_FORTIFY_SOURCE=1)
 endif()
 
 if(HAVE_STACK_PROTECTOR_FLAG AND HAVE_LIBSSP)
