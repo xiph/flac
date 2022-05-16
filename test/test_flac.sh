@@ -719,7 +719,7 @@ rm noise.flac z.wav
 #@@@ cat will not work on old cygwin, need to fix
 if [ $is_win = no ] ; then
 	echo $ECHO_N "testing --input-size=50 --skip=10... " $ECHO_C
-	cat 50c.raw | run_flac $raw_eopt --input-size=50 --skip=10 -o z50c.skip10.flac - || die "ERROR generating FLAC file"
+	run_flac $raw_eopt --input-size=50 --skip=10 -o z50c.skip10.flac - < 50c.raw || die "ERROR generating FLAC file"
 	run_flac $raw_dopt -o z50c.skip10.raw z50c.skip10.flac || die "ERROR decoding FLAC file"
 	cmp 50c.skip10.raw z50c.skip10.raw || die "ERROR: file mismatch for --input-size=50 --skip=10"
 	rm -f z50c.skip10.raw z50c.skip10.flac
@@ -970,7 +970,7 @@ if [ $is_win = yes ] ; then
 	run_flac $raw_eopt noise.raw -o fixup.flac || die "ERROR generating FLAC file"
 	run_metaflac --set-total-samples=0 fixup.flac 2> /dev/null
 else
-	cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+	run_flac $raw_eopt - -c < noise.raw > fixup.flac || die "ERROR generating FLAC file"
 fi
 
 echo $ECHO_N "decode... " $ECHO_C
@@ -995,7 +995,7 @@ if [ $is_win = yes ] ; then
 	run_flac $raw_eopt noise.raw -o fixup.flac || die "ERROR generating FLAC file"
 	run_metaflac --set-total-samples=0 fixup.flac 2> /dev/null
 else
-	cat noise.raw | run_flac $raw_eopt - -c > fixup.flac || die "ERROR generating FLAC file"
+	run_flac $raw_eopt - -c < noise.raw > fixup.flac || die "ERROR generating FLAC file"
 fi
 
 echo $ECHO_N "decode... " $ECHO_C

@@ -101,7 +101,7 @@ test_file_piped ()
 		cmd="run_flac --verify --silent --force --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding --stdout -"
 		echo "### ENCODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
-		cat $name.raw | $cmd 1>$name.flac 2>>./streams.log || die "ERROR during encode of $name"
+		$cmd < $name.raw 1>$name.flac 2>>./streams.log || die "ERROR during encode of $name"
 	fi
 	echo $ECHO_N "decode via pipes..." $ECHO_C
 	if [ $is_win = yes ] ; then
@@ -113,7 +113,7 @@ test_file_piped ()
 		cmd="run_flac --silent --force --endian=little --sign=signed --decode --force-raw-format --stdout -"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
-		cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log || die "ERROR during decode of $name"
+		$cmd < $name.flac 1>$name.cmp 2>>./streams.log || die "ERROR during decode of $name"
 	fi
 	ls -1l $name.raw >> ./streams.log
 	ls -1l $name.flac >> ./streams.log
