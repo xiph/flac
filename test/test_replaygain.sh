@@ -128,7 +128,7 @@ for ACTION in $REPLAYGAIN_FREQ ; do
     tonegenerator $RATE $flacfile
     run_metaflac --scan-replay-gain $flacfile
     run_metaflac --add-replay-gain $flacfile
-    run_metaflac --list $flacfile | grep REPLAYGAIN.*GAIN= |
+    run_metaflac --list $flacfile | grep "REPLAYGAIN.*GAIN=" |
     while read -r REPLAYGAIN ; do
       MEASUREDGAIN="${REPLAYGAIN##*=}"
       MEASUREDGAIN="${MEASUREDGAIN%% *}"
