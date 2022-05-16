@@ -162,7 +162,7 @@ test_corrupted_file ()
 	ls -1l $name.cmp >> ./streams.log
 
 	echo $ECHO_N "compare..." $ECHO_C
-	if [ $(wc -c < $name.raw) -ne $(wc -c < $name.cmp) ]; then
+	if [ "$(wc -c < $name.raw)" -ne "$(wc -c < $name.cmp)" ]; then
 		die "ERROR, length of decoded file not equal to length of original"
 	fi
 
