@@ -3346,7 +3346,11 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 
 			channel_assignment = FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT;
 			min_bits = bits[channel_assignment];
-			for(ca = 1; ca <= 3; ca++) {
+
+			/* When doing loose mid-side stereo, ignore left-side
+			 * and right-side options */
+			ca = encoder->protected_->loose_mid_side_stereo ? 3 : 1;
+			for( ; ca <= 3; ca++) {
 				if(bits[ca] < min_bits) {
 					min_bits = bits[ca];
 					channel_assignment = (FLAC__ChannelAssignment)ca;
