@@ -26,7 +26,7 @@ PATH=../src/test_seeking:$PATH
 PATH=../src/test_streams:$PATH
 PATH=../objs/$BUILD/bin:$PATH
 
-if [ x"$FLAC__TEST_LEVEL" = x ] ; then
+if [ -z "$FLAC__TEST_LEVEL" ] ; then
 	FLAC__TEST_LEVEL=1
 fi
 
@@ -35,7 +35,7 @@ metaflac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac 
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_seeking.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} --no-error-on-compression-fail $* 4>>test_seeking.valgrind.log
 	else
@@ -45,7 +45,7 @@ run_flac ()
 
 run_metaflac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_seeking.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 4>>test_seeking.valgrind.log
 	else
@@ -55,7 +55,7 @@ run_metaflac ()
 
 run_test_seeking ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 test_seeking $*" >>test_seeking.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_seeking $* 4>>test_seeking.valgrind.log
 	else

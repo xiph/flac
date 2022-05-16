@@ -34,7 +34,7 @@ flacfile="replaygain.flac"
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_replaygain.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_replaygain.valgrind.log
 	else
@@ -44,7 +44,7 @@ run_flac ()
 
 run_metaflac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 4>>test_replaygain.valgrind.log
 	else
@@ -57,7 +57,7 @@ run_metaflac_silent ()
 	if [ -z "$SILENT" ] ; then
 		run_metaflac $*
 	else
-		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
 			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 2>/dev/null 4>>test_replaygain.valgrind.log
 		else
@@ -117,7 +117,7 @@ for ACTION in $REPLAYGAIN_FREQ ; do
   GAIN="${GAIN%%:*}"
   while [ -n "$HARMONICS" ] ; do
     MULTIPLE="${HARMONICS%%:*}"
-    if [ x"$MULTIPLE" = x"$HARMONICS" ] ; then
+    if [ "$MULTIPLE" = "$HARMONICS" ] ; then
       HARMONICS=
     else
       HARMONICS="${HARMONICS#*:}"

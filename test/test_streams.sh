@@ -24,7 +24,7 @@ PATH=../src/flac:$PATH
 PATH=../src/test_streams:$PATH
 PATH=../objs/$BUILD/bin:$PATH
 
-if [ x"$FLAC__TEST_LEVEL" = x ] ; then
+if [ -z "$FLAC__TEST_LEVEL" ] ; then
 	FLAC__TEST_LEVEL=1
 fi
 
@@ -32,7 +32,7 @@ flac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executab
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_streams.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_streams.valgrind.log
 	else
