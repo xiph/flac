@@ -19,11 +19,11 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
 
 echo "Using FLAC binary :" $(which flac)
 
-date=`date "+%Y%m%dT%H%M%S"`
+date="$(date "+%Y%m%dT%H%M%S")"
 fname="comp${date}.flac"
 
 last_k=0

@@ -85,7 +85,7 @@ test_file_piped ()
 	bps=$3
 	encode_options="$4"
 
-	if [ `env | grep -ic '^comspec='` != 0 ] ; then
+	if [ "$(env | grep -ic '^comspec=')" != 0 ] ; then
 		is_win=yes
 	else
 		is_win=no

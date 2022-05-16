@@ -26,13 +26,13 @@ else
 fi
 
 LD_LIBRARY_PATH=../objs/$BUILD/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/libFLAC/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/getopt/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/grabbag/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/utf8/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH="$(pwd)/../objs/$BUILD/lib:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/libFLAC/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/getopt/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/grabbag/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/utf8/.libs:$LD_LIBRARY_PATH"
 LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/libFLAC++/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/getopt/.libs:$LD_LIBRARY_PATH
@@ -43,8 +43,8 @@ LD_LIBRARY_PATH=../src/share/utf8/.libs:$LD_LIBRARY_PATH
 
 export LD_LIBRARY_PATH
 
-PATH=`pwd`/../objs/$CMAKE_CONFIG_TYPE:$PATH
-PATH=`pwd`/../objs:$PATH
+PATH="$(pwd)/../objs/$CMAKE_CONFIG_TYPE:$PATH"
+PATH="$(pwd)/../objs:$PATH"
 
 EXE=@EXEEXT@
 

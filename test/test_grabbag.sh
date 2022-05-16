@@ -79,8 +79,8 @@ echo "PASSED (results are in $log)"
 log=cuesheet.log
 bad_cuesheets=${top_srcdir}/test/cuesheets/bad.*.cue
 good_cuesheets=${top_srcdir}/test/cuesheets/good.*.cue
-good_leadout=`expr 80 \* 60 \* 44100`
-bad_leadout=`expr $good_leadout + 1`
+good_leadout=$((80 * 60 * 44100))
+bad_leadout=$((good_leadout + 1))
 
 echo "Running test_cuesheet..."
 

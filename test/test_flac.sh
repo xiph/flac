@@ -25,10 +25,10 @@ export LANG=C LC_ALL=C
 
 dddie="die ERROR: creating files with dd"
 
-PATH=`pwd`/../src/flac:$PATH
-PATH=`pwd`/../src/metaflac:$PATH
-PATH=`pwd`/../src/test_streams:$PATH
-PATH=`pwd`/../objs/$BUILD/bin:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
+PATH="$(pwd)/../src/metaflac:$PATH"
+PATH="$(pwd)/../src/test_streams:$PATH"
+PATH="$(pwd)/../objs/$BUILD/bin:$PATH"
 
 flac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 
@@ -54,7 +54,7 @@ run_metaflac ()
 
 md5cmp ()
 {
-	n=`( [ -f "$1" ] && [ -f "$2" ] && metaflac${EXE} --show-md5sum --no-filename "$1" "$2" 2>/dev/null || exit 1 ) | uniq | wc -l`
+	n=$( ( [ -f "$1" ] && [ -f "$2" ] && metaflac${EXE} --show-md5sum --no-filename "$1" "$2" 2>/dev/null || exit 1 ) | uniq | wc -l)
 	[ "$n" != "" ] && [ $n = 1 ]
 }
 
@@ -154,9 +154,9 @@ rt_test_raw ()
 {
 	f="$1"
 	extra="$2"
-	channels=`echo $f | awk -F- '{print $2}'`
-	bps=`echo $f | awk -F- '{print $3}'`
-	sign=`echo $f | awk -F- '{print $4}'`
+	channels="$(echo $f | awk -F- '{print $2}')"
+	bps="$(echo $f | awk -F- '{print $3}')"
+	sign="$(echo $f | awk -F- '{print $4}')"
 
 	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
 	run_flac --force --verify --force-raw-format --endian=little --sign=$sign --sample-rate=44100 --bps=$bps --channels=$channels --no-padding --lax -o rt.flac $extra $f || die "ERROR"
@@ -690,7 +690,7 @@ echo "testing seek extremes:"
 run_flac --verify --force --no-padding --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 noise.raw || die "ERROR generating FLAC file"
 
 if [ $is_win = no ] ; then
-	total_noise_cdda_samples=`run_metaflac --show-total-samples noise.flac`
+	total_noise_cdda_samples="$(run_metaflac --show-total-samples noise.flac)"
 	[ $? = 0 ] || die "ERROR getting total sample count from noise.flac"
 else
 	# some flavors of cygwin don't seem to treat the \x0d as a word
@@ -704,7 +704,7 @@ run_flac $wav_dopt --skip=0 -o z.wav noise.flac || die "ERROR decoding FLAC file
 echo OK
 
 for delta in 2 1 ; do
-	n=`expr $total_noise_cdda_samples - $delta`
+	n=$((total_noise_cdda_samples - delta))
 	echo $ECHO_N "testing --skip=$n... " $ECHO_C
 	run_flac $wav_dopt --skip=$n -o z.wav noise.flac || die "ERROR decoding FLAC file noise.flac"
 	echo OK
@@ -1015,7 +1015,7 @@ rm -f noise.aiff fixup.aiff fixup.flac
 echo "Generating multiple input files from noise..."
 multifile_format_decode="--endian=big --sign=signed"
 multifile_format_encode="$multifile_format_decode --sample-rate=44100 --bps=16 --channels=2 --no-padding"
-short_noise_cdda_samples=`expr $total_noise_cdda_samples / 8`
+short_noise_cdda_samples=$((total_noise_cdda_samples / 8))
 run_flac --verify --force --force-raw-format $multifile_format_encode --until=$short_noise_cdda_samples -o shortnoise.flac noise.raw || die "ERROR generating FLAC file"
 run_flac --decode --force shortnoise.flac -o shortnoise.raw --force-raw-format $multifile_format_decode || die "ERROR generating RAW file"
 run_flac --decode --force shortnoise.flac || die "ERROR generating WAVE file"
@@ -1037,17 +1037,17 @@ cp shortnoise.raw file1.raw
 cp shortnoise.raw file2.raw
 rm -f shortnoise.raw
 # create authoritative sector-aligned files for comparison
-file0_samples=`expr \( $short_noise_cdda_samples / 588 \) \* 588`
-file0_remainder=`expr $short_noise_cdda_samples - $file0_samples`
-file1_samples=`expr \( \( $file0_remainder + $short_noise_cdda_samples \) / 588 \) \* 588`
-file1_remainder=`expr $file0_remainder + $short_noise_cdda_samples - $file1_samples`
-file1_samples=`expr $file1_samples - $file0_remainder`
-file2_samples=`expr \( \( $file1_remainder + $short_noise_cdda_samples \) / 588 \) \* 588`
-file2_remainder=`expr $file1_remainder + $short_noise_cdda_samples - $file2_samples`
-file2_samples=`expr $file2_samples - $file1_remainder`
+file0_samples=$(( (short_noise_cdda_samples / 588) * 588))
+file0_remainder=$((short_noise_cdda_samples - file0_samples))
+file1_samples=$(( ( ( file0_remainder + short_noise_cdda_samples ) / 588 ) * 588))
+file1_remainder=$((file0_remainder + short_noise_cdda_samples - file1_samples))
+file1_samples=$((file1_samples - file0_remainder))
+file2_samples=$(( ( ( file1_remainder + short_noise_cdda_samples ) / 588 ) * 588))
+file2_remainder=$(( file1_remainder + short_noise_cdda_samples - file2_samples))
+file2_samples=$((file2_samples - file1_remainder))
 if [ $file2_remainder != '0' ] ; then
-	file2_samples=`expr $file2_samples + $file2_remainder`
-	file2_remainder=`expr 588 - $file2_remainder`
+	file2_samples=$((file2_samples + file2_remainder))
+	file2_remainder=$((588 - file2_remainder))
 fi
 
 dd if=file0.raw ibs=4 count=$file0_samples of=file0s.raw 2>/dev/null || $dddie

@@ -82,8 +82,8 @@ run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=8 --channels=1 --blocksize=576 -S10x --output-name=tiny-s.flac noise8m32.raw || die "ERROR generating FLAC file"
 run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 -S10x --output-name=small-s.flac noise.raw || die "ERROR generating FLAC file"
 
-tiny_samples=`metaflac${EXE} --show-total-samples tiny.flac`
-small_samples=`metaflac${EXE} --show-total-samples small.flac`
+tiny_samples="$(metaflac${EXE} --show-total-samples tiny.flac)"
+small_samples="$(metaflac${EXE} --show-total-samples small.flac)"
 
 tiny_seek_count=100
 if [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then

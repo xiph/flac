@@ -20,9 +20,9 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
-PATH=`pwd`/../src/metaflac:$PATH
-PATH=`pwd`/../objs/$BUILD/bin:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
+PATH="$(pwd)/../src/metaflac:$PATH"
+PATH="$(pwd)/../objs/$BUILD/bin:$PATH"
 
 if echo a | (grep -E '(a|b)') >/dev/null 2>&1
 	then EGREP='grep -E'
@@ -317,7 +317,7 @@ for f in \
 	run_metaflac --import-picture-from="|image/gif|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 for f in \
 	0.jpg \
@@ -326,7 +326,7 @@ for f in \
 	run_metaflac --import-picture-from="4|image/jpeg|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 for f in \
 	0.png \
@@ -342,7 +342,7 @@ for f in \
 	run_metaflac --import-picture-from="5|image/png|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 [ $ncase = 60 ] || die "expected case# to be 60"
 
