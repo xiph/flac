@@ -40,7 +40,7 @@ for k in 0 1 2 3 4 5 6 7 8 ; do
 		exit 1
 		fi
 	# Need this because OSX's 'wc -c' returns a number with leading whitespace.
-	last_size=$((${size}+10))
+	last_size=$((size+10))
 	last_k=${k}
 	rm -f ${fname}
 	done

@@ -122,7 +122,7 @@ for ACTION in $REPLAYGAIN_FREQ ; do
     else
       HARMONICS="${HARMONICS#*:}"
     fi
-    RATE=$(($MULTIPLE * FREQ))
+    RATE=$((MULTIPLE * FREQ))
     [ $MULTIPLE -eq 1 -o -n "${REPLAYGAIN_FREQ##* $RATE/*}" ] || break
     echo $ECHO_N "Testing FLAC replaygain $RATE ($FREQ x $MULTIPLE) ... " $ECHO_C
     tonegenerator $RATE $flacfile
