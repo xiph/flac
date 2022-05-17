@@ -33,9 +33,9 @@
 #  include <config.h>
 #endif
 
+#include <io.h>
 #include <windows.h>
 #include "share/win_utf8_io.h"
-#include "share/windows_unicode_filenames.h"
 
 #define UTF8_BUFFER_SIZE 32768
 
@@ -137,7 +137,6 @@ int get_utf8_argv(int *argc, char ***argv)
 	FreeLibrary(handle); /* do not free it when wargv or wenv are still in use */
 
 	if (ret == 0) {
-		flac_set_utf8_filenames(true);
 		*argc = wargc;
 		*argv = utf8argv;
 	} else {
@@ -152,19 +151,15 @@ int get_utf8_argv(int *argc, char ***argv)
 /* similar to CreateFileW but accepts UTF-8 encoded lpFileName */
 HANDLE WINAPI CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes, DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
 {
-	if (!flac_internal_get_utf8_filenames()) {
-		return CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-	} else {
-		wchar_t *wname;
-		HANDLE handle = INVALID_HANDLE_VALUE;
+	wchar_t *wname;
+	HANDLE handle = INVALID_HANDLE_VALUE;
 
-		if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
-			handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
-			free(wname);
-		}
-
-		return handle;
+	if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
+		handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+		free(wname);
 	}
+
+	return handle;
 }
 
 /* return number of characters in the UTF-8 string */
@@ -266,6 +261,95 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 
 	free(utmp);
 	free(wout);
+
+	return ret;
+}
+
+/* file functions */
+
+FILE* fopen_utf8(const char *filename, const char *mode)
+{
+	wchar_t *wname = NULL;
+	wchar_t *wmode = NULL;
+	FILE *f = NULL;
+
+	do {
+		if (!(wname = wchar_from_utf8(filename))) break;
+		if (!(wmode = wchar_from_utf8(mode))) break;
+		f = _wfopen(wname, wmode);
+	} while(0);
+
+	free(wname);
+	free(wmode);
+
+	return f;
+}
+
+int stat64_utf8(const char *path, struct __stat64 *buffer)
+{
+	wchar_t *wpath;
+	int ret;
+
+	if (!(wpath = wchar_from_utf8(path))) return -1;
+	ret = _wstat64(wpath, buffer);
+	free(wpath);
+
+	return ret;
+}
+
+int chmod_utf8(const char *filename, int pmode)
+{
+	wchar_t *wname;
+	int ret;
+
+	if (!(wname = wchar_from_utf8(filename))) return -1;
+	ret = _wchmod(wname, pmode);
+	free(wname);
+
+	return ret;
+}
+
+int utime_utf8(const char *filename, struct utimbuf *times)
+{
+	wchar_t *wname;
+	struct __utimbuf64 ut;
+	int ret;
+
+	if (!(wname = wchar_from_utf8(filename))) return -1;
+	ut.actime = times->actime;
+	ut.modtime = times->modtime;
+	ret = _wutime64(wname, &ut);
+	free(wname);
+
+	return ret;
+}
+
+int unlink_utf8(const char *filename)
+{
+	wchar_t *wname;
+	int ret;
+
+	if (!(wname = wchar_from_utf8(filename))) return -1;
+	ret = _wunlink(wname);
+	free(wname);
+
+	return ret;
+}
+
+int rename_utf8(const char *oldname, const char *newname)
+{
+	wchar_t *wold = NULL;
+	wchar_t *wnew = NULL;
+	int ret = -1;
+
+	do {
+		if (!(wold = wchar_from_utf8(oldname))) break;
+		if (!(wnew = wchar_from_utf8(newname))) break;
+		ret = _wrename(wold, wnew);
+	} while(0);
+
+	free(wold);
+	free(wnew);
 
 	return ret;
 }

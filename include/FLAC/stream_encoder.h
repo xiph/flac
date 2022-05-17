@@ -1657,10 +1657,13 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_ogg_FILE(FLAC__
 /** Initialize the encoder instance to encode native FLAC files.
  *
  *  This flavor of initialization sets up the encoder to encode to a plain
- *  FLAC file.  If POSIX fopen() semantics are not sufficient (for example,
- *  with Unicode filenames on Windows), you must use
+ *  FLAC file.  If POSIX fopen() semantics are not sufficient you must use
  *  FLAC__stream_encoder_init_FILE(), or FLAC__stream_encoder_init_stream()
  *  and provide callbacks for the I/O.
+ *
+ *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
+ *  internally translates to a appropriate representation to use with
+ *  _wfopen
  *
  *  This function should be called after FLAC__stream_encoder_new() and
  *  FLAC__stream_encoder_set_*() but before FLAC__stream_encoder_process()
@@ -1689,10 +1692,13 @@ FLAC_API FLAC__StreamEncoderInitStatus FLAC__stream_encoder_init_file(FLAC__Stre
 /** Initialize the encoder instance to encode Ogg FLAC files.
  *
  *  This flavor of initialization sets up the encoder to encode to a plain
- *  Ogg FLAC file.  If POSIX fopen() semantics are not sufficient (for example,
- *  with Unicode filenames on Windows), you must use
+ *  Ogg FLAC file.  If POSIX fopen() semantics are not sufficient, you must use
  *  FLAC__stream_encoder_init_ogg_FILE(), or FLAC__stream_encoder_init_ogg_stream()
  *  and provide callbacks for the I/O.
+ *
+ *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
+ *  internally translates to a appropriate representation to use with
+ *  _wfopen
  *
  *  This function should be called after FLAC__stream_encoder_new() and
  *  FLAC__stream_encoder_set_*() but before FLAC__stream_encoder_process()

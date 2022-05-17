@@ -42,7 +42,7 @@ else
 endif
 
 ifeq ($(findstring Windows,$(OS)),Windows)
-    WIN_UNICODE_COMPAT = windows_unicode_filenames.c
+    WIN_UNICODE_COMPAT = ../share/win_utf8_io/win_utf8_io.c
 endif
 
 LIB_NAME = libFLAC
