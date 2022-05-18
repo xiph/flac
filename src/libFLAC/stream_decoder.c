@@ -978,8 +978,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 		if(decoder->private_->seek_callback && decoder->private_->seek_callback(decoder, 0, decoder->private_->client_data) == FLAC__STREAM_DECODER_SEEK_STATUS_ERROR)
 			return false; /* seekable and seek fails, reset fails */
 	}
-	else
-		decoder->private_->internal_reset_hack = false;
 
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
 
@@ -1002,6 +1000,13 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	 * FLAC__stream_decoder_finish() to make sure things are always cleaned up
 	 * properly.
 	 */
+	if(!decoder->private_->internal_reset_hack) {
+		/* Only finish MD5 context when it has been initialized
+		 * (i.e. when internal_reset_hack is not set) */
+		FLAC__MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
+	}
+	else
+		decoder->private_->internal_reset_hack = false;
 	FLAC__MD5Init(&decoder->private_->md5context);
 
 	decoder->private_->first_frame_offset = 0;
