@@ -171,22 +171,12 @@ namespace FLAC {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     fuzzing::datasource::Datasource ds(data, size);
     FLAC::Decoder::FuzzerStream decoder(ds);
+    bool use_ogg = true;
 
     try {
-        {
-            ::FLAC__StreamDecoderInitStatus ret;
-
-            if ( ds.Get<bool>() ) {
-                ret = decoder.init();
-            } else {
-                ret = decoder.init_ogg();
-            }
-
-            if ( ret != FLAC__STREAM_DECODER_INIT_STATUS_OK ) {
-                goto end;
-            }
+        if ( ds.Get<bool>() ) {
+            use_ogg = false;
         }
-
         if ( ds.Get<bool>() ) {
 #ifdef FUZZER_DEBUG
             printf("set_ogg_serial_number\n");
@@ -244,6 +234,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             printf("set_metadata_ignore_all\n");
 #endif
             decoder.set_metadata_ignore_all();
+        }
+        {
+            ::FLAC__StreamDecoderInitStatus ret;
+            if ( !use_ogg ) {
+                ret = decoder.init();
+            } else {
+                ret = decoder.init_ogg();
+            }
+
+            if ( ret != FLAC__STREAM_DECODER_INIT_STATUS_OK ) {
+                goto end;
+            }
         }
 
         while ( ds.Get<bool>() ) {
