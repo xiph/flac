@@ -19,7 +19,4 @@
 EXTRA_DIST = \
 	CMakeLists.txt \
 	Makefile.lite \
-	flacdiff.vcproj \
-	flacdiff.vcxproj \
-	flacdiff.vcxproj.filters \
 	main.cpp

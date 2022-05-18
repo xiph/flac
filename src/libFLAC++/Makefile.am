@@ -42,12 +42,6 @@ EXTRA_DIST = \
 	CMakeLists.txt \
 	Makefile.lite \
 	flac++.pc.in \
-	libFLAC++_dynamic.vcproj \
-	libFLAC++_dynamic.vcxproj \
-	libFLAC++_dynamic.vcxproj.filters \
-	libFLAC++_static.vcproj \
-	libFLAC++_static.vcxproj \
-	libFLAC++_static.vcxproj.filters \
 	libFLAC++.m4
 
 libFLAC___sources = \

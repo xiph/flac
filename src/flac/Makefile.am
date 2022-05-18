@@ -24,13 +24,7 @@ EXTRA_DIST = \
 	CMakeLists.txt \
 	Makefile.lite \
 	Makefile.lite.iffscan \
-	flac.vcproj \
-	flac.vcxproj \
-	flac.vcxproj.filters \
-	iffscan.c \
-	iffscan.vcproj \
-	iffscan.vcxproj \
-	iffscan.vcxproj.filters
+	iffscan.c
 
 flac_SOURCES = \
 	analyze.c \

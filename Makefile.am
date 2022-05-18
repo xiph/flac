@@ -53,8 +53,6 @@ EXTRA_DIST = \
 	COPYING.GPL \
 	COPYING.LGPL \
 	COPYING.Xiph \
-	FLAC.sln \
-	FLAC-vs2005.sln \
 	Makefile.lite \
 	Makefile.deps \
 	autogen.sh \

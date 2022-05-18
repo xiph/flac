@@ -75,12 +75,6 @@ EXTRA_DIST = \
 	CMakeLists.txt \
 	Makefile.lite \
 	flac.pc.in \
-	libFLAC_dynamic.vcproj \
-	libFLAC_dynamic.vcxproj \
-	libFLAC_dynamic.vcxproj.filters \
-	libFLAC_static.vcproj \
-	libFLAC_static.vcxproj \
-	libFLAC_static.vcxproj.filters \
 	libFLAC.m4 \
 	windows_unicode_filenames.c \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
