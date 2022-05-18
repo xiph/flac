@@ -40,6 +40,9 @@ EXTRA_DIST = \
 	input-SCVPAP.flac \
 	input-SVAUP.flac \
 	input-VA.flac \
+	🤔.flac \
+	Prøve.flac \
+	שלום.flac \
 	input0.cue
 
 clean-local:

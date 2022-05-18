@@ -76,7 +76,6 @@ EXTRA_DIST = \
 	Makefile.lite \
 	flac.pc.in \
 	libFLAC.m4 \
-	windows_unicode_filenames.c \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
 	deduplication/lpc_compute_autocorrelation_intrin_vsx.c \
 	deduplication/lpc_compute_autocorrelation_intrin_neon.c

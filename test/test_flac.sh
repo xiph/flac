@@ -1311,7 +1311,7 @@ test_utf8_handling ()
 	else
 		die "Encoding failed"
 	fi
-	rm $1 out.wav
+	rm -f $1 out.wav
 }
 
 if [ "$WIN32BUSYBOX" != "yes" ]; then
