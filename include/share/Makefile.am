@@ -14,5 +14,4 @@ EXTRA_DIST = \
 	replaygain_synthesis.h \
 	safe_str.h \
 	utf8.h \
-	win_utf8_io.h \
-	windows_unicode_filenames.h
+	win_utf8_io.h
