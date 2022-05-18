@@ -21,8 +21,7 @@
 #
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite
+	CMakeLists.txt
 
 noinst_HEADERS = \
 	charset.h \

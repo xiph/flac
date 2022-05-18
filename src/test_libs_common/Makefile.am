@@ -26,5 +26,4 @@ libtest_libs_common_la_SOURCES = \
 
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	README

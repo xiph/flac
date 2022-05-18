@@ -19,5 +19,4 @@
 SUBDIRS = cuesheet picture
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite
+	CMakeLists.txt

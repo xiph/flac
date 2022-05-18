@@ -18,5 +18,4 @@
 
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	main.cpp
