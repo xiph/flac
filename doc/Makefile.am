@@ -34,7 +34,7 @@ endif
 doc_DATA = \
 	FLAC.tag
 
-EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html \
+EXTRA_DIST = Doxyfile.in doxygen.footer.html doxygen.header.html \
 	isoflac.txt $(doc_DATA) CMakeLists.txt
 
 distclean-local:

@@ -40,7 +40,6 @@ pkgconfig_DATA = flac++.pc
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	flac++.pc.in \
 	libFLAC++.m4
 

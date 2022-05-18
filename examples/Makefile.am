@@ -24,5 +24,4 @@ SUBDIRS = c $(CPPLIBS_DIRS)
 
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	README

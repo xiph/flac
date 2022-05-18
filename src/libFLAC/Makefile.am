@@ -73,7 +73,6 @@ pkgconfig_DATA = flac.pc
 
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	flac.pc.in \
 	libFLAC.m4 \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \

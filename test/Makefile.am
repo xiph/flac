@@ -50,7 +50,6 @@ endif
 
 EXTRA_DIST = \
     CMakeLists.txt \
-	Makefile.lite \
 	cuesheet.ok \
 	metaflac.flac.in \
 	metaflac.flac.ok \

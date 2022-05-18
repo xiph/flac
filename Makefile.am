@@ -31,7 +31,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = doc include m4 man src test build microbench oss-fuzz
+SUBDIRS = doc include m4 man src test microbench oss-fuzz
 
 if EXAMPLES
 SUBDIRS += examples
@@ -55,8 +55,6 @@ EXTRA_DIST = \
 	COPYING.GPL \
 	COPYING.LGPL \
 	COPYING.Xiph \
-	Makefile.lite \
-	Makefile.deps \
 	autogen.sh \
 	config.rpath \
 	depcomp \

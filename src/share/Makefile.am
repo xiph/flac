@@ -21,22 +21,15 @@ AUTOMAKE_OPTIONS = subdir-objects
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 EXTRA_DIST = \
-	Makefile.lite \
 	README \
 	getopt/CMakeLists.txt \
-	getopt/Makefile.lite \
 	grabbag/CMakeLists.txt \
-	grabbag/Makefile.lite \
 	replaygain_analysis/CMakeLists.txt \
-	replaygain_analysis/Makefile.lite \
 	replaygain_synthesis/CMakeLists.txt \
-	replaygain_synthesis/Makefile.lite \
 	utf8/CMakeLists.txt \
-	utf8/Makefile.lite \
 	utf8/charmaps.h \
 	utf8/makemap.c \
-	utf8/charset_test.c \
-	win_utf8_io/Makefile.lite
+	utf8/charset_test.c
 
 
 noinst_LTLIBRARIES = \
