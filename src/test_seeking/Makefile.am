@@ -18,10 +18,7 @@
 
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
-	test_seeking.vcproj \
-	test_seeking.vcxproj \
-	test_seeking.vcxproj.filters
+	Makefile.lite
 
 AM_CFLAGS = @OGG_CFLAGS@
 
