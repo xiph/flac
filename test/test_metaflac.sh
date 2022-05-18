@@ -20,9 +20,9 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
-PATH=`pwd`/../src/metaflac:$PATH
-PATH=`pwd`/../objs/$BUILD/bin:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
+PATH="$(pwd)/../src/metaflac:$PATH"
+PATH="$(pwd)/../objs/$BUILD/bin:$PATH"
 
 if echo a | (grep -E '(a|b)') >/dev/null 2>&1
 	then EGREP='grep -E'
@@ -37,7 +37,7 @@ metaflac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac 
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_metaflac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} ${TOTALLY_SILENT} --no-error-on-compression-fail $* 4>>test_metaflac.valgrind.log
 	else
@@ -47,7 +47,7 @@ run_flac ()
 
 run_metaflac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 4>>test_metaflac.valgrind.log
 	else
@@ -60,7 +60,7 @@ run_metaflac_silent ()
 	if [ -z "$SILENT" ] ; then
 		run_metaflac $*
 	else
-		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
 			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 2>/dev/null 4>>test_metaflac.valgrind.log
 		else
@@ -317,7 +317,7 @@ for f in \
 	run_metaflac --import-picture-from="|image/gif|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 for f in \
 	0.jpg \
@@ -326,7 +326,7 @@ for f in \
 	run_metaflac --import-picture-from="4|image/jpeg|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 for f in \
 	0.png \
@@ -342,7 +342,7 @@ for f in \
 	run_metaflac --import-picture-from="5|image/png|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 [ $ncase = 60 ] || die "expected case# to be 60"
 

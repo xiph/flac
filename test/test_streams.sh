@@ -24,7 +24,7 @@ PATH=../src/flac:$PATH
 PATH=../src/test_streams:$PATH
 PATH=../objs/$BUILD/bin:$PATH
 
-if [ x"$FLAC__TEST_LEVEL" = x ] ; then
+if [ -z "$FLAC__TEST_LEVEL" ] ; then
 	FLAC__TEST_LEVEL=1
 fi
 
@@ -32,7 +32,7 @@ flac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executab
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_streams.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_streams.valgrind.log
 	else
@@ -85,7 +85,7 @@ test_file_piped ()
 	bps=$3
 	encode_options="$4"
 
-	if [ `env | grep -ic '^comspec='` != 0 ] ; then
+	if [ "$(env | grep -ic '^comspec=')" != 0 ] ; then
 		is_win=yes
 	else
 		is_win=no
@@ -101,7 +101,7 @@ test_file_piped ()
 		cmd="run_flac --verify --silent --force --force-raw-format --endian=little --sign=signed --sample-rate=44100 --bps=$bps --channels=$channels $encode_options --no-padding --stdout -"
 		echo "### ENCODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
-		cat $name.raw | $cmd 1>$name.flac 2>>./streams.log || die "ERROR during encode of $name"
+		$cmd < $name.raw 1>$name.flac 2>>./streams.log || die "ERROR during encode of $name"
 	fi
 	echo $ECHO_N "decode via pipes..." $ECHO_C
 	if [ $is_win = yes ] ; then
@@ -113,7 +113,7 @@ test_file_piped ()
 		cmd="run_flac --silent --force --endian=little --sign=signed --decode --force-raw-format --stdout -"
 		echo "### DECODE $name #######################################################" >> ./streams.log
 		echo "###    cmd=$cmd" >> ./streams.log
-		cat $name.flac | $cmd 1>$name.cmp 2>>./streams.log || die "ERROR during decode of $name"
+		$cmd < $name.flac 1>$name.cmp 2>>./streams.log || die "ERROR during decode of $name"
 	fi
 	ls -1l $name.raw >> ./streams.log
 	ls -1l $name.flac >> ./streams.log
@@ -162,7 +162,7 @@ test_corrupted_file ()
 	ls -1l $name.cmp >> ./streams.log
 
 	echo $ECHO_N "compare..." $ECHO_C
-	if [ $(wc -c < $name.raw) -ne $(wc -c < $name.cmp) ]; then
+	if [ "$(wc -c < $name.raw)" -ne "$(wc -c < $name.cmp)" ]; then
 		die "ERROR, length of decoded file not equal to length of original"
 	fi
 
@@ -281,7 +281,7 @@ for bps in 8 16 24 ; do
 			if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
 				for opt in 0 1 2 4 5 6 8 ; do
 					for extras in '' '-p' '-e' ; do
-						if ([ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ]) && (([ "$bps" -eq 16 ] && [ "$f" -lt 15 ]) || [ "$FLAC__TEST_LEVEL" -gt 1 ]) ; then
+						if [ -z "$extras" -o "$FLAC__TEST_LEVEL" -gt 0 ] && { [ "$bps" -eq 16 -a "$f" -lt 15 ] || [ "$FLAC__TEST_LEVEL" -gt 1 ]; } ; then
 							if [ "$f" -lt 10 ] ; then
 								test_corrupted_file sine$bps-$f 1 $bps "-$opt $extras $disable"
 							else
