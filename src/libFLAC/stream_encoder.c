@@ -2195,7 +2195,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
-	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
+
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_OK)
+		return false;
 
 	do {
 		const uint32_t n = flac_min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j);
@@ -2260,7 +2262,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
-	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
+
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_OK)
+		return false;
 
 	j = k = 0;
 	/*
