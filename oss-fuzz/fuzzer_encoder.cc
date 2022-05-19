@@ -62,23 +62,15 @@ namespace FLAC {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     fuzzing::datasource::Datasource ds(data, size);
     FLAC::Encoder::FuzzerStream encoder(ds);
+    bool use_ogg;
 
     const int channels = 2;
 	encoder.set_channels(channels);
 	encoder.set_bits_per_sample(16);
 
     try {
-        ::FLAC__StreamEncoderInitStatus ret;
 
-        if ( ds.Get<bool>() ) {
-            ret = encoder.init();
-        } else {
-            ret = encoder.init_ogg();
-        }
-
-        if ( ret != FLAC__STREAM_ENCODER_INIT_STATUS_OK ) {
-            goto end;
-        }
+	use_ogg = ! ds.Get<bool>();
 
         {
             const bool res = encoder.set_streamable_subset(ds.Get<bool>());
@@ -145,6 +137,20 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             const bool res = encoder.set_total_samples_estimate(ds.Get<uint64_t>());
             fuzzing::memory::memory_test(res);
         }
+
+        {
+            ::FLAC__StreamEncoderInitStatus ret;
+            if ( !use_ogg ) {
+                ret = encoder.init();
+            } else {
+                ret = encoder.init_ogg();
+            }
+
+            if ( ret != FLAC__STREAM_ENCODER_INIT_STATUS_OK ) {
+                goto end;
+            }
+        }
+
 
         while ( ds.Get<bool>() ) {
             {
