@@ -59,7 +59,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	unsigned sample_rate, channels, bps;
 	uint64_t samples_estimate;
 	unsigned compression_level, input_data_width, blocksize, max_lpc_order, qlp_coeff_precision, min_residual_partition_order, max_residual_partition_order, metadata_mask, instruction_set_disable_mask;
-	FLAC__bool ogg, interleaved;
+	FLAC__bool ogg, write_to_file, interleaved;
 
 	FLAC__bool data_bools[24];
 
@@ -99,6 +99,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	ogg = data_bools[0];
 	interleaved = data_bools[1];
+	write_to_file = data_bools[13];
 
 	/* Set input and process parameters */
 	encoder_valid &= FLAC__stream_encoder_set_verify(encoder, data_bools[2]);
@@ -136,7 +137,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		encoder_valid &= FLAC__stream_encoder_disable_verbatim_subframes(encoder, data_bools[12]);
 	}
 
-	/* data_bools[13..15] are spare */
+	/* data_bools[14..15] are spare */
 
 	/* add metadata */
 	if(encoder_valid && (metadata_mask & 1)) {
@@ -196,9 +197,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	if(encoder_valid) {
 		FLAC__StreamEncoderInitStatus init_status;
 		if(ogg)
-			init_status = FLAC__stream_encoder_init_ogg_stream(encoder, NULL, write_callback, NULL, NULL, NULL, NULL);
+			if(write_to_file)
+				init_status = FLAC__stream_encoder_init_ogg_file(encoder, "/tmp/tmp.flac", NULL, NULL);
+			else
+				init_status = FLAC__stream_encoder_init_ogg_stream(encoder, NULL, write_callback, NULL, NULL, NULL, NULL);
 		else
-			init_status = FLAC__stream_encoder_init_stream(encoder, write_callback, NULL, NULL, NULL, NULL);
+			if(write_to_file)
+				init_status = FLAC__stream_encoder_init_file(encoder, "/tmp/tmp.flac", NULL, NULL);
+			else
+				init_status = FLAC__stream_encoder_init_stream(encoder, write_callback, NULL, NULL, NULL, NULL);
 		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK) {
 			encoder_valid = false;
 		}
