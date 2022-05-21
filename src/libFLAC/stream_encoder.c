@@ -1819,8 +1819,10 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_do_escape_coding(FLAC__StreamEncode
 	FLAC__ASSERT(0 != encoder->protected_);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
-#if 0
-	/*@@@ deprecated: */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* was deprecated since FLAC 1.0.4 (24-Sep-2002), but is needed for
+	 * full spec coverage, so this should be reenabled at some point.
+	 * For now only enable while fuzzing */
 	encoder->protected_->do_escape_coding = value;
 #else
 	(void)value;
