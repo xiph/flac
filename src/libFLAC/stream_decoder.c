@@ -3048,23 +3048,24 @@ __attribute__((no_sanitize("signed-integer-overflow")))
 #endif
 void undo_channel_coding(FLAC__StreamDecoder *decoder) {
 	FLAC__int32 mid, side;
+	FLAC__uint32 i;
 	switch(decoder->private_->frame.header.channel_assignment) {
 	case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
 		/* do nothing */
 		break;
 	case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
 		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
-		for(FLAC__uint32 i = 0; i < decoder->private_->frame.header.blocksize; i++)
+		for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
 			decoder->private_->output[1][i] = decoder->private_->output[0][i] - decoder->private_->output[1][i];
 		break;
 	case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
 		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
-		for(FLAC__uint32 i = 0; i < decoder->private_->frame.header.blocksize; i++)
+		for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
 			decoder->private_->output[0][i] += decoder->private_->output[1][i];
 		break;
 	case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
 		FLAC__ASSERT(decoder->private_->frame.header.channels == 2);
-		for(FLAC__uint32 i = 0; i < decoder->private_->frame.header.blocksize; i++) {
+		for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
 #if 1
 			mid = decoder->private_->output[0][i];
 			side = decoder->private_->output[1][i];

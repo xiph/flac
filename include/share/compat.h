@@ -131,6 +131,12 @@
 #    define PRIx64 "llx"
 #  else
 #    include <limits.h>
+#    ifndef INT32_MIN
+#      define INT32_MIN _I32_MIN
+#    endif
+#    ifndef INT32_MAX
+#      define INT32_MAX _I32_MAX
+#    endif
 #    ifndef UINT32_MAX
 #      define UINT32_MAX _UI32_MAX
 #    endif

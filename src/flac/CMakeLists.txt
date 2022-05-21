@@ -18,7 +18,8 @@ target_link_libraries(flacapp
     FLAC
     getopt
     replaygain_synthesis
-    utf8)
+    utf8
+    grabbag)
 
 install(TARGETS flacapp EXPORT targets
     RUNTIME DESTINATION "${CMAKE_INSTALL_BINDIR}")
