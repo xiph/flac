@@ -124,6 +124,10 @@ int main(int argc, char *argv[])
 	const FLAC__uint32 total_size = (FLAC__uint32)(total_samples * channels * (bps/8));
 	size_t i;
 
+	// Update data
+	channels = OurDecoder::get_channels();
+	bps = OurDecoder::get_bits_per_sample();
+
 	if(total_samples == 0) {
 		fprintf(stderr, "ERROR: this example only works for FLAC files that have a total_samples count in STREAMINFO\n");
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
