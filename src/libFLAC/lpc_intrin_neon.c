@@ -42,21 +42,21 @@
 #include <arm_neon.h>
 
 #if FLAC__HAS_A64NEONINTRIN
-void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 14
 #include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
 }
 
-void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 10
 #include "deduplication/lpc_compute_autocorrelation_intrin_neon.c"
 }
 
-void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 8
@@ -77,7 +77,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[]
                         summ_1 = vmlaq_laneq_s32(summ_1,tmp_vec[tmp_vec_ind+4] ,qlp_coeff_vec, lane); \
                         summ_2 = vmlaq_laneq_s32(summ_2,tmp_vec[tmp_vec_ind+8] ,qlp_coeff_vec, lane);
                         
-void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
+void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__int32 *data, FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 residual[])
 {
     int i;
     FLAC__int32 sum;
@@ -663,7 +663,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                         vst1q_s32(residual+i+4, vsubq_s32(vld1q_s32(data+i+4), res1));\
                         vst1q_s32(residual+i+8, vsubq_s32(vld1q_s32(data+i+8), res2));
 
-void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]) {
+void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLAC__int32 *data, FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 residual[]) {
 	int i;
 	FLAC__int64 sum;
 	

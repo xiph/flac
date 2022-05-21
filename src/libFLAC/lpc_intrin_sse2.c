@@ -52,7 +52,7 @@
 
 
 FLAC__SSE_TARGET("sse2")
-void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 8
@@ -60,7 +60,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8(const FLAC__real data[]
 }
 
 FLAC__SSE_TARGET("sse2")
-void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 10
@@ -69,7 +69,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10(const FLAC__real data[
 
 
 FLAC__SSE_TARGET("sse2")
-void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 14
@@ -77,7 +77,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[
 }
 
 FLAC__SSE_TARGET("sse2")
-void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
+void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC__int32 *data, FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 residual[])
 {
 	int i;
 	FLAC__int32 sum;
@@ -431,7 +431,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2(const FLAC_
 }
 
 FLAC__SSE_TARGET("sse2")
-void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
+void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__int32 *data, FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 residual[])
 {
 	int i;
 

@@ -49,7 +49,7 @@
 
 /* on FreeBSD we get socklen_t from <sys/socket.h> */
 #if (!defined HAVE_SOCKLEN_T) && !defined(__FreeBSD__)
-typedef uint32_t socklen_t;
+typedef FLAC__uint32 socklen_t;
 #endif
 
 #define min(x,y) ((x)<(y)?(x):(y))

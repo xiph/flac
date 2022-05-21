@@ -36,9 +36,9 @@
 #include "share/compat.h"
 
 static FLAC__uint64 total_samples = 0;
-static uint32_t sample_rate = 0;
-static uint32_t channels = 0;
-static uint32_t bps = 0;
+static FLAC__uint32 sample_rate = 0;
+static FLAC__uint32 channels = 0;
+static FLAC__uint32 bps = 0;
 
 static bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
 {

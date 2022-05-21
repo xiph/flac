@@ -69,7 +69,7 @@ static int ascii_strcasecmp(const char *s1, const char *s2)
     if (c1 != c2)
       break;
   }
-  return (uint8_t)*s1 - (uint8_t)*s2;
+  return (FLAC__uint8)*s1 - (FLAC__uint8)*s2;
 }
 
 /*
@@ -78,7 +78,7 @@ static int ascii_strcasecmp(const char *s1, const char *s2)
 
 int utf8_mbtowc(int *pwc, const char *s, size_t n)
 {
-  uint8_t c;
+  FLAC__uint8 c;
   int wc, i, k;
 
   if (!n || !s)
@@ -129,7 +129,7 @@ int utf8_mbtowc(int *pwc, const char *s, size_t n)
 
 int utf8_wctomb(char *s, int wc1)
 {
-  uint32_t wc = wc1;
+  FLAC__uint32 wc = wc1;
 
   if (!s)
     return 0;
@@ -231,7 +231,7 @@ static int mbtowc_ascii(void *map, int *pwc, const char *s, size_t n)
   (void)map;
   if (!n || !s)
     return 0;
-  wc = (uint8_t)*s;
+  wc = (FLAC__uint8)*s;
   if (wc & ~0x7f)
     return -1;
   if (pwc)
@@ -263,7 +263,7 @@ static int mbtowc_iso1(void *map, int *pwc, const char *s, size_t n)
   (void)map;
   if (!n || !s)
     return 0;
-  wc = (uint8_t)*s;
+  wc = (FLAC__uint8)*s;
   if (wc & ~0xff)
     return -1;
   if (pwc)
@@ -287,18 +287,18 @@ static int wctomb_iso1(void *map, char *s, int wc)
  */
 
 struct map {
-  const uint16_t *from;
+  const FLAC__uint16 *from;
   struct inverse_map *to;
 };
 
 static int mbtowc_8bit(void *map1, int *pwc, const char *s, size_t n)
 {
   struct map *map = map1;
-  uint16_t wc;
+  FLAC__uint16 wc;
 
   if (!n || !s)
     return 0;
-  wc = map->from[(uint8_t)*s];
+  wc = map->from[(FLAC__uint8)*s];
   if (wc == 0xffff)
     return -1;
   if (pwc)
@@ -316,8 +316,8 @@ static int mbtowc_8bit(void *map1, int *pwc, const char *s, size_t n)
  */
 
 struct inverse_map {
-  uint8_t first[256];
-  uint8_t next[256];
+  FLAC__uint8 first[256];
+  FLAC__uint8 next[256];
 };
 
 /*
@@ -328,7 +328,7 @@ struct inverse_map {
 /* #define HASH(i) 0 */
 /* #define HASH(i) 99 */
 
-static struct inverse_map *make_inverse_map(const uint16_t *from)
+static struct inverse_map *make_inverse_map(const FLAC__uint16 *from)
 {
   struct inverse_map *to;
   char used[256];
@@ -362,7 +362,7 @@ static struct inverse_map *make_inverse_map(const uint16_t *from)
 static int wctomb_8bit(void *map1, char *s, int wc1)
 {
   struct map *map = map1;
-  uint16_t wc = wc1;
+  FLAC__uint16 wc = wc1;
   int i;
 
   if (!s)

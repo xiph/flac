@@ -56,7 +56,7 @@ static const char * const LayerString[] = {
 
 static ::FLAC__StreamMetadata streaminfo_, padding_, seektable_, application1_, application2_, vorbiscomment_, cuesheet_, picture_, unknown_;
 static ::FLAC__StreamMetadata *metadata_sequence_[] = { &vorbiscomment_, &padding_, &seektable_, &application1_, &application2_, &cuesheet_, &picture_, &unknown_ };
-static const uint32_t num_metadata_ = sizeof(metadata_sequence_) / sizeof(metadata_sequence_[0]);
+static const FLAC__uint32 num_metadata_ = sizeof(metadata_sequence_) / sizeof(metadata_sequence_[0]);
 
 static const char *flacfilename(bool is_ogg)
 {
@@ -78,10 +78,10 @@ static bool die_s_(const char *msg, const FLAC::Encoder::Stream *encoder)
 	else
 		printf("FAILED");
 
-	printf(", state = %u (%s)\n", (uint32_t)((::FLAC__StreamEncoderState)state), state.as_cstring());
+	printf(", state = %u (%s)\n", (FLAC__uint32)((::FLAC__StreamEncoderState)state), state.as_cstring());
 	if(state == ::FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR) {
 		FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
-		printf("      verify decoder state = %u (%s)\n", (uint32_t)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+		printf("      verify decoder state = %u (%s)\n", (FLAC__uint32)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
 	}
 
 	return false;
@@ -107,7 +107,7 @@ public:
 
 	// from FLAC::Encoder::Stream
 	::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
-	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame);
+	::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame);
 	::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
 	::FLAC__StreamEncoderTellStatus tell_callback(FLAC__uint64 *absolute_byte_offset);
 	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
@@ -131,7 +131,7 @@ private:
 		return ::FLAC__STREAM_ENCODER_READ_STATUS_ABORT;
 }
 
-::FLAC__StreamEncoderWriteStatus StreamEncoder::write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame)
+::FLAC__StreamEncoderWriteStatus StreamEncoder::write_callback(const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame)
 {
 	(void)samples, (void)current_frame;
 
@@ -177,10 +177,10 @@ public:
 	~FileEncoder() { }
 
 	// from FLAC::Encoder::File
-	void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate);
+	void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, FLAC__uint32 frames_written, FLAC__uint32 total_frames_estimate);
 };
 
-void FileEncoder::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate)
+void FileEncoder::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, FLAC__uint32 frames_written, FLAC__uint32 total_frames_estimate)
 {
 	(void)bytes_written, (void)samples_written, (void)frames_written, (void)total_frames_estimate;
 }
@@ -200,7 +200,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 	FILE *file = 0;
 	FLAC__int32 samples[1024];
 	FLAC__int32 *samples_array[1] = { samples };
-	uint32_t i;
+	FLAC__uint32 i;
 
 	printf("\n+++ libFLAC++ unit test: FLAC::Encoder::%s (layer: %s, format: %s)\n\n", layer<LAYER_FILE? "Stream":"File", LayerString[layer], is_ogg? "Ogg FLAC":"FLAC");
 
@@ -253,7 +253,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 	printf("OK\n");
 
 	printf("testing set_compression_level()... ");
-	if(!encoder->set_compression_level((uint32_t)(-1)))
+	if(!encoder->set_compression_level((FLAC__uint32)(-1)))
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
@@ -367,17 +367,17 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 
 	printf("testing get_state()... ");
 	FLAC::Encoder::Stream::State state = encoder->get_state();
-	printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamEncoderState)state), state.as_cstring());
+	printf("returned state = %u (%s)... OK\n", (FLAC__uint32)((::FLAC__StreamEncoderState)state), state.as_cstring());
 
 	printf("testing get_verify_decoder_state()... ");
 	FLAC::Decoder::Stream::State dstate = encoder->get_verify_decoder_state();
-	printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
+	printf("returned state = %u (%s)... OK\n", (FLAC__uint32)((::FLAC__StreamDecoderState)dstate), dstate.as_cstring());
 
 	{
 		FLAC__uint64 absolute_sample;
-		uint32_t frame_number;
-		uint32_t channel;
-		uint32_t sample;
+		FLAC__uint32 frame_number;
+		FLAC__uint32 channel;
+		FLAC__uint32 sample;
 		FLAC__int32 expected;
 		FLAC__int32 got;
 
@@ -527,7 +527,7 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 	printf("testing finish()... ");
 	if(!encoder->finish()) {
 		state = encoder->get_state();
-		printf("FAILED, returned false, state = %u (%s)\n", (uint32_t)((::FLAC__StreamEncoderState)state), state.as_cstring());
+		printf("FAILED, returned false, state = %u (%s)\n", (FLAC__uint32)((::FLAC__StreamEncoderState)state), state.as_cstring());
 		return false;
 	}
 	printf("OK\n");

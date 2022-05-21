@@ -128,47 +128,47 @@ namespace FLAC {
 			virtual bool set_ogg_serial_number(long value);                 ///< See FLAC__stream_encoder_set_ogg_serial_number()
 			virtual bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
 			virtual bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
-			virtual bool set_channels(uint32_t value);                      ///< See FLAC__stream_encoder_set_channels()
-			virtual bool set_bits_per_sample(uint32_t value);               ///< See FLAC__stream_encoder_set_bits_per_sample()
-			virtual bool set_sample_rate(uint32_t value);                   ///< See FLAC__stream_encoder_set_sample_rate()
-			virtual bool set_compression_level(uint32_t value);             ///< See FLAC__stream_encoder_set_compression_level()
-			virtual bool set_blocksize(uint32_t value);                     ///< See FLAC__stream_encoder_set_blocksize()
+			virtual bool set_channels(FLAC__uint32 value);                      ///< See FLAC__stream_encoder_set_channels()
+			virtual bool set_bits_per_sample(FLAC__uint32 value);               ///< See FLAC__stream_encoder_set_bits_per_sample()
+			virtual bool set_sample_rate(FLAC__uint32 value);                   ///< See FLAC__stream_encoder_set_sample_rate()
+			virtual bool set_compression_level(FLAC__uint32 value);             ///< See FLAC__stream_encoder_set_compression_level()
+			virtual bool set_blocksize(FLAC__uint32 value);                     ///< See FLAC__stream_encoder_set_blocksize()
 			virtual bool set_do_mid_side_stereo(bool value);                ///< See FLAC__stream_encoder_set_do_mid_side_stereo()
 			virtual bool set_loose_mid_side_stereo(bool value);             ///< See FLAC__stream_encoder_set_loose_mid_side_stereo()
 			virtual bool set_apodization(const char *specification);        ///< See FLAC__stream_encoder_set_apodization()
-			virtual bool set_max_lpc_order(uint32_t value);                 ///< See FLAC__stream_encoder_set_max_lpc_order()
-			virtual bool set_qlp_coeff_precision(uint32_t value);           ///< See FLAC__stream_encoder_set_qlp_coeff_precision()
+			virtual bool set_max_lpc_order(FLAC__uint32 value);                 ///< See FLAC__stream_encoder_set_max_lpc_order()
+			virtual bool set_qlp_coeff_precision(FLAC__uint32 value);           ///< See FLAC__stream_encoder_set_qlp_coeff_precision()
 			virtual bool set_do_qlp_coeff_prec_search(bool value);          ///< See FLAC__stream_encoder_set_do_qlp_coeff_prec_search()
 			virtual bool set_do_escape_coding(bool value);                  ///< See FLAC__stream_encoder_set_do_escape_coding()
 			virtual bool set_do_exhaustive_model_search(bool value);        ///< See FLAC__stream_encoder_set_do_exhaustive_model_search()
-			virtual bool set_min_residual_partition_order(uint32_t value);  ///< See FLAC__stream_encoder_set_min_residual_partition_order()
-			virtual bool set_max_residual_partition_order(uint32_t value);  ///< See FLAC__stream_encoder_set_max_residual_partition_order()
-			virtual bool set_rice_parameter_search_dist(uint32_t value);    ///< See FLAC__stream_encoder_set_rice_parameter_search_dist()
+			virtual bool set_min_residual_partition_order(FLAC__uint32 value);  ///< See FLAC__stream_encoder_set_min_residual_partition_order()
+			virtual bool set_max_residual_partition_order(FLAC__uint32 value);  ///< See FLAC__stream_encoder_set_max_residual_partition_order()
+			virtual bool set_rice_parameter_search_dist(FLAC__uint32 value);    ///< See FLAC__stream_encoder_set_rice_parameter_search_dist()
 			virtual bool set_total_samples_estimate(FLAC__uint64 value);    ///< See FLAC__stream_encoder_set_total_samples_estimate()
-			virtual bool set_metadata(::FLAC__StreamMetadata **metadata, uint32_t num_blocks);    ///< See FLAC__stream_encoder_set_metadata()
-			virtual bool set_metadata(FLAC::Metadata::Prototype **metadata, uint32_t num_blocks); ///< See FLAC__stream_encoder_set_metadata()
+			virtual bool set_metadata(::FLAC__StreamMetadata **metadata, FLAC__uint32 num_blocks);    ///< See FLAC__stream_encoder_set_metadata()
+			virtual bool set_metadata(FLAC::Metadata::Prototype **metadata, FLAC__uint32 num_blocks); ///< See FLAC__stream_encoder_set_metadata()
 			virtual bool set_limit_min_bitrate(bool value);                 ///< See FLAC__stream_encoder_set_limit_min_bitrate()
 
 			/* get_state() is not virtual since we want subclasses to be able to return their own state */
 			State get_state() const;                                   ///< See FLAC__stream_encoder_get_state()
 			virtual Decoder::Stream::State get_verify_decoder_state() const; ///< See FLAC__stream_encoder_get_verify_decoder_state()
-			virtual void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, uint32_t *frame_number, uint32_t *channel, uint32_t *sample, FLAC__int32 *expected, FLAC__int32 *got); ///< See FLAC__stream_encoder_get_verify_decoder_error_stats()
+			virtual void get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, FLAC__uint32 *frame_number, FLAC__uint32 *channel, FLAC__uint32 *sample, FLAC__int32 *expected, FLAC__int32 *got); ///< See FLAC__stream_encoder_get_verify_decoder_error_stats()
 			virtual bool     get_verify() const;                       ///< See FLAC__stream_encoder_get_verify()
 			virtual bool     get_streamable_subset() const;            ///< See FLAC__stream_encoder_get_streamable_subset()
 			virtual bool     get_do_mid_side_stereo() const;           ///< See FLAC__stream_encoder_get_do_mid_side_stereo()
 			virtual bool     get_loose_mid_side_stereo() const;        ///< See FLAC__stream_encoder_get_loose_mid_side_stereo()
-			virtual uint32_t get_channels() const;                     ///< See FLAC__stream_encoder_get_channels()
-			virtual uint32_t get_bits_per_sample() const;              ///< See FLAC__stream_encoder_get_bits_per_sample()
-			virtual uint32_t get_sample_rate() const;                  ///< See FLAC__stream_encoder_get_sample_rate()
-			virtual uint32_t get_blocksize() const;                    ///< See FLAC__stream_encoder_get_blocksize()
-			virtual uint32_t get_max_lpc_order() const;                ///< See FLAC__stream_encoder_get_max_lpc_order()
-			virtual uint32_t get_qlp_coeff_precision() const;          ///< See FLAC__stream_encoder_get_qlp_coeff_precision()
+			virtual FLAC__uint32 get_channels() const;                     ///< See FLAC__stream_encoder_get_channels()
+			virtual FLAC__uint32 get_bits_per_sample() const;              ///< See FLAC__stream_encoder_get_bits_per_sample()
+			virtual FLAC__uint32 get_sample_rate() const;                  ///< See FLAC__stream_encoder_get_sample_rate()
+			virtual FLAC__uint32 get_blocksize() const;                    ///< See FLAC__stream_encoder_get_blocksize()
+			virtual FLAC__uint32 get_max_lpc_order() const;                ///< See FLAC__stream_encoder_get_max_lpc_order()
+			virtual FLAC__uint32 get_qlp_coeff_precision() const;          ///< See FLAC__stream_encoder_get_qlp_coeff_precision()
 			virtual bool     get_do_qlp_coeff_prec_search() const;     ///< See FLAC__stream_encoder_get_do_qlp_coeff_prec_search()
 			virtual bool     get_do_escape_coding() const;             ///< See FLAC__stream_encoder_get_do_escape_coding()
 			virtual bool     get_do_exhaustive_model_search() const;   ///< See FLAC__stream_encoder_get_do_exhaustive_model_search()
-			virtual uint32_t get_min_residual_partition_order() const; ///< See FLAC__stream_encoder_get_min_residual_partition_order()
-			virtual uint32_t get_max_residual_partition_order() const; ///< See FLAC__stream_encoder_get_max_residual_partition_order()
-			virtual uint32_t get_rice_parameter_search_dist() const;   ///< See FLAC__stream_encoder_get_rice_parameter_search_dist()
+			virtual FLAC__uint32 get_min_residual_partition_order() const; ///< See FLAC__stream_encoder_get_min_residual_partition_order()
+			virtual FLAC__uint32 get_max_residual_partition_order() const; ///< See FLAC__stream_encoder_get_max_residual_partition_order()
+			virtual FLAC__uint32 get_rice_parameter_search_dist() const;   ///< See FLAC__stream_encoder_get_rice_parameter_search_dist()
 			virtual FLAC__uint64 get_total_samples_estimate() const;   ///< See FLAC__stream_encoder_get_total_samples_estimate()
 			virtual bool     get_limit_min_bitrate() const;            ///< See FLAC__stream_encoder_get_limit_min_bitrate()
 
@@ -177,14 +177,14 @@ namespace FLAC {
 
 			virtual bool finish(); ///< See FLAC__stream_encoder_finish()
 
-			virtual bool process(const FLAC__int32 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process()
-			virtual bool process_interleaved(const FLAC__int32 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved()
+			virtual bool process(const FLAC__int32 * const buffer[], FLAC__uint32 samples);     ///< See FLAC__stream_encoder_process()
+			virtual bool process_interleaved(const FLAC__int32 buffer[], FLAC__uint32 samples); ///< See FLAC__stream_encoder_process_interleaved()
 		protected:
 			/// See FLAC__StreamEncoderReadCallback
 			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);
 
 			/// See FLAC__StreamEncoderWriteCallback
-			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame) = 0;
+			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame) = 0;
 
 			/// See FLAC__StreamEncoderSeekCallback
 			virtual ::FLAC__StreamEncoderSeekStatus seek_callback(FLAC__uint64 absolute_byte_offset);
@@ -202,7 +202,7 @@ namespace FLAC {
 			::FLAC__StreamEncoder *encoder_;
 
 			static ::FLAC__StreamEncoderReadStatus read_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
-			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
+			static ::FLAC__StreamEncoderWriteStatus write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame, void *client_data);
 			static ::FLAC__StreamEncoderSeekStatus seek_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 absolute_byte_offset, void *client_data);
 			static ::FLAC__StreamEncoderTellStatus tell_callback_(const FLAC__StreamEncoder *encoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 			static void metadata_callback_(const ::FLAC__StreamEncoder *encoder, const ::FLAC__StreamMetadata *metadata, void *client_data);
@@ -247,12 +247,12 @@ namespace FLAC {
 			virtual ::FLAC__StreamEncoderInitStatus init_ogg(const std::string &filename); ///< See FLAC__stream_encoder_init_ogg_file()
 		protected:
 			/// See FLAC__StreamEncoderProgressCallback
-			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate);
+			virtual void progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, FLAC__uint32 frames_written, FLAC__uint32 total_frames_estimate);
 
 			/// This is a dummy implementation to satisfy the pure virtual in Stream that is actually supplied internally by the C layer
-			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame);
+			virtual ::FLAC__StreamEncoderWriteStatus write_callback(const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame);
 		private:
-			static void progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate, void *client_data);
+			static void progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, FLAC__uint32 frames_written, FLAC__uint32 total_frames_estimate, void *client_data);
 
 			// Private and undefined so you can't use them:
 			File(const Stream &);

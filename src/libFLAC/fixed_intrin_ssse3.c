@@ -57,14 +57,14 @@
 #ifdef local_abs
 #undef local_abs
 #endif
-#define local_abs(x) ((uint32_t)((x)<0? -(x) : (x)))
+#define local_abs(x) ((FLAC__uint32)((x)<0? -(x) : (x)))
 
 FLAC__SSE_TARGET("ssse3")
-uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
+FLAC__uint32 FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[], FLAC__uint32 data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
 {
 	FLAC__uint32 total_error_0, total_error_1, total_error_2, total_error_3, total_error_4;
 	FLAC__int32 i, data_len_int;
-	uint32_t order;
+	FLAC__uint32 order;
 	__m128i total_err0, total_err1, total_err2, total_err3, total_err4;
 	__m128i prev_err0,  prev_err1,  prev_err2,  prev_err3;
 	__m128i tempA, tempB;
@@ -174,10 +174,10 @@ uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[
 }
 
 FLAC__SSE_TARGET("ssse3")
-uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
+FLAC__uint32 FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 data[], FLAC__uint32 data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
 {
 	FLAC__uint64 total_error_0, total_error_1, total_error_2, total_error_3, total_error_4;
-	uint32_t i, order;
+	FLAC__uint32 i, order;
 
 	__m128i total_err0, total_err1, total_err3;
 

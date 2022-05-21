@@ -363,7 +363,7 @@ void FLAC__crc16_init_table(void)
 }
 #endif
 
-FLAC__uint8 FLAC__crc8(const FLAC__byte *data, uint32_t len)
+FLAC__uint8 FLAC__crc8(const FLAC__byte *data, FLAC__uint32 len)
 {
 	FLAC__uint8 crc = 0;
 
@@ -373,7 +373,7 @@ FLAC__uint8 FLAC__crc8(const FLAC__byte *data, uint32_t len)
 	return crc;
 }
 
-FLAC__uint16 FLAC__crc16(const FLAC__byte *data, uint32_t len)
+FLAC__uint16 FLAC__crc16(const FLAC__byte *data, FLAC__uint32 len)
 {
 	FLAC__uint16 crc = 0;
 
@@ -395,7 +395,7 @@ FLAC__uint16 FLAC__crc16(const FLAC__byte *data, uint32_t len)
 	return crc;
 }
 
-FLAC__uint16 FLAC__crc16_update_words32(const FLAC__uint32 *words, uint32_t len, FLAC__uint16 crc)
+FLAC__uint16 FLAC__crc16_update_words32(const FLAC__uint32 *words, FLAC__uint32 len, FLAC__uint16 crc)
 {
 	while (len >= 2) {
 		crc ^= words[0] >> 16;
@@ -419,7 +419,7 @@ FLAC__uint16 FLAC__crc16_update_words32(const FLAC__uint32 *words, uint32_t len,
 	return crc;
 }
 
-FLAC__uint16 FLAC__crc16_update_words64(const FLAC__uint64 *words, uint32_t len, FLAC__uint16 crc)
+FLAC__uint16 FLAC__crc16_update_words64(const FLAC__uint64 *words, FLAC__uint32 len, FLAC__uint16 crc)
 {
 	while (len--) {
 		crc ^= words[0] >> 48;

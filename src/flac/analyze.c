@@ -34,14 +34,14 @@
 
 typedef struct {
 	FLAC__int32 residual;
-	uint32_t count;
+	FLAC__uint32 count;
 } pair_t;
 
 typedef struct {
 	pair_t buckets[FLAC__MAX_BLOCK_SIZE];
 	int peak_index;
-	uint32_t nbuckets;
-	uint32_t nsamples;
+	FLAC__uint32 nbuckets;
+	FLAC__uint32 nsamples;
 	double sum, sos;
 	double variance;
 	double mean;
@@ -51,7 +51,7 @@ typedef struct {
 static subframe_stats_t all_;
 
 static void init_stats(subframe_stats_t *stats);
-static void update_stats(subframe_stats_t *stats, FLAC__int32 residual, uint32_t incr);
+static void update_stats(subframe_stats_t *stats, FLAC__int32 residual, FLAC__uint32 incr);
 static void compute_stats(subframe_stats_t *stats);
 static FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename);
 
@@ -62,19 +62,19 @@ void flac__analyze_init(analysis_options aopts)
 	}
 }
 
-void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__uint64 frame_offset, FLAC__uint64 frame_bytes, analysis_options aopts, FILE *fout)
+void flac__analyze_frame(const FLAC__Frame *frame, FLAC__uint32 frame_number, FLAC__uint64 frame_offset, FLAC__uint64 frame_bytes, analysis_options aopts, FILE *fout)
 {
-	const uint32_t channels = frame->header.channels;
+	const FLAC__uint32 channels = frame->header.channels;
 	char outfilename[1024];
 	subframe_stats_t stats;
-	uint32_t i, channel, partitions;
+	FLAC__uint32 i, channel, partitions;
 
 	/* do the human-readable part first */
 	fprintf(fout, "frame=%u\toffset=%" PRIu64 "\tbits=%" PRIu64 "\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame_offset, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 	for(channel = 0; channel < channels; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
 		const FLAC__bool is_rice2 = subframe->data.fixed.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2;
-		const uint32_t pesc = is_rice2? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+		const FLAC__uint32 pesc = is_rice2? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 		fprintf(fout, "\tsubframe=%u\twasted_bits=%u\ttype=%s", channel, subframe->wasted_bits, FLAC__SubframeTypeString[subframe->type]);
 		switch(subframe->type) {
 			case FLAC__SUBFRAME_TYPE_CONSTANT:
@@ -87,7 +87,7 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.fixed.warmup[i]);
 				partitions = (1u << subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < partitions; i++) {
-					uint32_t parameter = subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
+					FLAC__uint32 parameter = subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
 					if(parameter == pesc)
 						fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->raw_bits[i]);
 					else
@@ -107,7 +107,7 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 					fprintf(fout, "\t\twarmup[%u]=%d\n", i, subframe->data.lpc.warmup[i]);
 				partitions = (1u << subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < partitions; i++) {
-					uint32_t parameter = subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
+					FLAC__uint32 parameter = subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
 					if(parameter == pesc)
 						fprintf(fout, "\t\tparameter[%u]=ESCAPE, raw_bits=%u\n", i, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->raw_bits[i]);
 					else
@@ -128,7 +128,7 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 	if(aopts.do_residual_gnuplot) {
 		for(channel = 0; channel < channels; channel++) {
 			const FLAC__Subframe *subframe = frame->subframes+channel;
-			uint32_t residual_samples;
+			FLAC__uint32 residual_samples;
 
 			init_stats(&stats);
 
@@ -178,9 +178,9 @@ void init_stats(subframe_stats_t *stats)
 	stats->sos = 0.0;
 }
 
-void update_stats(subframe_stats_t *stats, FLAC__int32 residual, uint32_t incr)
+void update_stats(subframe_stats_t *stats, FLAC__int32 residual, FLAC__uint32 incr)
 {
-	uint32_t i;
+	FLAC__uint32 i;
 	const double r = (double)residual, a = r*incr;
 
 	stats->nsamples += incr;
@@ -213,7 +213,7 @@ void compute_stats(subframe_stats_t *stats)
 FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename)
 {
 	FILE *outfile;
-	uint32_t i;
+	FLAC__uint32 i;
 	const double m = stats->mean;
 	const double s1 = stats->stddev, s2 = s1*2, s3 = s1*3, s4 = s1*4, s5 = s1*5, s6 = s1*6;
 	const double p = stats->buckets[stats->peak_index].count;

@@ -90,26 +90,26 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__bool do_md5;
 	FLAC__bool do_mid_side_stereo;
 	FLAC__bool loose_mid_side_stereo;
-	uint32_t channels;
-	uint32_t bits_per_sample;
-	uint32_t sample_rate;
-	uint32_t blocksize;
+	FLAC__uint32 channels;
+	FLAC__uint32 bits_per_sample;
+	FLAC__uint32 sample_rate;
+	FLAC__uint32 blocksize;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	uint32_t num_apodizations;
+	FLAC__uint32 num_apodizations;
 	FLAC__ApodizationSpecification apodizations[FLAC__MAX_APODIZATION_FUNCTIONS];
 #endif
-	uint32_t max_lpc_order;
-	uint32_t qlp_coeff_precision;
+	FLAC__uint32 max_lpc_order;
+	FLAC__uint32 qlp_coeff_precision;
 	FLAC__bool do_qlp_coeff_prec_search;
 	FLAC__bool do_exhaustive_model_search;
 	FLAC__bool do_escape_coding;
-	uint32_t min_residual_partition_order;
-	uint32_t max_residual_partition_order;
-	uint32_t rice_parameter_search_dist;
+	FLAC__uint32 min_residual_partition_order;
+	FLAC__uint32 max_residual_partition_order;
+	FLAC__uint32 rice_parameter_search_dist;
 	FLAC__uint64 total_samples_estimate;
 	FLAC__bool limit_min_bitrate;
 	FLAC__StreamMetadata **metadata;
-	uint32_t num_metadata_blocks;
+	FLAC__uint32 num_metadata_blocks;
 	FLAC__uint64 streaminfo_offset, seektable_offset, audio_offset;
 #if FLAC__HAS_OGG
 	FLAC__OggEncoderAspect ogg_encoder_aspect;

@@ -113,6 +113,6 @@ typedef struct {
 	} debug;
 } encode_options_t;
 
-int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, uint32_t lookahead_length, encode_options_t options);
+int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, FLAC__uint32 lookahead_length, encode_options_t options);
 
 #endif

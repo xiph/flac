@@ -62,7 +62,7 @@ typedef struct {
 	const char *outfilename;
 
 	FLAC__uint64 samples_processed;
-	uint32_t frame_counter;
+	FLAC__uint32 frame_counter;
 	FLAC__bool abort_flag;
 	FLAC__bool aborting_due_to_until; /* true if we intentionally abort decoding prematurely because we hit the --until point */
 	FLAC__bool aborting_due_to_unparseable; /* true if we abort decoding because we hit an unparseable frame */
@@ -75,9 +75,9 @@ typedef struct {
 	FLAC__bool got_stream_info;
 	FLAC__bool has_md5sum;
 	FLAC__uint64 total_samples;
-	uint32_t bps;
-	uint32_t channels;
-	uint32_t sample_rate;
+	FLAC__uint32 bps;
+	FLAC__uint32 channels;
+	FLAC__uint32 sample_rate;
 	FLAC__uint32 channel_mask;
 
 	/* these are used only in analyze mode */
@@ -104,16 +104,16 @@ static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, const char *inf
 static FLAC__bool DecoderSession_process(DecoderSession *d);
 static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
-static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
+static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, FLAC__uint32 sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
 static FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uint64 samples);
-static FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, uint32_t bps, uint32_t channels, uint32_t sample_rate, FLAC__uint32 channel_mask);
-static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate);
+static FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, FLAC__uint32 bps, FLAC__uint32 channels, FLAC__uint32 sample_rate, FLAC__uint32 channel_mask);
+static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, FLAC__uint32 bps, FLAC__uint32 channels, FLAC__uint32 sample_rate);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 val);
 static FLAC__bool write_big_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_big_endian_uint32(FILE *f, FLAC__uint32 val);
-static FLAC__bool write_sane_extended(FILE *f, uint32_t val);
+static FLAC__bool write_sane_extended(FILE *f, FLAC__uint32 val);
 static FLAC__bool fixup_iff_headers(DecoderSession *d);
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
 static void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
@@ -444,13 +444,13 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 	/* write padding bytes for alignment if necessary */
 	if(!d->analysis_mode && !d->test_only && d->format != FORMAT_RAW) {
 		const FLAC__uint64 data_size = d->total_samples * d->channels * ((d->bps+7)/8);
-		uint32_t padding;
+		FLAC__uint32 padding;
 		if(d->format != FORMAT_WAVE64) {
-			padding = (uint32_t)(data_size & 1);
+			padding = (FLAC__uint32)(data_size & 1);
 		}
 		else {
 			/* 8-byte alignment for Wave64 */
-			padding = (8 - (uint32_t)(data_size & 7)) & 7;
+			padding = (8 - (FLAC__uint32)(data_size & 7)) & 7;
 		}
 		for( ; padding > 0; --padding) {
 			if(flac__utils_fwrite("\000", 1, 1, d->fout) != 1) {
@@ -538,7 +538,7 @@ int DecoderSession_finish_error(DecoderSession *d)
 	return 1;
 }
 
-FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
+FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, FLAC__uint32 sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
 {
 	/* convert from mm:ss.sss to sample number if necessary */
 	flac__utils_canonicalize_skip_until_specification(spec, sample_rate);
@@ -605,7 +605,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 			(data_size+1) & (~(FLAC__uint64)1);
 
 	FLAC__uint64 iff_size;
-	uint32_t foreign_metadata_size = 0; /* size of all non-audio non-fmt/COMM foreign metadata chunks */
+	FLAC__uint32 foreign_metadata_size = 0; /* size of all non-audio non-fmt/COMM foreign metadata chunks */
 	foreign_metadata_t *fm = decoder_session->foreign_metadata;
 	size_t i;
 
@@ -831,7 +831,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 	return true;
 }
 
-FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, uint32_t bps, uint32_t channels, uint32_t sample_rate, FLAC__uint32 channel_mask)
+FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, FLAC__uint32 bps, FLAC__uint32 channels, FLAC__uint32 sample_rate, FLAC__uint32 channel_mask)
 {
 	if(!write_little_endian_uint16(f, (FLAC__uint16)(is_waveformatextensible? 65534 : 1))) /* compression code */
 		return false;
@@ -869,7 +869,7 @@ FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatexten
 	return true;
 }
 
-FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate)
+FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, FLAC__uint32 bps, FLAC__uint32 channels, FLAC__uint32 sample_rate)
 {
 	FLAC__ASSERT(samples <= 0xffffffff);
 
@@ -949,7 +949,7 @@ FLAC__bool write_big_endian_uint32(FILE *f, FLAC__uint32 val)
 	return flac__utils_fwrite(b, 1, 4, f) == 4;
 }
 
-FLAC__bool write_sane_extended(FILE *f, uint32_t val)
+FLAC__bool write_sane_extended(FILE *f, FLAC__uint32 val)
 	/* Write to 'f' a SANE extended representation of 'val'.  Return false if
 	* the write succeeds; return true otherwise.
 	*
@@ -961,7 +961,7 @@ FLAC__bool write_sane_extended(FILE *f, uint32_t val)
 	*  val!=0U
 	*/
 {
-	uint32_t shift, exponent;
+	FLAC__uint32 shift, exponent;
 
 	FLAC__ASSERT(val!=0U); /* handling 0 would require a special case */
 
@@ -1007,8 +1007,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	FILE *fout = decoder_session->fout;
-	const uint32_t bps = frame->header.bits_per_sample, channels = frame->header.channels;
-	const uint32_t shift = (decoder_session->format != FORMAT_RAW && (bps%8))? 8-(bps%8): 0;
+	const FLAC__uint32 bps = frame->header.bits_per_sample, channels = frame->header.channels;
+	const FLAC__uint32 shift = (decoder_session->format != FORMAT_RAW && (bps%8))? 8-(bps%8): 0;
 	FLAC__bool is_big_endian = (
 		decoder_session->format == FORMAT_AIFF || decoder_session->format == FORMAT_AIFF_C ? true : (
 		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 ? false :
@@ -1019,7 +1019,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 ? bps<=8 :
 		decoder_session->is_unsigned_samples
 	));
-	uint32_t wide_samples = frame->header.blocksize, wide_sample, sample, channel;
+	FLAC__uint32 wide_samples = frame->header.blocksize, wide_sample, sample, channel;
 	FLAC__uint64 frame_bytes = 0;
 
 	static union
@@ -1119,7 +1119,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		const FLAC__uint64 input_samples_passed = skip + decoder_session->samples_processed;
 		FLAC__ASSERT(until >= input_samples_passed);
 		if(input_samples_passed + wide_samples > until)
-			wide_samples = (uint32_t)(until - input_samples_passed);
+			wide_samples = (FLAC__uint32)(until - input_samples_passed);
 		if (wide_samples == 0) {
 			decoder_session->abort_flag = true;
 			decoder_session->aborting_due_to_until = true;
@@ -1148,7 +1148,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			if(shift && !decoder_session->replaygain.apply) {
 				for(wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++)
-						((uint32_t **)buffer)[channel][wide_sample] <<= shift;/*@@@@@@un-const'ing the buffer is hacky but safe*/
+						((FLAC__uint32 **)buffer)[channel][wide_sample] <<= shift;/*@@@@@@un-const'ing the buffer is hacky but safe*/
 			}
 			if(decoder_session->replaygain.apply) {
 				bytes_to_write = FLAC__replaygain_synthesis__apply_gain(
@@ -1220,9 +1220,9 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 					}
 				}
 				if(is_big_endian != is_big_endian_host_) {
-					uint8_t tmp;
-					const uint32_t bytes = sample * 2;
-					uint32_t b;
+					FLAC__uint8 tmp;
+					const FLAC__uint32 bytes = sample * 2;
+					FLAC__uint32 b;
 					for(b = 0; b < bytes; b += 2) {
 						tmp = ubuf.u8buffer[b];
 						ubuf.u8buffer[b] = ubuf.u8buffer[b+1];
@@ -1243,9 +1243,9 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 							ubuf.s32buffer[sample] = buffer[channel][wide_sample];
 				}
 				if(is_big_endian != is_big_endian_host_) {
-					uint8_t tmp;
-					const uint32_t bytes = sample * 4;
-					uint32_t b;
+					FLAC__uint8 tmp;
+					const FLAC__uint32 bytes = sample * 4;
+					FLAC__uint32 b;
 					for(b = 0; b < bytes; b += 4) {
 						tmp = ubuf.u8buffer[b];
 						ubuf.u8buffer[b] = ubuf.u8buffer[b+3];
@@ -1256,8 +1256,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 					}
 				}
 				if(is_big_endian) {
-					uint32_t b, lbyte;
-					const uint32_t bytes = sample * 4;
+					FLAC__uint32 b, lbyte;
+					const FLAC__uint32 bytes = sample * 4;
 					for(lbyte = b = 0; b < bytes; ) {
 						b++;
 						ubuf.u8buffer[lbyte++] = ubuf.u8buffer[b++];
@@ -1266,8 +1266,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 					}
 				}
 				else {
-					uint32_t b, lbyte;
-					const uint32_t bytes = sample * 4;
+					FLAC__uint32 b, lbyte;
+					const FLAC__uint32 bytes = sample * 4;
 					for(lbyte = b = 0; b < bytes; ) {
 						ubuf.u8buffer[lbyte++] = ubuf.u8buffer[b++];
 						ubuf.u8buffer[lbyte++] = ubuf.u8buffer[b++];
@@ -1502,13 +1502,13 @@ void print_stats(const DecoderSession *decoder_session)
 		const double progress = (double)decoder_session->samples_processed / (double)decoder_session->total_samples * 100.0;
 
 		if(decoder_session->total_samples > 0) {
-			if ((uint32_t)floor(progress + 0.5) == 100)
+			if ((FLAC__uint32)floor(progress + 0.5) == 100)
 				return;
 
 			stats_print_name(2, decoder_session->inbasefilename);
 			stats_print_info(2, "%s%u%% complete",
 				decoder_session->test_only? "testing, " : decoder_session->analysis_mode? "analyzing, " : "",
-				(uint32_t)floor(progress + 0.5)
+				(FLAC__uint32)floor(progress + 0.5)
 			);
 		}
 		else {

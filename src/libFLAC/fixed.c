@@ -45,7 +45,7 @@
 #ifdef local_abs
 #undef local_abs
 #endif
-#define local_abs(x) ((uint32_t)((x)<0? -(x) : (x)))
+#define local_abs(x) ((FLAC__uint32)((x)<0? -(x) : (x)))
 
 #ifdef FLAC__INTEGER_ONLY_LIBRARY
 /* rbps stands for residual bits per sample
@@ -57,7 +57,7 @@
 static FLAC__fixedpoint local__compute_rbps_integerized(FLAC__uint32 err, FLAC__uint32 n)
 {
 	FLAC__uint32 rbps;
-	uint32_t bits; /* the number of bits required to represent a number */
+	FLAC__uint32 bits; /* the number of bits required to represent a number */
 	int fracbits; /* the number of bits of rbps that comprise the fractional part */
 
 	FLAC__ASSERT(sizeof(rbps) == sizeof(FLAC__fixedpoint));
@@ -105,7 +105,7 @@ static FLAC__fixedpoint local__compute_rbps_integerized(FLAC__uint32 err, FLAC__
 		}
 	}
 
-	rbps = FLAC__fixedpoint_log2(rbps, fracbits, (uint32_t)(-1));
+	rbps = FLAC__fixedpoint_log2(rbps, fracbits, (FLAC__uint32)(-1));
 
 	if(rbps == 0)
 		return 0;
@@ -136,7 +136,7 @@ static FLAC__fixedpoint local__compute_rbps_integerized(FLAC__uint32 err, FLAC__
 static FLAC__fixedpoint local__compute_rbps_wide_integerized(FLAC__uint64 err, FLAC__uint32 n)
 {
 	FLAC__uint32 rbps;
-	uint32_t bits; /* the number of bits required to represent a number */
+	FLAC__uint32 bits; /* the number of bits required to represent a number */
 	int fracbits; /* the number of bits of rbps that comprise the fractional part */
 
 	FLAC__ASSERT(sizeof(rbps) == sizeof(FLAC__fixedpoint));
@@ -184,7 +184,7 @@ static FLAC__fixedpoint local__compute_rbps_wide_integerized(FLAC__uint64 err, F
 		}
 	}
 
-	rbps = FLAC__fixedpoint_log2(rbps, fracbits, (uint32_t)(-1));
+	rbps = FLAC__fixedpoint_log2(rbps, fracbits, (FLAC__uint32)(-1));
 
 	if(rbps == 0)
 		return 0;
@@ -214,13 +214,13 @@ static FLAC__fixedpoint local__compute_rbps_wide_integerized(FLAC__uint64 err, F
 #endif
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+FLAC__uint32 FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], FLAC__uint32 data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 #else
-uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+FLAC__uint32 FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], FLAC__uint32 data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 #endif
 {
 	FLAC__uint32 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
-	uint32_t order;
+	FLAC__uint32 order;
 #if 0
 	/* This code has been around a long time, and was written when compilers weren't able
 	 * to vectorize code. These days, compilers are better in optimizing the next block
@@ -235,7 +235,7 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 	 * erratic signals when the bits-per-sample and blocksize are
 	 * large.
 	 */
-	for(uint32_t i = 0; i < data_len; i++) {
+	for(FLAC__uint32 i = 0; i < data_len; i++) {
 		error  = data[i]     ; total_error_0 += local_abs(error);                      save = error;
 		error -= last_error_0; total_error_1 += local_abs(error); last_error_0 = save; save = error;
 		error -= last_error_1; total_error_2 += local_abs(error); last_error_1 = save; save = error;
@@ -291,13 +291,13 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 }
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+FLAC__uint32 FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], FLAC__uint32 data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 #else
-uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
+FLAC__uint32 FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], FLAC__uint32 data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1])
 #endif
 {
 	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
-	uint32_t order;
+	FLAC__uint32 order;
 
 	for(int i = 0; i < (int)data_len; i++) {
 		total_error_0 += local_abs(data[i]);
@@ -344,7 +344,7 @@ uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint3
 	return order;
 }
 
-void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[])
+void FLAC__fixed_compute_residual(const FLAC__int32 data[], FLAC__uint32 data_len, FLAC__uint32 order, FLAC__int32 residual[])
 {
 	const int idata_len = (int)data_len;
 	int i;
@@ -383,7 +383,7 @@ void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, u
  * potential for security problems */
 __attribute__((no_sanitize("signed-integer-overflow")))
 #endif
-void FLAC__fixed_restore_signal(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int32 data[])
+void FLAC__fixed_restore_signal(const FLAC__int32 residual[], FLAC__uint32 data_len, FLAC__uint32 order, FLAC__int32 data[])
 {
 	int i, idata_len = (int)data_len;
 

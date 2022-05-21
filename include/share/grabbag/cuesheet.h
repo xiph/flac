@@ -29,10 +29,10 @@
 extern "C" {
 #endif
 
-uint32_t grabbag__cuesheet_msf_to_frame(uint32_t minutes, uint32_t seconds, uint32_t frames);
-void grabbag__cuesheet_frame_to_msf(uint32_t frame, uint32_t *minutes, uint32_t *seconds, uint32_t *frames);
+FLAC__uint32 grabbag__cuesheet_msf_to_frame(FLAC__uint32 minutes, FLAC__uint32 seconds, FLAC__uint32 frames);
+void grabbag__cuesheet_frame_to_msf(FLAC__uint32 frame, FLAC__uint32 *minutes, FLAC__uint32 *seconds, FLAC__uint32 *frames);
 
-FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, uint32_t *last_line_read, uint32_t sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);
+FLAC__StreamMetadata *grabbag__cuesheet_parse(FILE *file, const char **error_message, FLAC__uint32 *last_line_read, FLAC__uint32 sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset);
 
 void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, const char *file_reference);
 

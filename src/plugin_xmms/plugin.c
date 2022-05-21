@@ -65,13 +65,13 @@ typedef struct {
 	FLAC__bool eof;
 	FLAC__bool play_thread_open; /* if true, is_playing must also be true */
 	FLAC__uint64 total_samples;
-	uint32_t bits_per_sample;
-	uint32_t channels;
-	uint32_t sample_rate;
+	FLAC__uint32 bits_per_sample;
+	FLAC__uint32 channels;
+	FLAC__uint32 sample_rate;
 	int length_in_msec; /* int (instead of FLAC__uint64) only because that's what XMMS uses; seeking won't work right if this maxes out */
 	gchar *title;
 	AFormat sample_format;
-	uint32_t sample_format_bytes_per_sample;
+	FLAC__uint32 sample_format_bytes_per_sample;
 	int seek_to_in_sec;
 	FLAC__bool has_replaygain;
 	double replay_scale;
@@ -130,7 +130,7 @@ InputPlugin flac_ip =
 #define SAMPLES_PER_WRITE 512
 #define SAMPLE_BUFFER_SIZE ((FLAC__MAX_BLOCK_SIZE + SAMPLES_PER_WRITE) * FLAC_PLUGIN__MAX_SUPPORTED_CHANNELS * (24/8))
 static FLAC__byte sample_buffer_[SAMPLE_BUFFER_SIZE];
-static uint32_t sample_buffer_first_, sample_buffer_last_;
+static FLAC__uint32 sample_buffer_first_, sample_buffer_last_;
 
 static FLAC__StreamDecoder *decoder_ = 0;
 static stream_data_struct stream_data_;
@@ -141,7 +141,7 @@ static FLAC__bool is_big_endian_host_;
 #define BITRATE_HIST_SEGMENT_MSEC 500
 /* 500ms * 50 = 25s should be enough */
 #define BITRATE_HIST_SIZE 50
-static uint32_t bitrate_history_[BITRATE_HIST_SIZE];
+static FLAC__uint32 bitrate_history_[BITRATE_HIST_SIZE];
 
 
 FLAC_API InputPlugin *get_iplugin_info(void)
@@ -437,7 +437,7 @@ void FLAC_XMMS__get_song_info(char *filename, char **title, int *length_in_msec)
 
 void *play_loop_(void *arg)
 {
-	uint32_t written_time_last = 0, bh_index_last_w = 0, bh_index_last_o = BITRATE_HIST_SIZE, blocksize = 1;
+	FLAC__uint32 written_time_last = 0, bh_index_last_w = 0, bh_index_last_o = BITRATE_HIST_SIZE, blocksize = 1;
 	FLAC__uint64 decode_position_last = 0, decode_position_frame_last = 0, decode_position_frame = 0;
 
 	(void)arg;
@@ -445,7 +445,7 @@ void *play_loop_(void *arg)
 	while(stream_data_.is_playing) {
 		if(!stream_data_.eof) {
 			while(sample_buffer_last_ - sample_buffer_first_ < SAMPLES_PER_WRITE) {
-				uint32_t s;
+				FLAC__uint32 s;
 
 				s = sample_buffer_last_ - sample_buffer_first_;
 				if(FLAC__stream_decoder_get_state(decoder_) == FLAC__STREAM_DECODER_END_OF_STREAM) {
@@ -464,10 +464,10 @@ void *play_loop_(void *arg)
 					decode_position_frame = 0;
 			}
 			if(sample_buffer_last_ - sample_buffer_first_ > 0) {
-				const uint32_t n = min(sample_buffer_last_ - sample_buffer_first_, SAMPLES_PER_WRITE);
+				const FLAC__uint32 n = min(sample_buffer_last_ - sample_buffer_first_, SAMPLES_PER_WRITE);
 				int bytes = n * stream_data_.channels * stream_data_.sample_format_bytes_per_sample;
 				FLAC__byte *sample_buffer_start = sample_buffer_ + sample_buffer_first_ * stream_data_.channels * stream_data_.sample_format_bytes_per_sample;
-				uint32_t written_time, bh_index_w;
+				FLAC__uint32 written_time, bh_index_w;
 				FLAC__uint64 decode_position;
 
 				sample_buffer_first_ += n;
@@ -523,7 +523,7 @@ void *play_loop_(void *arg)
 		}
 		else {
 			/* display the right bitrate from history */
-			uint32_t bh_index_o = flac_ip.output->output_time() / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
+			FLAC__uint32 bh_index_o = flac_ip.output->output_time() / BITRATE_HIST_SEGMENT_MSEC % BITRATE_HIST_SIZE;
 			if(bh_index_o != bh_index_last_o && bh_index_o != bh_index_last_w && bh_index_o != (bh_index_last_w + 1) % BITRATE_HIST_SIZE) {
 				bh_index_last_o = bh_index_o;
 				flac_ip.set_info(stream_data_.title, stream_data_.length_in_msec, bitrate_history_[bh_index_o], stream_data_.sample_rate, stream_data_.channels);
@@ -597,8 +597,8 @@ FLAC__StreamDecoderReadStatus http_read_callback_(const FLAC__StreamDecoder *dec
 FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
 {
 	stream_data_struct *stream_data = (stream_data_struct *)client_data;
-	const uint32_t channels = stream_data->channels, wide_samples = frame->header.blocksize;
-	const uint32_t bits_per_sample = stream_data->bits_per_sample;
+	const FLAC__uint32 channels = stream_data->channels, wide_samples = frame->header.blocksize;
+	const FLAC__uint32 bits_per_sample = stream_data->bits_per_sample;
 	FLAC__byte *sample_buffer_start;
 
 	(void)decoder;
@@ -616,7 +616,7 @@ FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decode
 		FLAC__replaygain_synthesis__apply_gain(
 				sample_buffer_start,
 				!is_big_endian_host_,
-				stream_data->sample_format_bytes_per_sample == 1, /* uint32_t_data_out */
+				stream_data->sample_format_bytes_per_sample == 1, /* FLAC__uint32_data_out */
 				buffer,
 				wide_samples,
 				channels,

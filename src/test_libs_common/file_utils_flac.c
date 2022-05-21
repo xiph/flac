@@ -52,7 +52,7 @@ typedef struct {
 	FILE *file;
 } encoder_client_struct;
 
-static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data)
+static FLAC__StreamEncoderWriteStatus encoder_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame, void *client_data)
 {
 	encoder_client_struct *ecd = (encoder_client_struct*)client_data;
 
@@ -69,13 +69,13 @@ static void encoder_metadata_callback_(const FLAC__StreamEncoder *encoder, const
 	(void)encoder, (void)metadata, (void)client_data;
 }
 
-FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_filename, FLAC__off_t *output_filesize, uint32_t length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, uint32_t num_metadata)
+FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_filename, FLAC__off_t *output_filesize, FLAC__uint32 length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, FLAC__uint32 num_metadata)
 {
 	FLAC__int32 samples[1024];
 	FLAC__StreamEncoder *encoder;
 	FLAC__StreamEncoderInitStatus init_status;
 	encoder_client_struct encoder_client_data;
-	uint32_t i, n;
+	FLAC__uint32 i, n;
 
 	FLAC__ASSERT(0 != output_filename);
 	FLAC__ASSERT(0 != streaminfo);

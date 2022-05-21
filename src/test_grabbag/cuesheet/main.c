@@ -29,12 +29,12 @@
 #include "FLAC/metadata.h"
 #include "share/grabbag.h"
 
-static int do_cuesheet(const char *infilename, uint32_t sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
+static int do_cuesheet(const char *infilename, FLAC__uint32 sample_rate, FLAC__bool is_cdda, FLAC__uint64 lead_out_offset)
 {
 	FILE *fin, *fout;
 	const char *error_message, *tmpfilenamebase;
 	char tmpfilename[4096];
-	uint32_t last_line_read;
+	FLAC__uint32 last_line_read;
 	FLAC__StreamMetadata *cuesheet;
 
 	FLAC__ASSERT(strlen(infilename) + 2 < sizeof(tmpfilename));
@@ -116,7 +116,7 @@ static int do_cuesheet(const char *infilename, uint32_t sample_rate, FLAC__bool 
 int main(int argc, char *argv[])
 {
 	FLAC__uint64 lead_out_offset;
-	uint32_t sample_rate = 48000;
+	FLAC__uint32 sample_rate = 48000;
 	FLAC__bool is_cdda = false;
 	const char *usage = "usage: test_cuesheet cuesheet_file lead_out_offset [ [ sample_rate ] cdda ]\n";
 
@@ -132,7 +132,7 @@ int main(int argc, char *argv[])
 
 	lead_out_offset = (FLAC__uint64)strtoul(argv[2], 0, 10);
 	if(argc >= 4) {
-		sample_rate = (uint32_t)atoi(argv[3]);
+		sample_rate = (FLAC__uint32)atoi(argv[3]);
 		if(argc >= 5) {
 			if(0 == strcmp(argv[4], "cdda"))
 				is_cdda = true;

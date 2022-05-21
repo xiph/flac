@@ -41,7 +41,7 @@ extern "C" {
 FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, const char **error_message);
 
 typedef struct PictureResolution
-{	uint32_t width, height, depth, colors ;
+{	FLAC__uint32 width, height, depth, colors ;
 } PictureResolution ;
 
 FLAC__StreamMetadata *grabbag__picture_from_specification(int type, const char *mime_type, const char * description,

@@ -40,7 +40,7 @@ static FLAC__bool test_crc16_64bit_words(const FLAC__uint64 *words, size_t size)
 
 FLAC__bool test_crc(void)
 {
-	uint32_t i;
+	FLAC__uint32 i;
 	FLAC__byte data[DATA_SIZE] = { 0 };
 
 	/* Initialize data reproducibly with pseudo-random values. */
@@ -76,7 +76,7 @@ FLAC__bool test_crc(void)
 
 static FLAC__uint8 crc8_update_ref(FLAC__byte byte, FLAC__uint8 crc)
 {
-    uint32_t i;
+    FLAC__uint32 i;
 
     crc ^= byte;
 
@@ -91,7 +91,7 @@ static FLAC__uint8 crc8_update_ref(FLAC__byte byte, FLAC__uint8 crc)
 
 static FLAC__uint16 crc16_update_ref(FLAC__byte byte, FLAC__uint16 crc)
 {
-    uint32_t i;
+    FLAC__uint32 i;
 
     crc ^= byte << 8;
 
@@ -106,7 +106,7 @@ static FLAC__uint16 crc16_update_ref(FLAC__byte byte, FLAC__uint16 crc)
 
 static FLAC__bool test_crc8(const FLAC__byte *data, size_t size)
 {
-	uint32_t i;
+	FLAC__uint32 i;
 	FLAC__uint8 crc0,crc1;
 
 	printf("testing FLAC__crc8 ... ");
@@ -136,7 +136,7 @@ static FLAC__bool test_crc8(const FLAC__byte *data, size_t size)
 
 static FLAC__bool test_crc16(const FLAC__byte *data, size_t size)
 {
-	uint32_t i;
+	FLAC__uint32 i;
 	FLAC__uint16 crc0,crc1;
 
 	printf("testing FLAC__crc16 ... ");
@@ -166,7 +166,7 @@ static FLAC__bool test_crc16(const FLAC__byte *data, size_t size)
 
 static FLAC__bool test_crc16_update(const FLAC__byte *data, size_t size)
 {
-	uint32_t i;
+	FLAC__uint32 i;
 	FLAC__uint16 crc0,crc1;
 
 	printf("testing FLAC__CRC16_UPDATE macro ... ");
@@ -191,7 +191,7 @@ static FLAC__bool test_crc16_update(const FLAC__byte *data, size_t size)
 
 static FLAC__bool test_crc16_32bit_words(const FLAC__uint32 *words, size_t size)
 {
-	uint32_t n,i,k;
+	FLAC__uint32 n,i,k;
 	FLAC__uint16 crc0,crc1;
 
 	for (n = 1; n <= 16; n++) {
@@ -231,7 +231,7 @@ static FLAC__bool test_crc16_32bit_words(const FLAC__uint32 *words, size_t size)
 
 static FLAC__bool test_crc16_64bit_words(const FLAC__uint64 *words, size_t size)
 {
-	uint32_t n,i,k;
+	FLAC__uint32 n,i,k;
 	FLAC__uint16 crc0,crc1;
 
 	for (n = 1; n <= 16; n++) {

@@ -47,7 +47,7 @@
 
 #ifdef FLAC__HAS_TARGET_POWER8
 __attribute__((target("cpu=power8")))
-void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_14(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 14
@@ -55,7 +55,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_14(const FLAC__real
 }
 
 __attribute__((target("cpu=power8")))
-void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_10(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 10
@@ -63,7 +63,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_10(const FLAC__real
 }
 
 __attribute__((target("cpu=power8")))
-void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 8
@@ -73,7 +73,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8(const FLAC__real 
 
 #ifdef FLAC__HAS_TARGET_POWER9
 __attribute__((target("cpu=power9")))
-void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_14(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 14
@@ -81,7 +81,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_14(const FLAC__real
 }
 
 __attribute__((target("cpu=power9")))
-void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_10(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 10
@@ -89,7 +89,7 @@ void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_10(const FLAC__real
 }
 
 __attribute__((target("cpu=power9")))
-void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_8(const FLAC__real data[], FLAC__uint32 data_len, FLAC__uint32 lag, double autoc[])
 {
 #undef MAX_LAG
 #define MAX_LAG 8

@@ -171,7 +171,7 @@ vec_vsx_st(sum6, 96, autoc);
 
 /* Process remainder of samples in a non-VSX way */
 for (; i < (long)data_len; i++) {
-	uint32_t coeff;
+	FLAC__uint32 coeff;
 
 	FLAC__real d = data[i];
 	for (coeff = 0; coeff < data_len - i; coeff++)

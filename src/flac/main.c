@@ -62,7 +62,7 @@ static int parse_option(int short_option, const char *long_option, const char *o
 static void free_options(void);
 static void add_compression_setting_bool(compression_setting_type_t type, FLAC__bool value);
 static void add_compression_setting_string(compression_setting_type_t type, const char *value);
-static void add_compression_setting_uint32_t(compression_setting_type_t type, uint32_t value);
+static void add_compression_setting_FLAC__uint32(compression_setting_type_t type, FLAC__uint32 value);
 
 static int usage_error(const char *message, ...);
 static void short_usage(void);
@@ -271,12 +271,12 @@ static struct {
 	FLAC__bool error_on_compression_fail;
 	FLAC__bool limit_min_bitrate;
 
-	uint32_t num_files;
+	FLAC__uint32 num_files;
 	char **filenames;
 
 	FLAC__StreamMetadata *vorbis_comment;
 	FLAC__StreamMetadata *pictures[64];
-	uint32_t num_pictures;
+	FLAC__uint32 num_pictures;
 
 	struct {
 		FLAC__bool disable_constant_subframes;
@@ -293,7 +293,7 @@ static struct {
 
 static FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carrying over samples from --sector-align */ /* DEPRECATED */
 static FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 };
-static uint32_t align_reservoir_samples = 0; /* 0 .. 587 */
+static FLAC__uint32 align_reservoir_samples = 0; /* 0 .. 587 */
 
 
 int main(int argc, char *argv[])
@@ -311,7 +311,7 @@ int main(int argc, char *argv[])
 	}
 #endif
 
-	srand((uint32_t)time(0));
+	srand((FLAC__uint32)time(0));
 #ifdef _WIN32
 	{
 		const char *var;
@@ -387,7 +387,7 @@ int do_it(void)
 			return usage_error("ERROR: --cue may not be combined with --skip or --until\n");
 
 		if(option_values.format_channels >= 0) {
-			if(option_values.format_channels == 0 || (uint32_t)option_values.format_channels > FLAC__MAX_CHANNELS)
+			if(option_values.format_channels == 0 || (FLAC__uint32)option_values.format_channels > FLAC__MAX_CHANNELS)
 				return usage_error("ERROR: invalid number of channels '%u', must be > 0 and <= %u\n", option_values.format_channels, FLAC__MAX_CHANNELS);
 		}
 		if(option_values.format_bps >= 0) {
@@ -493,7 +493,7 @@ int do_it(void)
 			retval = decode_file("-");
 		}
 		else {
-			uint32_t i;
+			FLAC__uint32 i;
 			if(option_values.num_files > 1)
 				option_values.cmdline_forced_outfilename = 0;
 			for(i = 0, retval = 0; i < option_values.num_files; i++) {
@@ -514,7 +514,7 @@ int do_it(void)
 			retval = encode_file("-", first, true);
 		}
 		else {
-			uint32_t i;
+			FLAC__uint32 i;
 			if(option_values.num_files > 1)
 				option_values.cmdline_forced_outfilename = 0;
 			for(i = 0, retval = 0; i < option_values.num_files; i++) {
@@ -647,7 +647,7 @@ int parse_options(int argc, char *argv[])
 	option_values.num_files = argc - share__optind;
 
 	if(option_values.num_files > 0) {
-		uint32_t i = 0;
+		FLAC__uint32 i = 0;
 		if(0 == (option_values.filenames = malloc(sizeof(char*) * option_values.num_files)))
 			die("out of memory allocating space for file names list");
 		while(share__optind < argc)
@@ -741,7 +741,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.cuesheet_filename = option_argument;
 		}
 		else if(0 == strcmp(long_option, "picture")) {
-			const uint32_t max_pictures = sizeof(option_values.pictures)/sizeof(option_values.pictures[0]);
+			const FLAC__uint32 max_pictures = sizeof(option_values.pictures)/sizeof(option_values.pictures[0]);
 			FLAC__ASSERT(0 != option_argument);
 			if(option_values.num_pictures >= max_pictures)
 				return usage_error("ERROR: too many --picture arguments, only %u allowed\n", max_pictures);
@@ -976,7 +976,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			case '6':
 			case '7':
 			case '8':
-				add_compression_setting_uint32_t(CST_COMPRESSION_LEVEL, short_option-'0');
+				add_compression_setting_FLAC__uint32(CST_COMPRESSION_LEVEL, short_option-'0');
 				break;
 			case '9':
 				return usage_error("ERROR: compression level '9' is reserved\n");
@@ -1013,12 +1013,12 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'b':
 				{
-					uint32_t i ;
+					FLAC__uint32 i ;
 					FLAC__ASSERT(0 != option_argument);
 					i = atoi(option_argument);
 					if((i < (int)FLAC__MIN_BLOCK_SIZE || i > (int)FLAC__MAX_BLOCK_SIZE))
 						return usage_error("ERROR: invalid blocksize (-%c) '%d', must be >= %u and <= %u\n", short_option, i, FLAC__MIN_BLOCK_SIZE, FLAC__MAX_BLOCK_SIZE);
-					add_compression_setting_uint32_t(CST_BLOCKSIZE, (uint32_t)i);
+					add_compression_setting_FLAC__uint32(CST_BLOCKSIZE, (FLAC__uint32)i);
 				}
 				break;
 			case 'e':
@@ -1029,12 +1029,12 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'l':
 				{
-					uint32_t i ;
+					FLAC__uint32 i ;
 					FLAC__ASSERT(0 != option_argument);
 					i = atoi(option_argument);
 					if(i > FLAC__MAX_LPC_ORDER)
 						return usage_error("ERROR: invalid LPC order (-%c) '%d', must be >= %u and <= %u\n", short_option, i, 0, FLAC__MAX_LPC_ORDER);
-					add_compression_setting_uint32_t(CST_MAX_LPC_ORDER, i);
+					add_compression_setting_FLAC__uint32(CST_MAX_LPC_ORDER, i);
 				}
 				break;
 			case 'A':
@@ -1054,44 +1054,44 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'q':
 				{
-					uint32_t i ;
+					FLAC__uint32 i ;
 					FLAC__ASSERT(0 != option_argument);
 					i = atoi(option_argument);
 					if((i > 0 && (i < FLAC__MIN_QLP_COEFF_PRECISION || i > FLAC__MAX_QLP_COEFF_PRECISION)))
 						return usage_error("ERROR: invalid value '%d' for qlp coeff precision (-%c), must be 0 or between %u and %u, inclusive\n", i, short_option, FLAC__MIN_QLP_COEFF_PRECISION, FLAC__MAX_QLP_COEFF_PRECISION);
-					add_compression_setting_uint32_t(CST_QLP_COEFF_PRECISION, i);
+					add_compression_setting_FLAC__uint32(CST_QLP_COEFF_PRECISION, i);
 				}
 				break;
 			case 'r':
 				{
-					uint32_t i;
+					FLAC__uint32 i;
 					char * p;
 					FLAC__ASSERT(0 != option_argument);
 					p = strchr(option_argument, ',');
 					if(0 == p) {
-						add_compression_setting_uint32_t(CST_MIN_RESIDUAL_PARTITION_ORDER, 0);
+						add_compression_setting_FLAC__uint32(CST_MIN_RESIDUAL_PARTITION_ORDER, 0);
 						i = atoi(option_argument);
 						if(i > FLAC__MAX_RICE_PARTITION_ORDER)
 							return usage_error("ERROR: invalid value '%d' for residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
-						add_compression_setting_uint32_t(CST_MAX_RESIDUAL_PARTITION_ORDER, i);
+						add_compression_setting_FLAC__uint32(CST_MAX_RESIDUAL_PARTITION_ORDER, i);
 					}
 					else {
 						i = atoi(option_argument);
 						if(i > FLAC__MAX_RICE_PARTITION_ORDER)
 							return usage_error("ERROR: invalid value '%d' for min residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
-						add_compression_setting_uint32_t(CST_MIN_RESIDUAL_PARTITION_ORDER, i);
+						add_compression_setting_FLAC__uint32(CST_MIN_RESIDUAL_PARTITION_ORDER, i);
 						i = atoi(++p);
 						if(i > FLAC__MAX_RICE_PARTITION_ORDER)
 							return usage_error("ERROR: invalid value '%d' for max residual partition order (-%c), must be between 0 and %u, inclusive\n", i, short_option, FLAC__MAX_RICE_PARTITION_ORDER);
-						add_compression_setting_uint32_t(CST_MAX_RESIDUAL_PARTITION_ORDER, i);
+						add_compression_setting_FLAC__uint32(CST_MAX_RESIDUAL_PARTITION_ORDER, i);
 					}
 				}
 				break;
 			case 'R':
 				{
-					uint32_t i;
+					FLAC__uint32 i;
 					i = atoi(option_argument);
-					add_compression_setting_uint32_t(CST_RICE_PARAMETER_SEARCH_DIST, i);
+					add_compression_setting_FLAC__uint32(CST_RICE_PARAMETER_SEARCH_DIST, i);
 				}
 				break;
 			default:
@@ -1104,7 +1104,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 
 void free_options(void)
 {
-	uint32_t i;
+	FLAC__uint32 i;
 	if(0 != option_values.filenames) {
 		for(i = 0; i < option_values.num_files; i++) {
 			if(0 != option_values.filenames[i])
@@ -1136,7 +1136,7 @@ void add_compression_setting_string(compression_setting_type_t type, const char 
 	option_values.num_compression_settings++;
 }
 
-void add_compression_setting_uint32_t(compression_setting_type_t type, uint32_t value)
+void add_compression_setting_FLAC__uint32(compression_setting_type_t type, FLAC__uint32 value)
 {
 	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
 		die("too many compression settings");
@@ -1306,7 +1306,7 @@ void show_help(void)
 	printf("      --channels=#             Number of channels\n");
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
-	printf("      --sign={signed|uint32_t} Sign of samples\n");
+	printf("      --sign={signed|FLAC__uint32} Sign of samples\n");
 	printf("      --input-size=#           Size of the raw input in bytes\n");
 	printf("negative options:\n");
 	printf("      --no-adaptive-mid-side\n");
@@ -1653,7 +1653,7 @@ void show_explain(void)
 	printf("      --channels=#             Number of channels\n");
 	printf("      --bps=#                  Number of bits per sample\n");
 	printf("      --sample-rate=#          Sample rate in Hz\n");
-	printf("      --sign={signed|uint32_t} Sign of samples (the default is signed)\n");
+	printf("      --sign={signed|FLAC__uint32} Sign of samples (the default is signed)\n");
 	printf("      --input-size=#           Size of the raw input in bytes.  If you are\n");
 	printf("                               encoding raw samples from stdin, you must set\n");
 	printf("                               this option in order to be able to use --skip,\n");
@@ -1700,7 +1700,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 {
 	FILE *encode_infile;
 	FLAC__byte lookahead[12];
-	uint32_t lookahead_length = 0;
+	FLAC__uint32 lookahead_length = 0;
 	FileFormat input_format = FORMAT_RAW;
 	int retval;
 	FLAC__off_t infilesize;

@@ -62,8 +62,8 @@
  *    flac_float_t       l_samples [4096];
  *    flac_float_t       r_samples [4096];
  *    size_t        num_samples;
- *    uint32_t  num_songs;
- *    uint32_t  i;
+ *    FLAC__uint32  num_songs;
+ *    FLAC__uint32  i;
  *
  *    InitGainAnalysis ( 44100 );
  *    for ( i = 1; i <= num_songs; i++ ) {
@@ -125,17 +125,17 @@ static flac_float_t*         rstepbuf;
 static flac_float_t*         rstep;
 static flac_float_t*         routbuf;
 static flac_float_t*         rout;
-static uint32_t              sampleWindow;                           /* number of samples required to reach number of milliseconds required for RMS window */
-static uint64_t	        totsamp;
+static FLAC__uint32              sampleWindow;                           /* number of samples required to reach number of milliseconds required for RMS window */
+static FLAC__uint64	        totsamp;
 static double           lsum;
 static double           rsum;
 #if 0
-static uint32_t  A [(size_t)(STEPS_per_dB * MAX_dB)];
-static uint32_t  B [(size_t)(STEPS_per_dB * MAX_dB)];
+static FLAC__uint32  A [(size_t)(STEPS_per_dB * MAX_dB)];
+static FLAC__uint32  B [(size_t)(STEPS_per_dB * MAX_dB)];
 #else
 /* [JEC] Solaris Forte compiler doesn't like float calc in array indices */
-static uint32_t  A [120 * 100];
-static uint32_t  B [120 * 100];
+static FLAC__uint32  A [120 * 100];
+static FLAC__uint32  B [120 * 100];
 #endif
 
 #ifdef _MSC_VER
@@ -144,7 +144,7 @@ static uint32_t  B [120 * 100];
 
 struct ReplayGainFilter {
     long rate;
-    uint32_t downsample;
+    FLAC__uint32 downsample;
     flac_float_t BYule[YULE_ORDER+1];
     flac_float_t AYule[YULE_ORDER+1];
     flac_float_t BButter[BUTTER_ORDER+1];
@@ -269,7 +269,7 @@ static const struct ReplayGainFilter ReplayGainFilters[] = {
 /* When calling this procedure, make sure that ip[-order] and op[-order] point to real data! */
 
 static void
-filter ( const flac_float_t* input, flac_float_t* output, size_t nSamples, const flac_float_t* a, const flac_float_t* b, size_t order, uint32_t downsample )
+filter ( const flac_float_t* input, flac_float_t* output, size_t nSamples, const flac_float_t* a, const flac_float_t* b, size_t order, FLAC__uint32 downsample )
 {
     double  y;
     size_t  i;
@@ -303,9 +303,9 @@ filter ( const flac_float_t* input, flac_float_t* output, size_t nSamples, const
 static struct ReplayGainFilter*
 CreateGainFilter ( long samplefreq )
 {
-    uint32_t i;
+    FLAC__uint32 i;
     long maxrate = 0;
-    uint32_t downsample = 1;
+    FLAC__uint32 downsample = 1;
     struct ReplayGainFilter* gainfilter = malloc(sizeof(*gainfilter));
 
     if ( !gainfilter )
@@ -338,7 +338,7 @@ CreateGainFilter ( long samplefreq )
 }
 
 static void*
-ReallocateWindowBuffer(uint32_t window_size, flac_float_t **window_buffer)
+ReallocateWindowBuffer(FLAC__uint32 window_size, flac_float_t **window_buffer)
 {
     *window_buffer = safe_realloc_(*window_buffer, sizeof(**window_buffer) * (window_size + MAX_ORDER));
     return *window_buffer;
@@ -416,7 +416,7 @@ InitGainAnalysis ( long samplefreq )
 int
 AnalyzeSamples ( const flac_float_t* left_samples, const flac_float_t* right_samples, size_t num_samples, int num_channels )
 {
-    uint32_t        downsample = replaygainfilter->downsample;
+    FLAC__uint32        downsample = replaygainfilter->downsample;
     const flac_float_t*  curleft;
     const flac_float_t*  curright;
     long            prebufsamples;
@@ -517,10 +517,10 @@ AnalyzeSamples ( const flac_float_t* left_samples, const flac_float_t* right_sam
 
 
 static flac_float_t
-analyzeResult ( uint32_t* Array, size_t len )
+analyzeResult ( FLAC__uint32* Array, size_t len )
 {
-    uint32_t  elems;
-    int32_t   upper;
+    FLAC__uint32  elems;
+    FLAC__int32   upper;
     size_t    i;
 
     elems = 0;
@@ -531,9 +531,9 @@ analyzeResult ( uint32_t* Array, size_t len )
 
 /* workaround for GCC bug #61423: https://gcc.gnu.org/bugzilla/show_bug.cgi?id=61423 */
 #if 0
-    upper = (int32_t) ceil (elems * (1. - RMS_PERCENTILE));
+    upper = (FLAC__int32) ceil (elems * (1. - RMS_PERCENTILE));
 #else
-    upper = (int32_t) (elems / 20 + ((elems % 20) ? 1 : 0));
+    upper = (FLAC__int32) (elems / 20 + ((elems % 20) ? 1 : 0));
 #endif
     for ( i = len; i-- > 0; ) {
         if ( (upper -= Array[i]) <= 0 )
@@ -548,7 +548,7 @@ flac_float_t
 GetTitleGain ( void )
 {
     flac_float_t  retval;
-    uint32_t      i;
+    FLAC__uint32      i;
 
     retval = analyzeResult ( A, sizeof(A)/sizeof(*A) );
 

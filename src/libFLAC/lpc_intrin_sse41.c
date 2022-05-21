@@ -53,7 +53,7 @@
 #define RESIDUAL64_RESULT1(xmmN) residual[i] = data[i] - _mm_cvtsi128_si32(_mm_srli_epi64(xmmN, lp_quantization))
 
 FLAC__SSE_TARGET("sse4.1")
-void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
+void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FLAC__int32 *data, FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 residual[])
 {
 	int i;
 	const __m128i cnt = _mm_cvtsi32_si128(lp_quantization);
@@ -589,7 +589,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FL
 }
 
 FLAC__SSE_TARGET("sse4.1")
-void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[])
+void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 data[])
 {
 	int i;
 	const __m128i cnt = _mm_cvtsi32_si128(lp_quantization);
@@ -939,7 +939,7 @@ void FLAC__lpc_restore_signal_wide_intrin_sse41(const FLAC__int32 residual[], ui
 }
 
 FLAC__SSE_TARGET("sse4.1")
-void FLAC__lpc_restore_signal_intrin_sse41(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[])
+void FLAC__lpc_restore_signal_intrin_sse41(const FLAC__int32 residual[], FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 data[])
 {
 	if(order < 8) {
 		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
@@ -1034,7 +1034,7 @@ void FLAC__lpc_restore_signal_intrin_sse41(const FLAC__int32 residual[], uint32_
 }
 
 FLAC__SSE_TARGET("ssse3")
-void FLAC__lpc_restore_signal_16_intrin_sse41(const FLAC__int32 residual[], uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 data[])
+void FLAC__lpc_restore_signal_16_intrin_sse41(const FLAC__int32 residual[], FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 data[])
 {
 	if(order < 8) {
 		FLAC__lpc_restore_signal(residual, data_len, qlp_coeff, order, lp_quantization, data);
@@ -1135,7 +1135,7 @@ void FLAC__lpc_restore_signal_16_intrin_sse41(const FLAC__int32 residual[], uint
 #endif /* defined FLAC__CPU_IA32 */
 
 FLAC__SSE_TARGET("sse4.1")
-void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
+void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41(const FLAC__int32 *data, FLAC__uint32 data_len, const FLAC__int32 qlp_coeff[], FLAC__uint32 order, int lp_quantization, FLAC__int32 residual[])
 {
 	int i;
 	FLAC__int32 sum;

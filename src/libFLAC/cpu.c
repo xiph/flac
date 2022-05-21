@@ -60,30 +60,30 @@
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && (defined FLAC__HAS_NASM || FLAC__HAS_X86INTRIN) && !defined FLAC__NO_ASM
 
 /* these are flags in EDX of CPUID AX=00000001 */
-static const uint32_t FLAC__CPUINFO_X86_CPUID_CMOV    = 0x00008000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_MMX     = 0x00800000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_SSE     = 0x02000000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_SSE2    = 0x04000000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_CMOV    = 0x00008000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_MMX     = 0x00800000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_SSE     = 0x02000000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_SSE2    = 0x04000000;
 
 /* these are flags in ECX of CPUID AX=00000001 */
-static const uint32_t FLAC__CPUINFO_X86_CPUID_SSE3    = 0x00000001;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_SSSE3   = 0x00000200;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_SSE41   = 0x00080000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_SSE42   = 0x00100000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_OSXSAVE = 0x08000000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_AVX     = 0x10000000;
-static const uint32_t FLAC__CPUINFO_X86_CPUID_FMA     = 0x00001000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_SSE3    = 0x00000001;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_SSSE3   = 0x00000200;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_SSE41   = 0x00080000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_SSE42   = 0x00100000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_OSXSAVE = 0x08000000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_AVX     = 0x10000000;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_FMA     = 0x00001000;
 
 /* these are flags in EBX of CPUID AX=00000007 */
-static const uint32_t FLAC__CPUINFO_X86_CPUID_AVX2    = 0x00000020;
+static const FLAC__uint32 FLAC__CPUINFO_X86_CPUID_AVX2    = 0x00000020;
 
-static uint32_t
+static FLAC__uint32
 cpu_xgetbv_x86(void)
 {
 #if (defined _MSC_VER || defined __INTEL_COMPILER) && FLAC__AVX_SUPPORTED
-	return (uint32_t)_xgetbv(0);
+	return (FLAC__uint32)_xgetbv(0);
 #elif defined __GNUC__
-	uint32_t lo, hi;
+	FLAC__uint32 lo, hi;
 	__asm__ volatile (".byte 0x0f, 0x01, 0xd0" : "=a"(lo), "=d"(hi) : "c" (0));
 	return lo;
 #else
@@ -91,7 +91,7 @@ cpu_xgetbv_x86(void)
 #endif
 }
 
-static uint32_t
+static FLAC__uint32
 cpu_have_cpuid(void)
 {
 #if defined FLAC__CPU_X86_64 || defined __i686__ || defined __SSE__ || (defined _M_IX86_FP && _M_IX86_FP > 0)
@@ -135,7 +135,7 @@ cpuinfo_x86(FLAC__uint32 level, FLAC__uint32 *eax, FLAC__uint32 *ebx, FLAC__uint
 	int cpuinfo[4];
 	int ext = level & 0x80000000;
 	__cpuid(cpuinfo, ext);
-	if ((uint32_t)cpuinfo[0] >= level) {
+	if ((FLAC__uint32)cpuinfo[0] >= level) {
 #if FLAC__AVX_SUPPORTED
 		__cpuidex(cpuinfo, level, 0); /* for AVX2 detection */
 #else

@@ -27,28 +27,28 @@
 #include "share/compat.h"
 #include "share/safe_str.h"
 
-static inline uint64_t time2nsec(const FILETIME &t)
+static inline FLAC__uint64 time2nsec(const FILETIME &t)
 {
-	uint64_t n = t.dwHighDateTime;
+	FLAC__uint64 n = t.dwHighDateTime;
 	n <<= 32;
-	n |= (uint64_t)t.dwLowDateTime;
+	n |= (FLAC__uint64)t.dwLowDateTime;
 	return n * 100;
 }
 
-static void printtime(FILE *fout, uint64_t nsec, uint64_t total)
+static void printtime(FILE *fout, FLAC__uint64 nsec, FLAC__uint64 total)
 {
-	uint32_t pct = (uint32_t)(100.0 * ((double)nsec / (double)total));
-	uint64_t msec = nsec / 1000000; nsec -= msec * 1000000;
-	uint64_t sec = msec / 1000; msec -= sec * 1000;
-	uint64_t min = sec / 60; sec -= min * 60;
-	uint64_t hour = min / 60; min -= hour * 60;
+	FLAC__uint32 pct = (FLAC__uint32)(100.0 * ((double)nsec / (double)total));
+	FLAC__uint64 msec = nsec / 1000000; nsec -= msec * 1000000;
+	FLAC__uint64 sec = msec / 1000; msec -= sec * 1000;
+	FLAC__uint64 min = sec / 60; sec -= min * 60;
+	FLAC__uint64 hour = min / 60; min -= hour * 60;
 	fprintf(fout, " %5u.%03u = %02u:%02u:%02u.%03u = %3u%%\n",
-		(uint32_t)((hour*60+min)*60+sec),
-		(uint32_t)msec,
-		(uint32_t)hour,
-		(uint32_t)min,
-		(uint32_t)sec,
-		(uint32_t)msec,
+		(FLAC__uint32)((hour*60+min)*60+sec),
+		(FLAC__uint32)msec,
+		(FLAC__uint32)hour,
+		(FLAC__uint32)min,
+		(FLAC__uint32)sec,
+		(FLAC__uint32)msec,
 		pct
 	);
 }
@@ -158,13 +158,13 @@ int main(int argc, char *argv[])
 		fclose(fout);
 		return 1;
 	}
-	uint64_t kernel_nsec = time2nsec(kernel_time);
-	uint64_t user_nsec = time2nsec(user_time);
+	FLAC__uint64 kernel_nsec = time2nsec(kernel_time);
+	FLAC__uint64 user_nsec = time2nsec(user_time);
 
-	fprintf(fout, "Kernel Time  = "); printtime(fout, kernel_nsec, (uint64_t)wallclock_msec * 1000000);
-	fprintf(fout, "User Time    = "); printtime(fout, user_nsec, (uint64_t)wallclock_msec * 1000000);
-	fprintf(fout, "Process Time = "); printtime(fout, kernel_nsec+user_nsec, (uint64_t)wallclock_msec * 1000000);
-	fprintf(fout, "Global Time  = "); printtime(fout, (uint64_t)wallclock_msec * 1000000, (uint64_t)wallclock_msec * 1000000);
+	fprintf(fout, "Kernel Time  = "); printtime(fout, kernel_nsec, (FLAC__uint64)wallclock_msec * 1000000);
+	fprintf(fout, "User Time    = "); printtime(fout, user_nsec, (FLAC__uint64)wallclock_msec * 1000000);
+	fprintf(fout, "Process Time = "); printtime(fout, kernel_nsec+user_nsec, (FLAC__uint64)wallclock_msec * 1000000);
+	fprintf(fout, "Global Time  = "); printtime(fout, (FLAC__uint64)wallclock_msec * 1000000, (FLAC__uint64)wallclock_msec * 1000000);
 
 	CloseHandle(pi.hThread);
 	CloseHandle(pi.hProcess);

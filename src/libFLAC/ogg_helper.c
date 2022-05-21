@@ -94,8 +94,8 @@ void simple_ogg_page__clear(ogg_page *page)
 
 FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 position, ogg_page *page, FLAC__StreamEncoderSeekCallback seek_callback, FLAC__StreamEncoderReadCallback read_callback, void *client_data)
 {
-	static const uint32_t OGG_HEADER_FIXED_PORTION_LEN = 27;
-	static const uint32_t OGG_MAX_HEADER_LEN = 27/*OGG_HEADER_FIXED_PORTION_LEN*/ + 255;
+	static const FLAC__uint32 OGG_HEADER_FIXED_PORTION_LEN = 27;
+	static const FLAC__uint32 OGG_MAX_HEADER_LEN = 27/*OGG_HEADER_FIXED_PORTION_LEN*/ + 255;
 	FLAC__byte crc[4];
 	FLAC__StreamEncoderSeekStatus seek_status;
 
@@ -142,10 +142,10 @@ FLAC__bool simple_ogg_page__get_at(FLAC__StreamEncoder *encoder, FLAC__uint64 po
 		return false;
 
 	{
-		uint32_t i;
+		FLAC__uint32 i;
 
 		/* check to see that it specifies a single packet */
-		for(i = 0; i < (uint32_t)page->header[26] - 1; i++) {
+		for(i = 0; i < (FLAC__uint32)page->header[26] - 1; i++) {
 			if(page->header[i + OGG_HEADER_FIXED_PORTION_LEN] != 255) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_OGG_ERROR;
 				return false;

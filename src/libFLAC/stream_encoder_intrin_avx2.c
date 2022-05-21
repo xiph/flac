@@ -48,17 +48,17 @@
 
 FLAC__SSE_TARGET("avx2")
 void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
-		uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps)
+		FLAC__uint32 residual_samples, FLAC__uint32 predictor_order, FLAC__uint32 min_partition_order, FLAC__uint32 max_partition_order, FLAC__uint32 bps)
 {
-	const uint32_t default_partition_samples = (residual_samples + predictor_order) >> max_partition_order;
-	uint32_t partitions = 1u << max_partition_order;
+	const FLAC__uint32 default_partition_samples = (residual_samples + predictor_order) >> max_partition_order;
+	FLAC__uint32 partitions = 1u << max_partition_order;
 
 	FLAC__ASSERT(default_partition_samples > predictor_order);
 
 	/* first do max_partition_order */
 	{
-		const uint32_t threshold = 32 - FLAC__bitmath_ilog2(default_partition_samples);
-		uint32_t partition, residual_sample, end = (uint32_t)(-(int32_t)predictor_order);
+		const FLAC__uint32 threshold = 32 - FLAC__bitmath_ilog2(default_partition_samples);
+		FLAC__uint32 partition, residual_sample, end = (FLAC__uint32)(-(FLAC__int32)predictor_order);
 
 		if(bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < threshold) {
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
@@ -125,10 +125,10 @@ void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual
 
 	/* now merge partitions for lower orders */
 	{
-		uint32_t from_partition = 0, to_partition = partitions;
+		FLAC__uint32 from_partition = 0, to_partition = partitions;
 		int partition_order;
 		for(partition_order = (int)max_partition_order - 1; partition_order >= (int)min_partition_order; partition_order--) {
-			uint32_t i;
+			FLAC__uint32 i;
 			partitions >>= 1;
 			for(i = 0; i < partitions; i++) {
 				abs_residual_partition_sums[to_partition++] =

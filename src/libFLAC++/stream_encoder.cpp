@@ -87,31 +87,31 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_set_streamable_subset(encoder_, value));
 		}
 
-		bool Stream::set_channels(uint32_t value)
+		bool Stream::set_channels(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_channels(encoder_, value));
 		}
 
-		bool Stream::set_bits_per_sample(uint32_t value)
+		bool Stream::set_bits_per_sample(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_bits_per_sample(encoder_, value));
 		}
 
-		bool Stream::set_sample_rate(uint32_t value)
+		bool Stream::set_sample_rate(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_sample_rate(encoder_, value));
 		}
 
-		bool Stream::set_compression_level(uint32_t value)
+		bool Stream::set_compression_level(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_compression_level(encoder_, value));
 		}
 
-		bool Stream::set_blocksize(uint32_t value)
+		bool Stream::set_blocksize(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_blocksize(encoder_, value));
@@ -135,13 +135,13 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_set_apodization(encoder_, specification));
 		}
 
-		bool Stream::set_max_lpc_order(uint32_t value)
+		bool Stream::set_max_lpc_order(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_max_lpc_order(encoder_, value));
 		}
 
-		bool Stream::set_qlp_coeff_precision(uint32_t value)
+		bool Stream::set_qlp_coeff_precision(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_qlp_coeff_precision(encoder_, value));
@@ -165,19 +165,19 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_set_do_exhaustive_model_search(encoder_, value));
 		}
 
-		bool Stream::set_min_residual_partition_order(uint32_t value)
+		bool Stream::set_min_residual_partition_order(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_min_residual_partition_order(encoder_, value));
 		}
 
-		bool Stream::set_max_residual_partition_order(uint32_t value)
+		bool Stream::set_max_residual_partition_order(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_max_residual_partition_order(encoder_, value));
 		}
 
-		bool Stream::set_rice_parameter_search_dist(uint32_t value)
+		bool Stream::set_rice_parameter_search_dist(FLAC__uint32 value)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_rice_parameter_search_dist(encoder_, value));
@@ -189,19 +189,19 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_set_total_samples_estimate(encoder_, value));
 		}
 
-		bool Stream::set_metadata(::FLAC__StreamMetadata **metadata, uint32_t num_blocks)
+		bool Stream::set_metadata(::FLAC__StreamMetadata **metadata, FLAC__uint32 num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_metadata(encoder_, metadata, num_blocks));
 		}
 
-		bool Stream::set_metadata(FLAC::Metadata::Prototype **metadata, uint32_t num_blocks)
+		bool Stream::set_metadata(FLAC::Metadata::Prototype **metadata, FLAC__uint32 num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
 			// because C++ doesn't have VLA's (variable length arrays)
 			// this ugly workaround is needed
 			::FLAC__StreamMetadata **m = new ::FLAC__StreamMetadata*[num_blocks];
-			for(uint32_t i = 0; i < num_blocks; i++) {
+			for(FLAC__uint32 i = 0; i < num_blocks; i++) {
 				// we can get away with the const_cast since we know the encoder will only correct the is_last flags
 				m[i] = const_cast< ::FLAC__StreamMetadata*>(static_cast<const ::FLAC__StreamMetadata*>(*metadata[i]));
 			}
@@ -229,7 +229,7 @@ namespace FLAC {
 			return Decoder::Stream::State(::FLAC__stream_encoder_get_verify_decoder_state(encoder_));
 		}
 
-		void Stream::get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, uint32_t *frame_number, uint32_t *channel, uint32_t *sample, FLAC__int32 *expected, FLAC__int32 *got)
+		void Stream::get_verify_decoder_error_stats(FLAC__uint64 *absolute_sample, FLAC__uint32 *frame_number, FLAC__uint32 *channel, FLAC__uint32 *sample, FLAC__int32 *expected, FLAC__int32 *got)
 		{
 			FLAC__ASSERT(is_valid());
 			::FLAC__stream_encoder_get_verify_decoder_error_stats(encoder_, absolute_sample, frame_number, channel, sample, expected, got);
@@ -259,37 +259,37 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_get_loose_mid_side_stereo(encoder_));
 		}
 
-		uint32_t Stream::get_channels() const
+		FLAC__uint32 Stream::get_channels() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_channels(encoder_);
 		}
 
-		uint32_t Stream::get_bits_per_sample() const
+		FLAC__uint32 Stream::get_bits_per_sample() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_bits_per_sample(encoder_);
 		}
 
-		uint32_t Stream::get_sample_rate() const
+		FLAC__uint32 Stream::get_sample_rate() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_sample_rate(encoder_);
 		}
 
-		uint32_t Stream::get_blocksize() const
+		FLAC__uint32 Stream::get_blocksize() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_blocksize(encoder_);
 		}
 
-		uint32_t Stream::get_max_lpc_order() const
+		FLAC__uint32 Stream::get_max_lpc_order() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_max_lpc_order(encoder_);
 		}
 
-		uint32_t Stream::get_qlp_coeff_precision() const
+		FLAC__uint32 Stream::get_qlp_coeff_precision() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_qlp_coeff_precision(encoder_);
@@ -313,19 +313,19 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_get_do_exhaustive_model_search(encoder_));
 		}
 
-		uint32_t Stream::get_min_residual_partition_order() const
+		FLAC__uint32 Stream::get_min_residual_partition_order() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_min_residual_partition_order(encoder_);
 		}
 
-		uint32_t Stream::get_max_residual_partition_order() const
+		FLAC__uint32 Stream::get_max_residual_partition_order() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_max_residual_partition_order(encoder_);
 		}
 
-		uint32_t Stream::get_rice_parameter_search_dist() const
+		FLAC__uint32 Stream::get_rice_parameter_search_dist() const
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_rice_parameter_search_dist(encoder_);
@@ -361,13 +361,13 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_finish(encoder_));
 		}
 
-		bool Stream::process(const FLAC__int32 * const buffer[], uint32_t samples)
+		bool Stream::process(const FLAC__int32 * const buffer[], FLAC__uint32 samples)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_process(encoder_, buffer, samples));
 		}
 
-		bool Stream::process_interleaved(const FLAC__int32 buffer[], uint32_t samples)
+		bool Stream::process_interleaved(const FLAC__int32 buffer[], FLAC__uint32 samples)
 		{
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples));
@@ -405,7 +405,7 @@ namespace FLAC {
 			return instance->read_callback(buffer, bytes);
 		}
 
-		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data)
+		::FLAC__StreamEncoderWriteStatus Stream::write_callback_(const ::FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
@@ -494,19 +494,19 @@ namespace FLAC {
 		// with FLAC__stream_decoder_init_FILE() or
 		// FLAC__stream_decoder_init_file() and those supply the read
 		// callback internally.
-		::FLAC__StreamEncoderWriteStatus File::write_callback(const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame)
+		::FLAC__StreamEncoderWriteStatus File::write_callback(const FLAC__byte buffer[], size_t bytes, FLAC__uint32 samples, FLAC__uint32 current_frame)
 		{
 			(void)buffer, (void)bytes, (void)samples, (void)current_frame;
 			FLAC__ASSERT(false);
 			return ::FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR; // double protection
 		}
 
-		void File::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate)
+		void File::progress_callback(FLAC__uint64 bytes_written, FLAC__uint64 samples_written, FLAC__uint32 frames_written, FLAC__uint32 total_frames_estimate)
 		{
 			(void)bytes_written, (void)samples_written, (void)frames_written, (void)total_frames_estimate;
 		}
 
-		void File::progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate, void *client_data)
+		void File::progress_callback_(const ::FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, FLAC__uint32 frames_written, FLAC__uint32 total_frames_estimate, void *client_data)
 		{
 			(void)encoder;
 			FLAC__ASSERT(0 != client_data);
