@@ -97,6 +97,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include "FLAC/ordinals.h"
 #include "share/alloc.h"
 #include "share/compat.h"
 #include "share/replaygain_analysis.h"
