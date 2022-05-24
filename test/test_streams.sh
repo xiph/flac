@@ -184,7 +184,7 @@ test_file test02 2 16 "-0 -l $max_lpc_order --lax -m -e -p"
 test_file test03 1 16 "-0 -l $max_lpc_order --lax -m -e -p"
 test_file test04 2 16 "-0 -l $max_lpc_order --lax -m -e -p"
 
-for bps in 8 16 24 ; do
+for bps in 8 16 24 32 ; do
 	echo "Testing $bps-bit full-scale deflection streams..."
 	for b in 01 02 03 04 05 06 07 ; do
 		test_file fsd$bps-$b 1 $bps "-0 -l $max_lpc_order --lax -m -e -p"
@@ -196,7 +196,7 @@ for b in 01 ; do
 	test_file wbps16-$b 1 16 "-0 -l $max_lpc_order --lax -m -e -p"
 done
 
-for bps in 8 16 24 ; do
+for bps in 8 16 24 32; do
 	echo "Testing $bps-bit sine wave streams..."
 	for b in 00 ; do
 		test_file sine${bps}-$b 1 $bps "-0 -l $max_lpc_order --lax -m -e --sample-rate=48000"
@@ -299,11 +299,11 @@ echo "Testing noise..."
 for disable in '' '--disable-verbatim-subframes --disable-constant-subframes' '--disable-verbatim-subframes --disable-constant-subframes --disable-fixed-subframes' ; do
 	if [ -z "$disable" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
 		for channels in 1 2 4 8 ; do
-			if [ $channels -le 2 ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
-				for bps in 8 16 24 ; do
+			if [ $channels -le 2 ] || [ "$FLAC__TEST_LEVEL" -gt 1 ] ; then
+				for bps in 8 16 24 32; do
 					for opt in 0 1 2 3 4 5 6 7 8 ; do
 						for extras in '' '-p' '-e' ; do
-							if [ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
+                                                        if { [ -z "$extras" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ]; } && { [ "$extras" != '-p' ] || [ "$opt" -gt 2 ]; } ; then
 								for blocksize in '' '--lax -b 32' '--lax -b 32768' '--lax -b 65535' ; do
 									if [ -z "$blocksize" ] || [ "$FLAC__TEST_LEVEL" -gt 0 ] ; then
 										test_file noise $channels $bps "-$opt $extras $blocksize $disable"
