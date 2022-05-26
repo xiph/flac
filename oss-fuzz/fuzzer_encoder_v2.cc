@@ -84,7 +84,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	samples_estimate = ((uint64_t)data[5] << 32) + ((unsigned)data[6] << 24) + ((unsigned)data[7] << 16) + ((unsigned)data[8] << 8) + data[9];
 
 	compression_level = data[10]&0b1111;
-	input_data_width = 1 + (data[10]&0b1111000)%3; /* Slight bias away from 32-bit (4-byte) */
+	input_data_width = 1 + (data[10]>>4)%4;
 	blocksize = ((unsigned)data[11] << 8) + (unsigned)data[12];
 	max_lpc_order = data[13];
 	qlp_coeff_precision = data[14];
@@ -162,7 +162,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			FLAC__metadata_object_application_set_data(metadata[num_metadata++], application_data, size-20, 0);
 		}
 	}
-	if(encoder_valid && (metadata_mask & 8) > 25){
+	if(encoder_valid && (metadata_mask & 8) && size > 25){
 		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_SEEKTABLE)) == NULL)
 			encoder_valid = false;
 		else {
