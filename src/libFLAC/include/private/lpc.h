@@ -96,6 +96,9 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[
 #endif
 #endif /* FLAC__NO_ASM */
 
+uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const FLAC__int32 qlp_coeff[], uint32_t order);
+uint32_t FLAC__lpc_max_residual_bps(uint32_t subframe_bps, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization);
+
 /*
  *	FLAC__lpc_compute_lp_coefficients()
  *	--------------------------------------------------------------------
