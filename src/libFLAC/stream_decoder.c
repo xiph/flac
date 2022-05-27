@@ -2797,7 +2797,8 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t channel, ui
 	/* decode the subframe */
 	if(do_full_decode) {
 		memcpy(decoder->private_->output[channel], subframe->warmup, sizeof(FLAC__int32) * order);
-		if(bps + subframe->qlp_coeff_precision + FLAC__bitmath_ilog2(order) <= 32)
+		if(FLAC__lpc_max_residual_bps(bps, subframe->qlp_coeff, order, subframe->quantization_level) <= 32 &&
+		   FLAC__lpc_max_prediction_before_shift_bps(bps, subframe->qlp_coeff, order) <= 32)
 			FLAC__lpc_restore_signal(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
 		else
 			FLAC__lpc_restore_signal_wide(decoder->private_->residual[channel], decoder->private_->frame.header.blocksize-order, subframe->qlp_coeff, order, subframe->quantization_level, decoder->private_->output[channel]+order);
