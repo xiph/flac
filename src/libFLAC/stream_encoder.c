@@ -1455,6 +1455,11 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 			encoder->protected_->metadata = 0;
 			encoder->protected_->num_metadata_blocks = 0;
 		}
+		if(0 != encoder->private_->file) {
+			if(encoder->private_->file != stdout)
+				fclose(encoder->private_->file);
+			encoder->private_->file = 0;
+		}
 		return true;
 	}
 
