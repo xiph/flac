@@ -2120,14 +2120,19 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			 * channels and bits_per_sample, but it is quite rare */
 			if(decoder->private_->last_frame.header.sample_rate == decoder->private_->frame.header.sample_rate &&
 			   decoder->private_->last_frame.header.channels == decoder->private_->frame.header.channels &&
-			   decoder->private_->last_frame.header.bits_per_sample == decoder->private_->frame.header.bits_per_sample) {
+			   decoder->private_->last_frame.header.bits_per_sample == decoder->private_->frame.header.bits_per_sample &&
+			   decoder->private_->last_frame.header.blocksize >= 16) {
+
 				FLAC__Frame empty_frame;
 				empty_frame.header = decoder->private_->last_frame.header;
 				empty_frame.footer.crc = 0;
-				/* No repairs larger than 5 seconds are made, to not unexpectedly create
-				 * enormous files when one of the headers was corrupt after all */
+				/* No repairs larger than 5 seconds or 50 frames are made, to not
+				 * unexpectedly create enormous files when one of the headers was
+				 * corrupt after all */
 				if(padding_samples_needed > (5*empty_frame.header.sample_rate))
 					padding_samples_needed = 5*empty_frame.header.sample_rate;
+				if(padding_samples_needed > (50*empty_frame.header.blocksize))
+					padding_samples_needed = 50*empty_frame.header.blocksize;
 				while(padding_samples_needed){
 					empty_frame.header.number.sample_number += empty_frame.header.blocksize;
 					if(padding_samples_needed < empty_frame.header.blocksize)
