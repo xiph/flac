@@ -266,6 +266,12 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	   FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_UNINITIALIZED &&
 	   FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_CLIENT_ERROR){
 		fprintf(stderr,"-----\nERROR: stream encoder returned %s\n-----\n",FLAC__stream_encoder_get_resolved_state_string(encoder));
+		if(FLAC__stream_encoder_get_state(encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA) {
+			uint32_t frame_number, channel, sample_number;
+			FLAC__int32 expected, got;
+			FLAC__stream_encoder_get_verify_decoder_error_stats(encoder, NULL, &frame_number, &channel, &sample_number, &expected, &got);
+			fprintf(stderr,"Frame number %d\nChannel %d\n Sample number %d\nExpected value %d\nGot %d\n", frame_number, channel, sample_number, expected, got);
+		}
 		abort();
 	}
 
