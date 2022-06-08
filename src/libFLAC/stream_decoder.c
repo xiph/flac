@@ -3315,7 +3315,12 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 			 * frame, try again. This is very inefficient but shouldn't
 			 * happen often, and a more efficient solution would require
 			 * quite a bit more code */
-			upper_bound--;
+			if(upper_bound > 0)
+				upper_bound--;
+			else {
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+				return false;
+			}
 			continue;
 		}else if(decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
