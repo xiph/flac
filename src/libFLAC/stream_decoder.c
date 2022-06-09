@@ -893,6 +893,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 
 	decoder->private_->samples_decoded = 0;
 	decoder->private_->do_md5_checking = false;
+	decoder->private_->last_seen_framesync = 0;
 
 #if FLAC__HAS_OGG
 	if(decoder->private_->is_ogg)
@@ -2187,7 +2188,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 #ifndef NDEBUG
 			fprintf(stderr, "Rewinding, seeking necessary\n");
 #endif
-			if(decoder->private_->seek_callback){
+			if(decoder->private_->seek_callback && decoder->private_->last_seen_framesync){
 				/* Last framesync isn't in bitreader anymore, rewind with seek if possible */
 #ifndef NDEBUG
 				FLAC__uint64 current_decode_position;
@@ -3481,6 +3482,12 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 
 	decoder->private_->target_sample = target_sample;
 	for( ; ; iteration++) {
+		/* Do sanity checks on bounds */
+		if(right_pos <= left_pos || right_pos - left_pos < 9) {
+			/* FLAC frame is at least 9 byte in size */
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+			return false;
+		}
 		if (iteration == 0 || this_frame_sample > target_sample || target_sample - this_frame_sample > LINEAR_SEARCH_WITHIN_SAMPLES) {
 			if (iteration >= BINARY_SEARCH_AFTER_ITERATION) {
 				pos = (right_pos + left_pos) / 2;
