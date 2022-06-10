@@ -57,7 +57,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	FLAC__StreamMetadata_VorbisComment_Entry VorbisCommentField;
 
 	unsigned sample_rate, channels, bps;
-	uint64_t samples_estimate;
+	uint64_t samples_estimate, samples_in_input;
 	unsigned compression_level, input_data_width, blocksize, max_lpc_order, qlp_coeff_precision, min_residual_partition_order, max_residual_partition_order, metadata_mask, instruction_set_disable_mask;
 	FLAC__bool ogg, write_to_file, interleaved;
 
@@ -85,6 +85,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	compression_level = data[10]&0b1111;
 	input_data_width = 1 + (data[10]>>4)%4;
+	samples_in_input = (size-20)/input_data_width;
 	blocksize = ((unsigned)data[11] << 8) + (unsigned)data[12];
 	max_lpc_order = data[13];
 	qlp_coeff_precision = data[14];
@@ -113,21 +114,37 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	encoder_valid &= FLAC__stream_encoder_set_compression_level(encoder, compression_level);
 	if(data_bools[3]){
 		/* Bias towards regular compression levels */
-		encoder_valid &= FLAC__stream_encoder_set_streamable_subset(encoder, data_bools[4]);
 		encoder_valid &= FLAC__stream_encoder_set_blocksize(encoder, blocksize);
 		encoder_valid &= FLAC__stream_encoder_set_max_lpc_order(encoder, max_lpc_order);
 		encoder_valid &= FLAC__stream_encoder_set_qlp_coeff_precision(encoder, qlp_coeff_precision);
 		encoder_valid &= FLAC__stream_encoder_set_min_residual_partition_order(encoder, min_residual_partition_order);
-		encoder_valid &= FLAC__stream_encoder_set_max_residual_partition_order(encoder, max_residual_partition_order);
 
-		if(size < (1 << 18)) {
-			/* The following three options are **slow**, and when combined with a large input
-			 * make fuzzers timeout, so only enable them on reasonably sized inputs. 2^17 is taken
-			 * because that is the maximum blocksize * 4 (32-bit input)
-			 */
+		/* With large inputs and expensive options enabled, the fuzzer can get *really* slow.
+		 * Some combinations can make the fuzzer timeout (>60 seconds). However, while combining
+		 * options makes the fuzzer slower, most options do not expose new code when combined.
+		 * Therefore, combining slow options is disabled for large inputs. Any input containing
+		 * more than 65536 * 2 samples (max blocksize, stereo) is considered large
+		 */
+		if(samples_in_input < (2*65536)) {
+			encoder_valid &= FLAC__stream_encoder_set_streamable_subset(encoder, data_bools[4]);
 			encoder_valid &= FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, data_bools[5]);
 			encoder_valid &= FLAC__stream_encoder_set_do_escape_coding(encoder, data_bools[6]);
 			encoder_valid &= FLAC__stream_encoder_set_do_exhaustive_model_search(encoder, data_bools[7]);
+			/* Combining model search, precision search and a high residual partition order is especially
+			 * expensive, so limit that even further. This high partition order can only be set on
+			 * large blocksize and with streamable subset disabled */
+			if(samples_in_input < (2 * 4609) || data_bools[4] || !data_bools[7] || !data_bools[5] || max_residual_partition_order < 9 || blocksize < 4609)
+				encoder_valid &= FLAC__stream_encoder_set_max_residual_partition_order(encoder, max_residual_partition_order);
+		}
+		else {
+			if(data_bools[4])
+				encoder_valid &= FLAC__stream_encoder_set_streamable_subset(encoder, true);
+			else if(data_bools[6])
+				encoder_valid &= FLAC__stream_encoder_set_do_escape_coding(encoder, true);
+			else if(data_bools[7])
+				encoder_valid &= FLAC__stream_encoder_set_do_exhaustive_model_search(encoder, true);
+			else if(data_bools[5])
+				encoder_valid &= FLAC__stream_encoder_set_do_qlp_coeff_prec_search(encoder, true);
 		}
 		encoder_valid &= FLAC__stream_encoder_set_do_mid_side_stereo(encoder, data_bools[8]);
 		encoder_valid &= FLAC__stream_encoder_set_loose_mid_side_stereo(encoder, data_bools[9]);
