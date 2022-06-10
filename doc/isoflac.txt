@@ -1,5 +1,5 @@
 Encapsulation of FLAC in ISO Base Media File Format
-Version 0.0.4 (draft)
+Version 0.0.4
 
 Table of Contents
 1 Scope
