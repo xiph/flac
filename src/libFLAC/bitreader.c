@@ -158,6 +158,10 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	uint32_t start, end;
 	size_t bytes;
 	FLAC__byte *target;
+#if WORDS_BIGENDIAN
+#else
+	brword preswap_backup;
+#endif
 
 	/* invalidate last seen framesync */
 	br->last_seen_framesync = -1;
@@ -192,6 +196,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	 */
 #if WORDS_BIGENDIAN
 #else
+	preswap_backup = br->buffer[br->words];
 	if(br->bytes)
 		br->buffer[br->words] = SWAP_BE_WORD_TO_HOST(br->buffer[br->words]);
 #endif
@@ -204,8 +209,16 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	 */
 
 	/* read in the data; note that the callback may return a smaller number of bytes */
-	if(!br->read_callback(target, &bytes, br->client_data))
+	if(!br->read_callback(target, &bytes, br->client_data)){
+		/* Despite the read callback failing, the data in the target
+		 * might be used later, when the buffer is rewound. Therefore
+		 * we revert the swap that was just done */
+#if WORDS_BIGENDIAN
+#else
+		br->buffer[br->words] = preswap_backup;
+#endif
 		return false;
+	}
 
 	/* after reading bytes 66 77 88 99 AA BB CC DD EE FF from the client:
 	 *   bitstream :  11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
