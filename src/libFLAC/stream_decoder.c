@@ -3311,36 +3311,30 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		 * FLAC__stream_decoder_process_single() to return false.
 		 */
 		decoder->private_->unparseable_frame_count = 0;
-		if(!FLAC__stream_decoder_process_single(decoder) && decoder->private_->eof_callback(decoder, decoder->private_->client_data)){
-			/* decoder has hit end of stream while processing corrupt
-			 * frame, try again. This is very inefficient but shouldn't
-			 * happen often, and a more efficient solution would require
-			 * quite a bit more code */
-			if(upper_bound > 0)
+		if(!FLAC__stream_decoder_process_single(decoder) || decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED || 0 == decoder->private_->samples_decoded) {
+			/* No frame could be decoded */
+			if(decoder->protected_->state != FLAC__STREAM_DECODER_ABORTED && decoder->private_->eof_callback(decoder, decoder->private_->client_data) && upper_bound > 0){
+				/* decoder has hit end of stream while processing corrupt
+				 * frame, try again. This is very inefficient but shouldn't
+				 * happen often, and a more efficient solution would require
+				 * quite a bit more code */
 				upper_bound--;
+				continue;
+			}
 			else {
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
-			continue;
-		}else if(decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
-			return false;
 		}
 		/* our write callback will change the state when it gets to the target frame */
 		/* actually, we could have got_a_frame if our decoder is at FLAC__STREAM_DECODER_END_OF_STREAM so we need to check for that also */
-#if 0
-		/*@@@@@@ used to be the following; not clear if the check for end of stream is needed anymore */
-		if(decoder->protected_->state != FLAC__SEEKABLE_STREAM_DECODER_SEEKING && decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_STREAM)
-			break;
-#endif
 		if(!decoder->private_->is_seeking)
 			break;
 
 		FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 		this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
 
-		if (0 == decoder->private_->samples_decoded || (this_frame_sample + decoder->private_->last_frame.header.blocksize >= upper_bound_sample && !first_seek)) {
+		if(this_frame_sample + decoder->private_->last_frame.header.blocksize >= upper_bound_sample && !first_seek) {
 			if (pos == (FLAC__int64)lower_bound) {
 				/* can't move back any more than the first frame, something is fatally wrong */
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
