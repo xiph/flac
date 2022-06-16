@@ -2344,6 +2344,11 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_cb_(
 	if(block->num_comments == 0) {
 		block->comments = 0;
 	}
+	else if(block->num_comments > (block_length >> 2)) { /* each comment needs at least 4 byte */
+		block->num_comments = 0;
+		status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
+		goto skip;
+	}
 	else if(0 == (block->comments = calloc(block->num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 		block->num_comments = 0;
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
@@ -2499,6 +2504,9 @@ static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_picture_cstr
 	if(read_cb(buffer, 1, length_len, handle) != length_len)
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 	*length = unpack_uint32_(buffer, length_len);
+
+	if(*length > (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) /* data cannot be larger than FLAC metadata block */
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
 
 	if(0 != *data)
 		free(*data);
