@@ -286,26 +286,29 @@ FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__Strea
 	do {
 		if(FLAC__metadata_simple_iterator_get_block_type(it) == FLAC__METADATA_TYPE_PICTURE) {
 			FLAC__StreamMetadata *obj = FLAC__metadata_simple_iterator_get_block(it);
-			FLAC__uint64 area = (FLAC__uint64)obj->data.picture.width * (FLAC__uint64)obj->data.picture.height;
-			/* check constraints */
-			if(
-				(type == (FLAC__StreamMetadata_Picture_Type)(-1) || type == obj->data.picture.type) &&
-				(mime_type == 0 || !strcmp(mime_type, obj->data.picture.mime_type)) &&
-				(description == 0 || !strcmp((const char *)description, (const char *)obj->data.picture.description)) &&
-				obj->data.picture.width <= max_width &&
-				obj->data.picture.height <= max_height &&
-				obj->data.picture.depth <= max_depth &&
-				obj->data.picture.colors <= max_colors &&
-				(area > max_area_seen || (area == max_area_seen && obj->data.picture.depth > max_depth_seen))
-			) {
-				if(*picture)
-					FLAC__metadata_object_delete(*picture);
-				*picture = obj;
-				max_area_seen = area;
-				max_depth_seen = obj->data.picture.depth;
-			}
-			else {
-				FLAC__metadata_object_delete(obj);
+			if(0 != obj) {
+				FLAC__uint64 area = (FLAC__uint64)obj->data.picture.width * (FLAC__uint64)obj->data.picture.height;
+
+				/* check constraints */
+				if(
+					(type == (FLAC__StreamMetadata_Picture_Type)(-1) || type == obj->data.picture.type) &&
+					(mime_type == 0 || !strcmp(mime_type, obj->data.picture.mime_type)) &&
+					(description == 0 || !strcmp((const char *)description, (const char *)obj->data.picture.description)) &&
+					obj->data.picture.width <= max_width &&
+					obj->data.picture.height <= max_height &&
+					obj->data.picture.depth <= max_depth &&
+					obj->data.picture.colors <= max_colors &&
+					(area > max_area_seen || (area == max_area_seen && obj->data.picture.depth > max_depth_seen))
+				) {
+					if(*picture)
+						FLAC__metadata_object_delete(*picture);
+					*picture = obj;
+					max_area_seen = area;
+					max_depth_seen = obj->data.picture.depth;
+				}
+				else {
+					FLAC__metadata_object_delete(obj);
+				}
 			}
 		}
 	} while(FLAC__metadata_simple_iterator_next(it));
