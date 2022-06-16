@@ -78,6 +78,7 @@ microbench/benchmark_residual
 /ogg/
 oss-fuzz/fuzzer_decoder
 oss-fuzz/fuzzer_seek
+oss-fuzz/fuzzer_metadata
 oss-fuzz/fuzzer_encoder
 oss-fuzz/fuzzer_encoder_v2
 
