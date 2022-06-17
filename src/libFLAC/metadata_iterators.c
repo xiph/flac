@@ -1360,6 +1360,12 @@ static FLAC__bool chain_read_ogg_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle
 
 	chain->initial_length = chain_calculate_length_(chain);
 
+	if(chain->initial_length == 0) {
+		/* Ogg FLAC file must have at least streaminfo and vorbis comment */
+		chain->status = FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
+		return false;
+	}
+
 	return true;
 }
 
