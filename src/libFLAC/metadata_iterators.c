@@ -446,7 +446,15 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 		case 0:
 			iterator->depth = 0;
 			iterator->first_offset = iterator->offset[iterator->depth] = ftello(iterator->file);
-			return read_metadata_block_header_(iterator);
+			ret = read_metadata_block_header_(iterator);
+			/* The first metadata block must be a streaminfo. If this is not the
+			 * case, the file is invalid and assumptions made elsewhere in the
+			 * code are invalid */
+			if(iterator->type != FLAC__METADATA_TYPE_STREAMINFO) {
+				iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
+				return false;
+			}
+			return ret;
 		case 1:
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
 			return false;
