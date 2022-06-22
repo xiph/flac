@@ -761,7 +761,8 @@ typedef enum {
 	FLAC__STREAM_METADATA_PICTURE_TYPE_ILLUSTRATION = 18, /**< Illustration */
 	FLAC__STREAM_METADATA_PICTURE_TYPE_BAND_LOGOTYPE = 19, /**< Band/artist logotype */
 	FLAC__STREAM_METADATA_PICTURE_TYPE_PUBLISHER_LOGOTYPE = 20, /**< Publisher/Studio logotype */
-	FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED
+	FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED,
+	FLAC__STREAM_METADATA_PICTURE_TYPE_NA = -1 /**< Not a real type, is used in the API to signal no choice is made */
 } FLAC__StreamMetadata_Picture_Type;
 
 /** Maps a FLAC__StreamMetadata_Picture_Type to a C string.
