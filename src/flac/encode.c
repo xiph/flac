@@ -2044,13 +2044,16 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		if(0 != static_metadata.cuesheet)
 			static_metadata_append(&static_metadata, static_metadata.cuesheet, /*needs_delete=*/false);
 		if(e->info.channel_mask) {
-			if(!flac__utils_set_channel_mask_tag(options.vorbis_comment, e->info.channel_mask)) {
+			options.vorbis_comment_with_channel_mask_tag = FLAC__metadata_object_clone(options.vorbis_comment);
+			if(!flac__utils_set_channel_mask_tag(options.vorbis_comment_with_channel_mask_tag, e->info.channel_mask)) {
 				flac__utils_printf(stderr, 1, "%s: ERROR adding channel mask tag\n", e->inbasefilename);
 				static_metadata_clear(&static_metadata);
 				return false;
 			}
+			static_metadata_append(&static_metadata, options.vorbis_comment_with_channel_mask_tag, /*needs_delete=*/true);
 		}
-		static_metadata_append(&static_metadata, options.vorbis_comment, /*needs_delete=*/false);
+		else
+			static_metadata_append(&static_metadata, options.vorbis_comment, /*needs_delete=*/false);
 		for(i = 0; i < options.num_pictures; i++)
 			static_metadata_append(&static_metadata, options.pictures[i], /*needs_delete=*/false);
 		if(foreign_metadata) {
