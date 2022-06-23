@@ -113,13 +113,11 @@ extern "C" {
 
 /** The maximum sample resolution permitted by libFLAC.
  *
- * \warning
  * FLAC__MAX_BITS_PER_SAMPLE is the limit of the FLAC format.  However,
- * the reference encoder/decoder is currently limited to 24 bits because
- * of prevalent 32-bit math, so make sure and use this value when
- * appropriate.
+ * the reference encoder/decoder used to be limited to 24 bits. This
+ * value was used to signal that limit.
  */
-#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (24u)
+#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (32u)
 
 /** The maximum sample rate permitted by the format.  The value is
  *  ((2 ^ 16) - 1) * 10; see <A HREF="../format.html">FLAC format</A>
