@@ -88,6 +88,7 @@ typedef struct {
 	FLAC__bool limit_min_bitrate;
 
 	FLAC__StreamMetadata *vorbis_comment;
+	FLAC__StreamMetadata *vorbis_comment_with_channel_mask_tag;
 	FLAC__StreamMetadata *pictures[64];
 	unsigned num_pictures;
 
