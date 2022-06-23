@@ -118,9 +118,11 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 	if(bw->capacity >= new_capacity)
 		return true;
 
-	if(new_capacity * sizeof(bwword) > FLAC__MAX_BLOCK_SIZE * FLAC__MAX_CHANNELS * (FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE + FLAC__MAX_EXTRA_RESIDUAL_BPS) / 8)
-		/* Requested new capacity is larger than the largest sane framesize.
-		 * That means something went very wrong somewhere. To prevent chrashing, give up */
+	if(new_capacity * sizeof(bwword) > (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+		/* Requested new capacity is larger than the largest possible metadata block,
+		 * which is also larger than the largest sane framesize. That means something
+		 * went very wrong somewhere and previous checks failed.
+		 * To prevent chrashing, give up */
 		return false;
 
 	/* round up capacity increase to the nearest FLAC__BITWRITER_DEFAULT_INCREMENT */
