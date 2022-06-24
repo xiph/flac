@@ -2432,6 +2432,7 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 			break;
 		case 7:
 			decoder->private_->frame.header.bits_per_sample = 32;
+			break;
 		default:
 			FLAC__ASSERT(0);
 			break;
