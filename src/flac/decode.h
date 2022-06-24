@@ -52,6 +52,7 @@ typedef struct {
 	FLAC__bool has_cue_specification;
 	utils__CueSpecification cue_specification;
 	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
+	FLAC__bool relaxed_foreign_metadata_handling;
 
 	FileFormat format;
 	union {

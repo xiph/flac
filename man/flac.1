@@ -74,6 +74,9 @@ Output files have their timestamps/permissions set to match those of their input
 \fB--keep-foreign-metadata \fR
 If encoding, save WAVE, RF64, or AIFF non-audio chunks in FLAC metadata.  If decoding, restore any saved non-audio chunks from FLAC metadata when writing the decoded file.  Foreign metadata cannot be transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored when decoding to AIFF.  Input and output must be regular files (not stdin or stdout).
 .TP
+\fB--keep-foreign-metadata-if-present \fR
+Like --keep-foreign-metadata, but without throwing an error if foreign metadata cannot be found or restored, instead printing a warning.
+.TP
 \fB--skip={\fI#\fB|\fImm:ss.ss\fB}\fR
 Skip over the first number of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form mm:ss.ss can be used to specify minutes, seconds, and fractions of a second.
 .TP

@@ -223,6 +223,14 @@
 	</varlistentry>
 
 	<varlistentry>
+	  <term><option>--keep-foreign-metadata-if-present</option>
+	  </term>
+	  <listitem>
+	    <para>Like --keep-foreign-metadata, but without throwing an error if foreign metadata cannot be found or restored, instead printing a warning.</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term><option>--skip</option>={<replaceable>#</replaceable>|<replaceable>mm:ss.ss</replaceable>}</term>
 	  <listitem>
 	    <para>Skip over the first number of samples of the input.  This works for both encoding and decoding, but not testing.  The alternative form mm:ss.ss can be used to specify minutes, seconds, and fractions of a second.</para>

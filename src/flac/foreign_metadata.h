@@ -28,6 +28,10 @@
 #include "utils.h"
 #include "share/compat.h"
 
+#define FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS 3
+
+extern const char *FLAC__FOREIGN_METADATA_APPLICATION_ID[FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS];
+
 /* WATCHOUT: these enums are used to index internal arrays */
 typedef enum {
 	FOREIGN_BLOCK_TYPE__AIFF = 0, /* for AIFF and AIFF-C */
