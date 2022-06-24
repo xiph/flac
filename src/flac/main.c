@@ -1140,9 +1140,16 @@ void add_compression_setting_uint32_t(compression_setting_type_t type, uint32_t 
 {
 	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
 		die("too many compression settings");
-	option_values.compression_settings[option_values.num_compression_settings].type = type;
-	option_values.compression_settings[option_values.num_compression_settings].value.t_unsigned = value;
-	option_values.num_compression_settings++;
+	if(type == CST_COMPRESSION_LEVEL) {
+		/* Compression level always goes first */
+		option_values.compression_settings[0].type = type;
+		option_values.compression_settings[0].value.t_unsigned = value;
+	}
+	else {
+		option_values.compression_settings[option_values.num_compression_settings].type = type;
+		option_values.compression_settings[option_values.num_compression_settings].value.t_unsigned = value;
+		option_values.num_compression_settings++;
+	}
 }
 
 int usage_error(const char *message, ...)
