@@ -90,25 +90,26 @@ static struct share__option long_options_[] = {
 	/*
 	 * general options
 	 */
-	{ "help"                  , share__no_argument, 0, 'h' },
-	{ "explain"               , share__no_argument, 0, 'H' },
-	{ "version"               , share__no_argument, 0, 'v' },
-	{ "decode"                , share__no_argument, 0, 'd' },
-	{ "analyze"               , share__no_argument, 0, 'a' },
-	{ "test"                  , share__no_argument, 0, 't' },
-	{ "stdout"                , share__no_argument, 0, 'c' },
-	{ "silent"                , share__no_argument, 0, 's' },
-	{ "totally-silent"        , share__no_argument, 0, 0 },
-	{ "warnings-as-errors"    , share__no_argument, 0, 'w' },
-	{ "force"                 , share__no_argument, 0, 'f' },
-	{ "delete-input-file"     , share__no_argument, 0, 0 },
-	{ "preserve-modtime"      , share__no_argument, 0, 0 },
-	{ "keep-foreign-metadata" , share__no_argument, 0, 0 },
-	{ "output-prefix"         , share__required_argument, 0, 0 },
-	{ "output-name"           , share__required_argument, 0, 'o' },
-	{ "skip"                  , share__required_argument, 0, 0 },
-	{ "until"                 , share__required_argument, 0, 0 },
-	{ "channel-map"           , share__required_argument, 0, 0 }, /* undocumented */
+	{ "help"                             , share__no_argument, 0, 'h' },
+	{ "explain"                          , share__no_argument, 0, 'H' },
+	{ "version"                          , share__no_argument, 0, 'v' },
+	{ "decode"                           , share__no_argument, 0, 'd' },
+	{ "analyze"                          , share__no_argument, 0, 'a' },
+	{ "test"                             , share__no_argument, 0, 't' },
+	{ "stdout"                           , share__no_argument, 0, 'c' },
+	{ "silent"                           , share__no_argument, 0, 's' },
+	{ "totally-silent"                   , share__no_argument, 0, 0 },
+	{ "warnings-as-errors"               , share__no_argument, 0, 'w' },
+	{ "force"                            , share__no_argument, 0, 'f' },
+	{ "delete-input-file"                , share__no_argument, 0, 0 },
+	{ "preserve-modtime"                 , share__no_argument, 0, 0 },
+	{ "keep-foreign-metadata"            , share__no_argument, 0, 0 },
+	{ "keep-foreign-metadata-if-present" , share__no_argument, 0, 0 },
+	{ "output-prefix"                    , share__required_argument, 0, 0 },
+	{ "output-name"                      , share__required_argument, 0, 'o' },
+	{ "skip"                             , share__required_argument, 0, 0 },
+	{ "until"                            , share__required_argument, 0, 0 },
+	{ "channel-map"                      , share__required_argument, 0, 0 }, /* undocumented */
 
 	/*
 	 * decoding options
@@ -244,6 +245,7 @@ static struct {
 	FLAC__bool delete_input;
 	FLAC__bool preserve_modtime;
 	FLAC__bool keep_foreign_metadata;
+	FLAC__bool keep_foreign_metadata_if_present;
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool sector_align;
@@ -468,7 +470,7 @@ int do_it(void)
 		if(!option_values.mode_decode && 0 != option_values.cuesheet_filename && option_values.num_files > 1) {
 			return usage_error("ERROR: --cuesheet cannot be used when encoding multiple files\n");
 		}
-		if(option_values.keep_foreign_metadata) {
+		if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
 			/* we're not going to try and support the re-creation of broken WAVE files */
 			if(option_values.ignore_chunk_sizes)
 				return usage_error("ERROR: using --keep-foreign-metadata cannot be used with --ignore-chunk-sizes\n");
@@ -572,6 +574,7 @@ FLAC__bool init_options(void)
 	option_values.delete_input = false;
 	option_values.preserve_modtime = true;
 	option_values.keep_foreign_metadata = false;
+	option_values.keep_foreign_metadata_if_present = false;
 	option_values.replay_gain = false;
 	option_values.ignore_chunk_sizes = false;
 	option_values.sector_align = false;
@@ -674,6 +677,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "keep-foreign-metadata")) {
 			option_values.keep_foreign_metadata = true;
+		}
+		else if(0 == strcmp(long_option, "keep-foreign-metadata-if-present")) {
+			option_values.keep_foreign_metadata_if_present = true;
 		}
 		else if(0 == strcmp(long_option, "output-prefix")) {
 			FLAC__ASSERT(0 != option_argument);
@@ -855,6 +861,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-keep-foreign-metadata")) {
 			option_values.keep_foreign_metadata = false;
+			option_values.keep_foreign_metadata_if_present = false;
 		}
 		else if(0 == strcmp(long_option, "no-replay-gain")) {
 			option_values.replay_gain = false;
@@ -1257,6 +1264,8 @@ void show_help(void)
 	printf("      --delete-input-file      Deletes after a successful encode/decode\n");
 	printf("      --preserve-modtime       Output files keep timestamp of input (default)\n");
 	printf("      --keep-foreign-metadata  Save/restore WAVE or AIFF non-audio chunks\n");
+	printf("      --keep-foreign-metadata-if-present  Save/restore WAVE or AIFF non-audio\n");
+	printf("                        but not return an error when no such chunks are found\n");
 	printf("      --skip={#|mm:ss.ss}      Skip the given initial samples for each input\n");
 	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample for each input file\n");
 #if FLAC__HAS_OGG
@@ -1410,6 +1419,12 @@ void show_explain(void)
 	printf("                               transcoded, e.g. WAVE chunks saved in a FLAC file\n");
 	printf("                               cannot be restored when decoding to AIFF.  Input\n");
 	printf("                               and output must be regular files, not stdin/out.\n");
+	printf("      --keep-foreign-metadata-if-present  As previous option, but do not throw\n");
+	printf("                               an error in case no foreign metadata is found,\n");
+	printf("                               the wrong kind of foreign metadata is found (on\n");
+	printf("                               decoding) or if the foreign could not be parsed,\n");
+	printf("                               i.e. all foreign metadata related errors are\n");
+	printf("                               treated as warnings.\n");
 	printf("      --skip={#|mm:ss.ss}      Skip the first # samples of each input file; can\n");
 	printf("                               be used both for encoding and decoding.  The\n");
 	printf("                               alternative form mm:ss.ss can be used to specify\n");
@@ -1803,7 +1818,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(option_values.keep_foreign_metadata) {
+	if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
 		if(encode_infile == stdin || option_values.force_to_stdout) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: --keep-foreign-metadata cannot be used when encoding from stdin or to stdout\n");
@@ -1946,6 +1961,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.debug.do_md5 = option_values.debug.do_md5;
 	encode_options.error_on_compression_fail = option_values.error_on_compression_fail;
 	encode_options.limit_min_bitrate = option_values.limit_min_bitrate;
+	encode_options.relaxed_foreign_metadata_handling = option_values.keep_foreign_metadata_if_present;
 
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */
 	if(encode_infile != stdin && grabbag__file_are_same(infilename, outfilename)) {
@@ -1976,7 +1992,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		encode_options.format_options.iff.foreign_metadata = 0;
 
 		/* initialize foreign metadata if requested */
-		if(option_values.keep_foreign_metadata) {
+		if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
 			encode_options.format_options.iff.foreign_metadata =
 				flac__foreign_metadata_new(
 					input_format==FORMAT_WAVE || input_format==FORMAT_RF64?
@@ -2102,7 +2118,7 @@ int decode_file(const char *infilename)
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
 	}
 
-	if(option_values.keep_foreign_metadata) {
+	if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
 		if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
 			return usage_error("ERROR: --keep-foreign-metadata cannot be used when decoding from stdin or to stdout\n");
 		if(output_format != FORMAT_WAVE && output_format != FORMAT_WAVE64 && output_format != FORMAT_RF64 && output_format != FORMAT_AIFF && output_format != FORMAT_AIFF_C)
@@ -2145,6 +2161,7 @@ int decode_file(const char *infilename)
 
 	decode_options.treat_warnings_as_errors = option_values.treat_warnings_as_errors;
 	decode_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
+	decode_options.relaxed_foreign_metadata_handling = option_values.keep_foreign_metadata_if_present;
 	decode_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
 #if FLAC__HAS_OGG
 	decode_options.is_ogg = treat_as_ogg;
@@ -2164,7 +2181,7 @@ int decode_file(const char *infilename)
 		decode_options.format_options.iff.foreign_metadata = 0;
 
 		/* initialize foreign metadata if requested */
-		if(option_values.keep_foreign_metadata) {
+		if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
 			decode_options.format_options.iff.foreign_metadata =
 				flac__foreign_metadata_new(
 					output_format==FORMAT_WAVE || output_format==FORMAT_RF64?

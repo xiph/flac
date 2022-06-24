@@ -978,8 +978,15 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				flac__foreign_metadata_read_from_wave64(options.format_options.iff.foreign_metadata, infilename, &error) :
 				flac__foreign_metadata_read_from_aiff(options.format_options.iff.foreign_metadata, infilename, &error)
 		)) {
-			flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", encoder_session.inbasefilename, error);
-			return EncoderSession_finish_error(&encoder_session);
+			if(options.relaxed_foreign_metadata_handling) {
+				flac__utils_printf(stderr, 1, "%s: WARNING reading foreign metadata: %s\n", encoder_session.inbasefilename, error);
+				if(encoder_session.treat_warnings_as_errors)
+					return EncoderSession_finish_error(&encoder_session);
+			}
+			else {
+				flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", encoder_session.inbasefilename, error);
+				return EncoderSession_finish_error(&encoder_session);
+			}
 		}
 	}
 
