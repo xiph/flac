@@ -3221,7 +3221,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	FLAC__int64 pos = -1;
 	int i;
 	uint32_t approx_bytes_per_frame;
-	FLAC__bool first_seek = true;
+	FLAC__bool first_seek = true, seek_from_lower_bound = false;
 	const FLAC__uint64 total_samples = FLAC__stream_decoder_get_total_samples(decoder);
 	const uint32_t min_blocksize = decoder->private_->stream_info.data.stream_info.min_blocksize;
 	const uint32_t max_blocksize = decoder->private_->stream_info.data.stream_info.max_blocksize;
@@ -3349,17 +3349,22 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-		pos = (FLAC__int64)lower_bound + (FLAC__int64)((double)(target_sample - lower_bound_sample) / (double)(upper_bound_sample - lower_bound_sample) * (double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
-#else
-		/* a little less accurate: */
-		if(upper_bound - lower_bound < 0xffffffff)
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)(((target_sample - lower_bound_sample) * (upper_bound - lower_bound)) / (upper_bound_sample - lower_bound_sample)) - approx_bytes_per_frame;
-		else { /* @@@ WATCHOUT, ~2TB limit */
-		        FLAC__uint64 ratio = (1<<16) / (upper_bound_sample - lower_bound_sample);
-			pos = (FLAC__int64)lower_bound + (FLAC__int64)((((target_sample - lower_bound_sample)>>8) * ((upper_bound - lower_bound)>>8) * ratio)) - approx_bytes_per_frame;
+		if(seek_from_lower_bound) {
+			pos = lower_bound;
 		}
+		else {
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+			pos = (FLAC__int64)lower_bound + (FLAC__int64)((double)(target_sample - lower_bound_sample) / (double)(upper_bound_sample - lower_bound_sample) * (double)(upper_bound - lower_bound)) - approx_bytes_per_frame;
+#else
+			/* a little less accurate: */
+			if(upper_bound - lower_bound < 0xffffffff)
+				pos = (FLAC__int64)lower_bound + (FLAC__int64)(((target_sample - lower_bound_sample) * (upper_bound - lower_bound)) / (upper_bound_sample - lower_bound_sample)) - approx_bytes_per_frame;
+			else { /* @@@ WATCHOUT, ~2TB limit */
+			        FLAC__uint64 ratio = (1<<16) / (upper_bound_sample - lower_bound_sample);
+				pos = (FLAC__int64)lower_bound + (FLAC__int64)((((target_sample - lower_bound_sample)>>8) * ((upper_bound - lower_bound)>>8) * ratio)) - approx_bytes_per_frame;
+			}
 #endif
+		}
 		if(pos >= (FLAC__int64)upper_bound)
 			pos = (FLAC__int64)upper_bound - 1;
 		if(pos < (FLAC__int64)lower_bound)
@@ -3381,12 +3386,12 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		decoder->private_->unparseable_frame_count = 0;
 		if(!FLAC__stream_decoder_process_single(decoder) || decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED || 0 == decoder->private_->samples_decoded) {
 			/* No frame could be decoded */
-			if(decoder->protected_->state != FLAC__STREAM_DECODER_ABORTED && decoder->private_->eof_callback(decoder, decoder->private_->client_data) && upper_bound > 0){
+			if(decoder->protected_->state != FLAC__STREAM_DECODER_ABORTED && decoder->private_->eof_callback(decoder, decoder->private_->client_data) && !seek_from_lower_bound){
 				/* decoder has hit end of stream while processing corrupt
-				 * frame, try again. This is very inefficient but shouldn't
-				 * happen often, and a more efficient solution would require
-				 * quite a bit more code */
-				upper_bound--;
+				 * frame. To remedy this, try decoding a frame at the lower
+				 * bound so the seek after that hopefully ends up somewhere
+				 * else */
+				seek_from_lower_bound = true;
 				continue;
 			}
 			else {
@@ -3394,6 +3399,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 				return false;
 			}
 		}
+		seek_from_lower_bound = false;
+
 		/* our write callback will change the state when it gets to the target frame */
 		/* actually, we could have got_a_frame if our decoder is at FLAC__STREAM_DECODER_END_OF_STREAM so we need to check for that also */
 		if(!decoder->private_->is_seeking)
