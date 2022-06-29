@@ -3283,7 +3283,9 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	 * must be ordered by ascending sample number.
 	 *
 	 * Note: to protect against invalid seek tables we will ignore points
-	 * that have frame_samples==0 or sample_number>=total_samples
+	 * that have frame_samples==0 or sample_number>=total_samples. Also,
+	 * because math is limited to 64-bit ints, seekpoints with an offset
+	 * larger than 2^63 (8 exbibyte) are rejected.
 	 */
 	if(seek_table) {
 		FLAC__uint64 new_lower_bound = lower_bound;
@@ -3312,7 +3314,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 				seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER &&
 				seek_table->points[i].frame_samples > 0 && /* defense against bad seekpoints */
 				(total_samples <= 0 || seek_table->points[i].sample_number < total_samples) && /* defense against bad seekpoints */
-				seek_table->points[i].sample_number > target_sample
+				seek_table->points[i].sample_number > target_sample &&
+				seek_table->points[i].stream_offset < (FLAC__uint64)INT64_MAX
 			)
 				break;
 		}
