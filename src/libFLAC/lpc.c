@@ -828,8 +828,7 @@ FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual(const
 			case  1: sum += qlp_coeff[ 0] * (FLAC__int64)data[i- 1];
 		}
 		residual_to_check = data[i] - (sum >> lp_quantization);
-		 /* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
-		if(residual_to_check <= INT32_MIN || residual_to_check > INT32_MAX)
+		if(residual_to_check < INT32_MIN || residual_to_check > INT32_MAX)
 			return false;
 		else
 			residual[i] = residual_to_check;
@@ -882,8 +881,7 @@ FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_33bit
 			case  1: sum += qlp_coeff[ 0] * data[i- 1];
 		}
 		residual_to_check = data[i] - (sum >> lp_quantization);
-		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
-		if(residual_to_check <= INT32_MIN || residual_to_check > INT32_MAX)
+		if(residual_to_check < INT32_MIN || residual_to_check > INT32_MAX)
 			return false;
 		else
 			residual[i] = residual_to_check;
