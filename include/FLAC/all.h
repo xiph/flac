@@ -357,6 +357,56 @@
  * \c FLAC__FRAME_HEADER_BLOCKING_STRATEGY_LEN
  */
 
+/** \defgroup porting_1_3_4_to_1_4_0 Porting from FLAC 1.3.4 to 1.4.0
+ *  \ingroup porting
+ *
+ *  \brief
+ *  This module describes porting from FLAC 1.3.4 to FLAC 1.4.0.
+ *
+ * \section porting_1_3_4_to_1_4_0_summary Summary
+ *
+ * Between FLAC 1.3.4 and FLAC 1.4.0, there have three breaking changes
+ * - the function get_client_data_from_decoder has been renamed to
+ *   FLAC__get_decoder_client_data
+ * - some data types in the FLAC__Frame struct have changed
+ * - the C functions FLAC__stream_encoder_init_file,
+ *   FLAC__stream_encoder_init_ogg_file, FLAC__stream_decoder_init_file
+ *   and  FLAC__stream_decoder_init_ogg_file and the C++ ::init and
+ *   ::init_ogg class member functions of both the encoder and decoder
+ *   now take UTF-8 encoded filenames on Windows instead of filenames in
+ *   the current codepage
+ *
+ * Furthermore, there have been the following additions
+ * - the functions FLAC__stream_encoder_set_limit_min_bitrate,
+ *   FLAC__stream_encoder_get_limit_min_bitrate,
+ *   FLAC::encoder::file::set_limit_min_bitrate() and
+ *   FLAC::encoder::file::get_limit_min_bitrate() have been added
+ * - Added FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA to the
+ *   FLAC__StreamDecoderErrorStatus enum
+ *
+ * \section porting_1_3_4_to_1_4_0_breaking Breaking changes
+ *
+ * The function \b get_client_data_from_decoder was added in FLAC 1.3.3
+ * but did not follow the API naming convention and was not properly
+ * exported. The function is now renamed and properly integrated
+ *
+ * To accomodate encoding and decoding 32-bit int PCM, some data types
+ * in the \b FLAC__frame struct were changed. Specifically, warmup
+ * in both the FLAC__Subframe_Fixed struc and the FLAC__Subframe_LPC
+ * struct is changed from FLAC__int32 to FLAC__int64. Also, value
+ * in the FLAC__Subframe_Constant is changed from FLAC__int32 to
+ * FLAC__int64. Finally, in FLAC__Subframe_Verbatim struct data is
+ * changes from a FLAC__int32 array to a union containing a FLAC__int32
+ * array and a FLAC__int64 array. Also, a new member is added,
+ * data_type, which clarifies whether the FLAC__int32 or FLAC__int64
+ * array is in use.
+ *
+ * The last breaking change is that filenames in FLAC and FLAC++ encoder
+ * and decoder must now have the UTF-8 character encoding instead of
+ * using the current code page.
+ *
+ */
+
 /** \defgroup flac FLAC C API
  *
  * The FLAC C API is the interface to libFLAC, a set of structures
