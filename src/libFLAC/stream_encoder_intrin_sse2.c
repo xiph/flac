@@ -59,7 +59,7 @@ static inline __m128i local_abs_epi32(__m128i val)
 
 FLAC__SSE_TARGET("sse2")
 void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
-		uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t max_residual_bps)
+		uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps)
 {
 	const uint32_t default_partition_samples = (residual_samples + predictor_order) >> max_partition_order;
 	uint32_t partitions = 1u << max_partition_order;
@@ -71,7 +71,7 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 		const uint32_t threshold = 32 - FLAC__bitmath_ilog2(default_partition_samples);
 		uint32_t partition, residual_sample, end = (uint32_t)(-(int32_t)predictor_order);
 
-		if(max_residual_bps < threshold) {
+		if(bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < threshold) {
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				__m128i mm_sum = _mm_setzero_si128();
 				uint32_t e1, e3;
@@ -106,7 +106,7 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 #endif
 			}
 		}
-		else if(max_residual_bps < 32) { /* have to pessimistically use 64 bits for accumulator */
+		else { /* have to pessimistically use 64 bits for accumulator */
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				__m128i mm_sum = _mm_setzero_si128();
 				uint32_t e1, e3;
@@ -135,19 +135,6 @@ void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual
 				_mm_storel_epi64((__m128i*)(void*)(abs_residual_partition_sums+partition), mm_sum);
 			}
 		}
-                else { /* must handle abs(INT32_MIN) */
-                        for(partition = residual_sample = 0; partition < partitions; partition++) {
-                                FLAC__uint64 abs_residual_partition_sum64 = 0;
-                                end += default_partition_samples;
-                                for( ; residual_sample < end; residual_sample++)
-                                        if(residual[residual_sample] == INT32_MIN)
-                                                abs_residual_partition_sum64 -= (FLAC__int64)INT32_MIN;
-                                        else
-                                                abs_residual_partition_sum64 += abs(residual[residual_sample]);
-                                abs_residual_partition_sums[partition] = abs_residual_partition_sum64;
-                        }
-                }
-
 	}
 
 	/* now merge partitions for lower orders */

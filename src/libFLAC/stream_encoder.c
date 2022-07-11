@@ -231,7 +231,7 @@ static uint32_t find_best_partition_order_(
 	uint32_t rice_parameter_limit,
 	uint32_t min_partition_order,
 	uint32_t max_partition_order,
-	uint32_t max_residual_bps,
+	uint32_t bps,
 	FLAC__bool do_escape_coding,
 	uint32_t rice_parameter_search_dist,
 	FLAC__EntropyCodingMethod *best_ecm
@@ -244,7 +244,7 @@ static void precompute_partition_info_sums_(
 	uint32_t predictor_order,
 	uint32_t min_partition_order,
 	uint32_t max_partition_order,
-	uint32_t max_residual_bps
+	uint32_t bps
 );
 
 static void precompute_partition_info_escapes_(
@@ -349,7 +349,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	uint32_t current_frame_number;
 	FLAC__MD5Context md5context;
 	FLAC__CPUInfo cpuinfo;
-	void (*local_precompute_partition_info_sums)(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[], uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t max_residual_bps);
+	void (*local_precompute_partition_info_sums)(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[], uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	uint32_t (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	uint32_t (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
@@ -3873,7 +3873,7 @@ uint32_t evaluate_fixed_subframe_(
 			rice_parameter_limit,
 			min_partition_order,
 			max_partition_order,
-			(subframe_bps + order),
+			subframe_bps,
 			do_escape_coding,
 			rice_parameter_search_dist,
 			&subframe->data.fixed.entropy_coding_method
@@ -3972,7 +3972,7 @@ uint32_t evaluate_lpc_subframe_(
 			rice_parameter_limit,
 			min_partition_order,
 			max_partition_order,
-			FLAC__lpc_max_residual_bps(subframe_bps, qlp_coeff, order, quantization),
+			subframe_bps,
 			do_escape_coding,
 			rice_parameter_search_dist,
 			&subframe->data.lpc.entropy_coding_method
@@ -4046,7 +4046,7 @@ uint32_t find_best_partition_order_(
 	uint32_t rice_parameter_limit,
 	uint32_t min_partition_order,
 	uint32_t max_partition_order,
-	uint32_t max_residual_bps,
+	uint32_t bps,
 	FLAC__bool do_escape_coding,
 	uint32_t rice_parameter_search_dist,
 	FLAC__EntropyCodingMethod *best_ecm
@@ -4060,7 +4060,7 @@ uint32_t find_best_partition_order_(
 	max_partition_order = FLAC__format_get_max_rice_partition_order_from_blocksize_limited_max_and_predictor_order(max_partition_order, blocksize, predictor_order);
 	min_partition_order = flac_min(min_partition_order, max_partition_order);
 
-	private_->local_precompute_partition_info_sums(residual, abs_residual_partition_sums, residual_samples, predictor_order, min_partition_order, max_partition_order,  max_residual_bps);
+	private_->local_precompute_partition_info_sums(residual, abs_residual_partition_sums, residual_samples, predictor_order, min_partition_order, max_partition_order, bps);
 
 	if(do_escape_coding)
 		precompute_partition_info_escapes_(residual, raw_bits_per_partition, residual_samples, predictor_order, min_partition_order, max_partition_order);
@@ -4138,7 +4138,7 @@ void precompute_partition_info_sums_(
 	uint32_t predictor_order,
 	uint32_t min_partition_order,
 	uint32_t max_partition_order,
-	uint32_t max_residual_bps
+	uint32_t bps
 )
 {
 	const uint32_t default_partition_samples = (residual_samples + predictor_order) >> max_partition_order;
@@ -4150,33 +4150,22 @@ void precompute_partition_info_sums_(
 	{
 		const uint32_t threshold = 32 - FLAC__bitmath_ilog2(default_partition_samples);
 		uint32_t partition, residual_sample, end = (uint32_t)(-(int)predictor_order);
-		if(max_residual_bps < threshold) {
+		/* WATCHOUT: "bps + FLAC__MAX_EXTRA_RESIDUAL_BPS" is the maximum assumed size of the average residual magnitude */
+		if(bps + FLAC__MAX_EXTRA_RESIDUAL_BPS < threshold) {
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				FLAC__uint32 abs_residual_partition_sum = 0;
 				end += default_partition_samples;
 				for( ; residual_sample < end; residual_sample++)
-					abs_residual_partition_sum += abs(residual[residual_sample]);
+					abs_residual_partition_sum += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
 				abs_residual_partition_sums[partition] = abs_residual_partition_sum;
 			}
 		}
-		else if(max_residual_bps < 32) { /* have to pessimistically use 64 bits for accumulator */
+		else { /* have to pessimistically use 64 bits for accumulator */
 			for(partition = residual_sample = 0; partition < partitions; partition++) {
 				FLAC__uint64 abs_residual_partition_sum64 = 0;
 				end += default_partition_samples;
 				for( ; residual_sample < end; residual_sample++)
-					abs_residual_partition_sum64 += abs(residual[residual_sample]);
-				abs_residual_partition_sums[partition] = abs_residual_partition_sum64;
-			}
-		}
-		else { /* must handle abs(INT32_MIN) */
-			for(partition = residual_sample = 0; partition < partitions; partition++) {
-				FLAC__uint64 abs_residual_partition_sum64 = 0;
-				end += default_partition_samples;
-				for( ; residual_sample < end; residual_sample++)
-					if(residual[residual_sample] == INT32_MIN)
-						abs_residual_partition_sum64 -= (FLAC__int64)INT32_MIN;
-					else
-						abs_residual_partition_sum64 += abs(residual[residual_sample]);
+					abs_residual_partition_sum64 += abs(residual[residual_sample]); /* abs(INT_MIN) is undefined, but if the residual is INT_MIN we have bigger problems */
 				abs_residual_partition_sums[partition] = abs_residual_partition_sum64;
 			}
 		}

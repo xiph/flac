@@ -37,23 +37,29 @@
 #include <config.h>
 #endif
 
+/*
+ * This is used to avoid overflow with unusual signals in 32-bit
+ * accumulator in the *precompute_partition_info_sums_* functions.
+ */
+#define FLAC__MAX_EXTRA_RESIDUAL_BPS 4
+
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/cpu.h"
 #include "FLAC/format.h"
 
 #ifdef FLAC__SSE2_SUPPORTED
 extern void FLAC__precompute_partition_info_sums_intrin_sse2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
-			uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t max_residual_bps);
+			uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps);
 #endif
 
 #ifdef FLAC__SSSE3_SUPPORTED
 extern void FLAC__precompute_partition_info_sums_intrin_ssse3(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
-			uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t max_residual_bps);
+			uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps);
 #endif
 
 #ifdef FLAC__AVX2_SUPPORTED
 extern void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[],
-			uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t max_residual_bps);
+			uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps);
 #endif
 
 #endif
