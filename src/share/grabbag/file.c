@@ -84,8 +84,10 @@ const char *grabbag__file_get_basename(const char *srcpath)
 
 	p = strrchr(srcpath, '/');
 	if(0 == p) {
+#if defined _WIN32 && !defined __CYGWIN__
 		p = strrchr(srcpath, '\\');
 		if(0 == p)
+#endif
 			return srcpath;
 	}
 	return ++p;
