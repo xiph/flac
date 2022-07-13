@@ -186,7 +186,7 @@ static FLAC__bool get_sample_info_raw(EncoderSession *e, encode_options_t option
 static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t options)
 {
 	FLAC__bool got_fmt_chunk = false, got_data_chunk = false, got_ds64_chunk = false;
-	uint32_t sample_rate = 0, channels = 0, bps = 0, shift = 0;
+	uint32_t sample_rate = 0, channels = 0, bps = 0, shift = 0, block_align = 0;
 	FLAC__uint32 channel_mask = 0;
 	FLAC__uint64 ds64_data_size = 0;
 
@@ -358,7 +358,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			/* block align */
 			if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
 				return false;
-
+			block_align = x;
 			/* bits per sample */
 			if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
 				return false;
@@ -380,26 +380,10 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 						return false;
 					}
 				}
-#if 0 /* @@@ reinstate once we can get an answer about whether the samples are left- or right-justified */
-				if((bps+7)/8 * channels == block_align) {
-					if(bps % 8) {
-						/* assume legacy file is byte aligned with some LSBs zero; this is double-checked in format_input() */
-						flac__utils_printf(stderr, 1, "%s: WARNING: legacy WAVE file (format type %d) has block alignment=%u, bits-per-sample=%u, channels=%u\n", e->inbasefilename, (uint32_t)wFormatTag, block_align, bps, channels);
-						if(e->treat_warnings_as_errors)
-							return false;
-						shift = 8 - (bps % 8);
-						bps += shift;
-					}
-					else
-						shift = 0;
-				}
-				else {
-					flac__utils_printf(stderr, 1, "%s: ERROR: illegal WAVE file (format type %d) has block alignment=%u, bits-per-sample=%u, channels=%u\n", e->inbasefilename, (uint32_t)wFormatTag, block_align, bps, channels);
+				if((bps+7)/8 * channels != block_align) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: legacy WAVE file has block alignment=%u, bits-per-sample=%u, channels=%u\n", e->inbasefilename, (uint32_t)wFormatTag, block_align, bps, channels);
 					return false;
 				}
-#else
-				shift = 0;
-#endif
 				if(channels > 2 && !options.channel_map_none) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: WAVE has >2 channels but is not WAVE_FORMAT_EXTENSIBLE; cannot assign channels\n", e->inbasefilename);
 					return false;
