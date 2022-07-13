@@ -377,32 +377,33 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 dat
 #endif
 {
 	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0, smallest_error = UINT64_MAX;
-	FLAC__int64 error_0, error_1, error_2, error_3, error_4;
+	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
 	FLAC__bool order_0_is_valid = true, order_1_is_valid = true, order_2_is_valid = true, order_3_is_valid = true, order_4_is_valid = true;
 	uint32_t order = 0;
 
 	for(int i = 0; i < (int)data_len; i++) {
-		error_0 = (FLAC__int64)data[i];
-		error_1 = (i > 0) ? (FLAC__int64)data[i] - data[i-1] : 0 ;
-		error_2 = (i > 1) ? (FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2] : 0;
-		error_3 = (i > 2) ? (FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3] : 0;
-		error_4 = (i > 3) ? (FLAC__int64)data[i] - 4 * (FLAC__int64)data[i-1] + 6 * (FLAC__int64)data[i-2] - 4 * (FLAC__int64)data[i-3] + data[i-4] : 0;
+		error_0 = local_abs64((FLAC__int64)data[i]);
+		error_1 = (i > 0) ? local_abs64((FLAC__int64)data[i] - data[i-1]) : 0 ;
+		error_2 = (i > 1) ? local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]) : 0;
+		error_3 = (i > 2) ? local_abs64((FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3]) : 0;
+		error_4 = (i > 3) ? local_abs64((FLAC__int64)data[i] - 4 * (FLAC__int64)data[i-1] + 6 * (FLAC__int64)data[i-2] - 4 * (FLAC__int64)data[i-3] + data[i-4]) : 0;
 
-		total_error_0 += local_abs64(error_0);
-		total_error_1 += local_abs64(error_1);
-		total_error_2 += local_abs64(error_2);
-		total_error_3 += local_abs64(error_3);
-		total_error_4 += local_abs64(error_4);
+		total_error_0 += error_0;
+		total_error_1 += error_1;
+		total_error_2 += error_2;
+		total_error_3 += error_3;
+		total_error_4 += error_4;
 
-		if(error_0 > INT32_MAX || error_0 < INT32_MIN)
+		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
+		if(error_0 > INT32_MAX)
 			order_0_is_valid = false;
-		if(error_1 > INT32_MAX || error_1 < INT32_MIN)
+		if(error_1 > INT32_MAX)
 			order_1_is_valid = false;
-		if(error_2 > INT32_MAX || error_2 < INT32_MIN)
+		if(error_2 > INT32_MAX)
 			order_2_is_valid = false;
-		if(error_3 > INT32_MAX || error_3 < INT32_MIN)
+		if(error_3 > INT32_MAX)
 			order_3_is_valid = false;
-		if(error_4 > INT32_MAX || error_4 < INT32_MIN)
+		if(error_4 > INT32_MAX)
 			order_4_is_valid = false;
 	}
 
@@ -422,33 +423,33 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int
 #endif
 {
 	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0, smallest_error = UINT64_MAX;
-	FLAC__int64 error_0, error_1, error_2, error_3, error_4;
+	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
 	FLAC__bool order_0_is_valid = true, order_1_is_valid = true, order_2_is_valid = true, order_3_is_valid = true, order_4_is_valid = true;
 	uint32_t order = 0;
 
 	for(int i = 0; i < (int)data_len; i++) {
-		error_0 = data[i];
-		error_1 = (i > 0) ? data[i] - data[i-1] : 0 ;
-		error_2 = (i > 1) ? data[i] - 2 * data[i-1] + data[i-2] : 0;
-		error_3 = (i > 2) ? data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3] : 0;
-		error_4 = (i > 3) ? data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4] : 0;
+		error_0 = local_abs64(data[i]);
+		error_1 = (i > 0) ? local_abs64(data[i] - data[i-1]) : 0 ;
+		error_2 = (i > 1) ? local_abs64(data[i] - 2 * data[i-1] + data[i-2]) : 0;
+		error_3 = (i > 2) ? local_abs64(data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3]) : 0;
+		error_4 = (i > 3) ? local_abs64(data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4]) : 0;
 
-		total_error_0 += local_abs64(error_0);
-		total_error_1 += local_abs64(error_1);
-		total_error_2 += local_abs64(error_2);
-		total_error_3 += local_abs64(error_3);
-		total_error_4 += local_abs64(error_4);
+		total_error_0 += error_0;
+		total_error_1 += error_1;
+		total_error_2 += error_2;
+		total_error_3 += error_3;
+		total_error_4 += error_4;
 
-
-		if(error_0 > INT32_MAX || error_0 < INT32_MIN)
+		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
+		if(error_0 > INT32_MAX)
 			order_0_is_valid = false;
-		if(error_1 > INT32_MAX || error_1 < INT32_MIN)
+		if(error_1 > INT32_MAX)
 			order_1_is_valid = false;
-		if(error_2 > INT32_MAX || error_2 < INT32_MIN)
+		if(error_2 > INT32_MAX)
 			order_2_is_valid = false;
-		if(error_3 > INT32_MAX || error_3 < INT32_MIN)
+		if(error_3 > INT32_MAX)
 			order_3_is_valid = false;
-		if(error_4 > INT32_MAX || error_4 < INT32_MIN)
+		if(error_4 > INT32_MAX)
 			order_4_is_valid = false;
 	}
 
