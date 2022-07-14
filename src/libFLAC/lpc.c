@@ -1214,7 +1214,7 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 * flac_restrict residual, u
 			break;
 		}
 #endif
-		*(data++) = *(r++) + (FLAC__int32)(sum >> lp_quantization);
+		*(data++) = (FLAC__int32)(*(r++) + (sum >> lp_quantization));
 	}
 }
 #else /* fully unrolled version for normal use */
