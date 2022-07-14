@@ -32,19 +32,22 @@
 #include <cstdlib>
 #include <cstdio>
 #include <cstring> /* for memcpy */
+#include <unistd.h>
+#include <fcntl.h>
 #include "FLAC++/metadata.h"
 
 #define CONFIG_LENGTH 1
 
 #define min(x,y) (x<y?x:y)
 
-static void run_tests_with_level_0_interface();
-static void run_tests_with_level_1_interface(bool readonly, bool preservestats, const uint8_t *data, size_t size);
-static void run_tests_with_level_2_interface(bool ogg, bool use_padding, const uint8_t *data, size_t size);
+static void run_tests_with_level_0_interface(char filename[]);
+static void run_tests_with_level_1_interface(char filename[], bool readonly, bool preservestats, const uint8_t *data, size_t size);
+static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use_padding, const uint8_t *data, size_t size);
 
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
 	uint8_t command_length;
+	char filename[] = "/tmp/tmp-0.flac";
 	FLAC__bool init_bools[4];
 
 	/* Use first byte for configuration, leave at least one byte of input */
@@ -64,41 +67,52 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	/* Dump input to file */
 	{
-		FILE * file_to_fuzz = fopen("/tmp/tmp.flac","w");
-		fwrite(data+CONFIG_LENGTH+command_length,1,size-CONFIG_LENGTH-command_length,file_to_fuzz);
-		fclose(file_to_fuzz);
+		int file_to_fuzz;
+		int tries = 0;
+		while (1) {
+			filename[9] = (char)(tries+48);
+			file_to_fuzz = open(filename, O_CREAT | O_WRONLY | O_EXCL, S_IRUSR | S_IWUSR);
+			if (file_to_fuzz >= 0)
+				break;
+
+			tries++;
+			if (tries >= 10)
+				abort();
+		}
+		write(file_to_fuzz,data+CONFIG_LENGTH+command_length,size-CONFIG_LENGTH-command_length);
+		close(file_to_fuzz);
 	}
 
-
-	run_tests_with_level_0_interface();
-	run_tests_with_level_1_interface(init_bools[1], init_bools[2], data+CONFIG_LENGTH, command_length/2);
+	run_tests_with_level_0_interface(filename);
+	run_tests_with_level_1_interface(filename, init_bools[1], init_bools[2], data+CONFIG_LENGTH, command_length/2);
 
 	/* Dump input to file, to start fresh for level 2 */
 	if(!init_bools[1]){
-		FILE * file_to_fuzz = fopen("/tmp/tmp.flac","w");
+		FILE * file_to_fuzz = fopen(filename,"w");
 		fwrite(data+CONFIG_LENGTH+command_length,1,size-CONFIG_LENGTH-command_length,file_to_fuzz);
 		fclose(file_to_fuzz);
 	}
 
-	run_tests_with_level_2_interface(init_bools[0], init_bools[3], data+command_length/2+CONFIG_LENGTH, command_length/2);
+	run_tests_with_level_2_interface(filename, init_bools[0], init_bools[3], data+command_length/2+CONFIG_LENGTH, command_length/2);
 
+	remove(filename);
 
 	return 0;
 }
 
-static void run_tests_with_level_0_interface() {
+static void run_tests_with_level_0_interface(char filename[]) {
 	FLAC::Metadata::StreamInfo streaminfo;
 	FLAC::Metadata::VorbisComment vorbis_comment;
 	FLAC::Metadata::CueSheet cue_sheet;
 	FLAC::Metadata::Picture picture;
 
-	FLAC::Metadata::get_streaminfo("/tmp/tmp.flac",streaminfo);
-	FLAC::Metadata::get_tags("/tmp/tmp.flac",vorbis_comment);
-	FLAC::Metadata::get_cuesheet("/tmp/tmp.flac",cue_sheet);
-	FLAC::Metadata::get_picture("/tmp/tmp.flac",picture, (FLAC__StreamMetadata_Picture_Type)(1), NULL, NULL, -1, -1, -1, -1);
+	FLAC::Metadata::get_streaminfo(filename,streaminfo);
+	FLAC::Metadata::get_tags(filename,vorbis_comment);
+	FLAC::Metadata::get_cuesheet(filename,cue_sheet);
+	FLAC::Metadata::get_picture(filename,picture, (FLAC__StreamMetadata_Picture_Type)(1), NULL, NULL, -1, -1, -1, -1);
 }
 
-static void run_tests_with_level_1_interface(bool readonly, bool preservestats, const uint8_t *data, size_t size) {
+static void run_tests_with_level_1_interface(char filename[], bool readonly, bool preservestats, const uint8_t *data, size_t size) {
 	FLAC::Metadata::SimpleIterator iterator;
 	FLAC::Metadata::Prototype *metadata_block = nullptr;
 	uint8_t id[4] = {0};
@@ -106,7 +120,7 @@ static void run_tests_with_level_1_interface(bool readonly, bool preservestats, 
 	if(!iterator.is_valid())
 		return;
 
-	if(!iterator.init("/tmp/tmp.flac",readonly,preservestats))
+	if(!iterator.init(filename,readonly,preservestats))
 		return;
 
 	for(size_t i = 0; i < size; i++) {
@@ -157,7 +171,7 @@ static void run_tests_with_level_1_interface(bool readonly, bool preservestats, 
 }
 
 
-static void run_tests_with_level_2_interface(bool ogg, bool use_padding, const uint8_t *data, size_t size) {
+static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use_padding, const uint8_t *data, size_t size) {
 	FLAC::Metadata::Chain chain;
 	FLAC::Metadata::Iterator iterator;
 	FLAC::Metadata::Prototype *metadata_block_get = nullptr;
@@ -167,7 +181,7 @@ static void run_tests_with_level_2_interface(bool ogg, bool use_padding, const u
 	if(!chain.is_valid())
 		return;
 
-	if(!chain.read("/tmp/tmp.flac", ogg))
+	if(!chain.read(filename, ogg))
 		return;
 
 	iterator.init(chain);
