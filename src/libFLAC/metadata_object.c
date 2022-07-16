@@ -130,7 +130,9 @@ static FLAC__bool copy_vcentry_(FLAC__StreamMetadata_VorbisComment_Entry *to, co
 	to->length = from->length;
 	if (from->entry == 0) {
 		FLAC__ASSERT(from->length == 0);
-		to->entry = 0;
+		if ((to->entry = safe_malloc_(1)) == NULL)
+			return false;
+		to->entry[0] = '\0';
 	}
 	else {
 		FLAC__byte *x;
@@ -1171,8 +1173,16 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		FLAC__ASSERT(object->data.vorbis_comment.num_comments == 0);
 		if (new_num_comments == 0)
 			return true;
-		else if ((object->data.vorbis_comment.comments = vorbiscomment_entry_array_new_(new_num_comments)) == NULL)
-			return false;
+		else {
+			if ((object->data.vorbis_comment.comments = vorbiscomment_entry_array_new_(new_num_comments)) == NULL)
+				return false;
+			for (uint32_t i = 0; i < new_num_comments; i++) {
+				object->data.vorbis_comment.comments[i].length = 0;
+				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL)
+					return false;
+				object->data.vorbis_comment.comments[i].entry[0] = '\0';
+			}
+		}
 	}
 	else {
 		const size_t old_size = object->data.vorbis_comment.num_comments * sizeof(FLAC__StreamMetadata_VorbisComment_Entry);
@@ -1206,8 +1216,14 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		}
 
 		/* if growing, zero all the length/pointers of new elements */
-		if (new_size > old_size)
-			memset(object->data.vorbis_comment.comments + object->data.vorbis_comment.num_comments, 0, new_size - old_size);
+		if (new_size > old_size) {
+			for (uint32_t i = object->data.vorbis_comment.num_comments; i < new_num_comments; i++) {
+				object->data.vorbis_comment.comments[i].length = 0;
+				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL)
+					return false;
+				object->data.vorbis_comment.comments[i].entry[0] = '\0';
+			}
+		}
 	}
 
 	object->data.vorbis_comment.num_comments = new_num_comments;
@@ -1229,6 +1245,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_comment(FLAC__Stream
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__StreamMetadata *object, uint32_t comment_num, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool copy)
 {
 	FLAC__StreamMetadata_VorbisComment *vc;
+	FLAC__StreamMetadata_VorbisComment_Entry temp;
 
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
@@ -1243,9 +1260,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_insert_comment(FLAC__Str
 		return false;
 
 	/* move all comments >= comment_num forward one space */
+	/* reuse newly added empty comment */
+	temp = vc->comments[vc->num_comments-1];
 	memmove(&vc->comments[comment_num+1], &vc->comments[comment_num], sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(vc->num_comments-1-comment_num));
-	vc->comments[comment_num].length = 0;
-	vc->comments[comment_num].entry = 0;
+	vc->comments[comment_num] = temp;
 
 	return FLAC__metadata_object_vorbiscomment_set_comment(object, comment_num, entry, copy);
 }

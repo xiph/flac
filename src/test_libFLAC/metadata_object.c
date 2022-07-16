@@ -201,8 +201,11 @@ static void vc_resize_(FLAC__StreamMetadata *block, uint32_t num)
 	else {
 		vc->comments = realloc(vc->comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*num);
 		FLAC__ASSERT(0 != vc->comments);
-		if(num > vc->num_comments)
-			memset(vc->comments+vc->num_comments, 0, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*(num-vc->num_comments));
+		for(uint32_t i = vc->num_comments; i < num; i++) {
+			vc->comments[i].length = 0;
+			vc->comments[i].entry = malloc(1);
+			vc->comments[i].entry[0] = '\0';
+		}
 	}
 
 	vc->num_comments = num;
