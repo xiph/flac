@@ -138,6 +138,9 @@
 #    define PRId64 "I64d"
 #    define PRIx64 "I64x"
 #  endif
+#  ifdef _USING_V110_SDK71_
+#    error "libFLAC is not compatible with V110_SDK71. See github.com/xiph/flac/issues/72#issuecomment-934777777 for details"
+#  endif
 #endif /* defined _MSC_VER */
 
 #ifdef _WIN32
