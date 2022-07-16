@@ -33,7 +33,6 @@
 #include <cstdio>
 #include <cstring> /* for memcpy */
 #include <unistd.h>
-#include <fcntl.h>
 #include "FLAC++/metadata.h"
 
 #define CONFIG_LENGTH 1
@@ -47,7 +46,7 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
 	uint8_t command_length;
-	char filename[] = "/tmp/tmp-0.flac";
+	char filename[] = "/tmp/tmpXXXXXX.flac";
 	FLAC__bool init_bools[4];
 
 	/* Use first byte for configuration, leave at least one byte of input */
@@ -67,18 +66,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	/* Dump input to file */
 	{
-		int file_to_fuzz;
-		int tries = 0;
-		while (1) {
-			filename[9] = (char)(tries+48);
-			file_to_fuzz = open(filename, O_CREAT | O_WRONLY | O_EXCL, S_IRUSR | S_IWUSR);
-			if (file_to_fuzz >= 0)
-				break;
+		int file_to_fuzz = mkstemps(filename, 5);
 
-			tries++;
-			if (tries >= 10)
-				abort();
-		}
+		if (file_to_fuzz < 0)
+			abort();
 		write(file_to_fuzz,data+CONFIG_LENGTH+command_length,size-CONFIG_LENGTH-command_length);
 		close(file_to_fuzz);
 	}
