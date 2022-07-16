@@ -39,6 +39,9 @@
 #ifndef FLAC__SHARE__COMPAT_H
 #define FLAC__SHARE__COMPAT_H
 
+#include <stddef.h>
+#include <stdarg.h>
+
 #if defined _WIN32 && !defined __CYGWIN__
 /* where MSVC puts unlink() */
 # include <io.h>
@@ -198,7 +201,6 @@
  *
  * This function wraps the MS version to behave more like the ISO version.
  */
-#include <stdarg.h>
 #ifdef __cplusplus
 extern "C" {
 #endif
