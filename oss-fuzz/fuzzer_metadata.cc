@@ -230,18 +230,23 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 				break;
 			case 8: /* Examine block */
 				if(metadata_block_transfer != 0 && metadata_block_transfer->is_valid()) {
-					switch(iterator.get_block_type()) {
+					switch(metadata_block_transfer->get_type()) {
 						case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 						{
 							uint32_t num_comments;
-							FLAC::Metadata::VorbisComment::Entry entry;
+							::FLAC__StreamMetadata_VorbisComment_Entry entry;
+							FLAC::Metadata::VorbisComment::Entry entry_cpp;
 							FLAC::Metadata::VorbisComment * vorbiscomment = dynamic_cast<FLAC::Metadata::VorbisComment *>(metadata_block_transfer);
+							const ::FLAC__StreamMetadata * metadata_c = *metadata_block_transfer;
 							if(vorbiscomment == 0)
-								break;
+								abort();
 							vorbiscomment->get_vendor_string();
 							num_comments = vorbiscomment->get_num_comments();
 							if(num_comments > 0) {
-								entry = vorbiscomment->get_comment(min(data[i]>>4,num_comments-1));
+								entry = metadata_c->data.vorbis_comment.comments[min(data[i]>>4,num_comments-1)];
+								entry_cpp = vorbiscomment->get_comment(min(data[i]>>4,num_comments-1));
+								if(entry.entry == 0 || (entry_cpp.is_valid() && entry_cpp.get_field() == 0))
+									abort();
 								vorbiscomment->find_entry_from(0,"TEST");
 							}
 
@@ -290,7 +295,7 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 				break;
 			case 9: /* Replace or add in block */
 				if(metadata_block_transfer != 0 && metadata_block_transfer->is_valid()) {
-					switch(iterator.get_block_type()) {
+					switch(metadata_block_transfer->get_type()) {
 						case FLAC__METADATA_TYPE_SEEKTABLE:
 						{
 							uint32_t num_seekpoints;
@@ -373,7 +378,7 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 				break;
 			case 10: /* Delete from block */
 				if(metadata_block_transfer != 0 && metadata_block_transfer->is_valid()) {
-					switch(iterator.get_block_type()) {
+					switch(metadata_block_transfer->get_type()) {
 						case FLAC__METADATA_TYPE_SEEKTABLE:
 						{
 							uint32_t num_seekpoints;
@@ -422,7 +427,7 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 				break;
 			case 11: /* Resize block */
 				if(metadata_block_transfer != 0 && metadata_block_transfer->is_valid()) {
-					switch(iterator.get_block_type()) {
+					switch(metadata_block_transfer->get_type()) {
 						case FLAC__METADATA_TYPE_PADDING:
 						{
 							FLAC::Metadata::Padding * padding = dynamic_cast<FLAC::Metadata::Padding *>(metadata_block_transfer);
