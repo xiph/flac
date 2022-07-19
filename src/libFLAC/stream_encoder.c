@@ -1008,14 +1008,16 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
 #   if FLAC__HAS_X86INTRIN
 #    ifdef FLAC__SSE2_SUPPORTED
-		if(encoder->protected_->max_lpc_order < 8)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8;
-		else if(encoder->protected_->max_lpc_order < 10)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10;
-		else if(encoder->protected_->max_lpc_order < 14)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14;
+		if(encoder->private_->cpuinfo.x86.sse2) { /* For fuzzing */
+			if(encoder->protected_->max_lpc_order < 8)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8;
+			else if(encoder->protected_->max_lpc_order < 10)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10;
+			else if(encoder->protected_->max_lpc_order < 14)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14;
 
-		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
+		}
 #    endif
 #    ifdef FLAC__SSE4_1_SUPPORTED
 		if(encoder->private_->cpuinfo.x86.sse41) {
@@ -1030,18 +1032,22 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		}
 #    endif
 #    ifdef FLAC__FMA_SUPPORTED
-		if(encoder->protected_->max_lpc_order < 8)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8;
-		else if(encoder->protected_->max_lpc_order < 12)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12;
-		else if(encoder->protected_->max_lpc_order < 16)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16;
+		if(encoder->private_->cpuinfo.x86.fma) {
+			if(encoder->protected_->max_lpc_order < 8)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8;
+			else if(encoder->protected_->max_lpc_order < 12)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12;
+			else if(encoder->protected_->max_lpc_order < 16)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16;
+		}
 #    endif
 
 
 #    ifdef FLAC__SSE2_SUPPORTED
-		encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
-		encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_sse2;
+		if(encoder->private_->cpuinfo.x86.sse2) { /* For fuzzing */
+			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
+			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_sse2;
+		}
 #    endif
 #    ifdef FLAC__SSSE3_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.ssse3) {
