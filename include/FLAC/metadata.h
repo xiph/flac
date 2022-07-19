@@ -134,6 +134,11 @@ extern "C" {
  *  STREAMINFO, VORBIS_COMMENT, CUESHEET, and PICTURE blocks, requiring
  *  only a filename.
  *
+ *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
+ *  internally translates to an appropriate representation to use with
+ *  _wfopen. On all other systems, filename is passed to fopen without
+ *  any translation.
+ *
  *  They try to skip any ID3v2 tag at the head of the file.
  *
  * \{
@@ -386,6 +391,11 @@ FLAC_API FLAC__Metadata_SimpleIteratorStatus FLAC__metadata_simple_iterator_stat
 
 /** Initialize the iterator to point to the first metadata block in the
  *  given FLAC file.
+ *
+ *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
+ *  internally translates to an appropriate representation to use with
+ *  _wfopen. On all other systems, filename is passed to fopen without
+ *  any translation.
  *
  * \param iterator             A pointer to an existing iterator.
  * \param filename             The path to the FLAC file.
@@ -820,6 +830,11 @@ FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_C
 
 /** Read all metadata from a FLAC file into the chain.
  *
+ *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
+ *  internally translates to an appropriate representation to use with
+ *  _wfopen. On all other systems, filename is passed to fopen without
+ *  any translation.
+ *
  * \param chain    A pointer to an existing chain.
  * \param filename The path to the FLAC file to read.
  * \assert
@@ -833,6 +848,11 @@ FLAC_API FLAC__Metadata_ChainStatus FLAC__metadata_chain_status(FLAC__Metadata_C
 FLAC_API FLAC__bool FLAC__metadata_chain_read(FLAC__Metadata_Chain *chain, const char *filename);
 
 /** Read all metadata from an Ogg FLAC file into the chain.
+ *
+ *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
+ *  internally translates to an appropriate representation to use with
+ *  _wfopen. On all other systems, filename is passed to fopen without
+ *  any translation.
  *
  * \note Ogg FLAC metadata data writing is not supported yet and
  * FLAC__metadata_chain_write() will fail.
