@@ -369,12 +369,8 @@
  * - the function get_client_data_from_decoder has been renamed to
  *   FLAC__get_decoder_client_data
  * - some data types in the FLAC__Frame struct have changed
- * - the C functions FLAC__stream_encoder_init_file,
- *   FLAC__stream_encoder_init_ogg_file, FLAC__stream_decoder_init_file
- *   and  FLAC__stream_decoder_init_ogg_file and the C++ ::init and
- *   ::init_ogg class member functions of both the encoder and decoder
- *   now take UTF-8 encoded filenames on Windows instead of filenames in
- *   the current codepage
+ * - all functions accepting a filename now take UTF-8 encoded filenames
+ *   on Windows instead of filenames in the current codepage
  *
  * Furthermore, there have been the following additions
  * - the functions FLAC__stream_encoder_set_limit_min_bitrate,
@@ -388,7 +384,8 @@
  *
  * The function \b get_client_data_from_decoder was added in FLAC 1.3.3
  * but did not follow the API naming convention and was not properly
- * exported. The function is now renamed and properly integrated
+ * exported. The function is now renamed and properly integrated as
+ * FLAC__stream_decoder_get_client_data
  *
  * To accomodate encoding and decoding 32-bit int PCM, some data types
  * in the \b FLAC__frame struct were changed. Specifically, warmup
@@ -401,9 +398,29 @@
  * data_type, which clarifies whether the FLAC__int32 or FLAC__int64
  * array is in use.
  *
- * The last breaking change is that filenames in FLAC and FLAC++ encoder
- * and decoder must now have the UTF-8 character encoding instead of
- * using the current code page.
+ * The last breaking change is that all API functions taking a filename
+ * as an argument now, on Windows, must be supplied with that filename
+ * in the UTF-8 character encoding instead of using the current code
+ * page. libFLAC internally translates these UTF-8 encoded filenames to
+ * an appropriate representation to use with _wfopen. On all other
+ * systems, filename is passed to fopen without any translation, as it
+ * in libFLAC 1.3.4 and earlier.
+ *
+ * \section porting_1_3_4_to_1_4_0_additions Additions
+ *
+ * To aid in creating properly streamable FLAC files, a set of functions
+ * was added to make it possible to enfore a minimum bitrate to files
+ * created through libFLAC's stream_encoder.h interface. With this
+ * function enabled the resulting FLAC files have a minimum bitrate of
+ * 1bit/sample independent of the number of channels, i.e. 48kbit/s for
+ * 48kHz. This can be beneficial for streaming, as very low bitrates for
+ * silent sections compressed with 'constant' subframes can result in a
+ * bitrate of 1kbit/s, creating problems with clients that aren't aware
+ * of this possibility and buffer too much data.
+ *
+ * Finally, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA was added to
+ * the FLAC__StreamDecoderErrorStatus enum to signal that the decoder
+ * encountered unreadable metadata.
  *
  */
 

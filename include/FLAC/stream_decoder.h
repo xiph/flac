@@ -1285,8 +1285,9 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_FILE(
  *  and provide callbacks for the I/O.
  *
  *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
- *  internally translates to a appropriate representation to use with
- *  _wfopen
+ *  internally translates to an appropriate representation to use with
+ *  _wfopen. On all other systems, filename is passed to fopen without
+ *  any translation.
  *
  *  This function should be called after FLAC__stream_decoder_new() and
  *  FLAC__stream_decoder_set_*() but before any of the
@@ -1330,8 +1331,9 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_file(
  *  and provide callbacks for the I/O.
  *
  *  On Windows, filename must be a UTF-8 encoded filename, which libFLAC
- *  internally translates to a appropriate representation to use with
- *  _wfopen
+ *  internally translates to an appropriate representation to use with
+ *  _wfopen. On all other systems, filename is passed to fopen without
+ *  any translation.
  *
  *  This function should be called after FLAC__stream_decoder_new() and
  *  FLAC__stream_decoder_set_*() but before any of the
