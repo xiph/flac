@@ -77,8 +77,10 @@ if(HAVE_GIT)
         )
 endif()
 
-find_package(Iconv)
-set(HAVE_ICONV ${Iconv_FOUND})
+if(NOT WIN32)
+    find_package(Iconv)
+    set(HAVE_ICONV ${Iconv_FOUND})
+endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline")
