@@ -138,9 +138,6 @@
 #    define PRId64 "I64d"
 #    define PRIx64 "I64x"
 #  endif
-#  ifdef _USING_V110_SDK71_
-#    error "libFLAC is not compatible with V110_SDK71. See github.com/xiph/flac/issues/72#issuecomment-934777777 for details"
-#  endif
 #endif /* defined _MSC_VER */
 
 #ifdef _WIN32
@@ -178,7 +175,26 @@
 
 #ifdef _WIN32
 #define flac_stat_s __stat64 /* stat struct */
+#if defined(_USING_V110_SDK71_) && !defined(V110_SDK71_HACK)
+#  error "libFLAC is not compatible with V110_SDK71. See github.com/xiph/flac/issues/72#issuecomment-934777777 for details"
+#else
+#if defined(_USING_V110_SDK71_)
+/* This code is when V110_SDK71_ is defined */
+/* WATCHOUT: Make sure to test any compile using this thoroughly
+ * on a machine running XP! This hack only fixes libFLAC, not the
+ * command line tools. It is recommended to use MinGW instead to
+ * target Windows XP */
+static int flac_fstat(int fd, struct __stat64 *buffer) {
+	FLAC__int64 filelength = _filelengthi64 (fd);
+	if(filelength < 0)
+		return -1;
+	buffer->st_size = filelength;
+	return 0;
+}
+#else
 #define flac_fstat _fstat64
+#endif
+#endif
 #else
 #define flac_stat_s stat /* stat struct */
 #define flac_fstat fstat
