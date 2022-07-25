@@ -368,6 +368,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__bool disable_ssse3;
 	FLAC__bool disable_sse41;
 	FLAC__bool disable_avx2;
+	FLAC__bool disable_fma;
 	FLAC__bool disable_constant_subframes;
 	FLAC__bool disable_fixed_subframes;
 	FLAC__bool disable_verbatim_subframes;
@@ -885,6 +886,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->private_->cpuinfo.x86.sse41 = false;
 	if(encoder->private_->disable_avx2)
 		encoder->private_->cpuinfo.x86.avx2 = false;
+	if(encoder->private_->disable_fma)
+		encoder->private_->cpuinfo.x86.fma = false;
 	/* first default to the non-asm routines */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
@@ -1005,14 +1008,16 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
 #   if FLAC__HAS_X86INTRIN
 #    ifdef FLAC__SSE2_SUPPORTED
-		if(encoder->protected_->max_lpc_order < 8)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8;
-		else if(encoder->protected_->max_lpc_order < 10)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10;
-		else if(encoder->protected_->max_lpc_order < 14)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14;
+		if(encoder->private_->cpuinfo.x86.sse2) { /* For fuzzing */
+			if(encoder->protected_->max_lpc_order < 8)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_8;
+			else if(encoder->protected_->max_lpc_order < 10)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_10;
+			else if(encoder->protected_->max_lpc_order < 14)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14;
 
-		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_sse2;
+		}
 #    endif
 #    ifdef FLAC__SSE4_1_SUPPORTED
 		if(encoder->private_->cpuinfo.x86.sse41) {
@@ -1026,10 +1031,23 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2;
 		}
 #    endif
+#    ifdef FLAC__FMA_SUPPORTED
+		if(encoder->private_->cpuinfo.x86.fma) {
+			if(encoder->protected_->max_lpc_order < 8)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8;
+			else if(encoder->protected_->max_lpc_order < 12)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12;
+			else if(encoder->protected_->max_lpc_order < 16)
+				encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16;
+		}
+#    endif
+
 
 #    ifdef FLAC__SSE2_SUPPORTED
-		encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
-		encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_sse2;
+		if(encoder->private_->cpuinfo.x86.sse2) { /* For fuzzing */
+			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
+			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_sse2;
+		}
 #    endif
 #    ifdef FLAC__SSSE3_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.ssse3) {
@@ -1957,6 +1975,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_disable_instruction_set(FLAC__StreamEnc
 	encoder->private_->disable_ssse3 = value & 4;
 	encoder->private_->disable_sse41 = value & 8;
 	encoder->private_->disable_avx2 = value & 16;
+	encoder->private_->disable_fma = value & 32;
 	return true;
 }
 

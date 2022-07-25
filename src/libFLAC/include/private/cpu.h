@@ -63,6 +63,7 @@
 /* SSE intrinsics support by ICC/MSVC/GCC */
 #if defined __INTEL_COMPILER
   #define FLAC__SSE_TARGET(x)
+  #define FLAC__FAST_MATH_TARGET(x)
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
   #if (__INTEL_COMPILER >= 1000) /* Intel C++ Compiler 10.0 */
@@ -80,6 +81,7 @@
   #endif
 #elif defined __clang__ && __has_attribute(__target__) /* clang */
   #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+  #define FLAC__FAST_MATH_TARGET(x) __attribute__ ((__target__ (x), optimize("-ffast-math")))
   #if __has_builtin(__builtin_ia32_maxps)
     #define FLAC__SSE_SUPPORTED 1
   #endif
@@ -105,6 +107,7 @@
   #endif
 #elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
   #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+  #define FLAC__FAST_MATH_TARGET(x) __attribute__ ((__target__ (x), optimize("-ffast-math")))
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
   #define FLAC__SSSE3_SUPPORTED 1
@@ -116,6 +119,7 @@
   #endif
 #elif defined _MSC_VER
   #define FLAC__SSE_TARGET(x)
+  #define FLAC__FAST_MATH_TARGET(x)
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
   #if (_MSC_VER >= 1500) /* MS Visual Studio 2008 */
@@ -133,6 +137,7 @@
   #endif
 #else
   #define FLAC__SSE_TARGET(x)
+  #define FLAC__FAST_MATH_TARGET(x)
   #ifdef __SSE__
     #define FLAC__SSE_SUPPORTED 1
   #endif
