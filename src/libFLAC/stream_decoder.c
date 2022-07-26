@@ -2659,7 +2659,6 @@ FLAC__bool read_subframe_constant_(FLAC__StreamDecoder *decoder, uint32_t channe
 	FLAC__Subframe_Constant *subframe = &decoder->private_->frame.subframes[channel].data.constant;
 	FLAC__int64 x;
 	uint32_t i;
-	FLAC__int32 *output = decoder->private_->output[channel];
 
 	decoder->private_->frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_CONSTANT;
 
@@ -2670,8 +2669,16 @@ FLAC__bool read_subframe_constant_(FLAC__StreamDecoder *decoder, uint32_t channe
 
 	/* decode the subframe */
 	if(do_full_decode) {
-		for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
-			output[i] = x;
+		if(bps <= 32) {
+			FLAC__int32 *output = decoder->private_->output[channel];
+			for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
+				output[i] = x;
+		} else {
+			FLAC__int64 *output = decoder->private_->side_subframe;
+			decoder->private_->side_subframe_in_use = true;
+			for(i = 0; i < decoder->private_->frame.header.blocksize; i++)
+				output[i] = x;
+		}
 	}
 
 	return true;
