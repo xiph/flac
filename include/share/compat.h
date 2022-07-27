@@ -140,6 +140,7 @@
 #  endif
 #  if defined(_USING_V110_SDK71_) && !defined(_DLL)
 #    pragma message("WARNING: This compile will NOT FUNCTION PROPERLY on Windows XP. See comments in include/share/compat.h for details")
+#define FLAC__USE_FILELENGTHI64
 /*
  *************************************************************************************
  * V110_SDK71, in MSVC 2017 also known as v141_xp, is a platform toolset that is supposed
