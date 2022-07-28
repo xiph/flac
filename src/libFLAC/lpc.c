@@ -43,6 +43,7 @@
 #include "private/bitmath.h"
 #include "private/lpc.h"
 #include "private/macros.h"
+
 #if !defined(NDEBUG) || defined FLAC__OVERFLOW_DETECT || defined FLAC__OVERFLOW_DETECT_VERBOSE
 #include <stdio.h>
 #endif
@@ -76,6 +77,34 @@ void FLAC__lpc_window_data_wide(const FLAC__int64 in[], const FLAC__real window[
 	uint32_t i;
 	for(i = 0; i < data_len; i++)
 		out[i] = in[i] * window[i];
+}
+
+void FLAC__lpc_window_data_partial(const FLAC__int32 in[], const FLAC__real window[], FLAC__real out[], uint32_t data_len, uint32_t part_size, uint32_t data_shift)
+{
+	uint32_t i, j;
+	if((part_size + data_shift) < data_len){
+		for(i = 0; i < part_size; i++)
+			out[i] = in[data_shift+i] * window[i];
+		i = flac_min(i,data_len - part_size - data_shift);
+		for(j = data_len - part_size; j < data_len; i++, j++)
+			out[i] = in[data_shift+i] * window[j];
+		if(i < data_len)
+			out[i] = 0.0f;
+	}
+}
+
+void FLAC__lpc_window_data_partial_wide(const FLAC__int64 in[], const FLAC__real window[], FLAC__real out[], uint32_t data_len, uint32_t part_size, uint32_t data_shift)
+{
+	uint32_t i, j;
+	if((part_size + data_shift) < data_len){
+		for(i = 0; i < part_size; i++)
+			out[i] = in[data_shift+i] * window[i];
+		i = flac_min(i,data_len - part_size - data_shift);
+		for(j = data_len - part_size; j < data_len; i++, j++)
+			out[i] = in[data_shift+i] * window[j];
+		if(i < data_len)
+			out[i] = 0.0f;
+	}
 }
 
 void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])

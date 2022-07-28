@@ -472,14 +472,13 @@ the HTML documentation.
 :	Synonymous with -l 8 -b 4096 -m -r 5
 
 **-6, \--compression-level-6**
-:	Synonymous with -l 8 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)
+:	Synonymous with -l 8 -b 4096 -m -r 6 -A subdivide_tukey(2)
 
 **-7, \--compression-level-7**
-:	Synonymous with -l 12 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)
+:	Synonymous with -l 12 -b 4096 -m -r 6 -A subdivide_tukey(2)
 
 **-8, \--compression-level-8**
-:	Synonymous with -l 12 -b 4096 -m -r 6 -A tukey(0.5) -A partial_tukey(2)
-	-A punchout_tukey(3)
+:	Synonymous with -l 12 -b 4096 -m -r 6 -A subdivide_tukey(3)
 
 **\--fast**
 :	Fastest compression. Currently synonymous with -0.
@@ -698,7 +697,7 @@ selected with one or more **-A** options. Possible functions are:
 bartlett, bartlett_hann, blackman, blackman_harris_4term_92db,
 connes, flattop, gauss(STDDEV), hamming, hann, kaiser_bessel, nuttall,
 rectangle, triangle, tukey(P), partial_tukey(n\[/ov\[/P\]\]),
-punchout_tukey(n\[/ov\[/P\]\]), welch.
+punchout_tukey(n\[/ov\[/P\]\]), subdivide_tukey(n\[/P\]) welch.
 
 - For gauss(STDDEV), STDDEV is the standard deviation (0\<STDDEV\<=0.5).
 
@@ -717,8 +716,24 @@ encoder will try each different added apodization (each covering a
 different part of the block) to see which resulting predictor results in
 the smallest representation.
 
+- subdivide_tukey(n) is a more efficient reimplementation of partial_tukey
+and punchout_tukey taken together, recycling as much data as possible. It
+combines all possible non-redundant partial_tukey(n) and punchout_tukey(n)
+up to the n specified.  Specifying subdivide_tukey(3) is equivalent to
+specifying tukey, partial_tukey(2), partial_tukey(3) and punchout_tukey(3),
+specifying subdivide_tukey(5) equivalently adds partial_tukey(4),
+punchout_tukey(4), partial_tukey(5) and punchout_tukey(5). To be able to
+reuse data as much as possible, the tukey taper is taken equal for all
+windows, and the P specified is applied for the smallest used window.
+In other words, subdivide_tukey(2/0.5) results in a taper equal to that
+of tukey(0.25) and subdivide_tukey(5) in a taper equal to that of
+tukey(0.1). The default P for subdivide_tukey when none is specified is
+0.5.
+
 Note that P, STDDEV and ov are locale specific, so a comma as
-decimal separator might be required instead of a dot.
+decimal separator might be required instead of a dot. Use scientific
+notation for a locale-independent specification, for example
+tukey(5e-1) instead of tukey(0.5) or tukey(0,5).
 
 More than one -A option (up to 32) may be used. Any function that is
 specified erroneously is silently dropped. The encoder chooses suitable
