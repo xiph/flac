@@ -467,11 +467,11 @@ dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
 AM_LANGINFO_CODESET
 
-AC_CHECK_PROGS(DOCBOOK_TO_MAN, docbook-to-man docbook2man)
-AM_CONDITIONAL(FLaC__HAS_DOCBOOK_TO_MAN, test -n "$DOCBOOK_TO_MAN")
-if test -n "$DOCBOOK_TO_MAN" ; then
-AC_DEFINE(FLAC__HAS_DOCBOOK_TO_MAN)
-AH_TEMPLATE(FLAC__HAS_DOCBOOK_TO_MAN, [define if you have docbook-to-man or docbook2man])
+AC_CHECK_PROGS(PANDOC, pandoc)
+AM_CONDITIONAL(FLaC__HAS_PANDOC, test -n "$PANDOC")
+if test -n "$PANDOC" ; then
+AC_DEFINE(FLAC__HAS_PANDOC)
+AH_TEMPLATE(FLAC__HAS_PANDOC, [define if you have pandoc])
 fi
 
 AC_CHECK_LIB(rt, clock_gettime,

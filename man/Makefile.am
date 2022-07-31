@@ -16,14 +16,13 @@
 #  with this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-if FLaC__HAS_DOCBOOK_TO_MAN
-flac.1: flac.sgml
-	docbook-to-man $? > $@
-	(docbook2man $? && mv FLAC.1 $@)
+if FLaC__HAS_PANDOC
+flac.1: flac.md
+	pandoc --standalone --to man $? > $@
 
-metaflac.1: metaflac.sgml
-	docbook-to-man $? > $@
-	(docbook2man $? && mv METAFLAC.1 $@)
+metaflac.1: metaflac.md
+	pandoc --standalone --to man $? > $@
+	
 else
 flac.1:
 	echo "*** Warning: docbook-to-man not found; man pages will not be built."
@@ -35,4 +34,4 @@ endif
 
 man_MANS = flac.1 metaflac.1
 
-EXTRA_DIST = $(man_MANS) flac.sgml metaflac.sgml
+EXTRA_DIST = $(man_MANS) flac.md metaflac.md

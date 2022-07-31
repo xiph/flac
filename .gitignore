@@ -39,8 +39,8 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
-man/manpage.links
-man/manpage.refs
+man/flac.1
+man/metaflac.1
 missing
 objs/debug
 objs/release

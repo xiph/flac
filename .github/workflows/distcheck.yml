@@ -16,7 +16,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib
+          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib pandoc
 
       - name: Build with Autotools
         run: |
