@@ -1398,7 +1398,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_application_set_data(FLAC__StreamMetad
 /** Resize the seekpoint array.
  *
  *  If the size shrinks, elements will truncated; if it grows, new placeholder
- *  points will be added to the end.
+ *  points will be added to the end. If this function returns false, the
+ *  object is left untouched.
  *
  * \param object          A pointer to an existing SEEKTABLE object.
  * \param new_num_points  The desired length of the array; may be \c 0.
@@ -1611,7 +1612,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_set_vendor_string(FLAC__
 /** Resize the comment array.
  *
  *  If the size shrinks, elements will truncated; if it grows, new empty
- *  fields will be added to the end.
+ *  fields will be added to the end.  If this function returns false, the
+ *  object is left untouched.
  *
  * \param object            A pointer to an existing VORBIS_COMMENT object.
  * \param new_num_comments  The desired length of the array; may be \c 0.
@@ -1891,7 +1893,8 @@ FLAC_API void FLAC__metadata_object_cuesheet_track_delete(FLAC__StreamMetadata_C
 /** Resize a track's index point array.
  *
  *  If the size shrinks, elements will truncated; if it grows, new blank
- *  indices will be added to the end.
+ *  indices will be added to the end. If this function returns false, the
+ *  track object is left untouched.
  *
  * \param object           A pointer to an existing CUESHEET object.
  * \param track_num        The index of the track to modify.  NOTE: this is not
@@ -1977,7 +1980,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_delete_index(FLAC__Stre
 /** Resize the track array.
  *
  *  If the size shrinks, elements will truncated; if it grows, new blank
- *  tracks will be added to the end.
+ *  tracks will be added to the end.  If this function returns false, the
+ *  object is left untouched.
  *
  * \param object            A pointer to an existing CUESHEET object.
  * \param new_num_tracks    The desired length of the array; may be \c 0.

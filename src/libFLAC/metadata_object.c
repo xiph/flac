@@ -952,8 +952,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 			free(object->data.seek_table.points);
 			object->data.seek_table.points = 0;
 		}
-		else if ((object->data.seek_table.points = safe_realloc_(object->data.seek_table.points, new_size)) == NULL)
-			return false;
+		else {
+			/* Leave object->data.seek_table.points untouched if realloc fails */
+			FLAC__StreamMetadata_SeekPoint *tmpptr;
+			if ((tmpptr = realloc(object->data.seek_table.points, new_size)) == NULL)
+				return false;
+			object->data.seek_table.points = tmpptr;
+		}
 
 		/* if growing, set new elements to placeholders */
 		if (new_size > old_size) {
@@ -1207,12 +1212,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 			object->data.vorbis_comment.comments = 0;
 		}
 		else {
-			FLAC__StreamMetadata_VorbisComment_Entry *oldptr = object->data.vorbis_comment.comments;
-			if ((object->data.vorbis_comment.comments = realloc(object->data.vorbis_comment.comments, new_size)) == NULL) {
-				vorbiscomment_entry_array_delete_(oldptr, object->data.vorbis_comment.num_comments);
-				object->data.vorbis_comment.num_comments = 0;
+			/* Leave object->data.vorbis_comment.comments untouched if realloc fails */
+			FLAC__StreamMetadata_VorbisComment_Entry *tmpptr;
+			if ((tmpptr = realloc(object->data.vorbis_comment.comments, new_size)) == NULL)
 				return false;
-			}
+			object->data.vorbis_comment.comments = tmpptr;
 		}
 
 		/* if growing, zero all the length/pointers of new elements */
@@ -1520,8 +1524,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 			free(track->indices);
 			track->indices = 0;
 		}
-		else if ((track->indices = safe_realloc_(track->indices, new_size)) == NULL)
-			return false;
+		else {
+			/* Leave track->indices untouched if realloc fails */
+			FLAC__StreamMetadata_CueSheet_Index *tmpptr;
+			if ((tmpptr = realloc(track->indices, new_size)) == NULL)
+				return false;
+			track->indices = tmpptr;
+		}
 
 		/* if growing, zero all the lengths/pointers of new elements */
 		if (new_size > old_size)
@@ -1615,8 +1624,13 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 			free(object->data.cue_sheet.tracks);
 			object->data.cue_sheet.tracks = 0;
 		}
-		else if ((object->data.cue_sheet.tracks = safe_realloc_(object->data.cue_sheet.tracks, new_size)) == NULL)
-			return false;
+		else {
+			/* Leave object->data.cue_sheet.tracks untouched if realloc fails */
+			FLAC__StreamMetadata_CueSheet_Track *tmpptr;
+			if ((tmpptr = realloc(object->data.cue_sheet.tracks, new_size)) == NULL)
+				return false;
+			object->data.cue_sheet.tracks = tmpptr;
+		}
 
 		/* if growing, zero all the lengths/pointers of new elements */
 		if (new_size > old_size)
