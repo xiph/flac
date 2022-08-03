@@ -161,17 +161,30 @@ static inline void *safe_realloc_(void *ptr, size_t size)
 		free(oldptr);
 	return newptr;
 }
-static inline void *safe_realloc_add_2op_(void *ptr, size_t size1, size_t size2)
+static inline void *safe_realloc_nofree_add_2op_(void *ptr, size_t size1, size_t size2)
+{
+	size2 += size1;
+	if(size2 < size1)
+		return 0;
+	return realloc(ptr, size2);
+}
+
+static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2, size_t size3)
 {
 	size2 += size1;
 	if(size2 < size1) {
 		free(ptr);
 		return 0;
 	}
-	return realloc(ptr, size2);
+	size3 += size2;
+	if(size3 < size2) {
+		free(ptr);
+		return 0;
+	}
+	return safe_realloc_(ptr, size3);
 }
 
-static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2, size_t size3)
+static inline void *safe_realloc_nofree_add_3op_(void *ptr, size_t size1, size_t size2, size_t size3)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -182,7 +195,7 @@ static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2,
 	return realloc(ptr, size3);
 }
 
-static inline void *safe_realloc_add_4op_(void *ptr, size_t size1, size_t size2, size_t size3, size_t size4)
+static inline void *safe_realloc_nofree_add_4op_(void *ptr, size_t size1, size_t size2, size_t size3, size_t size4)
 {
 	size2 += size1;
 	if(size2 < size1)
@@ -207,6 +220,15 @@ static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
 	return safe_realloc_(ptr, size1*size2);
 }
 
+static inline void *safe_realloc_nofree_mul_2op_(void *ptr, size_t size1, size_t size2)
+{
+	if(!size1 || !size2)
+		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
+	if(size1 > SIZE_MAX / size2)
+		return 0;
+	return realloc(ptr, size1*size2);
+}
+
 /* size1 * (size2 + size3) */
 static inline void *safe_realloc_muladd2_(void *ptr, size_t size1, size_t size2, size_t size3)
 {
@@ -218,6 +240,17 @@ static inline void *safe_realloc_muladd2_(void *ptr, size_t size1, size_t size2,
 		return 0;
 	}
 	return safe_realloc_mul_2op_(ptr, size1, size2);
+}
+
+/* size1 * (size2 + size3) */
+static inline void *safe_realloc_nofree_muladd2_(void *ptr, size_t size1, size_t size2, size_t size3)
+{
+	if(!size1 || (!size2 && !size3))
+		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
+	size2 += size3;
+	if(size2 < size3)
+		return 0;
+	return safe_realloc_nofree_mul_2op_(ptr, size1, size2);
 }
 
 #endif

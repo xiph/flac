@@ -98,7 +98,7 @@ static FLAC__bool free_copy_bytes_(FLAC__byte **to, const FLAC__byte *from, uint
 /* realloc() failure leaves entry unchanged */
 static FLAC__bool ensure_null_terminated_(FLAC__byte **entry, uint32_t length)
 {
-	FLAC__byte *x = safe_realloc_add_2op_(*entry, length, /*+*/1);
+	FLAC__byte *x = safe_realloc_nofree_add_2op_(*entry, length, /*+*/1);
 	if (x != NULL) {
 		x[length] = '\0';
 		*entry = x;
