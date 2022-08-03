@@ -365,10 +365,13 @@
  *
  * \section porting_1_3_4_to_1_4_0_summary Summary
  *
- * Between FLAC 1.3.4 and FLAC 1.4.0, there have three breaking changes
+ * Between FLAC 1.3.4 and FLAC 1.4.0, there have four breaking changes
  * - the function get_client_data_from_decoder has been renamed to
  *   FLAC__get_decoder_client_data
  * - some data types in the FLAC__Frame struct have changed
+ * - all functions resizing metadata blocks now return the object
+ *   untouched if memory allocation fails, whereas previously the
+ *   handling varied and was more or less undefined
  * - all functions accepting a filename now take UTF-8 encoded filenames
  *   on Windows instead of filenames in the current codepage
  *
@@ -397,6 +400,15 @@
  * array and a FLAC__int64 array. Also, a new member is added,
  * data_type, which clarifies whether the FLAC__int32 or FLAC__int64
  * array is in use.
+ *
+ * Furthermore, the following functions now return the object untouched
+ * if memory allocation fails, whereas previously the handling varied
+ * and was more or less undefined
+ *
+ * - FLAC__metadata_object_seektable_resize_points
+ * - FLAC__metadata_object_vorbiscomment_resize_comments
+ * - FLAC__metadata_object_cuesheet_track_resize_indices
+ * - FLAC__metadata_object_cuesheet_resize_tracks
  *
  * The last breaking change is that all API functions taking a filename
  * as an argument now, on Windows, must be supplied with that filename
