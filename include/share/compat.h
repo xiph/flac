@@ -141,6 +141,29 @@
 #    define PRId64 "I64d"
 #    define PRIx64 "I64x"
 #  endif
+#  if defined(_USING_V110_SDK71_) && !defined(_DLL)
+#    pragma message("WARNING: This compile will NOT FUNCTION PROPERLY on Windows XP. See comments in include/share/compat.h for details")
+#define FLAC__USE_FILELENGTHI64
+/*
+ *************************************************************************************
+ * V110_SDK71, in MSVC 2017 also known as v141_xp, is a platform toolset that is supposed
+ * to target Windows XP. It turns out however that certain functions provided silently fail
+ * on Windows XP only, which makes debugging challenging. This only occurs when building with
+ * /MT. This problem has been reported to Microsoft, but there hasn't been a fix for years. See
+ * https://web.archive.org/web/20170327195018/https://connect.microsoft.com/VisualStudio/feedback/details/1557168/wstat64-returns-1-on-xp-always
+ *
+ * It is known that this problem affects the functions _wstat64 (used by flac_stat i.e.
+ * stat64_utf8) and _fstat64 (i.e. flac_fstat) and therefore affects both libFLAC in
+ * several places as well as the flac and metaflac command line tools
+ *
+ * As the extent of this problem is unknown and Microsoft seems unwilling to fix it,
+ * users of libFLAC building with Visual Studio are encouraged to not use the /MT compile
+ * switch when explicitly targeting Windows XP. When use of /MT is deemed necessary with
+ * this toolset, be sure to check whether your application works properly on Windows XP.
+ * It is also possible to build for Windows XP with MinGW instead.
+ *************************************************************************************
+*/
+#  endif
 #endif /* defined _MSC_VER */
 
 #ifdef _WIN32
