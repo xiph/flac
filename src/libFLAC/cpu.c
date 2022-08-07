@@ -251,7 +251,7 @@ ppc_cpu_info (FLAC__CPUInfo *info)
 	} else if (getauxval(AT_HWCAP2) & PPC_FEATURE2_ARCH_2_07) {
 		info->ppc.arch_2_07 = true;
 	}
-#elif defined(__FreeBSD__) && defined(HAVE_GETAUXVAL)
+#elif defined(__FreeBSD__) && defined(HAVE_SYS_AUXV_H)
 	unsigned long hwcaps;
 	elf_aux_info(AT_HWCAP2, &hwcaps, sizeof(hwcaps));
 	if (hwcaps & PPC_FEATURE2_ARCH_3_00) {
