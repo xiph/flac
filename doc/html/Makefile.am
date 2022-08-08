@@ -19,7 +19,6 @@
 SUBDIRS = images
 
 html_DATA = \
-	changelog.html \
 	developers.html \
 	documentation.html \
 	documentation_bugs.html \
