@@ -25,8 +25,6 @@ html_DATA = \
 	documentation_example_code.html \
 	documentation_format_overview.html \
 	documentation_tools.html \
-	documentation_tools_flac.html \
-	documentation_tools_metaflac.html \
 	faq.html \
 	favicon.ico \
 	features.html \
