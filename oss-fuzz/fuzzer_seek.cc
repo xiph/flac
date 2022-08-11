@@ -32,6 +32,7 @@
 #include <cstdlib>
 #include <cstring> /* for memcpy */
 #include "FLAC/stream_decoder.h"
+#include "fuzzer_common.h"
 
 #if 0 /* set to 1 to debug */
 #define FPRINTF_DEBUG_ONLY(...) fprintf(__VA_ARGS__)
@@ -39,7 +40,7 @@
 #define FPRINTF_DEBUG_ONLY(...)
 #endif
 
-#define CONFIG_LENGTH 1
+#define CONFIG_LENGTH 2
 
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data)
 {
@@ -59,6 +60,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	FLAC__StreamDecoder *decoder;
 	uint8_t command_length;
 	FLAC__bool init_bools[16], ogg;
+
+        if(size > 2 && data[1] < 128) /* Use MSB as on/off */
+                alloc_check_threshold = data[1];
+        else
+                alloc_check_threshold = INT32_MAX;
+        alloc_check_counter = 0;
+
 
 	/* allocate the decoder */
 	if((decoder = FLAC__stream_decoder_new()) == NULL) {

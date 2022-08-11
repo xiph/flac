@@ -34,8 +34,9 @@
 #include <cstring> /* for memcpy */
 #include <unistd.h>
 #include "FLAC++/metadata.h"
+#include "fuzzer_common.h"
 
-#define CONFIG_LENGTH 1
+#define CONFIG_LENGTH 2
 
 #define min(x,y) (x<y?x:y)
 
@@ -59,6 +60,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		init_bools[i] = data[i/8] & (1 << (i % 8));
 
 	command_length = data[0] >> 4;
+
+	if(data[1] < 128) /* Use MSB as on/off */
+		alloc_check_threshold = data[1];
+	else
+		alloc_check_threshold = INT32_MAX;
+	alloc_check_counter = 0;
+
 
 	/* Leave at least one byte as input */
 	if(command_length >= size - 1 - CONFIG_LENGTH)

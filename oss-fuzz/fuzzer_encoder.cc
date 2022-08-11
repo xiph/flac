@@ -29,6 +29,7 @@
 #include <fuzzing/memory.hpp>
 
 #include "FLAC++/encoder.h"
+#include "fuzzer_common.h"
 
 #define SAMPLE_VALUE_LIMIT (1024*1024*10)
 
