@@ -63,19 +63,58 @@
 # define SIZE_MAX SIZE_T_MAX
 #endif
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+extern int alloc_check_threshold, alloc_check_counter;
+
+static inline int alloc_check() {
+	if(alloc_check_threshold == INT32_MAX)
+		return 0;
+	else if(alloc_check_counter++ == alloc_check_threshold)
+		return 1;
+	else
+		return 0;
+}
+
+#endif
+
 /* avoid malloc()ing 0 bytes, see:
  * https://www.securecoding.cert.org/confluence/display/seccode/MEM04-A.+Do+not+make+assumptions+about+the+result+of+allocating+0+bytes?focusedCommentId=5407003
 */
+
 static inline void *safe_malloc_(size_t size)
 {
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Fail if requested */
+	if(alloc_check())
+		return NULL;
+#endif
 	/* malloc(0) is undefined; FLAC src convention is to always allocate */
 	if(!size)
 		size++;
 	return malloc(size);
 }
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+static inline void *malloc_(size_t size)
+{
+	/* Fail if requested */
+	if(alloc_check())
+		return NULL;
+	return malloc(size);
+}
+#else
+#define malloc_ malloc
+#endif
+
+
+
 static inline void *safe_calloc_(size_t nmemb, size_t size)
 {
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Fail if requested */
+	if(alloc_check())
+		return NULL;
+#endif
 	if(!nmemb || !size)
 		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
 	return calloc(nmemb, size);
@@ -127,7 +166,7 @@ static inline void *safe_malloc_mul_3op_(size_t size1, size_t size2, size_t size
 	size1 *= size2;
 	if(size1 > SIZE_MAX / size3)
 		return 0;
-	return malloc(size1*size3);
+	return malloc_(size1*size3);
 }
 
 /* size1*size2 + size3 */
@@ -150,23 +189,44 @@ static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size
 		return 0;
 	if(size1 > SIZE_MAX / size2)
 		return 0;
-	return malloc(size1*size2);
+	return malloc_(size1*size2);
 }
 
 static inline void *safe_realloc_(void *ptr, size_t size)
 {
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Fail if requested */
+	if(alloc_check() && size > 0) {
+		free(ptr);
+		return NULL;
+	}
+#endif
 	void *oldptr = ptr;
 	void *newptr = realloc(ptr, size);
 	if(size > 0 && newptr == 0)
 		free(oldptr);
 	return newptr;
 }
+
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+static inline void *realloc_(void *ptr, size_t size)
+{
+	/* Fail if requested */
+	if(alloc_check())
+		return NULL;
+	return realloc(ptr, size);
+}
+#else
+#define realloc_ realloc
+#endif
+
+
 static inline void *safe_realloc_nofree_add_2op_(void *ptr, size_t size1, size_t size2)
 {
 	size2 += size1;
 	if(size2 < size1)
 		return 0;
-	return realloc(ptr, size2);
+	return realloc_(ptr, size2);
 }
 
 static inline void *safe_realloc_add_3op_(void *ptr, size_t size1, size_t size2, size_t size3)
@@ -192,7 +252,7 @@ static inline void *safe_realloc_nofree_add_3op_(void *ptr, size_t size1, size_t
 	size3 += size2;
 	if(size3 < size2)
 		return 0;
-	return realloc(ptr, size3);
+	return realloc_(ptr, size3);
 }
 
 static inline void *safe_realloc_nofree_add_4op_(void *ptr, size_t size1, size_t size2, size_t size3, size_t size4)
@@ -206,7 +266,7 @@ static inline void *safe_realloc_nofree_add_4op_(void *ptr, size_t size1, size_t
 	size4 += size3;
 	if(size4 < size3)
 		return 0;
-	return realloc(ptr, size4);
+	return realloc_(ptr, size4);
 }
 
 static inline void *safe_realloc_mul_2op_(void *ptr, size_t size1, size_t size2)
@@ -226,7 +286,7 @@ static inline void *safe_realloc_nofree_mul_2op_(void *ptr, size_t size1, size_t
 		return realloc(ptr, 0); /* preserve POSIX realloc(ptr, 0) semantics */
 	if(size1 > SIZE_MAX / size2)
 		return 0;
-	return realloc(ptr, size1*size2);
+	return realloc_(ptr, size1*size2);
 }
 
 /* size1 * (size2 + size3) */

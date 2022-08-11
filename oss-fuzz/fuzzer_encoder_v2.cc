@@ -36,6 +36,7 @@
 extern "C" {
 #include "share/private.h"
 }
+#include "fuzzer_common.h"
 
 /* This C++ fuzzer uses the FLAC and not FLAC++ because the latter lacks a few
  * hidden functions like FLAC__stream_encoder_disable_constant_subframes. It
@@ -52,6 +53,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
 	FLAC__bool encoder_valid = true;
 	FLAC__StreamEncoder *encoder = 0;
+	FLAC__StreamEncoderState state;
 	FLAC__StreamMetadata *metadata[16] = {NULL};
 	unsigned num_metadata = 0;
 	FLAC__StreamMetadata_VorbisComment_Entry VorbisCommentField;
@@ -62,6 +64,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	FLAC__bool ogg, write_to_file, interleaved;
 
 	FLAC__bool data_bools[24];
+
+	/* Set alloc threshold. This check was added later and no spare config
+	 * bytes were left, so we're reusing the sample rate as that of little
+	 * consequence to the encoder and decoder except reading the frame header */
+
+	if(size < 3)
+		return 0;
+	alloc_check_threshold = data[2];
+	alloc_check_counter = 0;
 
 	/* allocate the encoder */
 	if((encoder = FLAC__stream_encoder_new()) == NULL) {
@@ -154,7 +165,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		encoder_valid &= FLAC__stream_encoder_disable_verbatim_subframes(encoder, data_bools[12]);
 	}
 
-	/* data_bools[14..15] are spare */
+	/* Disable alloc check if requested */
+	if(data_bools[14])
+		alloc_check_threshold = INT32_MAX;
+
+	/* data_bools[15] are spare */
 
 	/* add metadata */
 	if(encoder_valid && (metadata_mask & 1)) {
@@ -196,13 +211,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&VorbisCommentField, "COMMENTARY", "Nothing to 🤔 report"))
 				encoder_valid = false;
 			else {
-				FLAC__metadata_object_vorbiscomment_append_comment(metadata[num_metadata], VorbisCommentField, false);
+				if(FLAC__metadata_object_vorbiscomment_append_comment(metadata[num_metadata], VorbisCommentField, false)) {
 
-				/* Insert a vorbis comment at the first index */
-				if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&VorbisCommentField, "COMMENTARY", "Still nothing to report 🤔🤣"))
-					encoder_valid = false;
+					/* Insert a vorbis comment at the first index */
+					if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&VorbisCommentField, "COMMENTARY", "Still nothing to report 🤔🤣"))
+						encoder_valid = false;
+					else
+						if(!FLAC__metadata_object_vorbiscomment_insert_comment(metadata[num_metadata++], 0, VorbisCommentField, false))
+							free(VorbisCommentField.entry);
+				}
 				else
-					FLAC__metadata_object_vorbiscomment_insert_comment(metadata[num_metadata++], 0, VorbisCommentField, false);
+					free(VorbisCommentField.entry);
 			}
 		}
 	}
@@ -262,11 +281,15 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		}
 	}
 
-	if(FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_OK &&
-	   FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_UNINITIALIZED &&
-	   FLAC__stream_encoder_get_state(encoder) != FLAC__STREAM_ENCODER_CLIENT_ERROR){
+	state = FLAC__stream_encoder_get_state(encoder);
+	if(!(state == FLAC__STREAM_ENCODER_OK ||
+	     state == FLAC__STREAM_ENCODER_UNINITIALIZED ||
+	     state == FLAC__STREAM_ENCODER_CLIENT_ERROR ||
+	     ((state == FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR ||
+               state == FLAC__STREAM_ENCODER_FRAMING_ERROR) &&
+	      alloc_check_threshold < INT32_MAX))) {
 		fprintf(stderr,"-----\nERROR: stream encoder returned %s\n-----\n",FLAC__stream_encoder_get_resolved_state_string(encoder));
-		if(FLAC__stream_encoder_get_state(encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA) {
+		if(state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA) {
 			uint32_t frame_number, channel, sample_number;
 			FLAC__int32 expected, got;
 			FLAC__stream_encoder_get_verify_decoder_error_stats(encoder, NULL, &frame_number, &channel, &sample_number, &expected, &got);
