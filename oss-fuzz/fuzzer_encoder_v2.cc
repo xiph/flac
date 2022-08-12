@@ -166,7 +166,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	}
 
 	/* Disable alloc check if requested */
-	if(data_bools[14])
+	if(encoder_valid && data_bools[14])
 		alloc_check_threshold = INT32_MAX;
 
 	/* data_bools[15] are spare */
@@ -286,7 +286,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	     state == FLAC__STREAM_ENCODER_UNINITIALIZED ||
 	     state == FLAC__STREAM_ENCODER_CLIENT_ERROR ||
 	     ((state == FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR ||
-               state == FLAC__STREAM_ENCODER_FRAMING_ERROR) &&
+               state == FLAC__STREAM_ENCODER_FRAMING_ERROR ||
+	       (state == FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR &&
+	        FLAC__stream_encoder_get_verify_decoder_state(encoder) == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR)) &&
 	      alloc_check_threshold < INT32_MAX))) {
 		fprintf(stderr,"-----\nERROR: stream encoder returned %s\n-----\n",FLAC__stream_encoder_get_resolved_state_string(encoder));
 		if(state == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA) {

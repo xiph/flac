@@ -2576,25 +2576,17 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 
 	for(i = 0; ok && i < encoder->protected_->channels; i++) {
 		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
-		memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
-		encoder->private_->integer_signal[i] += 4;
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-#if 0 /* @@@ currently unused */
-		if(encoder->protected_->max_lpc_order > 0)
-			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize+OVERREAD_, &encoder->private_->real_signal_unaligned[i], &encoder->private_->real_signal[i]);
-#endif
-#endif
+		if(ok) {
+			memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
+			encoder->private_->integer_signal[i] += 4;
+		}
 	}
 	for(i = 0; ok && i < 2; i++) {
 		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_mid_side_unaligned[i], &encoder->private_->integer_signal_mid_side[i]);
-		memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
-		encoder->private_->integer_signal_mid_side[i] += 4;
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-#if 0 /* @@@ currently unused */
-		if(encoder->protected_->max_lpc_order > 0)
-			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize+OVERREAD_, &encoder->private_->real_signal_mid_side_unaligned[i], &encoder->private_->real_signal_mid_side[i]);
-#endif
-#endif
+		if(ok) {
+			memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
+			encoder->private_->integer_signal_mid_side[i] += 4;
+		}
 	}
 	ok = ok && FLAC__memory_alloc_aligned_int64_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_33bit_side_unaligned, &encoder->private_->integer_signal_33bit_side);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
