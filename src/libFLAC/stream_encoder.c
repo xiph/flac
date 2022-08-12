@@ -2601,11 +2601,32 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_unaligned[channel][i], &encoder->private_->residual_workspace[channel][i]);
 		}
 	}
+
+
+	for(channel = 0; ok && channel < encoder->protected_->channels; channel++) {
+		for(i = 0; ok && i < 2; i++) {
+			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace[channel][i], encoder->protected_->max_residual_partition_order);
+			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace[channel][i], encoder->protected_->max_residual_partition_order);
+		}
+	}
+
 	for(channel = 0; ok && channel < 2; channel++) {
 		for(i = 0; ok && i < 2; i++) {
 			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_mid_side_unaligned[channel][i], &encoder->private_->residual_workspace_mid_side[channel][i]);
 		}
 	}
+
+	for(channel = 0; ok && channel < 2; channel++) {
+		for(i = 0; ok && i < 2; i++) {
+			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace_mid_side[channel][i], encoder->protected_->max_residual_partition_order);
+		}
+	}
+
+	for(i = 0; ok && i < 2; i++) {
+		ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_extra[i], encoder->protected_->max_residual_partition_order);
+	}
+
+
 	/* the *2 is an approximation to the series 1 + 1/2 + 1/4 + ... that sums tree occupies in a flat array */
 	/*@@@ new_blocksize*2 is too pessimistic, but to fix, we need smarter logic because a smaller new_blocksize can actually increase the # of partitions; would require moving this out into a separate function, then checking its capacity against the need of the current blocksize&min/max_partition_order (and maybe predictor order) */
 	ok = ok && FLAC__memory_alloc_aligned_uint64_array(new_blocksize * 2, &encoder->private_->abs_residual_partition_sums_unaligned, &encoder->private_->abs_residual_partition_sums);
@@ -4204,7 +4225,6 @@ uint32_t find_best_partition_order_(
 		uint32_t partition;
 
 		/* save best parameters and raw_bits */
-		FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(prc, flac_max(6u, best_partition_order));
 		memcpy(prc->parameters, private_->partitioned_rice_contents_extra[best_parameters_index].parameters, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
 		if(do_escape_coding)
 			memcpy(prc->raw_bits, private_->partitioned_rice_contents_extra[best_parameters_index].raw_bits, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
@@ -4413,7 +4433,6 @@ FLAC__bool set_partitioned_rice_(
 
 	FLAC__ASSERT(rice_parameter_limit <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER);
 
-	FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(partitioned_rice_contents, flac_max(6u, partition_order));
 	parameters = partitioned_rice_contents->parameters;
 	raw_bits = partitioned_rice_contents->raw_bits;
 
