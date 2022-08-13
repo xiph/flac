@@ -3360,6 +3360,11 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 
 	decoder->private_->target_sample = target_sample;
 	while(1) {
+		/* check whether decoder is still valid so bad state isn't overwritten
+		 * with seek error */
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR ||
+		   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED)
+			return false;
 		/* check if the bounds are still ok */
 		if (lower_bound_sample >= upper_bound_sample || lower_bound > upper_bound) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
