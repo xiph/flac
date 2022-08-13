@@ -452,6 +452,11 @@ AC_DEFINE_UNQUOTED([FLAC__HAS_OGG],$FLAC__HAS_OGG,[define if you have the ogg li
 AC_SUBST(FLAC__HAS_OGG)
 AC_SUBST(OGG_PACKAGE)
 
+dnl Build programs?
+AC_ARG_ENABLE([programs],
+	AS_HELP_STRING([--disable-programs], [Don't build and install flac and metaflac]))
+AM_CONDITIONAL(FLaC__WITH_PROGRAMS, [test "x$enable_programs" != "xno"])
+
 dnl Build examples?
 AC_ARG_ENABLE([examples],
 	AS_HELP_STRING([--disable-examples], [Don't build and install examples]))

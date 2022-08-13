@@ -24,11 +24,14 @@ if FLaC__WITH_CPPLIBS
 CPPLIBS_DIRS = libFLAC++ test_libFLAC++
 endif
 
+if FLaC__WITH_PROGRAMS
+PROGRAMS_DIRS = flac metaflac
+endif
+
 SUBDIRS = \
 	libFLAC \
 	share \
-	flac \
-	metaflac \
+	$(PROGRAMS_DIRS) \
 	$(XMMS_DIRS) \
 	test_grabbag \
 	test_libs_common \
