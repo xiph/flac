@@ -357,6 +357,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__SET_TOTAL_SAMPLES:
 			ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
 			break;
+		case OP__SHOW_VC_ALL:
 		case OP__SHOW_VC_VENDOR:
 		case OP__SHOW_VC_FIELD:
 		case OP__REMOVE_VC_ALL:

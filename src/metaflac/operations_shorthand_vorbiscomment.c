@@ -88,6 +88,9 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bo
 		case OP__SHOW_VC_FIELD:
 			write_vc_fields(prefix_with_filename? filename : 0, operation->argument.vc_field_name.value, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, stdout);
 			break;
+		case OP__SHOW_VC_ALL:
+			write_vc_fields(prefix_with_filename? filename : 0, 0, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, stdout);
+			break;
 		case OP__REMOVE_VC_ALL:
 			ok = remove_vc_all(filename, block, needs_write);
 			break;

@@ -109,6 +109,9 @@ modification time is set to the current time):
 **\--show-tag=name**  
 :	Show all tags where the field name matches 'name'.
 
+**\--show-all-tags**  
+:	Show all tags.
+
 **\--remove-tag=name**  
 :	Remove all tags whose field name is 'name'.
 
