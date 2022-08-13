@@ -1282,8 +1282,13 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_
 		}
 	}
 
-	if(bps == 32)
+	if(bps == 32) {
 		decoder->private_->side_subframe = safe_malloc_mul_2op_p(sizeof(FLAC__int64), /*times (*/size);
+		if(decoder->private_->side_subframe == NULL) {
+			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+			return false;
+		}
+	}
 
 	decoder->private_->output_capacity = size;
 	decoder->private_->output_channels = channels;
