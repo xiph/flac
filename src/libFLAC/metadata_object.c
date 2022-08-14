@@ -1089,7 +1089,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 {
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
-	FLAC__ASSERT(total_samples > 0);
 
 	if (num > 0 && total_samples > 0) {
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
@@ -1114,8 +1113,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 {
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
-	FLAC__ASSERT(samples > 0);
-	FLAC__ASSERT(total_samples > 0);
 
 	if (samples > 0 && total_samples > 0) {
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
