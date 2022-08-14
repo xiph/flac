@@ -1008,7 +1008,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
-				FLAC__ASSERT(0);
 				return false;
 		}
 	}
@@ -1035,7 +1034,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__Str
 			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
-				FLAC__ASSERT(0);
 				return false;
 		}
 	}
@@ -1069,7 +1067,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
-				FLAC__ASSERT(0);
 				return false;
 		}
 	}
@@ -1100,7 +1097,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
 			case FLAC__STREAM_DECODER_ABORTED:
 				return true;
 			default:
-				FLAC__ASSERT(0);
 				return false;
 		}
 	}
