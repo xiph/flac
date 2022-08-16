@@ -1,4 +1,4 @@
-name: Autotools distcheck
+name: Autotools distcheck and ABI check
 
 on:
   push:
@@ -16,7 +16,7 @@ jobs:
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib pandoc
+          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib pandoc abi-compliance-checker
 
       - name: Build with Autotools
         run: |
@@ -25,6 +25,12 @@ jobs:
 
       - name: Build and check source package
         run: make distcheck
+
+      - name: Check binary compatibility
+        run: |
+          make
+          unxz --keep test/abi/abi-libFLAC-1.4.0.dump.xz
+          abi-compliance-checker -l flac -old test/abi/abi-libFLAC-1.4.0.dump -new test/abi/abi-descriptor-libFLAC-1.4.0.xml
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v2
