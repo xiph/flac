@@ -2575,8 +2575,11 @@ FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32
 		if(!FLAC__bitreader_read_unary_unsigned(decoder->private_->input, &u))
 			return false; /* read_callback_ sets the state for us */
 		decoder->private_->frame.subframes[channel].wasted_bits = u+1;
-		if (decoder->private_->frame.subframes[channel].wasted_bits >= bps)
-			return false;
+		if (decoder->private_->frame.subframes[channel].wasted_bits >= bps) {
+			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
+		}
 		bps -= decoder->private_->frame.subframes[channel].wasted_bits;
 	}
 	else
