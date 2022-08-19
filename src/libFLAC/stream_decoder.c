@@ -1525,7 +1525,7 @@ FLAC__bool read_metadata_(FLAC__StreamDecoder *decoder)
 						free(block.data.vorbis_comment.comments);
 					break;
 				case FLAC__METADATA_TYPE_CUESHEET:
-					if(block.data.cue_sheet.num_tracks > 0)
+					if(block.data.cue_sheet.num_tracks > 0 && 0 != block.data.cue_sheet.tracks)
 						for(i = 0; i < block.data.cue_sheet.num_tracks; i++)
 							if(0 != block.data.cue_sheet.tracks[i].indices)
 								free(block.data.cue_sheet.tracks[i].indices);

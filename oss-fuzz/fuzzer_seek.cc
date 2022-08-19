@@ -47,11 +47,11 @@ int write_abort_check_counter = -1;
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data)
 {
         (void)decoder, (void)frame, (void)buffer, (void)client_data;
-	if(write_abort_check_counter > 0)
+	if(write_abort_check_counter > 0) {
 		write_abort_check_counter--;
 		if(write_abort_check_counter == 0)
 			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
-	else if(write_abort_check_counter == 0)
+	} else if(write_abort_check_counter == 0)
 		/* This must not happen: write callback called after abort is returned */
 		abort();
         return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
@@ -70,11 +70,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	uint8_t command_length;
 	FLAC__bool init_bools[16], ogg;
 
-        if(size > 2 && data[1] < 128) /* Use MSB as on/off */
-                alloc_check_threshold = data[1];
-        else
-                alloc_check_threshold = INT32_MAX;
-        alloc_check_counter = 0;
+	if(size > 2 && data[1] < 128) /* Use MSB as on/off */
+		alloc_check_threshold = data[1];
+	else
+		alloc_check_threshold = INT32_MAX;
+	alloc_check_counter = 0;
 
 	write_abort_check_counter = -1;
 
