@@ -1183,8 +1183,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 				return false;
 			for (uint32_t i = 0; i < new_num_comments; i++) {
 				object->data.vorbis_comment.comments[i].length = 0;
-				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL)
+				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL) {
+					object->data.vorbis_comment.num_comments = i+1;
 					return false;
+				}
 				object->data.vorbis_comment.comments[i].entry[0] = '\0';
 			}
 		}
@@ -1223,8 +1225,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		if (new_size > old_size) {
 			for (uint32_t i = object->data.vorbis_comment.num_comments; i < new_num_comments; i++) {
 				object->data.vorbis_comment.comments[i].length = 0;
-				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL)
+				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL) {
+					object->data.vorbis_comment.num_comments = i+1;
 					return false;
+				}
 				object->data.vorbis_comment.comments[i].entry[0] = '\0';
 			}
 		}
