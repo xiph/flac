@@ -1622,12 +1622,12 @@ void show_explain(void)
 	printf("                                     connes, flattop, gauss(STDDEV), hamming,\n");
 	printf("                                     hann, kaiser_bessel, nuttall, rectangle,\n");
 	printf("                                     triangle, tukey(P), welch, partial_tukey(n)\n");
-	printf("                                     punchout_tukey(n). More than one may be\n");
-	printf("                                     specified but encoding time is a multiple\n");
-	printf("                                     of the number of functions since they are\n");
-	printf("                                     each tried in turn.  The encoder chooses\n");
-	printf("                                     suitable defaults in the absence of any -A\n");
-	printf("                                     options.\n");
+	printf("                                     punchout_tukey(n) and subdivide_tukey(n).\n");
+	printf("                                     More than one may be specified but encoding\n");
+	printf("                                     time is a multiple of the number of\n");
+	printf("                                     functions since they are each tried in \n");
+	printf("                                     turn.  The encoder chooses suitable\n");
+	printf("                                     defaults in the absence of any -A options.\n");
 	printf("  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors.\n");
 	printf("                                     Must be <= 12 for Subset streams if sample\n");
 	printf("                                     rate is <=48kHz.\n");
