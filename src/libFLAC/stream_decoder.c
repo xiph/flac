@@ -3327,8 +3327,7 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 				seek_table->points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER &&
 				seek_table->points[i].frame_samples > 0 && /* defense against bad seekpoints */
 				(total_samples <= 0 || seek_table->points[i].sample_number < total_samples) && /* defense against bad seekpoints */
-				seek_table->points[i].sample_number > target_sample &&
-				seek_table->points[i].stream_offset < (FLAC__uint64)INT64_MAX
+				seek_table->points[i].sample_number > target_sample
 			)
 				break;
 		}
@@ -3366,7 +3365,9 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED)
 			return false;
 		/* check if the bounds are still ok */
-		if (lower_bound_sample >= upper_bound_sample || lower_bound > upper_bound) {
+		if (lower_bound_sample >= upper_bound_sample ||
+		    lower_bound > upper_bound ||
+		    upper_bound >= INT64_MAX) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
