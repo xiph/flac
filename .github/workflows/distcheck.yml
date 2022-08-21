@@ -35,8 +35,10 @@ jobs:
           abi-compliance-checker -l flac++ -old test/abi/abi-libFLAC++-1.4.0.dump -new test/abi/abi-descriptor-libFLAC++-1.4.0.xml
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v2
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs
-          path: ./**/*.log
+          path: |
+            ./flac-**/**/*.log
+            ./compat_reports
