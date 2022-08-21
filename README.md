@@ -30,6 +30,9 @@ these files (which follow the [FLAC format](https://xiph.org/flac/format.html))
 can be read from and written to by other software as well, this software
 is often referred to as the FLAC reference implementation.
 
+FLAC has been developed by volunteers. If you want to help out, see
+CONTRIBUTING.md for more information.
+
 ## Components
 
 FLAC is comprised of
@@ -61,6 +64,13 @@ git.
 The directory examples contains example source code on using libFLAC and
 libFLAC++.
 
+Documentation concerning the FLAC format itself (which can be used to
+create software reading and writing FLAC software independent from
+libFLAC) was included in previous releases, but can now be found on
+https://datatracker.ietf.org/doc/draft-ietf-cellar-flac/ Additionally
+a set of files for conformance testing called the FLAC decoder testbench
+can be found at https://github.com/ietf-wg-cellar/flac-test-files
+
 If you have questions about FLAC that this document does not answer,
 please submit them at the following tracker so this document can be
 improved:
@@ -81,7 +91,7 @@ should be considered equivalent for most use cases.
 FLAC used to provide files specifically for building with Visual Studio,
 but these have been removed in favor of using CMake.
 
-### Building with CMake
+## Building with CMake
 
 CMake is a cross-platform build system. FLAC can be built on Windows,
 Linux, Mac OS X using CMake.
@@ -92,7 +102,7 @@ with generated files. It is possible however to do a so-called in-tree
 build, in that case /path/to/flac-build in the following examples is
 equal to /path/to/flac-source.
 
-#### CMake CLI
+### CMake CLI
 
 Go to your build folder and run something like this:
 
@@ -170,7 +180,7 @@ use -LH:
 /path/to/flac-build$ cmake /path/to/flac-source -LH
 ```
 
-#### CMake GUI (for Visual Studio)
+### CMake GUI (for Visual Studio)
 It is likely that you would prefer to use the CMake GUI if you use
 Visual Studio to build FLAC. It's in essence the same process as
 building using CLI.
