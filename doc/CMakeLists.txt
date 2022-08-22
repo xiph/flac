@@ -12,20 +12,15 @@ if (NOT BUILD_DOXYGEN)
     return()
 endif()
 
-set(DOXYGEN_HTML_FOOTER doxygen.footer.html)
-set(DOXYGEN_GENERATE_TAGFILE FLAC.tag)
-set(DOXYGEN_HTML_OUTPUT api)
+set(top_srcdir "${PROJECT_SOURCE_DIR}")
+configure_file(Doxyfile.in ${CMAKE_CURRENT_BINARY_DIR}/Doxyfile @ONLY)
 
-if(CMAKE_VERSION VERSION_GREATER_EQUAL 3.12)
-    doxygen_add_docs(FLAC-doxygen
-        ALL
-        "${PROJECT_SOURCE_DIR}/include/FLAC"
-        "${PROJECT_SOURCE_DIR}/include/FLAC++")
-else()
-    doxygen_add_docs(FLAC-doxygen
-        "${PROJECT_SOURCE_DIR}/include/FLAC"
-        "${PROJECT_SOURCE_DIR}/include/FLAC++")
-endif()
+
+add_custom_target(FLAC-doxygen ALL
+        COMMAND ${DOXYGEN_EXECUTABLE} Doxyfile
+        WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}
+        COMMENT "Generating API documentation with Doxygen"
+        VERBATIM )
 
 install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/api/"
         DESTINATION "${CMAKE_INSTALL_DOCDIR}/api")
