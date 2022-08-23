@@ -38,4 +38,4 @@ EXTRA_DIST = Doxyfile.in doxygen.footer.html \
 	isoflac.txt $(doc_DATA) CMakeLists.txt
 
 distclean-local:
-	rm -rf FLAC.tag html/api doxytmp
+	rm -rf FLAC.tag api doxytmp
