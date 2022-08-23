@@ -126,7 +126,6 @@ void FLAC__window_gauss(FLAC__real *window, const FLAC__int32 L, const FLAC__rea
 		/* stddev is not between 0 and 0.5, might be NaN.
 		 * Default to 0.5 */
 		FLAC__window_gauss(window, L, 0.25f);
-	}
 	else {
 		for (n = 0; n <= N; n++) {
 			const double k = ((double)n - N2) / (stddev * N2);
