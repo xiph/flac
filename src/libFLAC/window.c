@@ -123,13 +123,15 @@ void FLAC__window_gauss(FLAC__real *window, const FLAC__int32 L, const FLAC__rea
 	FLAC__int32 n;
 
 	if(!(stddev > 0.0f && stddev <= 0.5f))
-		/* stddev is not between 0 and 0.5, probably NaN.
-		 * Default to 0.25 */
+		/* stddev is not between 0 and 0.5, might be NaN.
+		 * Default to 0.5 */
 		FLAC__window_gauss(window, L, 0.25f);
-
-	for (n = 0; n <= N; n++) {
-		const double k = ((double)n - N2) / (stddev * N2);
-		window[n] = (FLAC__real)exp(-0.5f * k * k);
+	}
+	else {
+		for (n = 0; n <= N; n++) {
+			const double k = ((double)n - N2) / (stddev * N2);
+			window[n] = (FLAC__real)exp(-0.5f * k * k);
+		}
 	}
 }
 
