@@ -839,7 +839,7 @@ typedef struct {
 
 /** FLAC metadata block structure.  (c.f. <A HREF="../format.html#metadata_block">format specification</A>)
  */
-typedef struct {
+typedef struct FLAC__StreamMetadata {
 	FLAC__MetadataType type;
 	/**< The type of the metadata block; used determine which member of the
 	 * \a data union to dereference.  If type >= FLAC__METADATA_TYPE_UNDEFINED
