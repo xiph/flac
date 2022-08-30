@@ -204,25 +204,34 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		}
 	}
 	if(encoder_valid && (metadata_mask & 16)){
-		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) == NULL)
-			encoder_valid = false;
-		else {
+		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)) != NULL) {
+			bool vorbiscomment_valid = true;
 			/* Append a vorbis comment */
 			if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&VorbisCommentField, "COMMENTARY", "Nothing to 🤔 report"))
-				encoder_valid = false;
+				vorbiscomment_valid = false;
 			else {
 				if(FLAC__metadata_object_vorbiscomment_append_comment(metadata[num_metadata], VorbisCommentField, false)) {
 
 					/* Insert a vorbis comment at the first index */
 					if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&VorbisCommentField, "COMMENTARY", "Still nothing to report 🤔🤣"))
-						encoder_valid = false;
+						vorbiscomment_valid = false;
 					else
-						if(!FLAC__metadata_object_vorbiscomment_insert_comment(metadata[num_metadata++], 0, VorbisCommentField, false))
+						if(!FLAC__metadata_object_vorbiscomment_insert_comment(metadata[num_metadata], 0, VorbisCommentField, false)) {
 							free(VorbisCommentField.entry);
+							vorbiscomment_valid = false;
+						}
 				}
-				else
+				else {
 					free(VorbisCommentField.entry);
+					vorbiscomment_valid = false;
+				}
 			}
+			if(!vorbiscomment_valid) {
+				FLAC__metadata_object_delete(metadata[num_metadata]);
+				metadata[num_metadata] = 0;
+			}
+			else
+				num_metadata++;
 		}
 	}
 
