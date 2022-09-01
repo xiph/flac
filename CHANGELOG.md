@@ -1,8 +1,8 @@
 # Changelog
 
-This changelog is not exhaustive, review the git commit log for an exhaustive list of changes.
+This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## git as of 30-07-2022
+## FLAC 1.4.0
 
 As there have been changes to the library interfaces, the libFLAC version number is incremented to 12, the libFLAC++ version number is incremented to 10. As some changes were breaking, the version age numbers (see [libtool versioning](https://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning)) have been reset to 0. For more details on the changes to the API, see the [porting guide](https://xiph.org/flac/api/group__porting__1__3__4__to__1__4__0.html).
 
@@ -34,17 +34,18 @@ As there have been changes to the library interfaces, the libFLAC version number
     * Various CMake improvements, especially for creating MSVC build files (Martijn van Beurden, martinRenou, CookiePLMonster, David Callu, Tyler Dunn, Cameron Cawley)
     * Various fixes for MinGW (Martijn van Beurden, Cameron Cawley)
     * Removed obsolete autotools macro's to silence warnings
-    * Fix for FreeBSD PowerPC (pkubaj)
+    * Fixes for FreeBSD PowerPC (pkubaj)
     * Fixed some compiler warnings (Martijn van Beurden, Tyler Dunn)
     * Fix building with uclibc (Fabrice Fontaine)
 * testing/validation:
     * Addition of new encoder fuzzer, adding fuzzing for 8, 24 and 32-bit inputs
     * Addition of new decoder fuzzer, adding coverage of seeking code
     * Addition of metadata fuzzer, adding coverage of metadata APIs
-    * Various improvements to fuzzers to improve code coveragem, fuzzing speed and stability
+    * Various improvements to fuzzers to improve code coverage, fuzzing speed and stability
     * Many changes to test suite to improve cross-platform compatibility (Rosen Penev)
     * Windows CI now also builds the whole test suite
     * Clang-format file added (Rosen Penev)
+    * Add warning on using v141_xp platform toolset with /MT (Martijn van Beurden, Paul Sanders)
 * libraries:
     * Various seeking fixes (Martijn van Beurden, Robert Kausch)
     * Various bugs fixed found by fuzzing
@@ -55,12 +56,15 @@ As there have been changes to the library interfaces, the libFLAC version number
     * Removed all assembler and intrinsics code from the decoder to improve fuzzing, as they provided only a small speed benefit 
     * The bitwriter buffer is limited in size to 2^24 bytes, so it cannot write excessively large files. This is a backup in case another bug in this area creeps (back) in.
     * The metadata iterations should now never return a vorbiscomment entry with NULL as an entry, now always at least an empty string is returned
+* documentation:
+    * Removed html documentation and generate man pages from markdown
 * Interface changes:
     * libFLAC:
         * Addition of FLAC__stream_encoder_set_limit_min_bitrate() and FLAC__stream_encoder_get_limit_min_bitrate(), see [github #264](https://github.com/xiph/flac/pull/264)
         * get_client_data_from_decoder is renamed FLAC__get_decoder_client_data(), see [github #124](https://github.com/xiph/flac/pull/124)
         * All API functions taking a filename as an argument now take UTF-8 filenames on Windows, and no longer accept filenames using the current codepage
         * FLAC__Frame struct has changed: warmup samples are now stored in FLAC__int64 instead of FLAC__int32 types, and verbatim samples can now be stored in either FLAC__int32 or FLAC__int64 depending on whether samples fix the former or latter
+        * The FLAC__StreamMetadata struct now has a tag, so it can be forward declared
     * libFLAC++:
         * Addition of ::set_limit_min_bitrate() and ::get_limit_min_bitrate(), see [github #264](https://github.com/xiph/flac/pull/264)
         * All API functions taking a filename as an argument now take UTF-8 filenames on Windows, and no longer accept filenames using the current codepage
