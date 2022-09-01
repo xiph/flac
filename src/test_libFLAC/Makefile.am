@@ -19,13 +19,14 @@
 EXTRA_DIST = \
 	CMakeLists.txt
 
-AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
-
 check_PROGRAMS = test_libFLAC
 
 if OS_IS_WINDOWS
 win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+flac__no_dll = -DFLAC__NO_DLL
 endif
+
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include $(flac__no_dll)
 
 test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
