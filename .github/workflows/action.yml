@@ -74,6 +74,11 @@ jobs:
             build-system: cmake
             configure-opts: ''
 
+          - name: windows-latest-cmake-shared
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DBUILD_SHARED_LIBS=ON'
+
           - name: ubuntu-latest-gcc-autotools-64-bit-words
             os: ubuntu-latest
             cc: gcc
