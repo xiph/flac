@@ -58,4 +58,4 @@ Other major contributors and their contributions:
 "Martijn van Beurden" <mvanb1@gmail.com>
 * Compression improvements
 * Fuzzer improvements and fixes for fuzz findings
-* Implementation of 32-bit PCM encoder and decoder
+* Implementation of 32 bps encoder and decoder
