@@ -659,8 +659,7 @@ AC_CONFIG_FILES([ \
 	include/test_libs_common/Makefile \
 	doc/Doxyfile \
 	doc/Makefile \
-	doc/html/Makefile \
-	doc/html/images/Makefile \
+	doc/images/Makefile \
 	m4/Makefile \
 	man/Makefile \
 	test/common.sh \

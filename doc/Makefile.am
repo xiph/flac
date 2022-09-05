@@ -16,26 +16,26 @@
 #  with this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-SUBDIRS = . html
+SUBDIRS = . images
 
 if FLaC__HAS_DOXYGEN
 all-local: Doxyfile
 FLAC.tag: Doxyfile
 	doxygen Doxyfile
-	rm -rf html/api
-	mv doxytmp/html html/api
+	rm -rf api
+	mv doxytmp/html api
 	rm -rf doxytmp
 else
 FLAC.tag:
 	touch $@
-	mkdir -p html/api
+	mkdir -p api
 endif
 
 doc_DATA = \
 	FLAC.tag
 
-EXTRA_DIST = Doxyfile.in doxygen.footer.html doxygen.header.html \
+EXTRA_DIST = Doxyfile.in doxygen.footer.html \
 	isoflac.txt $(doc_DATA) CMakeLists.txt
 
 distclean-local:
-	rm -rf FLAC.tag html/api doxytmp
+	rm -rf FLAC.tag api doxytmp

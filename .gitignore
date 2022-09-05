@@ -25,7 +25,7 @@ configure
 depcomp
 doc/Doxyfile
 doc/FLAC.tag
-doc/html/api/
+doc/api/
 examples/c/decode/file/example_c_decode_file
 examples/c/encode/file/example_c_encode_file
 examples/cpp/decode/file/example_cpp_decode_file

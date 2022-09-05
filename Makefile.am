@@ -56,6 +56,7 @@ EXTRA_DIST = \
 	COPYING.GPL \
 	COPYING.LGPL \
 	COPYING.Xiph \
+	README.md \
 	autogen.sh \
 	config.rpath \
 	depcomp \
