@@ -235,26 +235,26 @@ configure_file(config.cmake.h.in config.h)
 if(INSTALL_CMAKE_CONFIG_MODULE)
     install(
         EXPORT targets
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
         NAMESPACE FLAC::)
     export(EXPORT targets NAMESPACE FLAC:: FILE FLACTargets.cmake)
 
     configure_package_config_file(
         ${PROJECT_SOURCE_DIR}/flac-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake
-        INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
     write_basic_package_version_file(
         ${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake COMPATIBILITY AnyNewerVersion)
 
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
 
     install(
         FILES
             "${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake"
             "${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake"
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 endif()
 
 file(GLOB FLAC_HEADERS "include/FLAC/*.h")
