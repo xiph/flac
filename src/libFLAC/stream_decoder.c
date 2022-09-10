@@ -2198,7 +2198,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 #ifndef NDEBUG
 				FLAC__uint64 current_decode_position;
 				if(FLAC__stream_decoder_get_decode_position(decoder, &current_decode_position))
-					fprintf(stderr, "Bitreader was %lu bytes short\n", current_decode_position-decoder->private_->last_seen_framesync);
+					fprintf(stderr, "Bitreader was %" PRIu64 " bytes short\n", current_decode_position-decoder->private_->last_seen_framesync);
 #endif
 				if(decoder->private_->seek_callback(decoder, decoder->private_->last_seen_framesync, decoder->private_->client_data) == FLAC__STREAM_DECODER_SEEK_STATUS_ERROR) {
 					decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
