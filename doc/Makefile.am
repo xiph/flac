@@ -35,7 +35,17 @@ doc_DATA = \
 	FLAC.tag
 
 EXTRA_DIST = Doxyfile.in doxygen.footer.html \
-	isoflac.txt $(doc_DATA) CMakeLists.txt
+	isoflac.txt $(doc_DATA) CMakeLists.txt \
+	api
 
+if FLaC__HAS_DOXYGEN
+# The install targets don't copy whole directories so we have to
+# handle 'api/' specially:
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
+	(cd $(builddir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+uninstall-local:
+	rm -rf $(DESTDIR)$(docdir)/api
 distclean-local:
 	rm -rf FLAC.tag api doxytmp
+endif
