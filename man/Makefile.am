@@ -22,16 +22,13 @@ flac.1: flac.md
 
 metaflac.1: metaflac.md
 	pandoc --standalone --to man $? > $@
-	
-else
-flac.1:
-	echo "*** Warning: docbook-to-man not found; man pages will not be built."
-	touch $@
-
-metaflac.1:
-	touch $@
-endif
 
 man_MANS = flac.1 metaflac.1
 
-EXTRA_DIST = $(man_MANS) flac.md metaflac.md
+else
+if FLaC__HAS_PREBUILD_MANPAGES
+man_MANS = flac.1 metaflac.1
+endif
+endif
+
+EXTRA_DIST = flac.1 metaflac.1 flac.md metaflac.md

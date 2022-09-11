@@ -477,7 +477,11 @@ AM_CONDITIONAL(FLaC__HAS_PANDOC, test -n "$PANDOC")
 if test -n "$PANDOC" ; then
 AC_DEFINE(FLAC__HAS_PANDOC)
 AH_TEMPLATE(FLAC__HAS_PANDOC, [define if you have pandoc])
+else
+AC_CHECK_FILE($srcdir/man/flac.1,[HAVE_MAN_FLAC=yes])
+AC_CHECK_FILE($srcdir/man/metaflac.1,[HAVE_MAN_METAFLAC=yes])
 fi
+AM_CONDITIONAL(FLaC__HAS_PREBUILD_MANPAGES, test "x$HAVE_MAN_FLAC$HAVE_MAN_METAFLAC" = "xyesyes")
 
 AC_CHECK_LIB(rt, clock_gettime,
         LIB_CLOCK_GETTIME=-lrt
