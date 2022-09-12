@@ -6,9 +6,6 @@
 /* Target processor is big endian. */
 #cmakedefine01 CPU_IS_BIG_ENDIAN
 
-/* Target processor is little endian. */
-#cmakedefine01 CPU_IS_LITTLE_ENDIAN
-
 /* Target processor ARM64 */
 #cmakedefine FLAC__CPU_ARM64
 
