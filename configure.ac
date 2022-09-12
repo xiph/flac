@@ -237,7 +237,6 @@ AC_SUBST(OBJ_FORMAT)
 os_is_windows=no
 case "$host" in
 	*mingw*)
-		CPPFLAGS="-D__MSVCRT_VERSION__=0x0601 $CPPFLAGS"
 		os_is_windows=yes
 		AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
 		AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
