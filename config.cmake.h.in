@@ -27,9 +27,6 @@
 /* define if you have docbook-to-man or docbook2man */
 #cmakedefine FLAC__HAS_DOCBOOK_TO_MAN
 
-/* define if you are compiling for x86 and have the NASM assembler */
-#cmakedefine FLAC__HAS_NASM
-
 /* define if you have the ogg library */
 #cmakedefine01 OGG_FOUND
 #define FLAC__HAS_OGG OGG_FOUND

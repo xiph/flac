@@ -39,23 +39,11 @@ else()
     endif()
 endif()
 
-
-include(CheckLanguage)
-check_language(ASM_NASM)
-if(CMAKE_ASM_NASM_COMPILER)
-    enable_language(ASM_NASM)
-    add_definitions(-DFLAC__HAS_NASM)
-endif()
-
 if(NOT WITH_ASM)
     add_definitions(-DFLAC__NO_ASM)
 endif()
 
 if(FLAC__CPU_IA32)
-    if(WITH_ASM AND CMAKE_ASM_NASM_COMPILER)
-        add_subdirectory(ia32)
-    endif()
-
     option(WITH_SSE "Enable SSE2 optimizations (WITHOUT runtime detection, resulting binary requires SSE2)" ON)
     check_c_compiler_flag(-msse2 HAVE_MSSE2_FLAG)
     if(WITH_SSE)
