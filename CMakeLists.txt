@@ -262,5 +262,23 @@ file(GLOB FLAC++_HEADERS "include/FLAC++/*.h")
 install(FILES ${FLAC_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC")
 install(FILES ${FLAC++_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC++")
 if(INSTALL_MANPAGES)
-    install(FILES "man/flac.1" "man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+    find_program (HAVE_PANDOC pandoc)
+    if(HAVE_PANDOC)
+        add_custom_command(
+            OUTPUT man/flac.1
+            COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.1
+            )
+        add_custom_command(
+            OUTPUT man/metaflac.1
+            COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.1
+            )
+               add_custom_target(man ALL DEPENDS man/flac.1 man/metaflac.1)
+        install(FILES "${CMAKE_BINARY_DIR}/man/flac.1" "${CMAKE_BINARY_DIR}/man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+    else()
+        if(EXISTS "${CMAKE_SOURCE_DIR}/man/flac.1" AND EXISTS "${CMAKE_SOURCE_DIR}/man/metaflac.1")
+            install(FILES "man/flac.1" "man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+        else()
+            message(SEND_ERROR "Pandoc nor prebuild manpages are found. Cannot install manpages. Set INSTALL_MANPAGES to OFF to build without man pages")
+        endif()
+    endif()
 endif()
