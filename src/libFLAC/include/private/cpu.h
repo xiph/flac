@@ -81,7 +81,7 @@
   #endif
 #elif defined __clang__ && __has_attribute(__target__) /* clang */
   #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
-  #define FLAC__FAST_MATH_TARGET(x) __attribute__ ((__target__ (x), optimize("-ffast-math")))
+  #define FLAC__FAST_MATH_TARGET(x) __attribute__ ((__target__ (x)))
   #if __has_builtin(__builtin_ia32_maxps)
     #define FLAC__SSE_SUPPORTED 1
   #endif
