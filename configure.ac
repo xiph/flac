@@ -594,9 +594,9 @@ dnl for correct FLAC_API
 AC_CHECK_PROG(GIT_FOUND,git,yes)
 
 if test x$GIT_FOUND$enable_version_from_git = "xyesyes"; then
-	GIT_COMMIT_TAG=`git -C $srcdir describe --tags --exact-match 2>/dev/null`
-	GIT_COMMIT_HASH=`git -C $srcdir log -1 --pretty=format:%h 2>/dev/null`
-	GIT_COMMIT_DATE=`git -C $srcdir log -1 --pretty=format:%cd --date=format:%Y%m%d 2>/dev/null`
+	GIT_COMMIT_TAG=`git -C $srcdir --git-dir=.git describe --tags --exact-match 2>/dev/null`
+	GIT_COMMIT_HASH=`git -C $srcdir --git-dir=.git log -1 --pretty=format:%h 2>/dev/null`
+	GIT_COMMIT_DATE=`git -C $srcdir --git-dir=.git log -1 --pretty=format:%cd --date=format:%Y%m%d 2>/dev/null`
 	if test ${#GIT_COMMIT_HASH} = 8 && test ${#GIT_COMMIT_DATE} = 8; then
 		GIT_COMMIT_VERSION_AVAIL=yes
 		if test ${#GIT_COMMIT_TAG} != 0 ; then
