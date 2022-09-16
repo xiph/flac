@@ -55,21 +55,21 @@ find_program (HAVE_GIT git)
 
 if(HAVE_GIT)
     execute_process(
-        COMMAND git describe --tags --exact-match
+        COMMAND git --git-dir=.git describe --tags --exact-match
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_TAG
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         )
     execute_process(
-        COMMAND git log -1 --pretty=format:%h
+        COMMAND git --git-dir=.git log -1 --pretty=format:%h
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         )
     execute_process(
-        COMMAND git log -1 --pretty=format:%cd --date=format:%Y%m%d
+        COMMAND git --git-dir=.git log -1 --pretty=format:%cd --date=format:%Y%m%d
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_DATE
         OUTPUT_STRIP_TRAILING_WHITESPACE
