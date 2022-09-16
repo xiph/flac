@@ -25,14 +25,15 @@ FLAC.tag: Doxyfile
 	rm -rf api
 	mv doxytmp/html api
 	rm -rf doxytmp
-else
-FLAC.tag:
-	touch $@
-	mkdir -p api
-endif
 
 doc_DATA = \
 	FLAC.tag
+else
+if FLaC__HAS_PREBUILT_DOXYGEN
+doc_DATA = \
+	FLAC.tag
+endif
+endif
 
 EXTRA_DIST = Doxyfile.in doxygen.footer.html \
 	isoflac.txt $(doc_DATA) CMakeLists.txt \
@@ -48,4 +49,14 @@ uninstall-local:
 	rm -rf $(DESTDIR)$(docdir)/api
 distclean-local:
 	rm -rf FLAC.tag api doxytmp
+endif
+
+if FLaC__HAS_PREBUILT_DOXYGEN
+# The install targets don't copy whole directories so we have to
+# handle 'api/' specially:
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
+	(cd $(builddir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+uninstall-local:
+	rm -rf $(DESTDIR)$(docdir)/api
 endif

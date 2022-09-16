@@ -376,6 +376,12 @@ if test "x$enable_doxygen_docs" != xfalse ; then
 fi
 AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
 
+if test  "x$DOXYGEN" = "x"; then
+	AC_CHECK_FILE($srcdir/doc/FLAC.tag,[HAVE_PREBUILT_FLAC_TAG=yes])
+	AC_CHECK_FILE($srcdir/doc/api/modules.html,[HAVE_PREBUILT_API_DIR=yes])
+fi
+AM_CONDITIONAL(FLaC__HAS_PREBUILT_DOXYGEN, test "x$HAVE_PREBUILD_FLAG_TAG$HAVEPREBUILD_API_DIR" = "xyesyes")
+
 AC_ARG_ENABLE(local-xmms-plugin,
 AS_HELP_STRING([--enable-local-xmms-plugin],[Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
 [case "${enableval}" in
