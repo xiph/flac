@@ -26,7 +26,7 @@ metaflac.1: metaflac.md
 man_MANS = flac.1 metaflac.1
 
 else
-if FLaC__HAS_PREBUILD_MANPAGES
+if FLaC__HAS_PREBUILT_MANPAGES
 man_MANS = flac.1 metaflac.1
 endif
 endif
