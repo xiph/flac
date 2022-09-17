@@ -49,20 +49,30 @@
  *  This module contains \#defines and symbols for exporting function
  *  calls, and providing version information and compiled-in features.
  *
- *  If you are compiling with MSVC and will link to the static library
- *  (libFLAC++.lib) you should define FLAC__NO_DLL in your project to
- *  make sure the symbols are exported properly.
+ *  If you are compiling for Windows (with Visual Studio or MinGW for
+ *  example) and will link to the static library (libFLAC++.lib) you
+ *  should define FLAC__NO_DLL in your project to make sure the symbols
+ *  are exported properly.
  *
  * \{
  */
  
+/** This \#define is used internally in libFLAC and its headers to make
+ * sure the correct symbols are exported when working with shared
+ * libraries. On Windows, this \#define is set to __declspec(dllexport)
+ * when compiling libFLAC into a library and to __declspec(dllimport)
+ * when the headers are used to link to that DLL. On non-Windows systems
+ * it is used to set symbol visibility.
+ *
+ * Because of this, the define FLAC__NO_DLL must be defined when linking
+ * to libFLAC statically or linking will fail.
+ */
 /* This has grown quite complicated. FLAC__NO_DLL is used by MSVC sln
  * files and CMake, which build either static or shared. autotools can
  * build static, shared or **both**. Therefore, DLL_EXPORT, which is set
  * by libtool, must override FLAC__NO_DLL on building shared components
  */
 #if defined(_WIN32)
-
 #if defined(FLAC__NO_DLL) && !(defined(DLL_EXPORT))
 #define FLACPP_API
 #else
@@ -72,21 +82,18 @@
 #define FLACPP_API __declspec(dllimport)
 #endif
 #endif
-
 #elif defined(FLAC__USE_VISIBILITY_ATTR)
 #define FLACPP_API __attribute__ ((visibility ("default")))
-
 #else
 #define FLACPP_API
-
 #endif
 
-/* These \#defines will mirror the libtool-based library version number, see
+/** These \#defines will mirror the libtool-based library version number, see
  * http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning
  */
 #define FLACPP_API_VERSION_CURRENT 10
-#define FLACPP_API_VERSION_REVISION 0
-#define FLACPP_API_VERSION_AGE 0
+#define FLACPP_API_VERSION_REVISION 0 /**< see above */
+#define FLACPP_API_VERSION_AGE 0 /**< see above */
 
 /* \} */
 
