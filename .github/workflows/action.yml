@@ -142,7 +142,7 @@ jobs:
         if: startsWith(matrix.os,'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib
+          sudo apt-get install -y libtool-bin libogg-dev
 
       - name: Install Windows dependencies
         if: startsWith(matrix.os,'windows')
