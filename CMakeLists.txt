@@ -105,7 +105,9 @@ include(CheckCXXSourceCompiles)
 include(CheckLibraryExists)
 include(GNUInstallDirs)
 include(UseSystemExtensions)
-include(TestBigEndian)
+if (NOT EMSCRIPTEN)
+    include(TestBigEndian)
+endif()
 enable_testing()
 
 check_include_file("byteswap.h" HAVE_BYTESWAP_H)
@@ -132,7 +134,12 @@ check_c_source_compiles("
     }"
     HAVE_LANGINFO_CODESET)
 
-test_big_endian(CPU_IS_BIG_ENDIAN)
+if (EMSCRIPTEN)
+    # emscripten is always little-endian
+    set(CPU_IS_BIG_ENDIAN 0)
+else()
+    test_big_endian(CPU_IS_BIG_ENDIAN)
+endif()
 
 check_c_compiler_flag(-Werror HAVE_WERROR_FLAG)
 check_c_compiler_flag(-Wdeclaration-after-statement HAVE_DECL_AFTER_STMT_FLAG)
