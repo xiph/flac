@@ -140,6 +140,7 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 	h2 = CreateFile_utf8(f2, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if(h1 == INVALID_HANDLE_VALUE || h2 == INVALID_HANDLE_VALUE)
 		ok = 0;
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 	ok &= GetFileInformationByHandle(h1, &info1);
 	ok &= GetFileInformationByHandle(h2, &info2);
 	if(ok)
@@ -148,6 +149,13 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 			info1.nFileIndexHigh == info2.nFileIndexHigh &&
 			info1.nFileIndexLow == info2.nFileIndexLow
 		;
+#else // !WINAPI_PARTITION_DESKTOP
+	FILE_ID_INFO id_info1, id_info2;
+	same = GetFileInformationByHandleEx(h1, FileIdInfo, &id_info1, sizeof (id_info1)) &&
+	       GetFileInformationByHandleEx(h2, FileIdInfo, &id_info2, sizeof (id_info2)) &&
+	       id_info1.VolumeSerialNumber == id_info2.VolumeSerialNumber &&
+	       memcmp(&id_info1.FileId, &id_info2.FileId, sizeof(id_info1.FileId)) == 0;
+#endif // !WINAPI_PARTITION_DESKTOP
 	if(h1 != INVALID_HANDLE_VALUE)
 		CloseHandle(h1);
 	if(h2 != INVALID_HANDLE_VALUE)
