@@ -177,16 +177,19 @@ size_t strlen_utf8(const char *str)
 int win_get_console_width(void)
 {
 	int width = 80;
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	if(hOut != INVALID_HANDLE_VALUE && hOut != NULL)
 		if (GetConsoleScreenBufferInfo(hOut, &csbi) != 0)
 			width = csbi.dwSize.X;
+#endif // WINAPI_PARTITION_DESKTOP
 	return width;
 }
 
 /* print functions */
 
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 static int wprint_console(FILE *stream, const wchar_t *text, size_t len)
 {
 	DWORD out;
@@ -216,6 +219,7 @@ static int wprint_console(FILE *stream, const wchar_t *text, size_t len)
 		return ret;
 	return len;
 }
+#endif // WINAPI_PARTITION_DESKTOP
 
 int printf_utf8(const char *format, ...)
 {
@@ -256,7 +260,12 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 			ret = -1;
 			break;
 		}
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 		ret = wprint_console(stream, wout, wcslen(wout));
+#else // !WINAPI_PARTITION_DESKTOP
+		OutputDebugStringW(wout);
+		ret = 0;
+#endif // !WINAPI_PARTITION_DESKTOP
 	} while(0);
 
 	free(utmp);
