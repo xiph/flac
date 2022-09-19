@@ -155,7 +155,18 @@ HANDLE WINAPI CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWO
 	HANDLE handle = INVALID_HANDLE_VALUE;
 
 	if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 		handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+#else // !WINAPI_PARTITION_DESKTOP
+		CREATEFILE2_EXTENDED_PARAMETERS params;
+		params.dwSize = sizeof(params);
+		params.dwFileAttributes = dwFlagsAndAttributes & 0xFFFF;
+		params.dwFileFlags = dwFlagsAndAttributes & 0xFFF00000;
+		params.dwSecurityQosFlags = dwFlagsAndAttributes & 0x000F0000;
+		params.lpSecurityAttributes = lpSecurityAttributes;
+		params.hTemplateFile = hTemplateFile;
+		handle = CreateFile2(wname, dwDesiredAccess, dwShareMode, dwCreationDisposition, &params);
+#endif // !WINAPI_PARTITION_DESKTOP
 		free(wname);
 	}
 
