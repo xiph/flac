@@ -125,6 +125,10 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 {
 #if defined _WIN32 && !defined __CYGWIN__
+#if !defined(WINAPI_FAMILY_PARTITION)
+#define WINAPI_FAMILY_PARTITION(x) x
+#define WINAPI_PARTITION_DESKTOP 1
+#endif
 	/* see
 	 *  http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/getfileinformationbyhandle.asp
