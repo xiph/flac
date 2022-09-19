@@ -39,6 +39,11 @@
 
 #define UTF8_BUFFER_SIZE 32768
 
+#if !defined(WINAPI_FAMILY_PARTITION)
+#define WINAPI_FAMILY_PARTITION(x) x
+#define WINAPI_PARTITION_DESKTOP 1
+#endif
+
 static int local_vsnprintf(char *str, size_t size, const char *fmt, va_list va)
 {
 	int rc;
