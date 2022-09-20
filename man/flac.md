@@ -1,4 +1,4 @@
-% flac(1) Version 1.4.0 | Free Lossless Audio Codec conversion tool
+% flac(1) Version 1.4.1 | Free Lossless Audio Codec conversion tool
 
 # NAME
 

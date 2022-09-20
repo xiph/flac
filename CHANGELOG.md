@@ -2,7 +2,19 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## FLAC 1.4.0
+## FLAC 1.4.1 (22-Sep-2022)
+
+This release only has a few changes. It was triggered by a problem in the 1.4.0 tarball: man pages were empty and api documentation missing
+
+* CMake fixes (Tomasz Kłoczko)
+* Add checks that man pages and api docs end up in tarball
+* Enable installation of prebuild man pages and api docs
+* Fix compiler warnings (Johannes Kauffmann, Ozkan Sezer)
+* Fix format specifier (manxorist)
+* Enable building on Universal Windows Platform (Steve Lhomme)
+* Fix versioning from git
+
+## FLAC 1.4.0 (09-Sep-2022)
 
 As there have been changes to the library interfaces, the libFLAC version number is incremented to 12, the libFLAC++ version number is incremented to 10. As some changes were breaking, the version age numbers (see [libtool versioning](https://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning)) have been reset to 0. For more details on the changes to the API, see the [porting guide](https://xiph.org/flac/api/group__porting__1__3__4__to__1__4__0.html).
 
