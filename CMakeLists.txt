@@ -265,6 +265,7 @@ install(FILES ${FLAC++_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC++"
 if(INSTALL_MANPAGES)
     find_program (HAVE_PANDOC pandoc)
     if(HAVE_PANDOC)
+        file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/man")
         add_custom_command(
             OUTPUT man/flac.1
             COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.1
