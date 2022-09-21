@@ -8,7 +8,7 @@ This release only has a few changes. It was triggered by a problem in the 1.4.0 
 
 * CMake fixes (Tomasz Kłoczko)
 * Add checks that man pages and api docs end up in tarball
-* Enable installation of prebuild man pages and api docs
+* Enable installation of prebuilt man pages and api docs
 * Fix compiler warnings (Johannes Kauffmann, Ozkan Sezer)
 * Fix format specifier (manxorist)
 * Enable building on Universal Windows Platform (Steve Lhomme)

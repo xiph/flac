@@ -29,7 +29,7 @@
      -lwinpthread -Wl,-Bdynamic,--no-whole-archive` to FLAC's CXXFLAGS
    - Run `CMake -DBUILD_SHARED_LIBS=ON .. && ninja` in both build64 and
       build32 in the corresponding build environments
-   - Check depencies of flac.exe, metaflac.exe, libFLAC.dll and
+   - Check dependencies of flac.exe, metaflac.exe, libFLAC.dll and
       libFLAC++.dll, e.g. with objdump -x *.* | grep DLL.
       Dependencies should only include KERNEL32.DLL, ADVAPI32.DLL,
       msvcrt.dll and libFLAC.dll
