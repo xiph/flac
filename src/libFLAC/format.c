@@ -55,7 +55,7 @@ FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC git-" GIT_COMMIT_H
 #else
 /* PACKAGE_VERSION should come from configure */
 FLAC_API const char *FLAC__VERSION_STRING = PACKAGE_VERSION;
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20220909";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20220922";
 #endif
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
