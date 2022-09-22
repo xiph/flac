@@ -10,7 +10,7 @@ autotools:
     - apt-get update &&
       apt-get install -y libogg-dev
         libtool-bin gettext zip
-        doxygen graphviz
+        doxygen graphviz pandoc
     # Create an unpriviledged user, required for tests.
     - adduser --disabled-password --gecos "Gitlab CI" flac
   script:
@@ -25,7 +25,7 @@ cmake:
     - apt-get update &&
       apt-get install -y libogg-dev
         cmake ninja-build
-        doxygen graphviz
+        doxygen graphviz pandoc
     # Create an unpriviledged user, required for tests.
     - adduser --disabled-password --gecos "Gitlab CI" flac
   script:
