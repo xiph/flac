@@ -375,11 +375,10 @@ if test "x$enable_doxygen_docs" != xfalse ; then
 fi
 AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
 
-if test  "x$DOXYGEN" = "x"; then
-	AC_CHECK_FILE($srcdir/doc/FLAC.tag,[HAVE_PREBUILT_FLAC_TAG=yes])
-	AC_CHECK_FILE($srcdir/doc/api/modules.html,[HAVE_PREBUILT_API_DIR=yes])
+if test ! -n "$DOXYGEN" && test -f "$srcdir/doc/FLAC.tag" && test -f "$srcdir/doc/api/modules.html" ; then
+	HAS_PREBUILT_DOXYGEN=yes
 fi
-AM_CONDITIONAL(FLaC__HAS_PREBUILT_DOXYGEN, test "x$HAVE_PREBUILD_FLAG_TAG$HAVEPREBUILD_API_DIR" = "xyesyes")
+AM_CONDITIONAL(FLaC__HAS_PREBUILT_DOXYGEN, test "x$HAS_PREBUILT_DOXYGEN" = xyes)
 
 AC_ARG_ENABLE(local-xmms-plugin,
 AS_HELP_STRING([--enable-local-xmms-plugin],[Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
@@ -480,13 +479,14 @@ AM_LANGINFO_CODESET
 AC_CHECK_PROGS(PANDOC, pandoc)
 AM_CONDITIONAL(FLaC__HAS_PANDOC, test -n "$PANDOC")
 if test -n "$PANDOC" ; then
-AC_DEFINE(FLAC__HAS_PANDOC)
-AH_TEMPLATE(FLAC__HAS_PANDOC, [define if you have pandoc])
+	AC_DEFINE(FLAC__HAS_PANDOC)
+	AH_TEMPLATE(FLAC__HAS_PANDOC, [define if you have pandoc])
 else
-AC_CHECK_FILE($srcdir/man/flac.1,[HAVE_MAN_FLAC=yes])
-AC_CHECK_FILE($srcdir/man/metaflac.1,[HAVE_MAN_METAFLAC=yes])
+if [ -f "$srcdir/man/flac.1" ] && [ -f "$srcdir/man/metaflac.1" ] ; then
+	HAS_PREBUILT_MANPAGES = yes
 fi
-AM_CONDITIONAL(FLaC__HAS_PREBUILT_MANPAGES, test "x$HAVE_MAN_FLAC$HAVE_MAN_METAFLAC" = "xyesyes")
+fi
+AM_CONDITIONAL(FLaC__HAS_PREBUILT_MANPAGES, test "x$HAS_PREBUILT_MANPAGES" = "xyes")
 
 AC_CHECK_LIB(rt, clock_gettime,
         LIB_CLOCK_GETTIME=-lrt
