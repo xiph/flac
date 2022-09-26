@@ -8,7 +8,7 @@ if(NOT (CMAKE_BUILD_TYPE OR CMAKE_CONFIGURATION_TYPES OR DEFINED ENV{CFLAGS} OR 
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo")
 endif()
 
-project(FLAC VERSION 1.4.0) # HOMEPAGE_URL "https://www.xiph.org/flac/")
+project(FLAC VERSION 1.4.1) # HOMEPAGE_URL "https://www.xiph.org/flac/")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -55,21 +55,21 @@ find_program (HAVE_GIT git)
 
 if(HAVE_GIT)
     execute_process(
-        COMMAND git describe --tags --exact-match
+        COMMAND git --git-dir=.git describe --tags --exact-match
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_TAG
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         )
     execute_process(
-        COMMAND git log -1 --pretty=format:%h
+        COMMAND git --git-dir=.git log -1 --pretty=format:%h
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_HASH
         OUTPUT_STRIP_TRAILING_WHITESPACE
         ERROR_QUIET
         )
     execute_process(
-        COMMAND git log -1 --pretty=format:%cd --date=format:%Y%m%d
+        COMMAND git --git-dir=.git log -1 --pretty=format:%cd --date=format:%Y%m%d
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
         OUTPUT_VARIABLE GIT_COMMIT_DATE
         OUTPUT_STRIP_TRAILING_WHITESPACE
@@ -83,14 +83,15 @@ if(NOT WIN32)
 endif()
 
 if(CMAKE_C_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline")
-    set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} -O3 -funroll-loops")
+    set(CMAKE_C_FLAGS "-Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline ${CMAKE_C_FLAGS}")
+    set(CMAKE_C_FLAGS_RELEASE "-DNDEBUG ${CMAKE_C_FLAGS_RELEASE}")
 endif()
 if(CMAKE_CXX_COMPILER_ID MATCHES "GNU|Clang")
-    set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef")
+    set(CMAKE_CXX_FLAGS "-Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef ${CMAKE_CXX_FLAGS}")
+    set(CMAKE_CXX_FLAGS_RELEASE "-DNDEBUG ${CMAKE_CXX_FLAGS_RELEASE}")
 endif()
 if(MSVC)
-	set(CMAKE_C_FLAGS_RELEASE "${CMAKE_C_FLAGS_RELEASE} /O2 /Ob2 /Oi /Ot /Oy")
+    set(CMAKE_C_FLAGS_RELEASE "/O2 /Ob2 /Oi /Ot /Oy /DNDEBUG ${CMAKE_C_FLAGS_RELEASE}")
 endif()
 
 include(CMakePackageConfigHelpers)
@@ -235,26 +236,26 @@ configure_file(config.cmake.h.in config.h)
 if(INSTALL_CMAKE_CONFIG_MODULE)
     install(
         EXPORT targets
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
         NAMESPACE FLAC::)
     export(EXPORT targets NAMESPACE FLAC:: FILE FLACTargets.cmake)
 
     configure_package_config_file(
         ${PROJECT_SOURCE_DIR}/flac-config.cmake.in ${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake
-        INSTALL_DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+        INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
     write_basic_package_version_file(
         ${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake COMPATIBILITY AnyNewerVersion)
 
     install(
         FILES ${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake ${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake"
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}"
     )
 
     install(
         FILES
             "${CMAKE_CURRENT_BINARY_DIR}/flac-config.cmake"
             "${CMAKE_CURRENT_BINARY_DIR}/flac-config-version.cmake"
-        DESTINATION "${CMAKE_INSTALL_DATADIR}/${PROJECT_NAME}/cmake")
+        DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/${PROJECT_NAME}")
 endif()
 
 file(GLOB FLAC_HEADERS "include/FLAC/*.h")
@@ -262,5 +263,24 @@ file(GLOB FLAC++_HEADERS "include/FLAC++/*.h")
 install(FILES ${FLAC_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC")
 install(FILES ${FLAC++_HEADERS} DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}/FLAC++")
 if(INSTALL_MANPAGES)
-    install(FILES "man/flac.1" "man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}")
+    find_program (HAVE_PANDOC pandoc)
+    if(HAVE_PANDOC)
+        file(MAKE_DIRECTORY "${CMAKE_BINARY_DIR}/man")
+        add_custom_command(
+            OUTPUT man/flac.1
+            COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.1
+            )
+        add_custom_command(
+            OUTPUT man/metaflac.1
+            COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.1
+            )
+               add_custom_target(man ALL DEPENDS man/flac.1 man/metaflac.1)
+        install(FILES "${CMAKE_BINARY_DIR}/man/flac.1" "${CMAKE_BINARY_DIR}/man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+    else()
+        if(EXISTS "${CMAKE_SOURCE_DIR}/man/flac.1" AND EXISTS "${CMAKE_SOURCE_DIR}/man/metaflac.1")
+            install(FILES "man/flac.1" "man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
+        else()
+            message(SEND_ERROR "Pandoc nor prebuild manpages are found. Cannot install manpages. Set INSTALL_MANPAGES to OFF to build without man pages")
+        endif()
+    endif()
 endif()

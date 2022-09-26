@@ -63,6 +63,4 @@ EXTRA_DIST = \
 	ltmain.sh \
 	strip_non_asm_libtool_args.sh
 
-DISTCHECK_CONFIGURE_FLAGS = '--disable-version-from-git'
-
 CLEANFILES = *~

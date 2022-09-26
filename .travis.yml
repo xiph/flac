@@ -58,4 +58,4 @@ install:
 
 script:
   - if [[ "${BUILD_SYSTEM}" == "autotools" ]]; then ./autogen.sh && ./configure $CONFIGURE_OPTS && make && make check; fi
-  - if [[ "${BUILD_SYSTEM}" == "cmake" ]]; then mkdir cmake-build && cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release $CONFIGURE_OPTS && cat config.h && cmake --build . && travis_wait 30 ctest --output-on-failure; fi
+  - if [[ "${BUILD_SYSTEM}" == "cmake" ]]; then mkdir cmake-build && cd cmake-build && cmake .. -DCMAKE_BUILD_TYPE=Release -DINSTALL_MANPAGES=OFF $CONFIGURE_OPTS && cat config.h && cmake --build . && travis_wait 30 ctest --output-on-failure; fi

@@ -142,7 +142,7 @@ jobs:
         if: startsWith(matrix.os,'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libtool-bin libogg-dev doxygen libxml2-utils w3c-sgml-lib
+          sudo apt-get install -y libtool-bin libogg-dev
 
       - name: Install Windows dependencies
         if: startsWith(matrix.os,'windows')
@@ -173,7 +173,7 @@ jobs:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         working-directory: cmake-build
-        run: cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
+        run: cmake .. -DCMAKE_BUILD_TYPE=Release -DINSTALL_MANPAGES=OFF -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
 
       - name: CMake build
         if: startsWith(matrix.build-system,'cmake')

@@ -120,8 +120,7 @@ extern "C" {
 #define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (32u)
 
 /** The maximum sample rate permitted by the format.  The value is
- *  ((2 ^ 16) - 1) * 10; see <A HREF="../format.html">FLAC format</A>
- *  as to why.
+ *  ((2 ^ 20) - 1)
  */
 #define FLAC__MAX_SAMPLE_RATE (1048575u)
 

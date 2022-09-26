@@ -19,7 +19,7 @@
 # instead of FLAC__ since autoconf triggers off 'AC_' in strings
 
 AC_PREREQ(2.60)
-AC_INIT([flac],[1.4.0],[flac-dev@xiph.org],[flac],[https://www.xiph.org/flac/])
+AC_INIT([flac],[1.4.1],[flac-dev@xiph.org],[flac],[https://www.xiph.org/flac/])
 AC_CONFIG_HEADERS([config.h])
 AC_CONFIG_SRCDIR([src/flac/main.c])
 AC_CONFIG_MACRO_DIR([m4])
@@ -237,7 +237,6 @@ AC_SUBST(OBJ_FORMAT)
 os_is_windows=no
 case "$host" in
 	*mingw*)
-		CPPFLAGS="-D__MSVCRT_VERSION__=0x0601 $CPPFLAGS"
 		os_is_windows=yes
 		AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
 		AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
@@ -376,6 +375,12 @@ if test "x$enable_doxygen_docs" != xfalse ; then
 fi
 AM_CONDITIONAL(FLaC__HAS_DOXYGEN, test -n "$DOXYGEN")
 
+if test  "x$DOXYGEN" = "x"; then
+	AC_CHECK_FILE($srcdir/doc/FLAC.tag,[HAVE_PREBUILT_FLAC_TAG=yes])
+	AC_CHECK_FILE($srcdir/doc/api/modules.html,[HAVE_PREBUILT_API_DIR=yes])
+fi
+AM_CONDITIONAL(FLaC__HAS_PREBUILT_DOXYGEN, test "x$HAVE_PREBUILD_FLAG_TAG$HAVEPREBUILD_API_DIR" = "xyesyes")
+
 AC_ARG_ENABLE(local-xmms-plugin,
 AS_HELP_STRING([--enable-local-xmms-plugin],[Install XMMS plugin to ~/.xmms/Plugins instead of system location]),
 [case "${enableval}" in
@@ -477,7 +482,11 @@ AM_CONDITIONAL(FLaC__HAS_PANDOC, test -n "$PANDOC")
 if test -n "$PANDOC" ; then
 AC_DEFINE(FLAC__HAS_PANDOC)
 AH_TEMPLATE(FLAC__HAS_PANDOC, [define if you have pandoc])
+else
+AC_CHECK_FILE($srcdir/man/flac.1,[HAVE_MAN_FLAC=yes])
+AC_CHECK_FILE($srcdir/man/metaflac.1,[HAVE_MAN_METAFLAC=yes])
 fi
+AM_CONDITIONAL(FLaC__HAS_PREBUILT_MANPAGES, test "x$HAVE_MAN_FLAC$HAVE_MAN_METAFLAC" = "xyesyes")
 
 AC_CHECK_LIB(rt, clock_gettime,
         LIB_CLOCK_GETTIME=-lrt
@@ -594,9 +603,9 @@ dnl for correct FLAC_API
 AC_CHECK_PROG(GIT_FOUND,git,yes)
 
 if test x$GIT_FOUND$enable_version_from_git = "xyesyes"; then
-	GIT_COMMIT_TAG=`git -C $srcdir describe --tags --exact-match 2>/dev/null`
-	GIT_COMMIT_HASH=`git -C $srcdir log -1 --pretty=format:%h 2>/dev/null`
-	GIT_COMMIT_DATE=`git -C $srcdir log -1 --pretty=format:%cd --date=format:%Y%m%d 2>/dev/null`
+	GIT_COMMIT_TAG=`git -C $srcdir --git-dir=.git describe --tags --exact-match 2>/dev/null`
+	GIT_COMMIT_HASH=`git -C $srcdir --git-dir=.git log -1 --pretty=format:%h 2>/dev/null`
+	GIT_COMMIT_DATE=`git -C $srcdir --git-dir=.git log -1 --pretty=format:%cd --date=format:%Y%m%d 2>/dev/null`
 	if test ${#GIT_COMMIT_HASH} = 8 && test ${#GIT_COMMIT_DATE} = 8; then
 		GIT_COMMIT_VERSION_AVAIL=yes
 		if test ${#GIT_COMMIT_TAG} != 0 ; then

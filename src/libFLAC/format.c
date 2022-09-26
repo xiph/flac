@@ -55,7 +55,7 @@ FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC git-" GIT_COMMIT_H
 #else
 /* PACKAGE_VERSION should come from configure */
 FLAC_API const char *FLAC__VERSION_STRING = PACKAGE_VERSION;
-FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20220909";
+FLAC_API const char *FLAC__VENDOR_STRING = "reference libFLAC " PACKAGE_VERSION " 20220922";
 #endif
 
 FLAC_API const FLAC__byte FLAC__STREAM_SYNC_STRING[4] = { 'f','L','a','C' };
@@ -585,8 +585,6 @@ void FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(FLAC__En
 FLAC__bool FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(FLAC__EntropyCodingMethod_PartitionedRiceContents *object, uint32_t max_partition_order)
 {
 	FLAC__ASSERT(0 != object);
-
-	FLAC__ASSERT(object->capacity_by_order > 0 || (0 == object->parameters && 0 == object->raw_bits));
 
 	if(object->capacity_by_order < max_partition_order || object->parameters == NULL || object->raw_bits == NULL) {
 		if(0 == (object->parameters = safe_realloc_(object->parameters, sizeof(uint32_t)*(1 << max_partition_order))))

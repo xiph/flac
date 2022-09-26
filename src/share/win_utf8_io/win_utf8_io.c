@@ -39,6 +39,11 @@
 
 #define UTF8_BUFFER_SIZE 32768
 
+#if !defined(WINAPI_FAMILY_PARTITION)
+#define WINAPI_FAMILY_PARTITION(x) x
+#define WINAPI_PARTITION_DESKTOP 1
+#endif
+
 static int local_vsnprintf(char *str, size_t size, const char *fmt, va_list va)
 {
 	int rc;
@@ -155,7 +160,18 @@ HANDLE WINAPI CreateFile_utf8(const char *lpFileName, DWORD dwDesiredAccess, DWO
 	HANDLE handle = INVALID_HANDLE_VALUE;
 
 	if ((wname = wchar_from_utf8(lpFileName)) != NULL) {
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 		handle = CreateFileW(wname, dwDesiredAccess, dwShareMode, lpSecurityAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile);
+#else // !WINAPI_PARTITION_DESKTOP
+		CREATEFILE2_EXTENDED_PARAMETERS params;
+		params.dwSize = sizeof(params);
+		params.dwFileAttributes = dwFlagsAndAttributes & 0xFFFF;
+		params.dwFileFlags = dwFlagsAndAttributes & 0xFFF00000;
+		params.dwSecurityQosFlags = dwFlagsAndAttributes & 0x000F0000;
+		params.lpSecurityAttributes = lpSecurityAttributes;
+		params.hTemplateFile = hTemplateFile;
+		handle = CreateFile2(wname, dwDesiredAccess, dwShareMode, dwCreationDisposition, &params);
+#endif // !WINAPI_PARTITION_DESKTOP
 		free(wname);
 	}
 
@@ -177,16 +193,19 @@ size_t strlen_utf8(const char *str)
 int win_get_console_width(void)
 {
 	int width = 80;
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 	CONSOLE_SCREEN_BUFFER_INFO csbi;
 	HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 	if(hOut != INVALID_HANDLE_VALUE && hOut != NULL)
 		if (GetConsoleScreenBufferInfo(hOut, &csbi) != 0)
 			width = csbi.dwSize.X;
+#endif // WINAPI_PARTITION_DESKTOP
 	return width;
 }
 
 /* print functions */
 
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 static int wprint_console(FILE *stream, const wchar_t *text, size_t len)
 {
 	DWORD out;
@@ -216,6 +235,7 @@ static int wprint_console(FILE *stream, const wchar_t *text, size_t len)
 		return ret;
 	return len;
 }
+#endif // WINAPI_PARTITION_DESKTOP
 
 int printf_utf8(const char *format, ...)
 {
@@ -256,7 +276,12 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 			ret = -1;
 			break;
 		}
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 		ret = wprint_console(stream, wout, wcslen(wout));
+#else // !WINAPI_PARTITION_DESKTOP
+		OutputDebugStringW(wout);
+		ret = 0;
+#endif // !WINAPI_PARTITION_DESKTOP
 	} while(0);
 
 	free(utmp);

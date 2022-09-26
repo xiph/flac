@@ -2163,6 +2163,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 		FLAC__stream_encoder_set_do_md5(e->encoder, false);
 	}
+	else if(e->is_stdout) {
+		flac__utils_printf(stderr, 1, "%s: WARNING, cannot write back MD5 sum when encoding to stdout\n", e->inbasefilename);
+		if(e->treat_warnings_as_errors) {
+			static_metadata_clear(&static_metadata);
+			return false;
+		}
+	}
 
 #if FLAC__HAS_OGG
 	if(e->use_ogg) {
