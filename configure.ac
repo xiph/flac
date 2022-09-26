@@ -482,8 +482,8 @@ if test -n "$PANDOC" ; then
 	AC_DEFINE(FLAC__HAS_PANDOC)
 	AH_TEMPLATE(FLAC__HAS_PANDOC, [define if you have pandoc])
 else
-if [ -f "$srcdir/man/flac.1" ] && [ -f "$srcdir/man/metaflac.1" ] ; then
-	HAS_PREBUILT_MANPAGES = yes
+if test -f "$srcdir/man/flac.1" && test -f "$srcdir/man/metaflac.1" ; then
+	HAS_PREBUILT_MANPAGES=yes
 fi
 fi
 AM_CONDITIONAL(FLaC__HAS_PREBUILT_MANPAGES, test "x$HAS_PREBUILT_MANPAGES" = "xyes")
