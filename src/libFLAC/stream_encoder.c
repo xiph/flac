@@ -4422,7 +4422,10 @@ FLAC__bool set_partitioned_rice_(
 	uint32_t bits_ = FLAC__ENTROPY_CODING_METHOD_TYPE_LEN + FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN;
 	uint32_t *parameters, *raw_bits;
 	uint32_t partition, residual_sample;
-	uint32_t partition_samples;
+	uint32_t partition_samples, partition_samples_base;
+#if defined(FLAC__CPU_X86_64) || defined(FLAC__CPU_ARM64) || defined(FLAC__CPU_PPC64)
+	uint32_t partition_samples_fixed_point_divisor;
+#endif
 	const uint32_t partitions = 1u << partition_order;
 	FLAC__uint64 mean;
 #ifdef ENABLE_RICE_PARAMETER_SEARCH
@@ -4436,8 +4439,19 @@ FLAC__bool set_partitioned_rice_(
 	parameters = partitioned_rice_contents->parameters;
 	raw_bits = partitioned_rice_contents->raw_bits;
 
+	partition_samples_base = (residual_samples+predictor_order) >> partition_order;
+
+#if defined(FLAC__CPU_X86_64) || defined(FLAC__CPU_ARM64) || defined(FLAC__CPU_PPC64) /* Other 64-bit CPUs too */
+	/* Integer division is slow. To speed up things, precalculate a fixed point
+	 * divisor, as all partitions except the first are the same size. 18 bits
+	 * are taken because maximum block size is 65535, max partition size for
+	 * partitions other than 0 is 32767 (15 bit), max abs residual is 2^31,
+	 * which leaves 18 bit */
+	partition_samples_fixed_point_divisor = 0x40000 / partition_samples_base;
+#endif
+
 	for(partition = residual_sample = 0; partition < partitions; partition++) {
-		partition_samples = (residual_samples+predictor_order) >> partition_order;
+		partition_samples = partition_samples_base;
 		if(partition == 0) {
 			if(partition_samples <= predictor_order)
 				return false;
@@ -4451,10 +4465,35 @@ FLAC__bool set_partitioned_rice_(
 		 * mean/partition_samples
 		 */
 
+
+#if defined(FLAC__CPU_X86_64) || defined(FLAC__CPU_ARM64) || defined(FLAC__CPU_PPC64) /* Other 64-bit CPUs too */
 		if(mean <= partition_samples || mean < 2)
 			rice_parameter = 0;
 		else
-			rice_parameter = FLAC__bitmath_ilog2_wide(((mean - 1)/partition_samples)) + 1;
+			rice_parameter = FLAC__bitmath_ilog2_wide(((mean - 1)*partition_samples_fixed_point_divisor)>>18) + 1;
+#else
+		/* For 32-bit archs, we need to avoid 64-bit math */
+		if(mean <= 0x80000000/8) {
+			FLAC__uint32 k2, mean2 = (FLAC__uint32) mean;
+			rice_parameter = 0; k2 = partition_samples;
+			while(k2*8 < mean2) { /* requires: mean <= (2^31)/8 */
+				rice_parameter += 4; k2 <<= 4; /* tuned for 16-bit input */
+			}
+			while(k2 < mean2) { /* requires: mean <= 2^31 */
+				rice_parameter++; k2 <<= 1;
+			}
+		}
+		else {
+			rice_parameter = 0; k = partition_samples;
+			if(mean <= FLAC__U64L(0x8000000000000000)/128) /* usually mean is _much_ smaller than this value */
+				while(k*128 < mean) { /* requires: mean <= (2^63)/128 */
+					rice_parameter += 8; k <<= 8; /* tuned for 24-bit input */
+				}
+			while(k < mean) { /* requires: mean <= 2^63 */
+				rice_parameter++; k <<= 1;
+			}
+		}
+#endif
 
 		if(rice_parameter >= rice_parameter_limit) {
 #ifndef NDEBUG
