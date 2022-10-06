@@ -894,6 +894,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 	decoder->private_->samples_decoded = 0;
 	decoder->private_->do_md5_checking = false;
 	decoder->private_->last_seen_framesync = 0;
+	decoder->private_->last_frame_is_set = false;
 
 #if FLAC__HAS_OGG
 	if(decoder->private_->is_ogg)
