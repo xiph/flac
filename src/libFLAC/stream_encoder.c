@@ -4467,7 +4467,7 @@ FLAC__bool set_partitioned_rice_(
 
 
 #if defined(FLAC__CPU_X86_64) || defined(FLAC__CPU_ARM64) || defined(FLAC__CPU_PPC64) /* Other 64-bit CPUs too */
-		if(mean < 2 || ((mean - 1)*partition_samples_fixed_point_divisor)>>18) == 0)
+		if(mean < 2 || (((mean - 1)*partition_samples_fixed_point_divisor)>>18) == 0)
 			rice_parameter = 0;
 		else
 			rice_parameter = FLAC__bitmath_ilog2_wide(((mean - 1)*partition_samples_fixed_point_divisor)>>18) + 1;
