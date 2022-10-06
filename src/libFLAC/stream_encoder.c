@@ -4467,7 +4467,7 @@ FLAC__bool set_partitioned_rice_(
 
 
 #if defined(FLAC__CPU_X86_64) || defined(FLAC__CPU_ARM64) || defined(FLAC__CPU_PPC64) /* Other 64-bit CPUs too */
-		if(mean <= partition_samples || mean < 2)
+		if(mean < 2 || ((mean - 1)*partition_samples_fixed_point_divisor)>>18) == 0)
 			rice_parameter = 0;
 		else
 			rice_parameter = FLAC__bitmath_ilog2_wide(((mean - 1)*partition_samples_fixed_point_divisor)>>18) + 1;
@@ -4484,7 +4484,8 @@ FLAC__bool set_partitioned_rice_(
 			}
 		}
 		else {
-			rice_parameter = 0; k = partition_samples;
+			FLAC__uint64 k = partition_samples;
+			rice_parameter = 0;
 			if(mean <= FLAC__U64L(0x8000000000000000)/128) /* usually mean is _much_ smaller than this value */
 				while(k*128 < mean) { /* requires: mean <= (2^63)/128 */
 					rice_parameter += 8; k <<= 8; /* tuned for 24-bit input */
