@@ -21,11 +21,7 @@ if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
     set(FLAC__ALIGN_MALLOC_DATA 1)
     option(WITH_AVX "Enable AVX, AVX2 optimizations (with runtime detection, resulting binary does not require AVX2)" ON)
     if(WITH_AVX AND MSVC)
-        set_source_files_properties(lpc_intrin_avx2.c stream_encoder_intrin_avx2.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
-        set_source_files_properties(lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS "/arch:AVX2 /fp:fast")
-    endif()
-    if(WITH_AVX AND (CMAKE_C_COMPILER_ID MATCHES "Clang"))
-        set_source_files_properties(lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS "-ffast-math")
+        set_source_files_properties(lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
     endif()
 else()
     check_cpu_arch_ppc64(FLAC__CPU_PPC64)
@@ -132,8 +128,17 @@ if(BUILD_SHARED_LIBS)
     endif()
 endif()
 
-add_library(FLAC::FLAC ALIAS FLAC)
+check_c_compiler_flag("-fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math" HAVE_ASSOC_MATH)
 
+if(MSVC)
+        target_compile_options(FLAC BEFORE PRIVATE "/fp:fast")
+else()
+    if(HAVE_ASSOC_MATH)
+        target_compile_options(FLAC BEFORE PRIVATE -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math)
+    endif()
+endif()
+
+add_library(FLAC::FLAC ALIAS FLAC)
 
 install(TARGETS FLAC EXPORT targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"

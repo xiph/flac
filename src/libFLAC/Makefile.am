@@ -49,7 +49,11 @@ endif
 endif
 endif
 
-AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) @OGG_CFLAGS@
+if ASSOC_MATH_AVAILABLE
+ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math
+endif
+
+AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
 
 if FLaC__NO_ASM
 else

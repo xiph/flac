@@ -598,6 +598,9 @@ fi
 
 AC_SUBST(GIT_COMMIT_VERSION_HASH)
 
+AX_CHECK_COMPILE_FLAG([-fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math],HAVE_ASSOC_MATH=yes)
+AM_CONDITIONAL(ASSOC_MATH_AVAILABLE, test "x$HAVE_ASSOC_MATH" = "xyes")
+
 
 AC_CONFIG_FILES([ \
 	Makefile \
