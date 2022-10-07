@@ -132,8 +132,14 @@ if(BUILD_SHARED_LIBS)
     endif()
 endif()
 
-add_library(FLAC::FLAC ALIAS FLAC)
+check_c_compiler_flag("-ffast-math" HAVE_FAST_MATH)
 
+if(HAVE_FAST_MATH)
+    target_compile_options(FLAC BEFORE PRIVATE "-ffast-math")
+endif()
+
+
+add_library(FLAC::FLAC ALIAS FLAC)
 
 install(TARGETS FLAC EXPORT targets
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}/"
