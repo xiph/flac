@@ -1486,6 +1486,10 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 	if(encoder->protected_->state == FLAC__STREAM_ENCODER_OK && !encoder->private_->is_being_deleted) {
 		if(encoder->private_->current_sample_number != 0) {
 			encoder->protected_->blocksize = encoder->private_->current_sample_number;
+			if(!resize_buffers_(encoder, encoder->protected_->blocksize)) {
+				/* the above function sets the state for us in case of an error */
+				return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
+			}
 			if(!process_frame_(encoder, /*is_last_block=*/true))
 				error = true;
 		}
@@ -2562,81 +2566,88 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
 	FLAC__ASSERT(encoder->private_->current_sample_number == 0);
 
-	/* To avoid excessive malloc'ing, we only grow the buffer; no shrinking. */
-	if(new_blocksize <= encoder->private_->input_capacity)
-		return true;
-
 	ok = true;
 
-	/* WATCHOUT: FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx() and ..._intrin_sse2()
-	 * require that the input arrays (in our case the integer signals)
-	 * have a buffer of up to 3 zeroes in front (at negative indices) for
-	 * alignment purposes; we use 4 in front to keep the data well-aligned.
-	 */
+	/* To avoid excessive malloc'ing, we only grow the buffer; no shrinking. */
+	if(new_blocksize > encoder->private_->input_capacity) {
 
-	for(i = 0; ok && i < encoder->protected_->channels; i++) {
-		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
-		if(ok) {
-			memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
-			encoder->private_->integer_signal[i] += 4;
+		/* WATCHOUT: FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx() and ..._intrin_sse2()
+		 * require that the input arrays (in our case the integer signals)
+		 * have a buffer of up to 3 zeroes in front (at negative indices) for
+		 * alignment purposes; we use 4 in front to keep the data well-aligned.
+		 */
+
+		for(i = 0; ok && i < encoder->protected_->channels; i++) {
+			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_unaligned[i], &encoder->private_->integer_signal[i]);
+			if(ok) {
+				memset(encoder->private_->integer_signal[i], 0, sizeof(FLAC__int32)*4);
+				encoder->private_->integer_signal[i] += 4;
+			}
 		}
-	}
-	for(i = 0; ok && i < 2; i++) {
-		ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_mid_side_unaligned[i], &encoder->private_->integer_signal_mid_side[i]);
-		if(ok) {
-			memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
-			encoder->private_->integer_signal_mid_side[i] += 4;
+		for(i = 0; ok && i < 2; i++) {
+			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_mid_side_unaligned[i], &encoder->private_->integer_signal_mid_side[i]);
+			if(ok) {
+				memset(encoder->private_->integer_signal_mid_side[i], 0, sizeof(FLAC__int32)*4);
+				encoder->private_->integer_signal_mid_side[i] += 4;
+			}
 		}
-	}
-	ok = ok && FLAC__memory_alloc_aligned_int64_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_33bit_side_unaligned, &encoder->private_->integer_signal_33bit_side);
+		ok = ok && FLAC__memory_alloc_aligned_int64_array(new_blocksize+4+OVERREAD_, &encoder->private_->integer_signal_33bit_side_unaligned, &encoder->private_->integer_signal_33bit_side);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	if(ok && encoder->protected_->max_lpc_order > 0) {
-		for(i = 0; ok && i < encoder->protected_->num_apodizations; i++)
-			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->window_unaligned[i], &encoder->private_->window[i]);
-		ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->windowed_signal_unaligned, &encoder->private_->windowed_signal);
-	}
+		if(ok && encoder->protected_->max_lpc_order > 0) {
+			for(i = 0; ok && i < encoder->protected_->num_apodizations; i++)
+				ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->window_unaligned[i], &encoder->private_->window[i]);
+			ok = ok && FLAC__memory_alloc_aligned_real_array(new_blocksize, &encoder->private_->windowed_signal_unaligned, &encoder->private_->windowed_signal);
+		}
 #endif
-	for(channel = 0; ok && channel < encoder->protected_->channels; channel++) {
-		for(i = 0; ok && i < 2; i++) {
-			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_unaligned[channel][i], &encoder->private_->residual_workspace[channel][i]);
+		for(channel = 0; ok && channel < encoder->protected_->channels; channel++) {
+			for(i = 0; ok && i < 2; i++) {
+				ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_unaligned[channel][i], &encoder->private_->residual_workspace[channel][i]);
+			}
 		}
-	}
 
 
-	for(channel = 0; ok && channel < encoder->protected_->channels; channel++) {
-		for(i = 0; ok && i < 2; i++) {
-			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace[channel][i], encoder->protected_->max_residual_partition_order);
-			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace[channel][i], encoder->protected_->max_residual_partition_order);
+		for(channel = 0; ok && channel < encoder->protected_->channels; channel++) {
+			for(i = 0; ok && i < 2; i++) {
+				ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace[channel][i], encoder->protected_->max_residual_partition_order);
+				ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace[channel][i], encoder->protected_->max_residual_partition_order);
+			}
 		}
-	}
 
-	for(channel = 0; ok && channel < 2; channel++) {
-		for(i = 0; ok && i < 2; i++) {
-			ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_mid_side_unaligned[channel][i], &encoder->private_->residual_workspace_mid_side[channel][i]);
+		for(channel = 0; ok && channel < 2; channel++) {
+			for(i = 0; ok && i < 2; i++) {
+				ok = ok && FLAC__memory_alloc_aligned_int32_array(new_blocksize, &encoder->private_->residual_workspace_mid_side_unaligned[channel][i], &encoder->private_->residual_workspace_mid_side[channel][i]);
+			}
 		}
-	}
 
-	for(channel = 0; ok && channel < 2; channel++) {
-		for(i = 0; ok && i < 2; i++) {
-			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace_mid_side[channel][i], encoder->protected_->max_residual_partition_order);
+		for(channel = 0; ok && channel < 2; channel++) {
+			for(i = 0; ok && i < 2; i++) {
+				ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_workspace_mid_side[channel][i], encoder->protected_->max_residual_partition_order);
+			}
 		}
+
+		for(i = 0; ok && i < 2; i++) {
+			ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_extra[i], encoder->protected_->max_residual_partition_order);
+		}
+
+
+		/* the *2 is an approximation to the series 1 + 1/2 + 1/4 + ... that sums tree occupies in a flat array */
+		/*@@@ new_blocksize*2 is too pessimistic, but to fix, we need smarter logic because a smaller new_blocksize can actually increase the # of partitions; would require moving this out into a separate function, then checking its capacity against the need of the current blocksize&min/max_partition_order (and maybe predictor order) */
+		ok = ok && FLAC__memory_alloc_aligned_uint64_array(new_blocksize * 2, &encoder->private_->abs_residual_partition_sums_unaligned, &encoder->private_->abs_residual_partition_sums);
+		if(encoder->protected_->do_escape_coding)
+			ok = ok && FLAC__memory_alloc_aligned_unsigned_array(new_blocksize * 2, &encoder->private_->raw_bits_per_partition_unaligned, &encoder->private_->raw_bits_per_partition);
+}
+	if(ok)
+		encoder->private_->input_capacity = new_blocksize;
+	else {
+		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+		return ok;
 	}
 
-	for(i = 0; ok && i < 2; i++) {
-		ok = ok && FLAC__format_entropy_coding_method_partitioned_rice_contents_ensure_size(&encoder->private_->partitioned_rice_contents_extra[i], encoder->protected_->max_residual_partition_order);
-	}
-
-
-	/* the *2 is an approximation to the series 1 + 1/2 + 1/4 + ... that sums tree occupies in a flat array */
-	/*@@@ new_blocksize*2 is too pessimistic, but to fix, we need smarter logic because a smaller new_blocksize can actually increase the # of partitions; would require moving this out into a separate function, then checking its capacity against the need of the current blocksize&min/max_partition_order (and maybe predictor order) */
-	ok = ok && FLAC__memory_alloc_aligned_uint64_array(new_blocksize * 2, &encoder->private_->abs_residual_partition_sums_unaligned, &encoder->private_->abs_residual_partition_sums);
-	if(encoder->protected_->do_escape_coding)
-		ok = ok && FLAC__memory_alloc_aligned_unsigned_array(new_blocksize * 2, &encoder->private_->raw_bits_per_partition_unaligned, &encoder->private_->raw_bits_per_partition);
 
 	/* now adjust the windows if the blocksize has changed */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	if(ok && new_blocksize != encoder->private_->input_capacity && encoder->protected_->max_lpc_order > 0) {
-		for(i = 0; ok && i < encoder->protected_->num_apodizations; i++) {
+	if(encoder->protected_->max_lpc_order > 0) {
+		for(i = 0; i < encoder->protected_->num_apodizations; i++) {
 			switch(encoder->protected_->apodizations[i].type) {
 				case FLAC__APODIZATION_BARTLETT:
 					FLAC__window_bartlett(encoder->private_->window[i], new_blocksize);
@@ -2700,14 +2711,14 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 			}
 		}
 	}
+	if (new_blocksize < FLAC__MAX_LPC_ORDER) {
+		/* intrinsics autocorrelation routines do not all handle cases in which lag might be
+		 * larger than data_len */
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+	}
 #endif
 
-	if(ok)
-		encoder->private_->input_capacity = new_blocksize;
-	else
-		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-
-	return ok;
+	return true;
 }
 
 FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC__bool is_last_block)
@@ -3734,14 +3745,14 @@ FLAC__bool process_subframe_(
 						}
 						else {
 							/* window part of subblock */
-							if(max_lpc_order_this_apodization >= frame_header->blocksize/b) {
-								max_lpc_order_this_apodization = frame_header->blocksize/b - 1;
-								if(frame_header->blocksize/b > 0)
-									max_lpc_order_this_apodization = frame_header->blocksize/b - 1;
-								else {
-									set_next_subdivide_tukey(encoder->protected_->apodizations[a].parameters.subdivide_tukey.parts, &a, &b, &c);
-									continue;
-								}
+							if(frame_header->blocksize/b < FLAC__MAX_LPC_ORDER) {
+								/* intrinsics autocorrelation routines do not all handle cases in which lag might be
+								 * larger than data_len, and some routines round lag up to the nearest multiple of 4
+								 * As little gain is expected from using LPC on part of a signal as small as 32 samples
+								 * and to enable widening this rounding up to larger values in the future, windowing
+								 * parts smaller than FLAC__MAX_LPC_ORDER (which is 32) samples is not supported */
+								set_next_subdivide_tukey(encoder->protected_->apodizations[a].parameters.subdivide_tukey.parts, &a, &b, &c);
+								continue;
 							}
 							if(!(c % 2)){
 								/* on even c, evaluate the (c/2)th partial window of size blocksize/b  */

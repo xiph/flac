@@ -130,23 +130,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 		autoc[lag] = d;
 	}
 #endif
-	if(lag <= 8) {
-		#undef MAX_LAG
-		#define MAX_LAG 8
-		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
-	}
-	else if(lag <= 12) {
-		#undef MAX_LAG
-		#define MAX_LAG 12
-		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
-	}
-	else if(lag <= 16) {
-		#undef MAX_LAG
-		#define MAX_LAG 16
-		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
-	}
-	else {
-
+	if (data_len < FLAC__MAX_LPC_ORDER || lag > 16) {
 		/*
 		 * this version tends to run faster because of better data locality
 		 * ('data_len' is usually much larger than 'lag')
@@ -171,6 +155,22 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 				autoc[coeff] += d * data[sample+coeff];
 		}
 	}
+	else if(lag <= 8) {
+		#undef MAX_LAG
+		#define MAX_LAG 8
+		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+	}
+	else if(lag <= 12) {
+		#undef MAX_LAG
+		#define MAX_LAG 12
+		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+	}
+	else if(lag <= 16) {
+		#undef MAX_LAG
+		#define MAX_LAG 16
+		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+	}
+
 }
 
 void FLAC__lpc_compute_lp_coefficients(const double autoc[], uint32_t *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
