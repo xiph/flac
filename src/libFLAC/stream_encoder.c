@@ -2646,7 +2646,7 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 
 	/* now adjust the windows if the blocksize has changed */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-	if(encoder->protected_->max_lpc_order > 0) {
+	if(encoder->protected_->max_lpc_order > 0 && new_blocksize > 1) {
 		for(i = 0; i < encoder->protected_->num_apodizations; i++) {
 			switch(encoder->protected_->apodizations[i].type) {
 				case FLAC__APODIZATION_BARTLETT:
