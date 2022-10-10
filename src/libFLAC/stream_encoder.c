@@ -2711,9 +2711,9 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 			}
 		}
 	}
-	if (new_blocksize < FLAC__MAX_LPC_ORDER) {
+	if (new_blocksize <= FLAC__MAX_LPC_ORDER) {
 		/* intrinsics autocorrelation routines do not all handle cases in which lag might be
-		 * larger than data_len */
+		 * larger than data_len. Lag is one larger than the LPC order */
 		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
 	}
 #endif
@@ -3745,12 +3745,12 @@ FLAC__bool process_subframe_(
 						}
 						else {
 							/* window part of subblock */
-							if(frame_header->blocksize/b < FLAC__MAX_LPC_ORDER) {
+							if(frame_header->blocksize/b <= FLAC__MAX_LPC_ORDER) {
 								/* intrinsics autocorrelation routines do not all handle cases in which lag might be
 								 * larger than data_len, and some routines round lag up to the nearest multiple of 4
 								 * As little gain is expected from using LPC on part of a signal as small as 32 samples
 								 * and to enable widening this rounding up to larger values in the future, windowing
-								 * parts smaller than FLAC__MAX_LPC_ORDER (which is 32) samples is not supported */
+								 * parts smaller than or equal to FLAC__MAX_LPC_ORDER (which is 32) samples is not supported */
 								set_next_subdivide_tukey(encoder->protected_->apodizations[a].parameters.subdivide_tukey.parts, &a, &b, &c);
 								continue;
 							}
