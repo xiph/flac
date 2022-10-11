@@ -139,6 +139,17 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             fuzzing::memory::memory_test(res);
         }
 
+        if ( size > 2 * 65535 ) {
+            /* With large inputs and expensive options enabled, the fuzzer can get *really* slow.
+            * Some combinations can make the fuzzer timeout (>60 seconds). However, while combining
+            * options makes the fuzzer slower, most options do not expose new code when combined.
+            * Therefore, combining slow options is disabled for large inputs. Any input containing
+            * more than 65536 * 2 samples (max blocksize, stereo) is considered large
+            */
+            encoder.set_do_qlp_coeff_prec_search(false);
+            encoder.set_do_exhaustive_model_search(false);
+        }
+
         {
             ::FLAC__StreamEncoderInitStatus ret;
             if ( !use_ogg ) {
