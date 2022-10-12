@@ -42,7 +42,6 @@ FLAC is comprised of
   * `flac`, a command-line program for encoding and decoding files
   * `metaflac`, a command-line program for viewing and editing FLAC
     metadata
-  * player plugin for XMMS
   * user and API documentation
 
 The libraries (libFLAC, libFLAC++) are licensed under Xiph.org's
