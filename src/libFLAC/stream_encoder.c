@@ -3727,15 +3727,16 @@ FLAC__bool process_subframe_(
 				if(max_lpc_order > 0) {
 					uint32_t a, b = 1, c = 0;
 					for (a = 0; a < encoder->protected_->num_apodizations;) {
+						uint32_t max_lpc_order_this_apodization = max_lpc_order;
 						if(b == 1){
 							/* window full subblock */
 							if(subframe_bps <= 32)
 								FLAC__lpc_window_data(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize);
 							else
 								FLAC__lpc_window_data_wide(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize);
-							encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize, max_lpc_order+1, autoc);
+							encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize, max_lpc_order_this_apodization+1, autoc);
 							if(encoder->protected_->apodizations[a].type == FLAC__APODIZATION_SUBDIVIDE_TUKEY){
-								for(uint32_t i = 0; i < max_lpc_order; i++)
+								for(uint32_t i = 0; i < max_lpc_order_this_apodization; i++)
 									autoc_root[i] = autoc[i];
 								b++;
 							}else{
@@ -3759,11 +3760,11 @@ FLAC__bool process_subframe_(
 									FLAC__lpc_window_data_partial(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize, frame_header->blocksize/b/2, (c/2*frame_header->blocksize)/b);
 								else
 									FLAC__lpc_window_data_partial(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize, frame_header->blocksize/b/2, (c/2*frame_header->blocksize)/b);
-								encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize/b, max_lpc_order+1, autoc);
+								encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize/b, max_lpc_order_this_apodization+1, autoc);
 							}else{
 								/* on uneven c, evaluate the root window (over the whole block) minus the previous partial window
 								 * similar to tukey_punchout apodization but more efficient	*/
-								for(uint32_t i = 0; i < max_lpc_order; i++)
+								for(uint32_t i = 0; i < max_lpc_order_this_apodization; i++)
 									autoc[i] = autoc_root[i] - autoc[i];
 							}
 							/* Next function sets a, b and c appropriate for next iteration */
@@ -3772,7 +3773,7 @@ FLAC__bool process_subframe_(
 
 						/* if autoc[0] == 0.0, the signal is constant and we usually won't get here, but it can happen */
 						if(autoc[0] != 0.0) {
-							FLAC__lpc_compute_lp_coefficients(autoc, &max_lpc_order, encoder->private_->lp_coeff, lpc_error);
+							FLAC__lpc_compute_lp_coefficients(autoc, &max_lpc_order_this_apodization, encoder->private_->lp_coeff, lpc_error);
 							if(encoder->protected_->do_exhaustive_model_search) {
 								min_lpc_order = 1;
 							}
@@ -3780,7 +3781,7 @@ FLAC__bool process_subframe_(
 								const uint32_t guess_lpc_order =
 									FLAC__lpc_compute_best_order(
 										lpc_error,
-										max_lpc_order,
+										max_lpc_order_this_apodization,
 										frame_header->blocksize,
 										subframe_bps + (
 											encoder->protected_->do_qlp_coeff_prec_search?
@@ -3788,11 +3789,11 @@ FLAC__bool process_subframe_(
 												encoder->protected_->qlp_coeff_precision
 										)
 									);
-								min_lpc_order = max_lpc_order = guess_lpc_order;
+								min_lpc_order = max_lpc_order_this_apodization = guess_lpc_order;
 							}
-							if(max_lpc_order >= frame_header->blocksize)
-								max_lpc_order = frame_header->blocksize - 1;
-							for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order; lpc_order++) {
+							if(max_lpc_order_this_apodization >= frame_header->blocksize)
+								max_lpc_order_this_apodization = frame_header->blocksize - 1;
+							for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order_this_apodization; lpc_order++) {
 								lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
 								if(lpc_residual_bits_per_sample >= (double)subframe_bps)
 									continue; /* don't even try */
