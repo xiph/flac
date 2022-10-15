@@ -1276,6 +1276,11 @@ static FLAC__bool chain_read_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle han
 		chain->last_offset = (FLAC__off_t)pos;
 	}
 
+	if(chain->head->data->type != FLAC__METADATA_TYPE_STREAMINFO) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
+		return false;
+	}
+
 	chain->initial_length = chain_calculate_length_(chain);
 
 	return true;
@@ -1368,7 +1373,7 @@ static FLAC__bool chain_read_ogg_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle
 
 	chain->initial_length = chain_calculate_length_(chain);
 
-	if(chain->initial_length == 0) {
+	if(chain->initial_length == 0 || chain->head->data->type != FLAC__METADATA_TYPE_STREAMINFO) {
 		/* Ogg FLAC file must have at least streaminfo and vorbis comment */
 		chain->status = FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
 		return false;
@@ -2276,7 +2281,8 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_seektable_cb_(FLAC_
 	uint32_t i;
 	FLAC__byte buffer[FLAC__STREAM_METADATA_SEEKPOINT_LENGTH];
 
-	FLAC__ASSERT(block_length % FLAC__STREAM_METADATA_SEEKPOINT_LENGTH == 0);
+	if(block_length % FLAC__STREAM_METADATA_SEEKPOINT_LENGTH != 0)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
 
 	block->num_points = block_length / FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 
