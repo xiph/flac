@@ -708,9 +708,10 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_Simp
 			return ret;
 		}
 		else {
-			ret = rewrite_whole_file_(iterator, block, /*append=*/false);
-			FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
-			FLAC__ASSERT(!ret || ftello(iterator->file) == debug_target_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			if((ret = rewrite_whole_file_(iterator, block, /*append=*/false))) {
+				FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+				FLAC__ASSERT(!ret || ftello(iterator->file) == debug_target_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			}
 			return ret;
 		}
 	}
@@ -765,9 +766,10 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_Simp
 			}
 		}
 		else {
-			ret = rewrite_whole_file_(iterator, block, /*append=*/false);
-			FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
-			FLAC__ASSERT(!ret || ftello(iterator->file) == debug_target_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			if((ret = rewrite_whole_file_(iterator, block, /*append=*/false))) {
+				FLAC__ASSERT(!ret || iterator->offset[iterator->depth] == debug_target_offset);
+				FLAC__ASSERT(!ret || ftello(iterator->file) == debug_target_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH);
+			}
 			return ret;
 		}
 	}
@@ -848,9 +850,10 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Meta
 		}
 	}
 	else {
-		ret = rewrite_whole_file_(iterator, block, /*append=*/true);
-		FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
-		FLAC__ASSERT(ftello(iterator->file) == debug_target_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH);
+		if((ret = rewrite_whole_file_(iterator, block, /*append=*/true))) {
+			FLAC__ASSERT(iterator->offset[iterator->depth] == debug_target_offset);
+			FLAC__ASSERT(ftello(iterator->file) == debug_target_offset + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH);
+		}
 		return ret;
 	}
 }
@@ -891,9 +894,10 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_S
 		return true;
 	}
 	else {
-		ret = rewrite_whole_file_(iterator, 0, /*append=*/false);
-		FLAC__ASSERT(iterator->offset[iterator->depth] + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH + (FLAC__off_t)iterator->length == debug_target_offset);
-		FLAC__ASSERT(ftello(iterator->file) + (FLAC__off_t)iterator->length == debug_target_offset);
+		if((ret = rewrite_whole_file_(iterator, 0, /*append=*/false))) {
+			FLAC__ASSERT(iterator->offset[iterator->depth] + (FLAC__off_t)FLAC__STREAM_METADATA_HEADER_LENGTH + (FLAC__off_t)iterator->length == debug_target_offset);
+			FLAC__ASSERT(ftello(iterator->file) + (FLAC__off_t)iterator->length == debug_target_offset);
+		}
 		return ret;
 	}
 }
