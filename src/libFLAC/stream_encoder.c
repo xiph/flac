@@ -949,20 +949,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if(encoder->private_->cpuinfo.use_asm) {
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
-#   ifdef FLAC__HAS_NASM
-		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_asm_ia32; /* OPT_IA32: was really necessary for GCC < 4.9 */
-		if (encoder->private_->cpuinfo.x86.mmx) {
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32_mmx;
-		}
-		else {
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_asm_ia32;
-		}
-
-		if (encoder->private_->cpuinfo.x86.mmx && encoder->private_->cpuinfo.x86.cmov)
-			encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov;
-#   endif /* FLAC__HAS_NASM */
 #   if FLAC__HAS_X86INTRIN
 #    ifdef FLAC__SSE2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.sse2) {

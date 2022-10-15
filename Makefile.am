@@ -60,7 +60,6 @@ EXTRA_DIST = \
 	autogen.sh \
 	config.rpath \
 	depcomp \
-	ltmain.sh \
-	strip_non_asm_libtool_args.sh
+	ltmain.sh
 
 CLEANFILES = *~

@@ -471,14 +471,6 @@ AC_CHECK_LIB(rt, clock_gettime,
         AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime]))
 AC_SUBST(LIB_CLOCK_GETTIME)
 
-# only matters for x86
-AC_CHECK_PROGS(NASM, nasm)
-AM_CONDITIONAL(FLaC__HAS_NASM, test -n "$NASM")
-if test -n "$NASM" ; then
-AC_DEFINE(FLAC__HAS_NASM)
-AH_TEMPLATE(FLAC__HAS_NASM, [define if you are compiling for x86 and have the NASM assembler])
-fi
-
 dnl If debugging is disabled AND no CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
 dnl are provided, we can set defaults to our liking
 AS_IF([test "x${ax_enable_debug}" = "xno" && test "x${enable_flags_setting}" = "xyes"], [
@@ -607,7 +599,6 @@ AC_CONFIG_FILES([ \
 	src/Makefile \
 	src/libFLAC/Makefile \
 	src/libFLAC/flac.pc \
-	src/libFLAC/ia32/Makefile \
 	src/libFLAC/include/Makefile \
 	src/libFLAC/include/private/Makefile \
 	src/libFLAC/include/protected/Makefile \
