@@ -2550,7 +2550,6 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 
 	FLAC__ASSERT(new_blocksize > 0);
 	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
-	FLAC__ASSERT(encoder->private_->current_sample_number == 0);
 
 	ok = true;
 
