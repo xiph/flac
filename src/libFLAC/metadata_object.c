@@ -217,7 +217,7 @@ static void vorbiscomment_entry_array_delete_(FLAC__StreamMetadata_VorbisComment
 {
 	uint32_t i;
 
-	FLAC__ASSERT(object_array != NULL && num_comments > 0);
+	FLAC__ASSERT(object_array != NULL);
 
 	for (i = 0; i < num_comments; i++)
 		free(object_array[i].entry);
@@ -651,7 +651,6 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 				object->data.vorbis_comment.vendor_string.entry = 0;
 			}
 			if (object->data.vorbis_comment.comments != NULL) {
-				FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
 				vorbiscomment_entry_array_delete_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
 				object->data.vorbis_comment.comments = NULL;
 				object->data.vorbis_comment.num_comments = 0;
