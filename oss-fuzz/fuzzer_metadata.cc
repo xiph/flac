@@ -122,7 +122,7 @@ static void run_tests_with_level_1_interface(char filename[], bool readonly, boo
 	if(!iterator.init(filename,readonly,preservestats))
 		return;
 
-	for(size_t i = 0; i < size; i++) {
+	for(size_t i = 0; i < size && iterator.status() == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK; i++) {
 		switch(data[i] & 7) {
 			case 0:
 				iterator.get_block_type();
