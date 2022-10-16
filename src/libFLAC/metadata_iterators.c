@@ -524,6 +524,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_next(FLAC__Metadata_SimpleIte
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(iterator->is_last)
 		return false;
@@ -544,6 +545,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_prev(FLAC__Metadata_SimpleIte
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(iterator->offset[iterator->depth] == iterator->first_offset)
 		return false;
@@ -577,6 +579,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_is_last(const FLAC__Metadata_
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	return iterator->is_last;
 }
@@ -586,6 +589,7 @@ FLAC_API off_t FLAC__metadata_simple_iterator_get_block_offset(const FLAC__Metad
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	return (off_t)iterator->offset[iterator->depth];
 }
@@ -594,6 +598,7 @@ FLAC_API FLAC__MetadataType FLAC__metadata_simple_iterator_get_block_type(const 
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	return iterator->type;
 }
@@ -603,6 +608,7 @@ FLAC_API uint32_t FLAC__metadata_simple_iterator_get_block_length(const FLAC__Me
 {
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	return iterator->length;
 }
@@ -615,6 +621,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Meta
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(0 != id);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(iterator->type != FLAC__METADATA_TYPE_APPLICATION) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT;
@@ -641,6 +648,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Me
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(0 != block) {
 		block->is_last = iterator->is_last;
@@ -672,6 +680,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_Simp
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(!iterator->is_writable) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
@@ -773,6 +782,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Meta
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(!iterator->is_writable) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
@@ -847,6 +857,8 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_S
 {
 	FLAC__ASSERT_DECLARATION(FLAC__off_t debug_target_offset = iterator->offset[iterator->depth];)
 	FLAC__bool ret;
+
+	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
 
 	if(!iterator->is_writable) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
