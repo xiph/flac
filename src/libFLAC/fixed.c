@@ -236,11 +236,12 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 	FLAC__int32 last_error_2 = last_error_1 - (data[-2] - data[-3]);
 	FLAC__int32 last_error_3 = last_error_2 - (data[-2] - 2*data[-3] + data[-4]);
 	FLAC__int32 error, save;
+	uint32_t i;
 	/* total_error_* are 64-bits to avoid overflow when encoding
 	 * erratic signals when the bits-per-sample and blocksize are
 	 * large.
 	 */
-	for(uint32_t i = 0; i < data_len; i++) {
+	for(i = 0; i < data_len; i++) {
 		error  = data[i]     ; total_error_0 += local_abs(error);                      save = error;
 		error -= last_error_0; total_error_1 += local_abs(error); last_error_0 = save; save = error;
 		error -= last_error_1; total_error_2 += local_abs(error); last_error_1 = save; save = error;
@@ -248,7 +249,8 @@ uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t d
 		error -= last_error_3; total_error_4 += local_abs(error); last_error_3 = save;
 	}
 #else
-	for(int i = 0; i < (int)data_len; i++) {
+	int i;
+	for(i = 0; i < (int)data_len; i++) {
 		total_error_0 += local_abs(data[i]);
 		total_error_1 += local_abs(data[i] - data[i-1]);
 		total_error_2 += local_abs(data[i] - 2 * data[i-1] + data[i-2]);
@@ -303,8 +305,9 @@ uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint3
 {
 	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0;
 	uint32_t order;
+	int i;
 
-	for(int i = 0; i < (int)data_len; i++) {
+	for(i = 0; i < (int)data_len; i++) {
 		total_error_0 += local_abs(data[i]);
 		total_error_1 += local_abs(data[i] - data[i-1]);
 		total_error_2 += local_abs(data[i] - 2 * data[i-1] + data[i-2]);
@@ -380,8 +383,9 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 dat
 	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
 	FLAC__bool order_0_is_valid = true, order_1_is_valid = true, order_2_is_valid = true, order_3_is_valid = true, order_4_is_valid = true;
 	uint32_t order = 0;
+	int i;
 
-	for(int i = 0; i < (int)data_len; i++) {
+	for(i = 0; i < (int)data_len; i++) {
 		error_0 = local_abs64((FLAC__int64)data[i]);
 		error_1 = (i > 0) ? local_abs64((FLAC__int64)data[i] - data[i-1]) : 0 ;
 		error_2 = (i > 1) ? local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]) : 0;
@@ -426,8 +430,9 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int
 	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
 	FLAC__bool order_0_is_valid = true, order_1_is_valid = true, order_2_is_valid = true, order_3_is_valid = true, order_4_is_valid = true;
 	uint32_t order = 0;
+	int i;
 
-	for(int i = 0; i < (int)data_len; i++) {
+	for(i = 0; i < (int)data_len; i++) {
 		error_0 = local_abs64(data[i]);
 		error_1 = (i > 0) ? local_abs64(data[i] - data[i-1]) : 0 ;
 		error_2 = (i > 1) ? local_abs64(data[i] - 2 * data[i-1] + data[i-2]) : 0;

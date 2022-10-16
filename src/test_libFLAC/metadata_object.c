@@ -199,9 +199,10 @@ static void vc_resize_(FLAC__StreamMetadata *block, uint32_t num)
 		}
 	}
 	else {
+		uint32_t i;
 		vc->comments = realloc(vc->comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)*num);
 		FLAC__ASSERT(0 != vc->comments);
-		for(uint32_t i = vc->num_comments; i < num; i++) {
+		for(i = vc->num_comments; i < num; i++) {
 			vc->comments[i].length = 0;
 			vc->comments[i].entry = malloc(1);
 			vc->comments[i].entry[0] = '\0';
