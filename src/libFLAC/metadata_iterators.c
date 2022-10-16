@@ -310,6 +310,8 @@ FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__Strea
 					FLAC__metadata_object_delete(obj);
 				}
 			}
+			else
+				break;
 		}
 	} while(FLAC__metadata_simple_iterator_next(it));
 
