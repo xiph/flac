@@ -1295,7 +1295,7 @@ FLAC_API void FLAC__stream_encoder_get_verify_decoder_error_stats(const FLAC__St
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_get_verify(const FLAC__StreamEncoder *encoder);
 
-/** Get the <A HREF="../format.html#subset>Subset</A> flag.
+/** Get the <A HREF="../format.html#subset">Subset</A> flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
