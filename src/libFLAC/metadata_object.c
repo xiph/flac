@@ -136,7 +136,6 @@ static FLAC__bool copy_vcentry_(FLAC__StreamMetadata_VorbisComment_Entry *to, co
 	}
 	else {
 		FLAC__byte *x;
-		FLAC__ASSERT(from->length > 0);
 		if ((x = safe_malloc_add_2op_(from->length, /*+*/1)) == NULL)
 			return false;
 		memcpy(x, from->entry, from->length);
@@ -1283,7 +1282,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__Str
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool all, FLAC__bool copy)
 {
-	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
+	FLAC__ASSERT(entry.entry != NULL);
 
 	if (!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length))
 		return false;
@@ -1373,7 +1372,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(const FLAC__StreamMetadata_VorbisComment_Entry entry, char **field_name, char **field_value)
 {
-	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
+	FLAC__ASSERT(entry.entry != NULL);
 	FLAC__ASSERT(field_name != NULL);
 	FLAC__ASSERT(field_value != NULL);
 
@@ -1404,7 +1403,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, uint32_t field_name_length)
 {
-	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
+	FLAC__ASSERT(entry.entry != NULL);
 	{
 		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
 		return (eq != NULL && (uint32_t)(eq-entry.entry) == field_name_length && FLAC__STRNCASECMP(field_name, (const char *)entry.entry, field_name_length) == 0);
