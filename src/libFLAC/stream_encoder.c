@@ -3722,7 +3722,8 @@ FLAC__bool process_subframe_(
 								FLAC__lpc_window_data_wide(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize);
 							encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize, max_lpc_order_this_apodization+1, autoc);
 							if(encoder->protected_->apodizations[a].type == FLAC__APODIZATION_SUBDIVIDE_TUKEY){
-								for(uint32_t i = 0; i < max_lpc_order_this_apodization; i++)
+								uint32_t i;
+								for(i = 0; i < max_lpc_order_this_apodization; i++)
 									autoc_root[i] = autoc[i];
 								b++;
 							}else{
@@ -3750,7 +3751,8 @@ FLAC__bool process_subframe_(
 							}else{
 								/* on uneven c, evaluate the root window (over the whole block) minus the previous partial window
 								 * similar to tukey_punchout apodization but more efficient	*/
-								for(uint32_t i = 0; i < max_lpc_order_this_apodization; i++)
+								uint32_t i;
+								for(i = 0; i < max_lpc_order_this_apodization; i++)
 									autoc[i] = autoc_root[i] - autoc[i];
 							}
 							/* Next function sets a, b and c appropriate for next iteration */

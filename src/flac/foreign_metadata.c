@@ -489,7 +489,8 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 			/* The found application metadata block is not of the right type, check
 			 * whether it is of another recognized type so we can tell the user it
 			 * is decoding to the wrong file format */
-			for(uint32_t i = 0; i < FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS; i++)
+			uint32_t i;
+			for(i = 0; i < FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS; i++)
 				if(memcmp(id, FLAC__FOREIGN_METADATA_APPLICATION_ID[i], sizeof(id)) == 0) {
 					foreign_metadata_found = true;
 					foreign_metadata_found_type = i;
