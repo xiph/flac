@@ -236,8 +236,10 @@ os_is_windows=no
 case "$host" in
 	*mingw*)
 		os_is_windows=yes
+		old_LIBS=$LIBS
 		AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
 		AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
+		LIBS=$old_LIBS
 		;;
 esac
 
@@ -342,6 +344,20 @@ AC_ARG_ENABLE([stack-smash-protection],
     [AS_HELP_STRING([--disable-stack-smash-protection],[Disable GNU GCC stack smash protection])],,
     [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "x$mingw_has_stack_chk_fail" != "xno"],
         [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
+
+AC_ARG_ENABLE([fortify-source],
+    [AS_HELP_STRING([--disable-fortify-source],[Disable __FORTIFY_SOURCE buffer overflow protection])],,
+    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "x$mingw_has_memset_chk" != "xno"],
+        [enable_fortify_source=yes],[enable_fortify_source=no])])
+
+case "$host" in
+	*mingw*)
+		if test "$enable_fortify_source" = "yes" || test "$enable_stack_smash_protection" = "yes"; then
+			LIBS="$LIBS -lssp"
+			fi
+	;;
+esac
+
 
 AC_ARG_ENABLE(64-bit-words,
 	AS_HELP_STRING([--enable-64-bit-words],[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
@@ -490,7 +506,7 @@ if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; the
 	dnl enabled. We test for this situation in order to prevent polluting
 	dnl the console with messages of macro redefinitions.
 
-	if test "x$mingw_has_memset_chk" != "xno"
+	if test "$enable_fortify_source" = "yes"
 	then
 		AX_ADD_FORTIFY_SOURCE
 	fi
