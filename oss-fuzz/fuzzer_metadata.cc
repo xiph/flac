@@ -267,10 +267,14 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 							num_comments = vorbiscomment->get_num_comments();
 							if(num_comments > 0) {
 								entry = metadata_c->data.vorbis_comment.comments[min(data[i]>>4,num_comments-1)];
-								entry_cpp = vorbiscomment->get_comment(min(data[i]>>4,num_comments-1));
-								if(entry.entry == 0 || (entry_cpp.is_valid() && entry_cpp.get_field() == 0))
+								if(entry.entry == 0)
 									abort();
-								vorbiscomment->find_entry_from(0,"TEST");
+								if(vorbiscomment->get_comment(min(data[i]>>4,num_comments-1)).is_valid()) {
+									entry_cpp = vorbiscomment->get_comment(min(data[i]>>4,num_comments-1));
+									if(entry_cpp.is_valid() && entry_cpp.get_field() == 0)
+										abort();
+									vorbiscomment->find_entry_from(0,"TEST");
+								}
 							}
 
 						}
@@ -349,13 +353,15 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 							if(vorbiscomment == 0)
 								break;
 							num_comments = vorbiscomment->get_num_comments();
-							if(num_comments > 0) {
-								entry = vorbiscomment->get_comment(min(data[i]>>5,num_comments-1));
-								if(entry.is_valid()) {
-									vorbiscomment->replace_comment(entry,data[i] & 16);
-									vorbiscomment->set_comment(0,entry);
-									vorbiscomment->append_comment(entry);
-									vorbiscomment->insert_comment(0,entry);
+							if(num_comments > 0 && entry.is_valid()) {
+								if(vorbiscomment->get_comment(min(data[i]>>5,num_comments-1)).is_valid()) {
+									entry = vorbiscomment->get_comment(min(data[i]>>5,num_comments-1));
+									if(entry.is_valid()) {
+										vorbiscomment->replace_comment(entry,data[i] & 16);
+										vorbiscomment->set_comment(0,entry);
+										vorbiscomment->append_comment(entry);
+										vorbiscomment->insert_comment(0,entry);
+									}
 								}
 							}
 						}
