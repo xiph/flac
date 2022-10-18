@@ -161,8 +161,8 @@ if(HAVE_WERROR_FLAG)
 endif()
 
 add_compile_options(
-    $<$<BOOL:${MSVC}>:/wd4267>
-    $<$<BOOL:${MSVC}>:/wd4996>
+    $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${MSVC}>>:/wd4267>
+    $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${MSVC}>>:/wd4996>
     $<$<BOOL:${ENABLE_WERROR}>:-Werror>
     $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${HAVE_WEFFCXX_FLAG}>>:-Weffc++>
     $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_DECL_AFTER_STMT_FLAG}>>:-Wdeclaration-after-statement>)
