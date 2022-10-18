@@ -342,14 +342,16 @@ AC_ARG_ENABLE([stack-smash-protection],
         [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
 
 AC_ARG_ENABLE([fortify-source],
-    [AS_HELP_STRING([--disable-fortify-source],[Disable __FORTIFY_SOURCE buffer overflow protection])],,
+    [AS_HELP_STRING([--disable-fortify-source],[Disable _FORTIFY_SOURCE buffer overflow protection])],,
     [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes"],
         [enable_fortify_source=yes],[enable_fortify_source=no])])
 
 case "$host" in
 	*mingw*)
-		if test "$enable_fortify_source" = "yes" || test "$enable_stack_smash_protection" = "yes"; then
+		if test "$enable_fortify_source" = "yes"; then
 			AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
+		fi
+		if test "$enable_stack_smash_protection" = "yes"; then
 			AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
 		fi
 	;;
