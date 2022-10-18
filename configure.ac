@@ -80,8 +80,7 @@ AC_DEFINE_UNQUOTED(CPU_IS_LITTLE_ENDIAN, ${ac_cv_c_little_endian},
 AC_DEFINE_UNQUOTED(WORDS_BIGENDIAN, ${ac_cv_c_big_endian},
 					[Target processor is big endian.])
 
-AC_ARG_ENABLE(asm-optimizations, AS_HELP_STRING([--disable-asm-optimizations],[Don't use any assembly optimization routines]), asm_opt=no, asm_opt=yes)
-dnl ' Terminate the damn single quote
+AC_ARG_ENABLE(asm-optimizations, AS_HELP_STRING([--disable-asm-optimizations],[Do not use any CPU specific optimization routines]), asm_opt=no, asm_opt=yes)
 AM_CONDITIONAL(FLaC__NO_ASM, test "x$asm_opt" = xno)
 if test "x$asm_opt" = xno ; then
 AC_DEFINE(FLAC__NO_ASM)
@@ -106,7 +105,6 @@ case "$host_cpu" in
 				cpu_x86_64=true
 				AC_DEFINE(FLAC__CPU_X86_64)
 				AH_TEMPLATE(FLAC__CPU_X86_64, [define if building for x86_64])
-				asm_optimisation=$asm_opt
 				;;
 			*)
 				if test $ac_cv_sizeof_voidp = 4 ; then
@@ -121,7 +119,6 @@ case "$host_cpu" in
 					AC_DEFINE(FLAC__CPU_X86_64)
 					AH_TEMPLATE(FLAC__CPU_X86_64, [define if building for x86_64])
 				fi
-				asm_optimisation=$asm_opt
 				;;
 		esac
 		;;
@@ -129,7 +126,6 @@ case "$host_cpu" in
 		cpu_ia32=true
 		AC_DEFINE(FLAC__CPU_IA32)
 		AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
-		asm_optimisation=$asm_opt
 		;;
 	powerpc64|powerpc64le)
 		cpu_ppc64=true
@@ -138,25 +134,21 @@ case "$host_cpu" in
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
 		AC_DEFINE(FLAC__CPU_PPC64)
 		AH_TEMPLATE(FLAC__CPU_PPC64, [define if building for PowerPC64])
-		asm_optimisation=$asm_opt
 		;;
 	powerpc|powerpcle)
 		cpu_ppc=true
 		AC_DEFINE(FLAC__CPU_PPC)
 		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
-		asm_optimisation=$asm_opt
 		;;
 	arm64|aarch64)
 		cpu_arm64=true
 		AC_DEFINE(FLAC__CPU_ARM64)
 		AH_TEMPLATE(FLAC__CPU_ARM64, [define if building for ARM])
-		asm_optimisation=$asm_opt
 		;;
 	sparc)
 		cpu_sparc=true
 		AC_DEFINE(FLAC__CPU_SPARC)
 		AH_TEMPLATE(FLAC__CPU_SPARC, [define if building for SPARC])
-		asm_optimisation=$asm_opt
 		;;
 esac
 AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
@@ -166,16 +158,15 @@ AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
 AM_CONDITIONAL(FLAC__CPU_ARM64, test "x$cpu_arm64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
-if test "x$ac_cv_header_x86intrin_h" = xyes; then
-AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
+if test "x$ac_cv_header_x86intrin_h" = xyes -a "x$asm_opt" = xyes; then
+  AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
+  asm_optimisation=yes
 else
-AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
+  AC_DEFINE([FLAC__HAS_X86INTRIN], 0)
 fi
 
-neon=no
-if test "x$ac_cv_header_arm_neon_h" = xyes; then
-AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
-neon=yes
+if test "x$ac_cv_header_arm_neon_h" = xyes -a "x$asm_opt" = xyes; then
+  AC_DEFINE([FLAC__HAS_NEONINTRIN], 1, [Set to 1 if <arm_neon.h> is available.])
   AC_MSG_CHECKING([whether arm_neon.h has A64 functions])
   AC_COMPILE_IFELSE(
 	[AC_LANG_PROGRAM([[#include <arm_neon.h>]],
@@ -184,15 +175,16 @@ neon=yes
 	 has_a64neon=yes],
 	[AC_MSG_RESULT([no])])
   if test "x$has_a64neon" = xyes; then
-  AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 1, [Set to 1 if <arm_neon.h> has A64 instructions.])
+    AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 1, [Set to 1 if <arm_neon.h> has A64 instructions.])
+    asm_optimisation=yes
   else
-  AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 0)
+    AC_DEFINE([FLAC__HAS_A64NEONINTRIN], 0)
   fi
 else
-AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
+  AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
 fi
 
-if test x"$cpu_ppc64" = xtrue ; then
+if test x"$cpu_ppc64" = xtrue -a "x$asm_opt" = xyes ; then
 
 AC_C_ATTRIBUTE([target("cpu=power8")],
   [have_cpu_power8=yes],
@@ -265,16 +257,8 @@ fi
 
 AM_CONDITIONAL([DEBUG], [test "x${ax_enable_debug}" = "xyes" || test "x${ax_enable_debug}" = "xinfo"])
 
-AC_ARG_ENABLE(sse,
-AS_HELP_STRING([--disable-sse],[Disable passing of -msse2 to the compiler]),
-[case "${enableval}" in
-	yes) sse_os=yes ;;
-	no)  sse_os=no ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-sse) ;;
-esac],[sse_os=yes])
-
 AC_ARG_ENABLE(altivec,
-AS_HELP_STRING([--disable-altivec],[Disable Altivec optimizations]),
+AS_HELP_STRING([--disable-altivec],[Disable use of Altivec instructions]),
 [case "${enableval}" in
 	yes) use_altivec=true ;;
 	no)  use_altivec=false ;;
@@ -297,10 +281,11 @@ AM_CONDITIONAL(FLaC__USE_VSX, test "x$use_vsx" = xtrue)
 if test "x$use_vsx$has_vec_doubleh" = xtruetrue ; then
 AC_DEFINE(FLAC__USE_VSX)
 AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
+asm_optimisation=yes
 fi
 
 AC_ARG_ENABLE(avx,
-AS_HELP_STRING([--disable-avx],[Disable AVX, AVX2 optimizations]),
+AS_HELP_STRING([--disable-avx],[Disable AVX, AVX2 optimizations. There is runtime detection of CPU features, so disabling is only necessary when a compiler does not know about them]),
 [case "${enableval}" in
 	yes) use_avx=true ;;
 	no)  use_avx=false ;;
@@ -528,10 +513,6 @@ if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; the
 		XIPH_ADD_CFLAGS([-fno-inline-small-functions])
 		fi
 
-	if test "x$asm_optimisation$sse_os" = "xyesyes" ; then
-		XIPH_ADD_CFLAGS([-msse2])
-		fi
-
 	fi
 
 case "$host_os" in
@@ -674,8 +655,6 @@ if test x$ac_cv_c_compiler_gnu = xyes ; then
 	echo "    GCC version : ............................. ${GCC_VERSION}"
 fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
-	echo "    SSE optimizations : ....................... ${sse_os}"
-	echo "    Neon optimizations : ...................... ${neon}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
