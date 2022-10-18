@@ -34,6 +34,10 @@ lib_LTLIBRARIES = libFLAC.la
 noinst_LTLIBRARIES = libFLAC-static.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
+else
+if ASSOC_MATH_AVAILABLE
+ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math
+endif
 endif
 
 # FIXME: The following logic should be part of configure, not of Makefile.am
@@ -49,9 +53,6 @@ endif
 endif
 endif
 
-if ASSOC_MATH_AVAILABLE
-ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math
-endif
 
 AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
 

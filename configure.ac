@@ -27,12 +27,6 @@ AC_CONFIG_MACRO_DIR([m4])
 AM_INIT_AUTOMAKE([foreign 1.10 -Wall tar-pax no-dist-gzip dist-xz subdir-objects])
 m4_ifdef([AM_SILENT_RULES], [AM_SILENT_RULES([yes])])
 
-AC_MSG_CHECKING([whether configure should try to set CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS])
-AS_IF([test "x${CFLAGS+set}" = "xset" || test "x${CXXFLAGS+set}" = "xset" || test "x${CPPFLAGS+set}" = "xset" || test "x${LDFLAGS+set}" = "xset"],
-	[enable_flags_setting=no],
-	[enable_flags_setting=yes]
-)
-AC_MSG_RESULT([${enable_flags_setting}])
 AX_CHECK_ENABLE_DEBUG
 user_cflags=$CFLAGS
 
@@ -435,17 +429,17 @@ AC_SUBST(OGG_PACKAGE)
 
 dnl Build programs?
 AC_ARG_ENABLE([programs],
-	AS_HELP_STRING([--disable-programs], [Don't build and install flac and metaflac]))
+	AS_HELP_STRING([--disable-programs], [Do not build and install flac and metaflac]))
 AM_CONDITIONAL(FLaC__WITH_PROGRAMS, [test "x$enable_programs" != "xno"])
 
 dnl Build examples?
 AC_ARG_ENABLE([examples],
-	AS_HELP_STRING([--disable-examples], [Don't build and install examples]))
+	AS_HELP_STRING([--disable-examples], [Do not build and install examples]))
 AM_CONDITIONAL([EXAMPLES], [test "x$enable_examples" != "xno"])
 
 dnl Ask git which version FLAC is
 AC_ARG_ENABLE([version-from-git],
-	AS_HELP_STRING([--disable-version-from-git], [Don't use git tag, commit hash and commit date for version number]),
+	AS_HELP_STRING([--disable-version-from-git], [Do not use git tag, commit hash and commit date for version number]),
        [ enable_version_from_git=$enableval ], [ enable_version_from_git=yes ])
 
 
@@ -471,11 +465,10 @@ AC_CHECK_LIB(rt, clock_gettime,
         AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime]))
 AC_SUBST(LIB_CLOCK_GETTIME)
 
-dnl If debugging is disabled AND no CFLAGS/CXXFLAGS/CPPFLAGS/LDFLAGS
-dnl are provided, we can set defaults to our liking
-AS_IF([test "x${ax_enable_debug}" = "xno" && test "x${enable_flags_setting}" = "xyes"], [
-	CFLAGS="-O3 -funroll-loops"
-	CXXFLAGS="-O3"
+dnl Prepend defaults to CFLAGS
+AS_IF([test "x${ax_enable_debug}" = "xno"], [
+	CFLAGS="-O3 -funroll-loops $CFLAGS"
+	CXXFLAGS="-O3 $CXXFLAGS"
 ])
 
 XIPH_GCC_VERSION dnl Sets a non-zero GCC_XXX_VERSION for gcc, not clang. checks below rely on that..
