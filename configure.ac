@@ -230,8 +230,6 @@ os_is_windows=no
 case "$host" in
 	*mingw*)
 		os_is_windows=yes
-		AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
-		AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
 		;;
 esac
 
@@ -334,8 +332,25 @@ AC_ARG_ENABLE(werror,
 
 AC_ARG_ENABLE([stack-smash-protection],
     [AS_HELP_STRING([--disable-stack-smash-protection],[Disable GNU GCC stack smash protection])],,
-    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes" && test "x$mingw_has_stack_chk_fail" != "xno"],
+    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes"],
         [enable_stack_smash_protection=yes],[enable_stack_smash_protection=no])])
+
+AC_ARG_ENABLE([fortify-source],
+    [AS_HELP_STRING([--disable-fortify-source],[Disable _FORTIFY_SOURCE buffer overflow protection])],,
+    [AS_IF([test "$ac_cv_c_compiler_gnu" = "yes"],
+        [enable_fortify_source=yes],[enable_fortify_source=no])])
+
+case "$host" in
+	*mingw*)
+		if test "$enable_fortify_source" = "yes"; then
+			AC_SEARCH_LIBS(__memset_chk, ssp, , mingw_has_memset_chk=no)
+		fi
+		if test "$enable_stack_smash_protection" = "yes"; then
+			AC_SEARCH_LIBS(__stack_chk_fail, ssp, , mingw_has_stack_chk_fail=no)
+		fi
+	;;
+esac
+
 
 AC_ARG_ENABLE(64-bit-words,
 	AS_HELP_STRING([--enable-64-bit-words],[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
@@ -483,7 +498,7 @@ if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; the
 	dnl enabled. We test for this situation in order to prevent polluting
 	dnl the console with messages of macro redefinitions.
 
-	if test "x$mingw_has_memset_chk" != "xno"
+	if test "$enable_fortify_source" = "yes" && test "x$mingw_has_memset_chk" != "xno"
 	then
 		AX_ADD_FORTIFY_SOURCE
 	fi
@@ -541,10 +556,12 @@ if test x$enable_werror = "xyes" ; then
 	AC_LANG_POP([C++])
 	fi
 
-if test x$enable_stack_smash_protection = "xyes" ; then
+if test x$enable_stack_smash_protection = "xyes" && test "x$mingw_has_stack_chk_fail" != "xno" ; then
 	XIPH_GCC_STACK_PROTECTOR
 	XIPH_GXX_STACK_PROTECTOR
-	fi
+else
+	enable_stack_smash_protection=no
+fi
 
 AH_VERBATIM([FLAC_API_EXPORTS],
 [/* libtool defines DLL_EXPORT for windows dll builds,
