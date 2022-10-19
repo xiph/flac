@@ -42,16 +42,6 @@ if(NOT WITH_ASM)
     add_definitions(-DFLAC__NO_ASM)
 endif()
 
-if(FLAC__CPU_IA32)
-    option(WITH_SSE "Enable SSE2 optimizations (WITHOUT runtime detection, resulting binary requires SSE2)" ON)
-    check_c_compiler_flag(-msse2 HAVE_MSSE2_FLAG)
-    if(WITH_SSE)
-        add_compile_options(
-            $<$<BOOL:${HAVE_MSSE2_FLAG}>:-msse2>
-            $<$<BOOL:${MSVC}>:/arch:SSE2>)
-    endif()
-endif()
-
 include_directories("include")
 
 add_library(FLAC
