@@ -19,7 +19,7 @@ endif()
 
 if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
     set(FLAC__ALIGN_MALLOC_DATA 1)
-    option(WITH_AVX "Enable AVX, AVX2 optimizations (with runtime detection, resulting binary does not require AVX2)" ON)
+    option(WITH_AVX "Enable AVX, AVX2 optimizations (with runtime detection, resulting binary does not require AVX2, so only necessary when a compiler doesn't know about AVX)" ON)
     if(WITH_AVX AND MSVC)
         set_source_files_properties(lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
     endif()
@@ -40,16 +40,6 @@ endif()
 
 if(NOT WITH_ASM)
     add_definitions(-DFLAC__NO_ASM)
-endif()
-
-if(FLAC__CPU_IA32)
-    option(WITH_SSE "Enable SSE2 optimizations (WITHOUT runtime detection, resulting binary requires SSE2)" ON)
-    check_c_compiler_flag(-msse2 HAVE_MSSE2_FLAG)
-    if(WITH_SSE)
-        add_compile_options(
-            $<$<BOOL:${HAVE_MSSE2_FLAG}>:-msse2>
-            $<$<BOOL:${MSVC}>:/arch:SSE2>)
-    endif()
 endif()
 
 include_directories("include")
