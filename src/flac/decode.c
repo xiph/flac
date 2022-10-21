@@ -25,6 +25,7 @@
 #include <math.h> /* for floor() */
 #include <stdio.h> /* for FILE etc. */
 #include <string.h> /* for strcmp(), strerror() */
+#include <time.h> /* for clock() */
 #include "FLAC/all.h"
 #include "share/grabbag.h"
 #include "share/replaygain_synthesis.h"
@@ -91,6 +92,8 @@ typedef struct {
 
 	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 	FLAC__off_t fm_offset1, fm_offset2, fm_offset3;
+
+	clock_t old_clock_t;
 } DecoderSession;
 
 
@@ -246,6 +249,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->fout = 0; /* initialized with an open file later if necessary */
 
 	d->foreign_metadata = foreign_metadata;
+
+	d->old_clock_t = 0;
 
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
 
@@ -1165,8 +1170,16 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->samples_processed += wide_samples;
 		decoder_session->frame_counter++;
 
+#if 0 /* in case time.h with clock() isn't available for some reason */
 		if(!(decoder_session->frame_counter & 0x1ff))
 			print_stats(decoder_session);
+#else
+		if((clock() - decoder_session->old_clock_t) > (CLOCKS_PER_SEC/4)) {
+			print_stats(decoder_session);
+			decoder_session->old_clock_t = clock();
+		}
+#endif
+
 
 		if(decoder_session->analysis_mode) {
 			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->decode_position-frame_bytes, frame_bytes, decoder_session->aopts, fout);
