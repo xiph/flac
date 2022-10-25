@@ -27,6 +27,7 @@
 #include <stdio.h> /* for FILE etc. */
 #include <stdlib.h> /* for malloc */
 #include <string.h> /* for strcmp(), strerror() */
+#include <time.h> /* for clock() */
 #include <sys/stat.h>
 #include "FLAC/all.h"
 #include "share/alloc.h"
@@ -89,8 +90,12 @@ typedef struct {
 	FLAC__uint64 unencoded_size; /* an estimate of the input size, only used in the progress indicator */
 	FLAC__uint64 bytes_written;
 	FLAC__uint64 samples_written;
+#if 0 /* in case time.h with clock() isn't available for some reason */
 	uint32_t stats_frames_interval;
 	uint32_t old_frames_written;
+#else
+	clock_t old_clock_t;
+#endif
 
 	SampleInfo info;
 
@@ -1553,8 +1558,12 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 	e->unencoded_size = 0;
 	e->bytes_written = 0;
 	e->samples_written = 0;
+#if 0 /* in case time.h with clock() isn't available for some reason */
 	e->stats_frames_interval = 0;
 	e->old_frames_written = 0;
+#else
+	e->old_clock_t = 0;
+#endif
 
 	memset(&e->info, 0, sizeof(e->info));
 
@@ -2193,10 +2202,12 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	else
 		e->outputfile_opened = true;
 
+#if 0 /* in case time.h with clock() isn't available for some reason */
 	e->stats_frames_interval =
 		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) && FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x1f :
 		(FLAC__stream_encoder_get_do_exhaustive_model_search(e->encoder) || FLAC__stream_encoder_get_do_qlp_coeff_prec_search(e->encoder))? 0x3f :
 		0xff;
+#endif
 
 	static_metadata_clear(&static_metadata);
 
@@ -2515,7 +2526,7 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 
 	const FLAC__uint64 uesize = e->unencoded_size;
 
-	(void)encoder, (void)total_frames_estimate;
+	(void)encoder, (void)total_frames_estimate, (void) frames_written;
 
 	e->bytes_written = bytes_written;
 	e->samples_written = samples_written;
@@ -2523,10 +2534,18 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 	e->progress = e->total_samples_to_encode ? (double)samples_written / (double)e->total_samples_to_encode : 0;
 	e->compression_ratio = (e->progress && uesize) ? (double)e->bytes_written / ((double)uesize * min(1.0, e->progress)) : 0;
 
+#if 0 /* in case time.h with clock() isn't available for some reason */
 	if(e->total_samples_to_encode > 0 && frames_written - e->old_frames_written > e->stats_frames_interval) {
 		print_stats(e);
 		e->old_frames_written = frames_written;
 	}
+#else
+	if(e->total_samples_to_encode > 0 && (clock() - e->old_clock_t) > (CLOCKS_PER_SEC/4)) {
+		print_stats(e);
+		e->old_clock_t = clock();
+	}
+
+#endif
 }
 
 FLAC__StreamDecoderReadStatus flac_decoder_read_callback(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data)

@@ -23,5 +23,4 @@ EXTRA_DIST = \
 	endian.m4 \
 	gcc_version.m4 \
 	ogg.m4 \
-	stack_protect.m4 \
-	xmms.m4
+	stack_protect.m4

@@ -130,30 +130,47 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 		autoc[lag] = d;
 	}
 #endif
+	if (data_len < FLAC__MAX_LPC_ORDER || lag > 16) {
+		/*
+		 * this version tends to run faster because of better data locality
+		 * ('data_len' is usually much larger than 'lag')
+		 */
+		double d;
+		uint32_t sample, coeff;
+		const uint32_t limit = data_len - lag;
 
-	/*
-	 * this version tends to run faster because of better data locality
-	 * ('data_len' is usually much larger than 'lag')
-	 */
-	double d;
-	uint32_t sample, coeff;
-	const uint32_t limit = data_len - lag;
+		FLAC__ASSERT(lag > 0);
+		FLAC__ASSERT(lag <= data_len);
 
-	FLAC__ASSERT(lag > 0);
-	FLAC__ASSERT(lag <= data_len);
-
-	for(coeff = 0; coeff < lag; coeff++)
-		autoc[coeff] = 0.0;
-	for(sample = 0; sample <= limit; sample++) {
-		d = data[sample];
 		for(coeff = 0; coeff < lag; coeff++)
-			autoc[coeff] += d * data[sample+coeff];
+			autoc[coeff] = 0.0;
+		for(sample = 0; sample <= limit; sample++) {
+			d = data[sample];
+			for(coeff = 0; coeff < lag; coeff++)
+				autoc[coeff] += d * data[sample+coeff];
+		}
+		for(; sample < data_len; sample++) {
+			d = data[sample];
+			for(coeff = 0; coeff < data_len - sample; coeff++)
+				autoc[coeff] += d * data[sample+coeff];
+		}
 	}
-	for(; sample < data_len; sample++) {
-		d = data[sample];
-		for(coeff = 0; coeff < data_len - sample; coeff++)
-			autoc[coeff] += d * data[sample+coeff];
+	else if(lag <= 8) {
+		#undef MAX_LAG
+		#define MAX_LAG 8
+		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
 	}
+	else if(lag <= 12) {
+		#undef MAX_LAG
+		#define MAX_LAG 12
+		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+	}
+	else if(lag <= 16) {
+		#undef MAX_LAG
+		#define MAX_LAG 16
+		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
+	}
+
 }
 
 void FLAC__lpc_compute_lp_coefficients(const double autoc[], uint32_t *max_order, FLAC__real lp_coeff[][FLAC__MAX_LPC_ORDER], double error[])
@@ -929,7 +946,8 @@ uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const 
 	 * predictor is known however, so taking the log2 of the sum of the absolute values
 	 * of all coefficients is a more accurate representation of the predictor */
 	FLAC__int32 abs_sum_of_qlp_coeff = 0;
-	for(uint32_t i = 0; i < order; i++)
+	uint32_t i;
+	for(i = 0; i < order; i++)
 		abs_sum_of_qlp_coeff += abs(qlp_coeff[i]);
 	if(abs_sum_of_qlp_coeff == 0)
 		abs_sum_of_qlp_coeff = 1;

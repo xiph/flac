@@ -69,9 +69,6 @@ uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[
 uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_ssse3(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1]);
 #   endif
 #  endif
-#  if defined FLAC__CPU_IA32 && defined FLAC__HAS_NASM
-uint32_t FLAC__fixed_compute_best_predictor_asm_ia32_mmx_cmov(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-#  endif
 # endif
 #else
 uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);

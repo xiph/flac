@@ -25,6 +25,7 @@
 #include <math.h> /* for floor() */
 #include <stdio.h> /* for FILE etc. */
 #include <string.h> /* for strcmp(), strerror() */
+#include <time.h> /* for clock() */
 #include "FLAC/all.h"
 #include "share/grabbag.h"
 #include "share/replaygain_synthesis.h"
@@ -91,6 +92,8 @@ typedef struct {
 
 	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 	FLAC__off_t fm_offset1, fm_offset2, fm_offset3;
+
+	clock_t old_clock_t;
 } DecoderSession;
 
 
@@ -247,6 +250,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->foreign_metadata = foreign_metadata;
 
+	d->old_clock_t = 0;
+
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
 
 	if(!d->test_only) {
@@ -334,11 +339,12 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 	if (decoder_session->replaygain.spec.apply || !decoder_session->channel_map_none)
 		FLAC__stream_decoder_set_metadata_respond(decoder_session->decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
 
-	if(!decoder_session->analysis_mode && !decoder_session->test_only && decoder_session->foreign_metadata == NULL)
+	if(!decoder_session->analysis_mode && !decoder_session->test_only && decoder_session->foreign_metadata == NULL) {
 		/* Warn user if foreign metadata is found */
-		for(uint32_t i = 0; i < FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS; i++)
+		uint32_t i;
+		for(i = 0; i < FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS; i++)
 			FLAC__stream_decoder_set_metadata_respond_application(decoder_session->decoder, (FLAC__byte *)FLAC__FOREIGN_METADATA_APPLICATION_ID[i]);
-
+	}
 
 #if FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
@@ -1164,8 +1170,16 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->samples_processed += wide_samples;
 		decoder_session->frame_counter++;
 
+#if 0 /* in case time.h with clock() isn't available for some reason */
 		if(!(decoder_session->frame_counter & 0x1ff))
 			print_stats(decoder_session);
+#else
+		if((clock() - decoder_session->old_clock_t) > (CLOCKS_PER_SEC/4)) {
+			print_stats(decoder_session);
+			decoder_session->old_clock_t = clock();
+		}
+#endif
+
 
 		if(decoder_session->analysis_mode) {
 			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->decode_position-frame_bytes, frame_bytes, decoder_session->aopts, fout);

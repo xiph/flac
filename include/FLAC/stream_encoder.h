@@ -129,8 +129,8 @@ extern "C" {
  * Unlike the decoders, the stream encoder has many options that can
  * affect the speed and compression ratio.  When setting these parameters
  * you should have some basic knowledge of the format (see the
- * <A HREF="../documentation_format_overview.html">user-level documentation</A>
- * or the <A HREF="../format.html">formal description</A>).  The
+ * <A HREF="https://xiph.org/flac/documentation_format_overview.html">user-level documentation</A>
+ * or the <A HREF="https://xiph.org/flac/format.html">formal description</A>).  The
  * FLAC__stream_encoder_set_*() functions themselves do not validate the
  * values as many are interdependent.  The FLAC__stream_encoder_init_*()
  * functions will do this, so make sure to pay attention to the state
@@ -330,7 +330,7 @@ typedef enum {
 	/**< The specified block size is less than the maximum LPC order. */
 
 	FLAC__STREAM_ENCODER_INIT_STATUS_NOT_STREAMABLE,
-	/**< The encoder is bound to the <A HREF="../format.html#subset">Subset</A> but other settings violate it. */
+	/**< The encoder is bound to the <A HREF="https://xiph.org/flac/format.html#subset">Subset</A> but other settings violate it. */
 
 	FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_METADATA,
 	/**< The metadata input to the encoder is invalid, in one of the following ways:
@@ -742,7 +742,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_ogg_serial_number(FLAC__StreamEncod
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_verify(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
-/** Set the <A HREF="../format.html#subset">Subset</A> flag.  If \c true,
+/** Set the <A HREF="https://xiph.org/flac/format.html#subset">Subset</A> flag.  If \c true,
  *  the encoder will comply with the Subset and will check the
  *  settings during FLAC__stream_encoder_init_*() to see if all settings
  *  comply.  If \c false, the settings may take advantage of the full
@@ -1295,7 +1295,7 @@ FLAC_API void FLAC__stream_encoder_get_verify_decoder_error_stats(const FLAC__St
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_get_verify(const FLAC__StreamEncoder *encoder);
 
-/** Get the <A HREF="../format.html#subset>Subset</A> flag.
+/** Get the <A HREF="https://xiph.org/flac/format.html#subset">Subset</A> flag.
  *
  * \param  encoder  An encoder instance to query.
  * \assert
@@ -1781,7 +1781,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder);
  *
  *  For applications where channel order is important, channels must
  *  follow the order as described in the
- *  <A HREF="../format.html#frame_header">frame header</A>.
+ *  <A HREF="https://xiph.org/flac/format.html#frame_header">frame header</A>.
  *
  * \param  encoder  An initialized encoder instance in the OK state.
  * \param  buffer   An array of pointers to each channel's signal.
@@ -1810,7 +1810,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
  *
  *  For applications where channel order is important, channels must
  *  follow the order as described in the
- *  <A HREF="../format.html#frame_header">frame header</A>.
+ *  <A HREF="https://xiph.org/flac/format.html#frame_header">frame header</A>.
  *
  * \param  encoder  An initialized encoder instance in the OK state.
  * \param  buffer   An array of channel-interleaved data (see above).

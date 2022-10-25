@@ -148,8 +148,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 				encoder_valid &= FLAC__stream_encoder_set_max_residual_partition_order(encoder, max_residual_partition_order);
 		}
 		else {
-			if(data_bools[4])
-				encoder_valid &= FLAC__stream_encoder_set_streamable_subset(encoder, true);
+			if(!data_bools[4])
+				encoder_valid &= FLAC__stream_encoder_set_streamable_subset(encoder, false);
 			else if(data_bools[6])
 				encoder_valid &= FLAC__stream_encoder_set_do_escape_coding(encoder, true);
 			else if(data_bools[7])

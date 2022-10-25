@@ -56,7 +56,7 @@ if FLaC__HAS_PREBUILT_DOXYGEN
 # handle 'api/' specially:
 install-data-local:
 	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
-	(cd $(builddir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+	(cd $(srcdir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
 uninstall-local:
 	rm -rf $(DESTDIR)$(docdir)/api
 endif

@@ -34,6 +34,10 @@ lib_LTLIBRARIES = libFLAC.la
 noinst_LTLIBRARIES = libFLAC-static.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
+else
+if ASSOC_MATH_AVAILABLE
+ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math
+endif
 endif
 
 # FIXME: The following logic should be part of configure, not of Makefile.am
@@ -49,21 +53,12 @@ endif
 endif
 endif
 
-AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) @OGG_CFLAGS@
 
-if FLaC__NO_ASM
-else
-if FLaC__CPU_IA32
-if FLaC__HAS_NASM
-ARCH_SUBDIRS = ia32
-LOCAL_EXTRA_LIBADD = ia32/libFLAC-asm.la
-endif
-endif
-endif
+AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
 
-libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
+libFLAC_la_LIBADD = @OGG_LIBS@ -lm
 
-SUBDIRS = $(ARCH_SUBDIRS) include .
+SUBDIRS = include .
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libFLAC.m4
@@ -93,7 +88,7 @@ extra_ogg_sources = \
 endif
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 12:0:0 $(LOCAL_EXTRA_LDFLAGS)
+libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 12:0:0
 
 libFLAC_sources = \
 	bitmath.c \
@@ -130,5 +125,4 @@ libFLAC_sources = \
 libFLAC_la_SOURCES = $(libFLAC_sources)
 
 # needed for test_libFLAC
-libFLAC_static_la_LIBADD = $(LOCAL_EXTRA_LIBADD)
 libFLAC_static_la_SOURCES = $(libFLAC_sources)
