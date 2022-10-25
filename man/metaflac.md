@@ -179,9 +179,10 @@ modification time is set to the current time):
 	requires two passes, it is always executed last, after all other
 	operations have been completed and written to disk. All FLAC files
 	specified must have the same resolution, sample rate, and number of
-	channels. The sample rate must be one of 8, 11.025, 12, 16, 18.9,
-	22.05, 24, 28, 32, 37.8, 44.1, 48, 56, 64, 88.2, 96, 112, 128, 144,
-	176.4, or 192kHz.
+	channels. Only mono and stereo files are allowed, and the sample
+	rate must be 8, 11.025, 12, 16, 18.9, 22.05, 24, 28, 32, 36, 37.8,
+	44.1, 48, 56, 64, 72, 75.6, 88.2, 96, 112, 128, 144, 151.2, 176.4,
+	192, 224, 256, 288, 302.4, 352.8, 384, 448, 512, 576, or 604.8 kHz.
 
 **\--scan-replay-gain**  
 :	Like \--add-replay-gain, but only analyzes the files rather than

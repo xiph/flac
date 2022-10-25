@@ -360,11 +360,13 @@ the HTML documentation.
 	and an album gain/peak will be computed for all files. All input
 	files must have the same resolution, sample rate, and number of
 	channels. Only mono and stereo files are allowed, and the sample
-	rate must be one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1, or 48
-	kHz. Also note that this option may leave a few extra bytes in a
-	PADDING block as the exact size of the tags is not known until all
-	files are processed. Note that this option cannot be used when
-	encoding to standard output (stdout).
+	rate must be 8, 11.025, 12, 16, 18.9, 22.05, 24, 28, 32, 36, 37.8,
+	44.1, 48, 56, 64, 72, 75.6, 88.2, 96, 112, 128, 144, 151.2, 176.4,
+	192, 224, 256, 288, 302.4, 352.8, 384, 448, 512, 576, or 604.8 kHz.
+	Also note that this option may leave a few extra bytes in a PADDING
+	block as the exact size of the tags is not known until all files
+	are processed. Note that this option cannot be used when encoding
+	to standard output (stdout).
 
 **\--cuesheet=***filename*  
 :	Import the given cuesheet file and store it in a CUESHEET metadata
