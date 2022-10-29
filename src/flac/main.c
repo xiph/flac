@@ -1814,6 +1814,12 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
+	if(!option_values.ignore_chunk_sizes && (input_format == FORMAT_WAVE || input_format == FORMAT_AIFF) && infilesize >= UINT32_MAX) {
+		conditional_fclose(encode_infile);
+		return usage_error("ERROR: this %s file is too large to be valid. Please consult the manual on\n"
+		                   "the --ignore-chunk-sizes option\n\n", (input_format == FORMAT_WAVE)?"WAVE":"AIFF");
+	}
+
 	if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
 		if(encode_infile == stdin || option_values.force_to_stdout) {
 			conditional_fclose(encode_infile);
