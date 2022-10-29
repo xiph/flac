@@ -203,7 +203,7 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 			eof_offset++;
 	}
 	while(!feof(f)) {
-		FLAC__uint32 size;
+		FLAC__off_t size;
 		if((offset = ftello(f)) < 0) {
 			if(error) *error = "ftello() error (003)";
 			return false;
