@@ -255,11 +255,11 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 			}
 			/* unpack the size again since we don't want the padding byte effect */
 			size = unpack32le_(buffer+4);
-			if(size < sizeof(buffer2)) {
+			if(size < (FLAC__off_t)sizeof(buffer2)) {
 				if(error) *error = "invalid RF64 file: \"ds64\" chunk size is < 28 (r03)";
 				return false;
 			}
-			if(size > sizeof(buffer2)) {
+			if(size > (FLAC__off_t)sizeof(buffer2)) {
 				if(error) *error = "RF64 file has \"ds64\" chunk with extra size table, which is not currently supported (r04)";
 				return false;
 			}
