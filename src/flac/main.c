@@ -143,6 +143,7 @@ static struct share__option long_options_[] = {
 	{ "force-aiff-format"         , share__no_argument, 0, 0 },
 	{ "force-rf64-format"         , share__no_argument, 0, 0 },
 	{ "force-wave64-format"       , share__no_argument, 0, 0 },
+	{ "force-legacy-wave-format"  , share__no_argument, 0, 0 },
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
 	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
@@ -242,6 +243,7 @@ static struct {
 	FLAC__bool force_aiff_format;
 	FLAC__bool force_rf64_format;
 	FLAC__bool force_wave64_format;
+	FLAC__bool force_legacy_wave_format;
 	FLAC__bool delete_input;
 	FLAC__bool preserve_modtime;
 	FLAC__bool keep_foreign_metadata;
@@ -571,6 +573,7 @@ FLAC__bool init_options(void)
 	option_values.force_aiff_format = false;
 	option_values.force_rf64_format = false;
 	option_values.force_wave64_format = false;
+	option_values.force_legacy_wave_format = false;
 	option_values.delete_input = false;
 	option_values.preserve_modtime = true;
 	option_values.keep_foreign_metadata = false;
@@ -774,6 +777,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "force-wave64-format")) {
 			option_values.force_wave64_format = true;
+		}
+		else if(0 == strcmp(long_option, "force-legacy-wave-format")) {
+			option_values.force_legacy_wave_format = true;
 		}
 		else if(0 == strcmp(long_option, "lax")) {
 			option_values.lax = true;
@@ -1317,6 +1323,7 @@ void show_help(void)
 	printf("      --force-aiff-format      Force decoding to AIFF format\n");
 	printf("      --force-rf64-format      Force decoding to RF64 format\n");
 	printf("      --force-wave64-format    Force decoding to Wave64 format\n");
+	printf("      --force-legacy-wave-format  Force decoding to legacy wave format\n");
 	printf("raw format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
@@ -1666,6 +1673,11 @@ void show_explain(void)
 	printf("                               set by -o) ends with .w64; this option\n");
 	printf("                               has no effect when encoding since input Wave64 is\n");
 	printf("                               auto-detected.\n");
+	printf("      --force-legacy-wave-format    Force the decoder to output to\n");
+	printf("                                    WAVE_FORMAT_PCM when WAVE_FORMAT_EXTENSIBLE\n");
+	printf("                                    would be appropriate. This is the case for\n");
+	printf("                                    audio with 24 or 32 bits per sample or more\n");
+	printf("                                    than 2 channels.\n");
 	printf("raw format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
@@ -2159,6 +2171,7 @@ int decode_file(const char *infilename)
 	decode_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	decode_options.relaxed_foreign_metadata_handling = option_values.keep_foreign_metadata_if_present;
 	decode_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
+	decode_options.force_legacy_wave_format = option_values.force_legacy_wave_format;
 #if FLAC__HAS_OGG
 	decode_options.is_ogg = treat_as_ogg;
 	decode_options.use_first_serial_number = !option_values.has_serial_number;
