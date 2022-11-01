@@ -67,6 +67,7 @@ struct share__option long_options_[] = {
 	{ "show-vendor-tag", 0, 0, 0 },
 	{ "show-tag", 1, 0, 0 },
 	{ "remove-all-tags", 0, 0, 0 },
+	{ "remove-all-tags-except", 1, 0, 0 },
 	{ "remove-tag", 1, 0, 0 },
 	{ "remove-first-tag", 1, 0, 0 },
 	{ "set-tag", 1, 0, 0 },
@@ -114,6 +115,7 @@ static FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest);
 static FLAC__bool parse_uint64(const char *src, FLAC__uint64 *dest);
 static FLAC__bool parse_string(const char *src, char **dest);
 static FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **name, const char **violation);
+static FLAC__bool parse_vorbis_comment_field_names(const char *field_ref, char **names, const char **violation);
 static FLAC__bool parse_add_seekpoint(const char *in, char **out, const char **violation);
 static FLAC__bool parse_add_padding(const char *in, unsigned *out);
 static FLAC__bool parse_block_number(const char *in, Argument_BlockNumber *out);
@@ -495,6 +497,16 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	}
 	else if(0 == strcmp(opt, "remove-all-tags")) {
 		(void) append_shorthand_operation(options, OP__REMOVE_VC_ALL);
+	}
+	else if(0 == strcmp(opt, "remove-all-tags-except")) {
+		const char *violation;
+		op = append_shorthand_operation(options, OP__REMOVE_VC_ALL_EXCEPT);
+		FLAC__ASSERT(0 != option_argument);
+		if(!parse_vorbis_comment_field_names(option_argument, &(op->argument.vc_field_name.value), &violation)) {
+			FLAC__ASSERT(0 != violation);
+			flac_fprintf(stderr, "ERROR (--%s): malformed vorbis comment field name \"%s\",\n       %s\n", opt, option_argument, violation);
+			ok = false;
+		}
 	}
 	else if(0 == strcmp(opt, "remove-tag")) {
 		const char *violation;
@@ -882,6 +894,29 @@ FLAC__bool parse_vorbis_comment_field_name(const char *field_ref, char **name, c
 	}
 
 	*name = s;
+
+	return true;
+}
+
+FLAC__bool parse_vorbis_comment_field_names(const char *field_ref, char **names, const char **violation)
+{
+	static const char * const violations[] = {
+		"field name contains invalid character"
+	};
+
+	char *q, *s;
+
+	s = local_strdup(field_ref);
+
+	for(q = s; *q; q++) {
+		if(*q < 0x20 || *q > 0x7d) {
+			free(s);
+			*violation = violations[0];
+			return false;
+		}
+	}
+
+	*names = s;
 
 	return true;
 }
