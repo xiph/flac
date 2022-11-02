@@ -271,6 +271,7 @@ void free_options(CommandLineOptions *options)
 			case OP__SHOW_VC_FIELD:
 			case OP__REMOVE_VC_FIELD:
 			case OP__REMOVE_VC_FIRSTFIELD:
+			case OP__REMOVE_VC_ALL_EXCEPT:
 				if(0 != op->argument.vc_field_name.value)
 					free(op->argument.vc_field_name.value);
 				break;
