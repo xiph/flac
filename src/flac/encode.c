@@ -170,9 +170,6 @@ static FLAC__bool read_uint64(FILE *f, FLAC__bool big_endian, FLAC__uint64 *val,
 static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn);
 static FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset);
 static uint32_t count_channel_mask_bits(FLAC__uint32 mask);
-#if 0
-static FLAC__uint32 limit_channel_mask(FLAC__uint32 mask, uint32_t channels);
-#endif
 
 static FLAC__bool get_sample_info_raw(EncoderSession *e, encode_options_t options)
 {
@@ -419,92 +416,11 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				/* channel mask */
 				if(!read_uint32(e->fin, /*big_endian=*/false, &channel_mask, e->inbasefilename))
 					return false;
-				/* for mono/stereo and unassigned channels, we fake the mask */
-				if(channel_mask == 0) {
-					if(channels == 1)
-						channel_mask = 0x0004;
-					else if(channels == 2)
-						channel_mask = 0x0003;
-				}
-				/* set channel mapping */
-				/* FLAC order follows SMPTE and WAVEFORMATEXTENSIBLE but with fewer channels, which are: */
-				/* front left, front right, front center, LFE, back left, back right, back center, side left, side right */
-				/* the default mapping is sufficient for 1-8 channels */
-#if 0
-				/* @@@ example for dolby/vorbis order, for reference later in case it becomes important */
-				if(
-					options.channel_map_none ||
-					channel_mask == 0x0001 || /* 1 channel: (mono) */
-					channel_mask == 0x0003 || /* 2 channels: front left, front right */
-					channel_mask == 0x0033 || /* 4 channels: front left, front right, back left, back right */
-					channel_mask == 0x0603    /* 4 channels: front left, front right, side left, side right */
-				) {
-					/* keep default channel order */
-				}
-				else if(
-					channel_mask == 0x0007 || /* 3 channels: front left, front right, front center */
-					channel_mask == 0x0037 || /* 5 channels: front left, front right, front center, back left, back right */
-					channel_mask == 0x0607    /* 5 channels: front left, front right, front center, side left, side right */
-				) {
-					/* to dolby order: front left, center, front right [, surround left, surround right ] */
-					channel_map[1] = 2;
-					channel_map[2] = 1;
-				}
-				else if(
-					channel_mask == 0x003f || /* 6 channels: front left, front right, front center, LFE, back left, back right */
-					channel_mask == 0x060f || /* 6 channels: front left, front right, front center, LFE, side left, side right */
-					channel_mask == 0x070f || /* 7 channels: front left, front right, front center, LFE, back center, side left, side right */
-					channel_mask == 0x063f    /* 8 channels: front left, front right, front center, LFE, back left, back right, side left, side right */
-				) {
-					/* to dolby order: front left, center, front right, surround left, surround right, LFE */
-					channel_map[1] = 2;
-					channel_map[2] = 1;
-					channel_map[3] = 5;
-					channel_map[4] = 3;
-					channel_map[5] = 4;
-				}
-#else
-				if(
-					options.channel_map_none ||
-					channel_mask == 0x0001 || /* 1 channel: front left */
-					channel_mask == 0x0002 || /* 1 channel: front right */
-					channel_mask == 0x0004 || /* 1 channel: mono or front center */
-					channel_mask == 0x0003 || /* 2 channels: front left, front right */
-					channel_mask == 0x0007 || /* 3 channels: front left, front right, front center */
-					channel_mask == 0x0033 || /* 4 channels: front left, front right, back left, back right */
-					channel_mask == 0x0603 || /* 4 channels: front left, front right, side left, side right */
-					channel_mask == 0x0037 || /* 5 channels: front left, front right, front center, back left, back right */
-					channel_mask == 0x0607 || /* 5 channels: front left, front right, front center, side left, side right */
-					channel_mask == 0x003f || /* 6 channels: front left, front right, front center, LFE, back left, back right */
-					channel_mask == 0x060f || /* 6 channels: front left, front right, front center, LFE, side left, side right */
-					channel_mask == 0x070f || /* 7 channels: front left, front right, front center, LFE, back center, side left, side right */
-					channel_mask == 0x063f    /* 8 channels: front left, front right, front center, LFE, back left, back right, side left, side right */
-				) {
-					/* keep default channel order */
-				}
-#endif
-				else {
-					flac__utils_printf(stderr, 1, "%s: ERROR: WAVEFORMATEXTENSIBLE chunk with unsupported channel mask=0x%04X\n\nUse --channel-map=none option to encode the input\n", e->inbasefilename, (uint32_t)channel_mask);
-					return false;
-				}
-				if(!options.channel_map_none) {
-					if(count_channel_mask_bits(channel_mask) < channels) {
-						flac__utils_printf(stderr, 1, "%s: ERROR: WAVEFORMATEXTENSIBLE chunk: channel mask 0x%04X has unassigned channels (#channels=%u)\n", e->inbasefilename, (uint32_t)channel_mask, channels);
+
+				if(count_channel_mask_bits(channel_mask) > channels) {
+					flac__utils_printf(stderr, 1, "%s: WARNING: WAVEFORMATEXTENSIBLE chunk: channel mask 0x%04X has extra bits for non-existant channels (#channels=%u)\n", e->inbasefilename, (uint32_t)channel_mask, channels);
+					if(e->treat_warnings_as_errors)
 						return false;
-					}
-#if 0
-					/* supporting this is too difficult with channel mapping; e.g. what if mask is 0x003f but #channels=4?
-					 * there would be holes in the order that would have to be filled in, or the mask would have to be
-					 * limited and the logic above rerun to see if it still fits into the FLAC mapping.
-					 */
-					else if(count_channel_mask_bits(channel_mask) > channels)
-						channel_mask = limit_channel_mask(channel_mask, channels);
-#else
-					else if(count_channel_mask_bits(channel_mask) > channels) {
-						flac__utils_printf(stderr, 1, "%s: ERROR: WAVEFORMATEXTENSIBLE chunk: channel mask 0x%04X has extra bits for non-existant channels (#channels=%u)\n", e->inbasefilename, (uint32_t)channel_mask, channels);
-						return false;
-					}
-#endif
 				}
 				/* first part of GUID */
 				if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
@@ -2941,20 +2857,3 @@ uint32_t count_channel_mask_bits(FLAC__uint32 mask)
 	}
 	return count;
 }
-
-#if 0
-FLAC__uint32 limit_channel_mask(FLAC__uint32 mask, uint32_t channels)
-{
-	FLAC__uint32 x = 0x80000000;
-	uint32_t count = count_channel_mask_bits(mask);
-	while(x && count > channels) {
-		if(mask & x) {
-			mask &= ~x;
-			count--;
-		}
-		x >>= 1;
-	}
-	FLAC__ASSERT(count_channel_mask_bits(mask) == channels);
-	return mask;
-}
-#endif
