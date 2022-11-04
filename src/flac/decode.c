@@ -328,6 +328,23 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 			}
 		}
 	}
+	else if(decoder_session->test_only && strcmp(infilename, "-") != 0) {
+		/* When testing, we can be a little more pedantic, as long
+		 * as we can seek properly */
+		FLAC__byte buffer[3];
+		FILE * f = flac_fopen(infilename, "rb");
+
+		if(fread(buffer, 1, 3, f) < 3) {
+			flac__utils_printf(stderr, 1, "%s: ERROR checking for ID3v2 tag\n", decoder_session->inbasefilename);
+			return false;
+		}
+		if(memcmp(buffer, "ID3", 3) == 0){
+			flac__utils_printf(stderr, 1, "%s: WARNING, ID3v2 tag found. This is non-standard and strongly discouraged\n", decoder_session->inbasefilename);
+			if(decoder_session->treat_warnings_as_errors) {
+				return false;
+			}
+		}
+	}
 
 	decoder_session->decoder = FLAC__stream_decoder_new();
 
