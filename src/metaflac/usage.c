@@ -216,8 +216,11 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      executed last, after all other operations have been\n");
 	fprintf(out, "                      completed and written to disk.  All FLAC files specified\n");
 	fprintf(out, "                      must have the same resolution, sample rate, and number\n");
-	fprintf(out, "                      of channels.  The sample rate must be one of 8, 11.025,\n");
-	fprintf(out, "                      12, 16, 22.05, 24, 32, 44.1, or 48 kHz.\n");
+	fprintf(out, "                      of channels.  Only mono and stereo files are allowed,\n");
+	fprintf(out, "                      and the sample rate must be 8, 11.025, 12, 16, 18.9,\n");
+	fprintf(out, "                      22.05, 24, 28, 32, 36, 37.8, 44.1, 48, 56, 64, 72, 75.6,\n");
+	fprintf(out, "                      88.2, 96, 112, 128, 144, 151.2, 176.4, 192, 224, 256,\n");
+	fprintf(out, "                      288, 302.4, 352.8, 384, 448, 512, 576, or 604.8 kHz.\n");
 	fprintf(out, "--scan-replay-gain    Like --add-replay-gain, but only analyzes the files\n");
 	fprintf(out, "                      rather than writing them to tags.\n");
 	fprintf(out, "--remove-replay-gain  Removes the ReplayGain tags.\n");

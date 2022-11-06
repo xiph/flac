@@ -1501,10 +1501,14 @@ void show_explain(void)
 	printf("                               for each file, and an album gain/peak will be\n");
 	printf("                               computed for all files.  All input files must\n");
 	printf("                               have the same resolution, sample rate, and\n");
-	printf("                               number of channels.  The sample rate must be\n");
-	printf("                               one of 8, 11.025, 12, 16, 22.05, 24, 32, 44.1,\n");
-	printf("                               or 48 kHz.  NOTE: this option may also leave a\n");
-	printf("                               few extra bytes in the PADDING block.\n");
+	printf("                               number of channels.  Only mono and stereo files\n");
+	printf("                               are allowed, and the sample rate must be 8,\n");
+	printf("                               11.025, 12, 16, 18.9, 22.05, 24, 28, 32, 36,\n");
+	printf("                               37.8, 44.1, 48, 56, 64, 72, 75.6, 88.2, 96, 112,\n");
+	printf("                               128, 144, 151.2, 176.4, 192, 224, 256, 288,\n");
+	printf("                               302.4, 352.8, 384, 448, 512, 576, or 604.8 kHz.\n");
+	printf("                               NOTE: this option may also leave a few extra\n");
+	printf("                               bytes in the PADDING block.\n");
 	printf("      --cuesheet=FILENAME      Import the given cuesheet file and store it in\n");
 	printf("                               a CUESHEET metadata block.  This option may only\n");
 	printf("                               be used when encoding a single file.  A\n");
