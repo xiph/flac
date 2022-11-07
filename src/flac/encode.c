@@ -1072,9 +1072,13 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 						FLAC__uint64 end_of_data_chunk = current_position + encoder_session.fmt.iff.data_bytes;
 						if(end_of_data_chunk < (FLAC__uint64)infilesize) {
 							flac__utils_printf(stderr, 1, "%s: WARNING: there is data trailing the audio data. Use --keep-foreign-metadata or --ignore-chunk-sizes to keep it\n", encoder_session.inbasefilename);
+							if(e->treat_warnings_as_errors)
+								return EncoderSession_finish_error(&encoder_session);
 						}
 						else if(end_of_data_chunk > (FLAC__uint64)infilesize) {
 							flac__utils_printf(stderr, 1, "%s: WARNING: the length of the data chunk overruns the end of the file. Please consult the manual on the --ignore-chunk-sizes option\n", encoder_session.inbasefilename);
+							if(e->treat_warnings_as_errors)
+								return EncoderSession_finish_error(&encoder_session);
 						}
 					}
 				}
