@@ -1708,13 +1708,18 @@ int EncoderSession_finish_error(EncoderSession *e)
 	if(e->total_samples_to_encode > 0)
 		flac__utils_printf(stderr, 2, "\n");
 
-	if(FLAC__stream_encoder_get_state(e->encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
+	if(FLAC__stream_encoder_get_state(e->encoder) == FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA) {
 		print_verify_error(e);
-	else if(e->outputfile_opened)
+		EncoderSession_destroy(e);
+	}
+	else if(e->outputfile_opened) {
 		/* only want to delete the file if we opened it; otherwise it could be an existing file and our overwrite failed */
+		/* Windows cannot unlink an open file, so close it first */
+		EncoderSession_destroy(e);
 		flac_unlink(e->outfilename);
-
-	EncoderSession_destroy(e);
+	}
+	else
+		EncoderSession_destroy(e);
 
 	return 1;
 }

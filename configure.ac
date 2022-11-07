@@ -465,15 +465,15 @@ AC_CHECK_LIB(rt, clock_gettime,
         AH_TEMPLATE(HAVE_CLOCK_GETTIME, [define if you have clock_gettime]))
 AC_SUBST(LIB_CLOCK_GETTIME)
 
-dnl Prepend defaults to CFLAGS
-AS_IF([test "x${ax_enable_debug}" = "xno"], [
-	CFLAGS="-O3 -funroll-loops $CFLAGS"
-	CXXFLAGS="-O3 $CXXFLAGS"
-])
-
 XIPH_GCC_VERSION dnl Sets a non-zero GCC_XXX_VERSION for gcc, not clang. checks below rely on that..
 
 if test x$ac_cv_c_compiler_gnu = xyes -o x$xiph_cv_c_compiler_clang = xyes ; then
+	dnl Prepend defaults to CFLAGS for GCC and Clang
+	AS_IF([test "x${ax_enable_debug}" = "xno"], [
+		CFLAGS="-O3 -funroll-loops $CFLAGS"
+		CXXFLAGS="-O3 $CXXFLAGS"
+	])
+
 	CFLAGS="$CFLAGS -Wall -Wextra -Wstrict-prototypes -Wmissing-prototypes -Waggregate-return -Wcast-align -Wnested-externs -Wshadow -Wundef -Wmissing-declarations -Winline " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Wconversion
 	CXXFLAGS="$CXXFLAGS -Wall -Wextra -Wcast-align -Wshadow -Wwrite-strings -Wctor-dtor-privacy -Wnon-virtual-dtor -Wreorder -Wsign-promo -Wundef " # -Wcast-qual -Wbad-function-cast -Wwrite-strings -Woverloaded-virtual -Wmissing-declarations
 
