@@ -1846,8 +1846,9 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 
 		if(infilesize != (FLAC__off_t)(-1) && infilesize > 8 && (infilesize - 8) != master_chunk_size) {
 			flac__utils_printf(stderr, 1, "WARNING: %s chunk size of file %s does not agree with filesize\n", (input_format == FORMAT_WAVE)?"RIFF":"FORM", infilename);
-			if(e->treat_warnings_as_errors)
+			if(option_values.treat_warnings_as_errors)
 				return 1;
+		}
 	}
 
 	if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
