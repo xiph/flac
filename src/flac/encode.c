@@ -946,7 +946,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 	EncoderSession encoder_session;
 	size_t channel_map[FLAC__MAX_CHANNELS];
 	int info_align_carry = -1, info_align_zero = -1;
-	size_t padding_byte = 0;
 
 	if(!EncoderSession_construct(&encoder_session, options, infilesize, infile, infilename, outfilename, lookahead, lookahead_length))
 		return 1;
@@ -1064,7 +1063,21 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			case FORMAT_AIFF_C:
 				/* truncation in the division removes any padding byte that was counted in encoder_session.fmt.iff.data_bytes */
 				total_samples_in_input = encoder_session.fmt.iff.data_bytes / encoder_session.info.bytes_per_wide_sample + *options.align_reservoir_samples;
-				padding_byte = encoder_session.fmt.iff.data_bytes % 2;
+
+				/* check for chunks trailing the audio data */
+				if(!options.ignore_chunk_sizes && !options.format_options.iff.foreign_metadata
+				   && infilesize != (FLAC__off_t)(-1)) {
+					FLAC__off_t current_position = ftello(encoder_session.fin);
+					if(current_position > 0) {
+						FLAC__uint64 end_of_data_chunk = current_position + encoder_session.fmt.iff.data_bytes;
+						if(end_of_data_chunk < (FLAC__uint64)infilesize) {
+							flac__utils_printf(stderr, 1, "%s: WARNING: there is data trailing the audio data. Use --keep-foreign-metadata or --ignore-chunk-sizes to keep it\n", encoder_session.inbasefilename);
+						}
+						else if(end_of_data_chunk > (FLAC__uint64)infilesize) {
+							flac__utils_printf(stderr, 1, "%s: WARNING: the length of the data chunk overruns the end of the file. Please consult the manual on the --ignore-chunk-sizes option\n", encoder_session.inbasefilename);
+						}
+					}
+				}
 				break;
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:
@@ -1423,13 +1436,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 							encoder_session.fmt.iff.data_bytes -= bytes_read;
 						}
 					}
-				}
-				/* Now check whether we are at EOF, this has only been checked with WAV input */
-				/* We need to read two as chunks are padded to even sizes */
-				if(options.format == FORMAT_WAVE && !options.sector_align && !options.format_options.iff.foreign_metadata && until == 0 && fread(ubuffer.u8, sizeof(uint8_t), 1+padding_byte, infile) > padding_byte) {
-					flac__utils_printf(stderr, 1, "%s: WARNING: there is data trailing the data chunk. Use --keep-foreign-metadata or --ignore-chunk-sizes to keep it\n", encoder_session.inbasefilename);
-					if(encoder_session.treat_warnings_as_errors)
-						return EncoderSession_finish_error(&encoder_session);
 				}
 				break;
 			case FORMAT_FLAC:
