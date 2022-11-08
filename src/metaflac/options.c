@@ -498,7 +498,8 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		}
 	}
 	else if(0 == strcmp(opt, "show-all-tags")) {
-		(void) append_shorthand_operation(options, OP__SHOW_VC_ALL);
+		op = append_shorthand_operation(options, OP__EXPORT_VC_TO);
+		parse_string("-",&op->argument.filename.value);
 	}
 	else if(0 == strcmp(opt, "remove-all-tags")) {
 		(void) append_shorthand_operation(options, OP__REMOVE_VC_ALL);

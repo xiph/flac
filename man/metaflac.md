@@ -110,7 +110,7 @@ modification time is set to the current time):
 :	Show all tags where the field name matches 'name'.
 
 **\--show-all-tags**  
-:	Show all tags.
+:	Show all tags. This is an alias for --export-tags-to=-.
 
 **\--remove-tag=name**  
 :	Remove all tags whose field name is 'name'.
