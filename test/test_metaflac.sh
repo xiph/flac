@@ -369,6 +369,9 @@ metaflac_test case61 "--import-picture-from" "--list"
 run_metaflac --import-picture-from="2|image/png|icon|64x64x24|${top_srcdir}/test/pictures/1.png" $flacfile
 check_flac
 metaflac_test case62 "--import-picture-from" "--list"
+run_metaflac --remove-all-tags-except=artist=title $flacfile
+check_flac
+metaflac_test case63 "--remove-all-tags-except=artist=title" "--list"
 
 # UNKNOWN blocks
 echo $ECHO_N "Testing FLAC file with unknown metadata... " $ECHO_C

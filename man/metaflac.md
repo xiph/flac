@@ -118,6 +118,10 @@ modification time is set to the current time):
 **\--remove-all-tags**  
 :	Remove all tags, leaving only the vendor string.
 
+**\--remove-all-tags-except=NAME1\[=NAME2\[=...\]\]**  
+:   Remove all tags, except the vendor string and the tag names
+    specified. Tag names must be separated by an = character.
+
 **\--set-tag=field**  
 :	Add a tag. The field must comply with the Vorbis comment spec, of the
 	form "NAME=VALUE". If there is currently no tag block, one will be

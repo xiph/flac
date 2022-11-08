@@ -127,6 +127,9 @@ int long_usage(const char *message, ...)
 	fprintf(out, "--remove-tag=NAME     Remove all tags whose field name is 'NAME'.\n");
 	fprintf(out, "--remove-first-tag=NAME  Remove first tag whose field name is 'NAME'.\n");
 	fprintf(out, "--remove-all-tags     Remove all tags, leaving only the vendor string.\n");
+	fprintf(out, "--remove-all-tags-except=NAME1[=NAME2[=...]] Remove all tags, except the vendor");
+	fprintf(out, "                      string and the tag names specified. Tag names must be");
+	fprintf(out, "                      separated by an = character.");
 	fprintf(out, "--set-tag=FIELD       Add a tag.  The FIELD must comply with the Vorbis comment\n");
 	fprintf(out, "                      spec, of the form \"NAME=VALUE\".  If there is currently\n");
 	fprintf(out, "                      no tag block, one will be created.\n");
