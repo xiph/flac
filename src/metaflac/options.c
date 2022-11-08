@@ -65,6 +65,7 @@ struct share__option long_options_[] = {
 	{ "set-bps", 1, 0, 0 }, /* undocumented */
 	{ "set-total-samples", 1, 0, 0 }, /* undocumented */ /* WATCHOUT: used by test/test_flac.sh on windows */
 	{ "show-vendor-tag", 0, 0, 0 },
+	{ "show-all-tags", 0, 0, 0 },
 	{ "show-tag", 1, 0, 0 },
 	{ "remove-all-tags", 0, 0, 0 },
 	{ "remove-all-tags-except", 1, 0, 0 },
@@ -495,6 +496,10 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			flac_fprintf(stderr, "ERROR (--%s): malformed vorbis comment field name \"%s\",\n       %s\n", opt, option_argument, violation);
 			ok = false;
 		}
+	}
+	else if(0 == strcmp(opt, "show-all-tags")) {
+		op = append_shorthand_operation(options, OP__EXPORT_VC_TO);
+		parse_string("-",&op->argument.filename.value);
 	}
 	else if(0 == strcmp(opt, "remove-all-tags")) {
 		(void) append_shorthand_operation(options, OP__REMOVE_VC_ALL);

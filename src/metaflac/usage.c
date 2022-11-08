@@ -124,6 +124,7 @@ int long_usage(const char *message, ...)
 	fprintf(out, "\n");
 	fprintf(out, "--show-vendor-tag     Show the vendor string from the VORBIS_COMMENT block.\n");
 	fprintf(out, "--show-tag=NAME       Show all tags where the field name matches 'NAME'.\n");
+	fprintf(out, "--show-all-tags       Show all tags. This is an alias for --export-tags-to=-.\n");
 	fprintf(out, "--remove-tag=NAME     Remove all tags whose field name is 'NAME'.\n");
 	fprintf(out, "--remove-first-tag=NAME  Remove first tag whose field name is 'NAME'.\n");
 	fprintf(out, "--remove-all-tags     Remove all tags, leaving only the vendor string.\n");
