@@ -1063,6 +1063,25 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			case FORMAT_AIFF_C:
 				/* truncation in the division removes any padding byte that was counted in encoder_session.fmt.iff.data_bytes */
 				total_samples_in_input = encoder_session.fmt.iff.data_bytes / encoder_session.info.bytes_per_wide_sample + *options.align_reservoir_samples;
+
+				/* check for chunks trailing the audio data */
+				if(!options.ignore_chunk_sizes && !options.format_options.iff.foreign_metadata
+				   && infilesize != (FLAC__off_t)(-1)) {
+					FLAC__off_t current_position = ftello(encoder_session.fin);
+					if(current_position > 0) {
+						FLAC__uint64 end_of_data_chunk = current_position + encoder_session.fmt.iff.data_bytes;
+						if(end_of_data_chunk < (FLAC__uint64)infilesize) {
+							flac__utils_printf(stderr, 1, "%s: WARNING: there is data trailing the audio data. Use --keep-foreign-metadata or --ignore-chunk-sizes to keep it\n", encoder_session.inbasefilename);
+							if(encoder_session.treat_warnings_as_errors)
+								return EncoderSession_finish_error(&encoder_session);
+						}
+						else if(end_of_data_chunk > (FLAC__uint64)infilesize) {
+							flac__utils_printf(stderr, 1, "%s: WARNING: the length of the data chunk overruns the end of the file. Please consult the manual on the --ignore-chunk-sizes option\n", encoder_session.inbasefilename);
+							if(encoder_session.treat_warnings_as_errors)
+								return EncoderSession_finish_error(&encoder_session);
+						}
+					}
+				}
 				break;
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:

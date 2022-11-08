@@ -1734,7 +1734,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 {
 	FILE *encode_infile;
 	FLAC__byte lookahead[12];
-	uint32_t lookahead_length = 0;
+	uint32_t lookahead_length = 0, master_chunk_size = 0;
 	FileFormat input_format = FORMAT_RAW;
 	int retval;
 	FLAC__off_t infilesize;
@@ -1830,10 +1830,25 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(!option_values.ignore_chunk_sizes && (input_format == FORMAT_WAVE || input_format == FORMAT_AIFF) && infilesize >= UINT32_MAX) {
+	if(!option_values.ignore_chunk_sizes
+	   && (input_format == FORMAT_WAVE || input_format == FORMAT_AIFF || input_format == FORMAT_AIFF_C)
+	   && infilesize >= UINT32_MAX) {
 		conditional_fclose(encode_infile);
 		return usage_error("ERROR: file %s is too large to be valid.\n"
 		                   "Please consult the manual on the --ignore-chunk-sizes option\n\n", infilename);
+	}
+
+	if(input_format == FORMAT_WAVE || input_format == FORMAT_AIFF || input_format == FORMAT_AIFF_C) {
+		if(input_format == FORMAT_WAVE)
+			master_chunk_size = lookahead[4] + (lookahead[5] << 8) + (lookahead[6] << 16) + (lookahead[7] << 24);
+		else if(input_format == FORMAT_AIFF || input_format == FORMAT_AIFF_C)
+			master_chunk_size = (lookahead[4] << 24) + (lookahead[5] << 16) + (lookahead[6] << 8) + lookahead[7];
+
+		if(infilesize != (FLAC__off_t)(-1) && infilesize > 8 && (infilesize - 8) != master_chunk_size) {
+			flac__utils_printf(stderr, 1, "WARNING: %s chunk size of file %s does not agree with filesize\n", (input_format == FORMAT_WAVE)?"RIFF":"FORM", infilename);
+			if(option_values.treat_warnings_as_errors)
+				return 1;
+		}
 	}
 
 	if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
