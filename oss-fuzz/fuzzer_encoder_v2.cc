@@ -234,7 +234,24 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 				num_metadata++;
 		}
 	}
-
+	if(encoder_valid && (metadata_mask & 32)){
+		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_CUESHEET)) != NULL) {
+			if(!FLAC__metadata_object_cuesheet_insert_blank_track(metadata[num_metadata],0)) {
+				FLAC__metadata_object_delete(metadata[num_metadata]);
+				metadata[num_metadata] = 0;
+			}
+			else {
+				if(!FLAC__metadata_object_cuesheet_track_insert_blank_index(metadata[num_metadata],0,0)) {
+					FLAC__metadata_object_delete(metadata[num_metadata]);
+					metadata[num_metadata] = 0;
+				}
+				else {
+					metadata[num_metadata]->data.cue_sheet.tracks[0].number = 1;
+					num_metadata++;
+				}
+			}
+		}
+	}
 	if(num_metadata && encoder_valid)
 			encoder_valid = FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 
