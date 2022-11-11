@@ -252,6 +252,19 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			}
 		}
 	}
+	if(encoder_valid && (metadata_mask & 64)){
+		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE)) != NULL) {
+			num_metadata++;
+		}
+	}
+	if(encoder_valid && (metadata_mask & 128)){
+		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_UNDEFINED)) != NULL) {
+			metadata[num_metadata]->length = 24;
+			metadata[num_metadata]->data.unknown.data = (FLAC__byte *)calloc(24, 1);
+			num_metadata++;
+		}
+	}
+
 	if(num_metadata && encoder_valid)
 			encoder_valid = FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 
