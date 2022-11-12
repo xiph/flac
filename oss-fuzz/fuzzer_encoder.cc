@@ -31,11 +31,6 @@
 #include "FLAC++/encoder.h"
 #include "fuzzer_common.h"
 
-#define SAMPLE_VALUE_LIMIT (1024*1024*10)
-
-static_assert(SAMPLE_VALUE_LIMIT <= std::numeric_limits<FLAC__int32>::max(), "Invalid SAMPLE_VALUE_LIMIT");
-static_assert(-SAMPLE_VALUE_LIMIT >= std::numeric_limits<FLAC__int32>::min(), "Invalid SAMPLE_VALUE_LIMIT");
-
 namespace FLAC {
 	namespace Encoder {
         class FuzzerStream : public Stream {
@@ -63,15 +58,12 @@ namespace FLAC {
 extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
     fuzzing::datasource::Datasource ds(data, size);
     FLAC::Encoder::FuzzerStream encoder(ds);
-    bool use_ogg;
-
-    const int channels = 2;
-	encoder.set_channels(channels);
-	encoder.set_bits_per_sample(16);
 
     try {
-
-	use_ogg = ! ds.Get<bool>();
+            const int channels = ds.Get<uint8_t>();
+            const int bps = ds.Get<uint8_t>();
+            encoder.set_channels(channels);
+            encoder.set_bits_per_sample(bps);
 
         {
             const bool res = encoder.set_streamable_subset(ds.Get<bool>());
@@ -138,6 +130,18 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             const bool res = encoder.set_total_samples_estimate(ds.Get<uint64_t>());
             fuzzing::memory::memory_test(res);
         }
+        {
+            const bool res = encoder.set_blocksize(ds.Get<uint16_t>());
+            fuzzing::memory::memory_test(res);
+        }
+        {
+            const bool res = encoder.set_limit_min_bitrate(ds.Get<bool>());
+            fuzzing::memory::memory_test(res);
+        }
+        {
+            const bool res = encoder.set_sample_rate(ds.Get<uint32_t>());
+            fuzzing::memory::memory_test(res);
+        }
 
         if ( size > 2 * 65535 * 4 ) {
             /* With large inputs and expensive options enabled, the fuzzer can get *really* slow.
@@ -158,7 +162,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
 
         {
             ::FLAC__StreamEncoderInitStatus ret;
-            if ( !use_ogg ) {
+            if ( ds.Get<bool>() ) {
                 ret = encoder.init();
             } else {
                 ret = encoder.init_ogg();
@@ -169,20 +173,72 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             }
         }
 
+	/* These sets must fail, because encoder is already initialized */
+        {
+            bool res = false;
+            res = res || encoder.set_streamable_subset(true);
+            res = res || encoder.set_ogg_serial_number(0);
+            res = res || encoder.set_verify(true);
+            res = res || encoder.set_compression_level(0);
+            res = res || encoder.set_do_exhaustive_model_search(true);
+            res = res || encoder.set_do_mid_side_stereo(true);
+            res = res || encoder.set_loose_mid_side_stereo(true);
+            res = res || encoder.set_apodization("test");
+            res = res || encoder.set_max_lpc_order(0);
+            res = res || encoder.set_qlp_coeff_precision(0);
+            res = res || encoder.set_do_qlp_coeff_prec_search(true);
+            res = res || encoder.set_do_escape_coding(true);
+            res = res || encoder.set_min_residual_partition_order(0);
+            res = res || encoder.set_max_residual_partition_order(0);
+            res = res || encoder.set_rice_parameter_search_dist(0);
+            res = res || encoder.set_total_samples_estimate(0);
+            res = res || encoder.set_channels(channels);
+            res = res || encoder.set_bits_per_sample(16);
+            res = res || encoder.set_limit_min_bitrate(true);
+            res = res || encoder.set_blocksize(3021);
+            res = res || encoder.set_sample_rate(44100);
+            fuzzing::memory::memory_test(res);
+            if(res)
+                abort();
+        }
+
+
+        {
+            /* XORing values as otherwise compiler will optimize, apparently */
+            bool res = false;
+            res = res != encoder.get_streamable_subset();
+            res = res != encoder.get_verify();
+            res = res != encoder.get_do_exhaustive_model_search();
+            res = res != encoder.get_do_mid_side_stereo();
+            res = res != encoder.get_loose_mid_side_stereo();
+            res = res != encoder.get_max_lpc_order();
+            res = res != encoder.get_qlp_coeff_precision();
+            res = res != encoder.get_do_qlp_coeff_prec_search();
+            res = res != encoder.get_do_escape_coding();
+            res = res != encoder.get_min_residual_partition_order();
+            res = res != encoder.get_max_residual_partition_order();
+            res = res != encoder.get_rice_parameter_search_dist();
+            res = res != encoder.get_total_samples_estimate();
+            res = res != encoder.get_channels();
+            res = res != encoder.get_bits_per_sample();
+            res = res != encoder.get_limit_min_bitrate();
+            res = res != encoder.get_blocksize();
+            res = res != encoder.get_sample_rate();
+            fuzzing::memory::memory_test(res);
+        }
+
 
         while ( ds.Get<bool>() ) {
             {
                 auto dat = ds.GetVector<FLAC__int32>();
-                for (size_t i = 0; i < dat.size(); i++) {
-                    if ( SAMPLE_VALUE_LIMIT != 0 ) {
-                        if ( dat[i] < -SAMPLE_VALUE_LIMIT ) {
-                            dat[i] = -SAMPLE_VALUE_LIMIT;
-                        } else if ( dat[i] > SAMPLE_VALUE_LIMIT ) {
-                            dat[i] = SAMPLE_VALUE_LIMIT;
-                        }
-                    }
-                }
-                const uint32_t samples = dat.size() / 2;
+
+                if( ds.Get<bool>() )
+                    /* Mask */
+                    for (size_t i = 0; i < dat.size(); i++)
+			/* If we get here, bps is 4 or larger, or init will have failed */
+                        dat[i] = (int32_t)(((uint32_t)(dat[i]) << (32-bps)) >> (32-bps));
+
+                const uint32_t samples = dat.size() / channels;
                 if ( samples > 0 ) {
                     const int32_t* ptr = dat.data();
                     const bool res = encoder.process_interleaved(ptr, samples);
