@@ -120,6 +120,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	encoder_valid &= FLAC__stream_encoder_set_sample_rate(encoder, sample_rate);
 	encoder_valid &= FLAC__stream_encoder_set_total_samples_estimate(encoder, samples_estimate);
 	encoder_valid &= FLAC__stream_encoder_disable_instruction_set(encoder, instruction_set_disable_mask);
+	encoder_valid &= FLAC__stream_encoder_set_limit_min_bitrate(encoder, data_bools[15]);
 
 	/* Set compression related parameters */
 	encoder_valid &= FLAC__stream_encoder_set_compression_level(encoder, compression_level);
@@ -168,8 +169,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	/* Disable alloc check if requested */
 	if(encoder_valid && data_bools[14])
 		alloc_check_threshold = INT32_MAX;
-
-	/* data_bools[15] are spare */
 
 	/* add metadata */
 	if(encoder_valid && (metadata_mask & 1)) {
