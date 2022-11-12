@@ -1049,7 +1049,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #endif /* !FLAC__INTEGER_ONLY_LIBRARY */
 #if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
 	if(encoder->private_->cpuinfo.use_asm) {
-# if defined FLAC__CPU_IA32
+# if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64)
 #  ifdef FLAC__SSE2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.sse2)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
@@ -1060,18 +1060,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  endif
 #  ifdef FLAC__AVX2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.avx2)
-			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_avx2;
-#  endif
-# elif defined FLAC__CPU_X86_64
-#  ifdef FLAC__SSE2_SUPPORTED
-		encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
-#  endif
-#  ifdef FLAC__SSSE3_SUPPORTED
-		if(encoder->private_->cpuinfo.x86.ssse3)
-			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_ssse3;
-#  endif
-#  ifdef FLAC__AVX2_SUPPORTED
-		if(encoder->private_->cpuinfo.x86.avx2)
 			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_avx2;
 #  endif
 # endif /* FLAC__CPU_... */
