@@ -8,8 +8,6 @@
 *.exe
 .deps
 .libs
-Makefile
-Makefile.in
 aclocal.m4
 ar-lib
 autom4te.cache/
@@ -91,6 +89,7 @@ CMakeFiles
 CMakeScripts
 Testing
 Makefile
+Makefile.in
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json
