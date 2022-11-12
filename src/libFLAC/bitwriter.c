@@ -527,7 +527,6 @@ uint32_t FLAC__bitwriter_golomb_bits_unsigned(uint32_t uval, uint32_t parameter)
 	}
 	return bits;
 }
-#endif /* UNUSED */
 
 FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 val, uint32_t parameter)
 {
@@ -556,6 +555,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 va
 			FLAC__bitwriter_write_zeroes(bw, msbs) && /* write the unary MSBs */
 			FLAC__bitwriter_write_raw_uint32(bw, pattern, interesting_bits); /* write the unary end bit and binary LSBs */
 }
+#endif /* UNUSED */
 
 FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FLAC__int32 *vals, uint32_t nvals, uint32_t parameter)
 {
