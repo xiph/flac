@@ -1064,7 +1064,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #  endif
 # elif defined FLAC__CPU_X86_64
 #  ifdef FLAC__SSE2_SUPPORTED
-		encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
+		if(encoder->private_->cpuinfo.x86.sse2) { /* For fuzzing */
+			encoder->private_->local_precompute_partition_info_sums = FLAC__precompute_partition_info_sums_intrin_sse2;
 #  endif
 #  ifdef FLAC__SSSE3_SUPPORTED
 		if(encoder->private_->cpuinfo.x86.ssse3)
