@@ -32,7 +32,7 @@ EXTRA_DIST = \
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata
+noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder
 endif
 
 fuzzer_encoder_SOURCES = fuzzer_encoder.cc
@@ -59,6 +59,12 @@ fuzzer_metadata_SOURCES = fuzzer_metadata.cc
 fuzzer_metadata_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
 fuzzer_metadata_LDFLAGS = $(AM_LDFLAGS)
 fuzzer_metadata_LDADD = $(flac_libs)
+
+
+fuzzer_reencoder_SOURCES = fuzzer_reencoder.cc
+fuzzer_reencoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
+fuzzer_reencoder_LDFLAGS = $(AM_LDFLAGS)
+fuzzer_reencoder_LDADD = $(flac_libs)
 
 
 flac_libs = \
