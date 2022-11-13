@@ -79,6 +79,7 @@ oss-fuzz/fuzzer_seek
 oss-fuzz/fuzzer_metadata
 oss-fuzz/fuzzer_encoder
 oss-fuzz/fuzzer_encoder_v2
+oss-fuzz/fuzzer_reencoder
 
 /*[Bb]uild*/
 /out/
