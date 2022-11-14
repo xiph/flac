@@ -1645,6 +1645,11 @@ FLAC__bool read_metadata_seektable_(FLAC__StreamDecoder *decoder, FLAC__bool is_
 	decoder->private_->seek_table.is_last = is_last;
 	decoder->private_->seek_table.length = length;
 
+	if(length % FLAC__STREAM_METADATA_SEEKPOINT_LENGTH) {
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
+	}
+
 	decoder->private_->seek_table.data.seek_table.num_points = length / FLAC__STREAM_METADATA_SEEKPOINT_LENGTH;
 
 	/* use realloc since we may pass through here several times (e.g. after seeking) */
@@ -1666,12 +1671,8 @@ FLAC__bool read_metadata_seektable_(FLAC__StreamDecoder *decoder, FLAC__bool is_
 		decoder->private_->seek_table.data.seek_table.points[i].frame_samples = x;
 	}
 	length -= (decoder->private_->seek_table.data.seek_table.num_points * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH);
-	/* if there is a partial point left, skip over it */
-	if(length > 0) {
-		/*@@@ do a send_error_to_client_() here?  there's an argument for either way */
-		if(!FLAC__bitreader_skip_byte_block_aligned_no_crc(decoder->private_->input, length))
-			return false; /* read_callback_ sets the state for us */
-	}
+
+	FLAC__ASSERT(length == 0);
 
 	return true;
 }
@@ -1743,7 +1744,8 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 				if (obj->comments[i].length > 0) {
 					if (length < obj->comments[i].length) {
 						obj->num_comments = i;
-						goto skip;
+						FLAC__bitreader_limit_invalidate(decoder->private_->input);
+						return false;
 					}
 					else
 						length -= obj->comments[i].length;
@@ -1767,6 +1769,10 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 			}
 		}
 	}
+	else {
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
+	}
 
   skip:
 	if (length > 0) {
@@ -1775,8 +1781,8 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 			free(obj->comments);
 			obj->comments = NULL;
 		}
-		if(!FLAC__bitreader_skip_byte_block_aligned_no_crc(decoder->private_->input, length))
-			return false; /* read_callback_ sets the state for us */
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
 	}
 
 	return true;
