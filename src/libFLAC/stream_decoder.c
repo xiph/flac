@@ -902,6 +902,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_allow_chaining(const FLAC__Stre
 #else
 	return false;
 #endif
+}
 
 FLAC_API const void *FLAC__stream_decoder_get_client_data(FLAC__StreamDecoder *decoder)
 {
@@ -971,7 +972,7 @@ static void reset_decoder(FLAC__StreamDecoder *decoder)
 	decoder->private_->first_frame_offset = 0;
 	decoder->private_->unparseable_frame_count = 0;
 	decoder->private_->reset_next = false;
-  decoder->private_->last_seen_framesync = 0;
+	decoder->private_->last_seen_framesync = 0;
 	decoder->private_->last_frame_is_set = false;
 }
 
@@ -1005,7 +1006,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	}
 
 	reset_decoder(decoder);
-
 	return true;
 }
 
