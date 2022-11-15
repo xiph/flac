@@ -2,7 +2,7 @@
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2002-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -20,9 +20,9 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
-PATH=`pwd`/../src/metaflac:$PATH
-PATH=`pwd`/../objs/$BUILD/bin:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
+PATH="$(pwd)/../src/metaflac:$PATH"
+PATH="$(pwd)/../objs/$BUILD/bin:$PATH"
 
 if echo a | (grep -E '(a|b)') >/dev/null 2>&1
 	then EGREP='grep -E'
@@ -34,7 +34,7 @@ flacfile="replaygain.flac"
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_replaygain.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac --no-error-on-compression-fail $* 4>>test_replaygain.valgrind.log
 	else
@@ -44,7 +44,7 @@ run_flac ()
 
 run_metaflac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 4>>test_replaygain.valgrind.log
 	else
@@ -57,7 +57,7 @@ run_metaflac_silent ()
 	if [ -z "$SILENT" ] ; then
 		run_metaflac $*
 	else
-		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_replaygain.valgrind.log
 			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac $* 2>/dev/null 4>>test_replaygain.valgrind.log
 		else
@@ -117,18 +117,18 @@ for ACTION in $REPLAYGAIN_FREQ ; do
   GAIN="${GAIN%%:*}"
   while [ -n "$HARMONICS" ] ; do
     MULTIPLE="${HARMONICS%%:*}"
-    if [ x"$MULTIPLE" = x"$HARMONICS" ] ; then
+    if [ "$MULTIPLE" = "$HARMONICS" ] ; then
       HARMONICS=
     else
       HARMONICS="${HARMONICS#*:}"
     fi
-    RATE=$(($MULTIPLE * FREQ))
+    RATE=$((MULTIPLE * FREQ))
     [ $MULTIPLE -eq 1 -o -n "${REPLAYGAIN_FREQ##* $RATE/*}" ] || break
     echo $ECHO_N "Testing FLAC replaygain $RATE ($FREQ x $MULTIPLE) ... " $ECHO_C
     tonegenerator $RATE $flacfile
     run_metaflac --scan-replay-gain $flacfile
     run_metaflac --add-replay-gain $flacfile
-    run_metaflac --list $flacfile | grep REPLAYGAIN.*GAIN= |
+    run_metaflac --list $flacfile | grep "REPLAYGAIN.*GAIN=" |
     while read -r REPLAYGAIN ; do
       MEASUREDGAIN="${REPLAYGAIN##*=}"
       MEASUREDGAIN="${MEASUREDGAIN%% *}"

@@ -1,0 +1,23 @@
+macro(_CHECK_ATTRIBUTE ATTRIBUTE VARIABLE)
+    if(NOT DEFINED HAVE_${VARIABLE})
+        message(STATUS "Check for  __attribute__ ((${ATTRIBUTE})) ")
+        set(CHECK_ATTRIBUTE ${ATTRIBUTE})
+        configure_file(${PROJECT_SOURCE_DIR}/cmake/CheckAttribute.c.in ${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckAttribute.c @ONLY)
+        try_compile(HAVE_${VARIABLE} "${PROJECT_BINARY_DIR}"
+            "${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckAttribute.c")
+        if(HAVE_${VARIABLE})
+            message(STATUS "Check for  __attribute__ ((${ATTRIBUTE})) - yes")
+            set(${VARIABLE} 1 CACHE INTERNAL "Result of CHECK_ATTRIBUTE ${ATTRIBUTE}" FORCE)
+        else ()
+            message(STATUS "Check for  __attribute__ ((${ATTRIBUTE})) - no")
+        endif()
+    endif ()
+endmacro(_CHECK_ATTRIBUTE)
+
+macro(CHECK_ATTRIBUTE_POWER8 VARIABLE)
+    _CHECK_ATTRIBUTE("target(\"cpu=power8\")" ${VARIABLE})
+endmacro(CHECK_ATTRIBUTE_POWER8)
+
+macro(CHECK_ATTRIBUTE_POWER9 VARIABLE)
+    _CHECK_ATTRIBUTE("target(\"cpu=power9\")" ${VARIABLE})
+endmacro(CHECK_ATTRIBUTE_POWER9)

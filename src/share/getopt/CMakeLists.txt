@@ -1,6 +1,8 @@
 check_include_file("string.h" HAVE_STRING_H)
 
-find_package(Intl)
+if(NOT WIN32)
+    find_package(Intl)
+endif()
 
 add_library(getopt STATIC getopt.c getopt1.c)
 

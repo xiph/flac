@@ -1,6 +1,6 @@
 #  libFLAC - Free Lossless Audio Codec library
 #  Copyright (C) 2001-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
@@ -34,6 +34,10 @@ lib_LTLIBRARIES = libFLAC.la
 noinst_LTLIBRARIES = libFLAC-static.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
+else
+if ASSOC_MATH_AVAILABLE
+ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math
+endif
 endif
 
 # FIXME: The following logic should be part of configure, not of Makefile.am
@@ -49,21 +53,12 @@ endif
 endif
 endif
 
-AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) @OGG_CFLAGS@
 
-if FLaC__NO_ASM
-else
-if FLaC__CPU_IA32
-if FLaC__HAS_NASM
-ARCH_SUBDIRS = ia32
-LOCAL_EXTRA_LIBADD = ia32/libFLAC-asm.la
-endif
-endif
-endif
+AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
 
-libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
+libFLAC_la_LIBADD = @OGG_LIBS@ -lm
 
-SUBDIRS = $(ARCH_SUBDIRS) include .
+SUBDIRS = include .
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libFLAC.m4
@@ -73,19 +68,15 @@ pkgconfig_DATA = flac.pc
 
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	flac.pc.in \
-	libFLAC_dynamic.vcproj \
-	libFLAC_dynamic.vcxproj \
-	libFLAC_dynamic.vcxproj.filters \
-	libFLAC_static.vcproj \
-	libFLAC_static.vcxproj \
-	libFLAC_static.vcxproj.filters \
 	libFLAC.m4 \
-	windows_unicode_filenames.c
+	deduplication/lpc_compute_autocorrelation_intrin.c \
+	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
+	deduplication/lpc_compute_autocorrelation_intrin_vsx.c \
+	deduplication/lpc_compute_autocorrelation_intrin_neon.c
 
 if OS_IS_WINDOWS
-windows_unicode_compat = windows_unicode_filenames.c
+windows_unicode_compat = ../share/win_utf8_io/win_utf8_io.c
 endif
 
 if FLaC__HAS_OGG
@@ -97,7 +88,7 @@ extra_ogg_sources = \
 endif
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 11:0:3 $(LOCAL_EXTRA_LDFLAGS)
+libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 12:0:0
 
 libFLAC_sources = \
 	bitmath.c \
@@ -111,11 +102,12 @@ libFLAC_sources = \
 	float.c \
 	format.c \
 	lpc.c \
-	lpc_intrin_sse.c \
 	lpc_intrin_sse2.c \
 	lpc_intrin_sse41.c \
 	lpc_intrin_avx2.c \
+	lpc_intrin_fma.c \
 	lpc_intrin_vsx.c \
+	lpc_intrin_neon.c \
 	md5.c \
 	memory.c \
 	metadata_iterators.c \
@@ -133,5 +125,4 @@ libFLAC_sources = \
 libFLAC_la_SOURCES = $(libFLAC_sources)
 
 # needed for test_libFLAC
-libFLAC_static_la_LIBADD = $(LOCAL_EXTRA_LIBADD)
 libFLAC_static_la_SOURCES = $(libFLAC_sources)

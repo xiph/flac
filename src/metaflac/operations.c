@@ -1,6 +1,6 @@
 /* metaflac - Command-line FLAC metadata editor
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -360,6 +360,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__SHOW_VC_VENDOR:
 		case OP__SHOW_VC_FIELD:
 		case OP__REMOVE_VC_ALL:
+		case OP__REMOVE_VC_ALL_EXCEPT:
 		case OP__REMOVE_VC_FIELD:
 		case OP__REMOVE_VC_FIRSTFIELD:
 		case OP__SET_VC_FIELD:

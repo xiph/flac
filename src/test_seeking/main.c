@@ -1,6 +1,6 @@
 /* test_seeking - Seeking tester for libFLAC
  * Copyright (C) 2004-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -148,7 +148,7 @@ static FLAC__bool read_pcm_(FLAC__int32 *pcm[], const char *rawfilename, const c
 		printf("ERROR: PCM verification requires 8 or 16 bps, got %u\n", bps);
 		return false;
 	}
-	samples = rawfilesize / channels / (bps>>3);
+	samples = (uint32_t)(rawfilesize / channels / (bps>>3));
 	if (samples > 10000000) {
 		fprintf(stderr, "ERROR: %s is too big\n", rawfilename);
 		return false;
@@ -320,7 +320,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__of
 	/* @@@ for is_ogg we should get it from last page's granulepos */
 	if(n == 0) {
 		/* 8 would imply no compression, 9 guarantees that we will get some samples off the end of the stream to test that case */
-		n = 9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample);
+		n = (long int)(9 * filesize / (decoder_client_data.channels * decoder_client_data.bits_per_sample));
 	}
 
 	printf("Begin seek barrage, count=%u\n", count);

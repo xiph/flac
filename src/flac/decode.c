@@ -1,6 +1,6 @@
 /* flac - Command-line FLAC encoder/decoder
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -25,6 +25,7 @@
 #include <math.h> /* for floor() */
 #include <stdio.h> /* for FILE etc. */
 #include <string.h> /* for strcmp(), strerror() */
+#include <time.h> /* for clock() */
 #include "FLAC/all.h"
 #include "share/grabbag.h"
 #include "share/replaygain_synthesis.h"
@@ -42,6 +43,8 @@ typedef struct {
 	FLAC__bool treat_warnings_as_errors;
 	FLAC__bool continue_through_decode_errors;
 	FLAC__bool channel_map_none;
+	FLAC__bool relaxed_foreign_metadata_handling;
+	FLAC__bool force_legacy_wave_format;
 
 	struct {
 		replaygain_synthesis_spec_t spec;
@@ -67,6 +70,7 @@ typedef struct {
 	FLAC__bool aborting_due_to_until; /* true if we intentionally abort decoding prematurely because we hit the --until point */
 	FLAC__bool aborting_due_to_unparseable; /* true if we abort decoding because we hit an unparseable frame */
 	FLAC__bool error_callback_suppress_messages; /* turn on to prevent repeating messages from the error callback */
+	FLAC__bool warn_user_about_foreign_metadata; /* to prevent more than one warning message per file */
 
 	FLAC__bool iff_headers_need_fixup;
 
@@ -89,6 +93,8 @@ typedef struct {
 
 	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 	FLAC__off_t fm_offset1, fm_offset2, fm_offset3;
+
+	clock_t old_clock_t;
 } DecoderSession;
 
 
@@ -98,7 +104,7 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, FLAC__bool relaxed_foreign_metadata_handling, FLAC__bool force_legacy_wave_format, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
@@ -160,6 +166,8 @@ int flac__decode_file(const char *infilename, const char *outfilename, FLAC__boo
 			options.treat_warnings_as_errors,
 			options.continue_through_decode_errors,
 			options.channel_map_none,
+			options.relaxed_foreign_metadata_handling,
+			options.force_legacy_wave_format,
 			options.replaygain_synthesis_spec,
 			analysis_mode,
 			aopts,
@@ -183,7 +191,7 @@ int flac__decode_file(const char *infilename, const char *outfilename, FLAC__boo
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, FLAC__bool relaxed_foreign_metadata_handling, FLAC__bool force_legacy_wave_format, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename)
 {
 #if FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -199,6 +207,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->treat_warnings_as_errors = treat_warnings_as_errors;
 	d->continue_through_decode_errors = continue_through_decode_errors;
 	d->channel_map_none = channel_map_none;
+	d->relaxed_foreign_metadata_handling = relaxed_foreign_metadata_handling;
+	d->force_legacy_wave_format = force_legacy_wave_format;
 	d->replaygain.spec = replaygain_synthesis_spec;
 	d->replaygain.apply = false;
 	d->replaygain.scale = 0.0;
@@ -220,6 +230,10 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->aborting_due_to_until = false;
 	d->aborting_due_to_unparseable = false;
 	d->error_callback_suppress_messages = false;
+	if(relaxed_foreign_metadata_handling)
+		d->warn_user_about_foreign_metadata = false;
+	else
+		d->warn_user_about_foreign_metadata = true;
 
 	d->iff_headers_need_fixup = false;
 
@@ -238,6 +252,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->fout = 0; /* initialized with an open file later if necessary */
 
 	d->foreign_metadata = foreign_metadata;
+
+	d->old_clock_t = 0;
 
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
 
@@ -296,8 +312,37 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 	if(!decoder_session->analysis_mode && !decoder_session->test_only && decoder_session->foreign_metadata) {
 		const char *error;
 		if(!flac__foreign_metadata_read_from_flac(decoder_session->foreign_metadata, infilename, &error)) {
-			flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", decoder_session->inbasefilename, error);
+			if(decoder_session->relaxed_foreign_metadata_handling) {
+				flac__utils_printf(stderr, 1, "%s: WARNING reading foreign metadata: %s\n", decoder_session->inbasefilename, error);
+				if(decoder_session->treat_warnings_as_errors) {
+					return false;
+				}
+				else {
+					/* Couldn't find foreign metadata, stop processing */
+					decoder_session->foreign_metadata = 0;
+				}
+			}
+			else {
+				flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", decoder_session->inbasefilename, error);
+				return false;
+			}
+		}
+	}
+	else if(decoder_session->test_only && strcmp(infilename, "-") != 0) {
+		/* When testing, we can be a little more pedantic, as long
+		 * as we can seek properly */
+		FLAC__byte buffer[3];
+		FILE * f = flac_fopen(infilename, "rb");
+
+		if(fread(buffer, 1, 3, f) < 3) {
+			flac__utils_printf(stderr, 1, "%s: ERROR checking for ID3v2 tag\n", decoder_session->inbasefilename);
 			return false;
+		}
+		if(memcmp(buffer, "ID3", 3) == 0){
+			flac__utils_printf(stderr, 1, "%s: WARNING, ID3v2 tag found. This is non-standard and strongly discouraged\n", decoder_session->inbasefilename);
+			if(decoder_session->treat_warnings_as_errors) {
+				return false;
+			}
 		}
 	}
 
@@ -313,6 +358,13 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 		FLAC__stream_decoder_set_metadata_respond(decoder_session->decoder, FLAC__METADATA_TYPE_CUESHEET);
 	if (decoder_session->replaygain.spec.apply || !decoder_session->channel_map_none)
 		FLAC__stream_decoder_set_metadata_respond(decoder_session->decoder, FLAC__METADATA_TYPE_VORBIS_COMMENT);
+
+	if(!decoder_session->analysis_mode && !decoder_session->test_only && decoder_session->foreign_metadata == NULL) {
+		/* Warn user if foreign metadata is found */
+		uint32_t i;
+		for(i = 0; i < FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS; i++)
+			FLAC__stream_decoder_set_metadata_respond_application(decoder_session->decoder, (FLAC__byte *)FLAC__FOREIGN_METADATA_APPLICATION_ID[i]);
+	}
 
 #if FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
@@ -347,6 +399,9 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		if(!d->continue_through_decode_errors)
 			return false;
 	}
+
+	if(d->analysis_mode)
+		FLAC__stream_decoder_get_decode_position(d->decoder, &d->decode_position);
 
 	if(d->abort_flag)
 		return false;
@@ -482,6 +537,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		flac__utils_printf(stderr, 1, "ERROR, MD5 signature mismatch\n");
 		ok = d->continue_through_decode_errors;
 	}
+	else if(d->got_stream_info && d->total_samples && (d->total_samples > d->samples_processed)){
+		stats_print_name(1, d->inbasefilename);
+		flac__utils_printf(stderr, 1, "ERROR, decoded number of samples is smaller than the total number of samples set in the STREAMINFO\n");
+		ok = d->continue_through_decode_errors;
+	}
 	else {
 		if(!d->got_stream_info) {
 			stats_print_name(1, d->inbasefilename);
@@ -491,6 +551,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 		else if(!d->has_md5sum) {
 			stats_print_name(1, d->inbasefilename);
 			flac__utils_printf(stderr, 1, "WARNING, cannot check MD5 signature since it was unset in the STREAMINFO\n");
+			ok = !d->treat_warnings_as_errors;
+		}
+		else if(!d->total_samples) {
+			stats_print_name(1, d->inbasefilename);
+			flac__utils_printf(stderr, 1, "WARNING, cannot check total number of samples since it was unset in the STREAMINFO\n");
 			ok = !d->treat_warnings_as_errors;
 		}
 		stats_print_name(2, d->inbasefilename);
@@ -580,6 +645,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		"AIFF";
 	const FLAC__bool is_waveformatextensible =
 		(format == FORMAT_WAVE || format == FORMAT_WAVE64 || format == FORMAT_RF64) &&
+		!decoder_session->force_legacy_wave_format &&
 		(
 			(decoder_session->channel_mask != 0 && decoder_session->channel_mask != 0x0004 && decoder_session->channel_mask != 0x0003) ||
 			(decoder_session->bps != 8 && decoder_session->bps != 16) ||
@@ -1125,8 +1191,16 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		decoder_session->samples_processed += wide_samples;
 		decoder_session->frame_counter++;
 
+#if 0 /* in case time.h with clock() isn't available for some reason */
 		if(!(decoder_session->frame_counter & 0x1ff))
 			print_stats(decoder_session);
+#else
+		if((clock() - decoder_session->old_clock_t) > (CLOCKS_PER_SEC/4)) {
+			print_stats(decoder_session);
+			decoder_session->old_clock_t = clock();
+		}
+#endif
+
 
 		if(decoder_session->analysis_mode) {
 			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->decode_position-frame_bytes, frame_bytes, decoder_session->aopts, fout);
@@ -1277,6 +1351,32 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				}
 				bytes_to_write = sample;
 			}
+			else if(bps+shift == 32) {
+				if(is_unsigned_samples) {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							ubuf.u32buffer[sample] = buffer[channel][wide_sample];
+				}
+				else {
+					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+						for(channel = 0; channel < channels; channel++, sample++)
+							ubuf.s32buffer[sample] = buffer[channel][wide_sample];
+				}
+				if(is_big_endian != is_big_endian_host_) {
+					uint8_t tmp;
+					const uint32_t bytes = sample * 4;
+					uint32_t b;
+					for(b = 0; b < bytes; b += 4) {
+						tmp = ubuf.u8buffer[b];
+						ubuf.u8buffer[b] = ubuf.u8buffer[b+3];
+						ubuf.u8buffer[b+3] = tmp;
+						tmp = ubuf.u8buffer[b+1];
+						ubuf.u8buffer[b+1] = ubuf.u8buffer[b+2];
+						ubuf.u8buffer[b+2] = tmp;
+					}
+				}
+				bytes_to_write = 4 * sample;
+			}
 			else {
 				FLAC__ASSERT(0);
 				/* double protection */
@@ -1301,14 +1401,21 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 {
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 
-	if(decoder_session->analysis_mode)
-		FLAC__stream_decoder_get_decode_position(decoder, &decoder_session->decode_position);
+	(void)decoder;
 
 	if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO) {
-		FLAC__byte emptyMD5[16] = {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0};
 		FLAC__uint64 skip, until;
+
+		if(decoder_session->got_stream_info){
+			/* There was already a STREAMINFO received */
+			flac__utils_printf(stderr, 1, "%s: ERROR, more than one STREAMINFO found\n", decoder_session->inbasefilename);
+			if(!decoder_session->continue_through_decode_errors)
+				decoder_session->abort_flag = true;
+			return;
+		}
+
 		decoder_session->got_stream_info = true;
-		decoder_session->has_md5sum = memcmp(metadata->data.stream_info.md5sum, emptyMD5, 16);
+		decoder_session->has_md5sum = memcmp(metadata->data.stream_info.md5sum, "\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0\0", 16) != 0;
 		decoder_session->bps = metadata->data.stream_info.bits_per_sample;
 		decoder_session->channels = metadata->data.stream_info.channels;
 		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
@@ -1345,14 +1452,14 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
 		}
 
-		if(decoder_session->format == FORMAT_RAW && ((decoder_session->bps % 8) != 0  || decoder_session->bps < 4 || decoder_session->bps > 24)) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
+		if(decoder_session->format == FORMAT_RAW && ((decoder_session->bps % 8) != 0  || decoder_session->bps < 4)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24/32 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
 			decoder_session->abort_flag = true;
 			return;
 		}
 
-		if(decoder_session->bps < 4 || decoder_session->bps > 24) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 4-24\n", decoder_session->inbasefilename, decoder_session->bps);
+		if(decoder_session->bps < 4 || decoder_session->bps > 32) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 4-32\n", decoder_session->inbasefilename, decoder_session->bps);
 			decoder_session->abort_flag = true;
 			return;
 		}
@@ -1402,6 +1509,11 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			}
 		}
 		(void)flac__utils_get_channel_mask_tag(metadata, &decoder_session->channel_mask);
+	}
+	else if(metadata->type == FLAC__METADATA_TYPE_APPLICATION && decoder_session->warn_user_about_foreign_metadata) {
+		/* Foreign metadata signalling */
+		flac__utils_printf(stderr, 1, "%s: WARNING: found foreign metadata, use --keep-foreign-metadata to restore\n", decoder_session->inbasefilename);
+		decoder_session->warn_user_about_foreign_metadata = false;
 	}
 }
 
@@ -1469,7 +1581,7 @@ void print_error_with_state(const DecoderSession *d, const char *message)
 			"not able to decode the file.  If the version number is not, the file\n"
 			"may be corrupted, or you may have found a bug.  In this case please\n"
 			"submit a bug report to\n"
-			"    https://sourceforge.net/p/flac/bugs/\n"
+			"    https://github.com/xiph/flac/issues\n"
 			"Make sure to use the \"Monitor\" feature to monitor the bug status.\n",
 			d->inbasefilename, FLAC__VERSION_STRING
 		);

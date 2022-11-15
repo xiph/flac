@@ -1,6 +1,6 @@
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2006-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -23,5 +23,4 @@ EXTRA_DIST = \
 	endian.m4 \
 	gcc_version.m4 \
 	ogg.m4 \
-	stack_protect.m4 \
-	xmms.m4
+	stack_protect.m4

@@ -1,6 +1,6 @@
 #  test_libFLAC - Unit tester for libFLAC
 #  Copyright (C) 2000-2009  Josh Coalson
-#  Copyright (C) 2011-2018  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -17,19 +17,16 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite \
-	test_libFLAC.vcproj \
-	test_libFLAC.vcxproj \
-	test_libFLAC.vcxproj.filters
-
-AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include
+	CMakeLists.txt
 
 check_PROGRAMS = test_libFLAC
 
 if OS_IS_WINDOWS
 win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+flac__no_dll = -DFLAC__NO_DLL
 endif
+
+AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include -I$(top_srcdir)/src/libFLAC/include $(flac__no_dll)
 
 test_libFLAC_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \

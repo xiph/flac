@@ -1,6 +1,6 @@
 #  flac - Command-line FLAC encoder/decoder
 #  Copyright (C) 2000-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -22,15 +22,7 @@ AM_CFLAGS = @OGG_CFLAGS@
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
-	Makefile.lite.iffscan \
-	flac.vcproj \
-	flac.vcxproj \
-	flac.vcxproj.filters \
-	iffscan.c \
-	iffscan.vcproj \
-	iffscan.vcxproj \
-	iffscan.vcxproj.filters
+	iffscan.c
 
 flac_SOURCES = \
 	analyze.c \

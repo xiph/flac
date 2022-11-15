@@ -8,8 +8,6 @@
 *.exe
 .deps
 .libs
-Makefile
-Makefile.in
 aclocal.m4
 ar-lib
 autom4te.cache/
@@ -25,7 +23,7 @@ configure
 depcomp
 doc/Doxyfile
 doc/FLAC.tag
-doc/html/api/
+doc/api/
 examples/c/decode/file/example_c_decode_file
 examples/c/encode/file/example_c_encode_file
 examples/cpp/decode/file/example_cpp_decode_file
@@ -39,8 +37,8 @@ m4/ltoptions.m4
 m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
-man/manpage.links
-man/manpage.refs
+man/flac.1
+man/metaflac.1
 missing
 objs/debug
 objs/release
@@ -75,8 +73,12 @@ test/picture.diff
 test/picture.log
 .dirstamp
 microbench/benchmark_residual
-oss-fuzz/fuzz-decoder
-oss-fuzz/fuzz-encoder
+/ogg/
+oss-fuzz/fuzzer_decoder
+oss-fuzz/fuzzer_seek
+oss-fuzz/fuzzer_metadata
+oss-fuzz/fuzzer_encoder
+oss-fuzz/fuzzer_encoder_v2
 
 /*[Bb]uild*/
 /out/
@@ -87,6 +89,7 @@ CMakeFiles
 CMakeScripts
 Testing
 Makefile
+Makefile.in
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json

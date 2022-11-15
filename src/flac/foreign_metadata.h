@@ -1,6 +1,6 @@
 /* flac - Command-line FLAC encoder/decoder
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -27,6 +27,10 @@
 #include "FLAC/metadata.h"
 #include "utils.h"
 #include "share/compat.h"
+
+#define FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS 3
+
+extern const char *FLAC__FOREIGN_METADATA_APPLICATION_ID[FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS];
 
 /* WATCHOUT: these enums are used to index internal arrays */
 typedef enum {

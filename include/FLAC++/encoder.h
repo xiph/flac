@@ -1,6 +1,6 @@
 /* libFLAC++ - Free Lossless Audio Codec library
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -147,6 +147,7 @@ namespace FLAC {
 			virtual bool set_total_samples_estimate(FLAC__uint64 value);    ///< See FLAC__stream_encoder_set_total_samples_estimate()
 			virtual bool set_metadata(::FLAC__StreamMetadata **metadata, uint32_t num_blocks);    ///< See FLAC__stream_encoder_set_metadata()
 			virtual bool set_metadata(FLAC::Metadata::Prototype **metadata, uint32_t num_blocks); ///< See FLAC__stream_encoder_set_metadata()
+			virtual bool set_limit_min_bitrate(bool value);                 ///< See FLAC__stream_encoder_set_limit_min_bitrate()
 
 			/* get_state() is not virtual since we want subclasses to be able to return their own state */
 			State get_state() const;                                   ///< See FLAC__stream_encoder_get_state()
@@ -169,6 +170,7 @@ namespace FLAC {
 			virtual uint32_t get_max_residual_partition_order() const; ///< See FLAC__stream_encoder_get_max_residual_partition_order()
 			virtual uint32_t get_rice_parameter_search_dist() const;   ///< See FLAC__stream_encoder_get_rice_parameter_search_dist()
 			virtual FLAC__uint64 get_total_samples_estimate() const;   ///< See FLAC__stream_encoder_get_total_samples_estimate()
+			virtual bool     get_limit_min_bitrate() const;            ///< See FLAC__stream_encoder_get_limit_min_bitrate()
 
 			virtual ::FLAC__StreamEncoderInitStatus init();            ///< See FLAC__stream_encoder_init_stream()
 			virtual ::FLAC__StreamEncoderInitStatus init_ogg();        ///< See FLAC__stream_encoder_init_ogg_stream()

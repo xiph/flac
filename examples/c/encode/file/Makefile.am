@@ -1,6 +1,6 @@
 #  example_c_encode_file - Simple FLAC file encoder using libFLAC
 #  Copyright (C) 2007-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -17,11 +17,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite \
-	example_c_encode_file.vcproj \
-	example_c_encode_file.vcxproj \
-	example_c_encode_file.vcxproj.filters
+	CMakeLists.txt
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 noinst_PROGRAMS = example_c_encode_file

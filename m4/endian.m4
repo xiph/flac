@@ -1,4 +1,4 @@
-dnl Copyright (C) 2012-2016  Xiph.org Foundation
+dnl Copyright (C) 2012-2022  Xiph.Org Foundation
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted provided that the following conditions
@@ -36,7 +36,7 @@ dnl @author Erik de Castro Lopo <erikd@mega-nerd.com>
 dnl
 dnl Majority written from scratch to replace the standard autoconf macro
 dnl AC_C_BIGENDIAN. Only part remaining from the original is the invocation
-dnl of the AC_TRY_RUN macro.
+dnl of the AC_RUN_IFELSE([AC_LANG_SOURCE([[]])],[],[],[]) macro.
 dnl
 dnl Find endian-ness in the following way:
 dnl    1) Look in <endian.h>.
@@ -55,37 +55,33 @@ if test x$ac_cv_header_endian_h = xyes ; then
 
 	# First try <endian.h> which should set BYTE_ORDER.
 
-	[AC_TRY_LINK([
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 		#include <endian.h>
 		#if BYTE_ORDER != LITTLE_ENDIAN
 			not big endian
 		#endif
-		], return 0 ;,
-			ac_cv_c_byte_order=little
-		)]
+		]], [[return 0 ;]])],[ac_cv_c_byte_order=little
+		],[])]
 
-	[AC_TRY_LINK([
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 		#include <endian.h>
 		#if BYTE_ORDER != BIG_ENDIAN
 			not big endian
 		#endif
-		], return 0 ;,
-			ac_cv_c_byte_order=big
-		)]
+		]], [[return 0 ;]])],[ac_cv_c_byte_order=big
+		],[])]
 
 	fi
 
 if test $ac_cv_c_byte_order = unknown ; then
 
-	[AC_TRY_LINK([
+	[AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 		#include <sys/types.h>
 		#include <sys/param.h>
 		#if !BYTE_ORDER || !BIG_ENDIAN || !LITTLE_ENDIAN
 			bogus endian macros
 		#endif
-		], return 0 ;,
-
-		[AC_TRY_LINK([
+		]], [[return 0 ;]])],[_au_m4_changequote([,])AC_TRY_LINK([
 			#include <sys/types.h>
 			#include <sys/param.h>
 			#if BYTE_ORDER != LITTLE_ENDIAN
@@ -93,9 +89,9 @@ if test $ac_cv_c_byte_order = unknown ; then
 			#endif
 			], return 0 ;,
 				ac_cv_c_byte_order=little
-			)]
+			)
 
-		[AC_TRY_LINK([
+		_au_m4_changequote([,])AC_TRY_LINK([
 			#include <sys/types.h>
 			#include <sys/param.h>
 			#if BYTE_ORDER != LITTLE_ENDIAN
@@ -103,9 +99,9 @@ if test $ac_cv_c_byte_order = unknown ; then
 			#endif
 			], return 0 ;,
 				ac_cv_c_byte_order=little
-			)]
+			)
 
-		)]
+		],[])]
 
  	fi
 
@@ -126,8 +122,7 @@ if test $ac_cv_c_byte_order = unknown ; then
 			esac
 		]
 	else
-		AC_TRY_RUN(
-		[[
+		AC_RUN_IFELSE([AC_LANG_SOURCE([[[
 		int main (void)
 		{	/* Are we little or big endian?  From Harbison&Steele.  */
 			union
@@ -137,11 +132,9 @@ if test $ac_cv_c_byte_order = unknown ; then
 			u.l = 1 ;
 			return (u.c [sizeof (long) - 1] == 1);
 			}
-			]], , ac_cv_c_byte_order=big,
-			)
+			]]])],[],[ac_cv_c_byte_order=big],[])
 
-		AC_TRY_RUN(
-		[[int main (void)
+		AC_RUN_IFELSE([AC_LANG_SOURCE([[[int main (void)
 		{	/* Are we little or big endian?  From Harbison&Steele.  */
 			union
 			{	long l ;
@@ -149,8 +142,7 @@ if test $ac_cv_c_byte_order = unknown ; then
 			} u ;
 			u.l = 1 ;
 			return (u.c [0] == 1);
-			}]], , ac_cv_c_byte_order=little,
-			)
+			}]]])],[],[ac_cv_c_byte_order=little],[])
 		fi
 	fi
 

@@ -1,5 +1,5 @@
 /* grabbag - Convenience lib for various routines common to several tools
- * Copyright (C) 2013-2016  Xiph.org Foundation
+ * Copyright (C) 2013-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

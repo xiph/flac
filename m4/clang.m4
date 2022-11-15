@@ -16,16 +16,13 @@ AC_DEFUN([XIPH_C_COMPILER_IS_CLANG],
 [AC_CACHE_CHECK(whether we are using the CLANG C compiler,
 	xiph_cv_c_compiler_clang,
 	[	AC_LANG_ASSERT(C)
-		AC_TRY_LINK([
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 			#include <stdio.h>
-			],
-			[
+			]], [[
 			#ifndef __clang__
 				This is not clang!
 			#endif
-			],
-		xiph_cv_c_compiler_clang=yes,
-		xiph_cv_c_compiler_clang=no
-		])
+			]])],[xiph_cv_c_compiler_clang=yes],[xiph_cv_c_compiler_clang=no
+		])]
 	)]
 )

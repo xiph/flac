@@ -1,6 +1,6 @@
 /* metaflac - Command-line FLAC metadata editor
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,6 +33,7 @@
 #include "share/compat.h"
 
 static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC__bool *needs_write);
+static FLAC__bool remove_vc_all_except(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_field(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw);
@@ -90,6 +91,9 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bo
 		case OP__REMOVE_VC_ALL:
 			ok = remove_vc_all(filename, block, needs_write);
 			break;
+		case OP__REMOVE_VC_ALL_EXCEPT:
+			ok = remove_vc_all_except(filename, block, operation->argument.vc_field_name.value, needs_write);
+			break;
 		case OP__REMOVE_VC_FIELD:
 			ok = remove_vc_field(filename, block, operation->argument.vc_field_name.value, needs_write);
 			break;
@@ -139,6 +143,51 @@ FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *block, FLAC
 	}
 	else {
 		FLAC__ASSERT(block->data.vorbis_comment.num_comments == 0);
+	}
+
+	return true;
+}
+
+FLAC__bool remove_vc_all_except(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write)
+{
+	char * field_names[200];
+	uint32_t field_name_length, i;
+	int j, num_field_names;
+
+	FLAC__ASSERT(0 != block);
+	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
+	FLAC__ASSERT(0 != needs_write);
+
+	field_name_length = strlen(field_name);
+	field_names[0] = (void *)field_name;
+
+	for(num_field_names = 1; num_field_names < 200; num_field_names++) {
+		char * separator = strchr(field_names[num_field_names-1], '=');
+		if(separator == 0 || separator >= field_name + field_name_length)
+			break;
+		field_names[num_field_names] = separator+1;
+	}
+
+	if(num_field_names > 200) {
+		flac_fprintf(stderr, "%s: ERROR: too many field names\n", filename);
+		return false;
+	}
+
+	for(i = 0; i < block->data.vorbis_comment.num_comments; ) {
+		int field_name_found = false;
+		for(j = 0; j < num_field_names; j++) {
+			const uint32_t length = (j == (num_field_names - 1))?(uint32_t)strlen(field_names[j]):(uint32_t)(strchr(field_names[j],'=')-field_names[j]);
+			if(FLAC__metadata_object_vorbiscomment_entry_matches(block->data.vorbis_comment.comments[i], field_names[j], length)) {
+				field_name_found = true;
+				break;
+			}
+		}
+		if(!field_name_found) {
+			FLAC__metadata_object_vorbiscomment_delete_comment(block, i);
+			*needs_write = true;
+		}
+		else
+			i++;
 	}
 
 	return true;

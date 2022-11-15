@@ -1,6 +1,6 @@
 /* libFLAC++ - Free Lossless Audio Codec library
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -274,7 +274,7 @@ namespace FLAC {
 
 		/** STREAMINFO metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_streaminfo">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_streaminfo">format specification</A>.
 		 */
 		class FLACPP_API StreamInfo : public Prototype {
 		public:
@@ -323,7 +323,7 @@ namespace FLAC {
 			//@}
 
 			//@{
-			/** See <A HREF="../format.html#metadata_block_streaminfo">format specification</A>. */
+			/** See <A HREF="https://xiph.org/flac/format.html#metadata_block_streaminfo">format specification</A>. */
 			uint32_t get_min_blocksize() const;
 			uint32_t get_max_blocksize() const;
 			uint32_t get_min_framesize() const;
@@ -348,7 +348,7 @@ namespace FLAC {
 
 		/** PADDING metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_padding">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_padding">format specification</A>.
 		 */
 		class FLACPP_API Padding : public Prototype {
 		public:
@@ -407,7 +407,7 @@ namespace FLAC {
 
 		/** APPLICATION metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_application">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_application">format specification</A>.
 		 */
 		class FLACPP_API Application : public Prototype {
 		public:
@@ -466,7 +466,7 @@ namespace FLAC {
 
 		/** SEEKTABLE metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_seektable">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_seektable">format specification</A>.
 		 */
 		class FLACPP_API SeekTable : public Prototype {
 		public:
@@ -553,7 +553,7 @@ namespace FLAC {
 
 		/** VORBIS_COMMENT metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_vorbis_comment">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_vorbis_comment">format specification</A>.
 		 */
 		class FLACPP_API VorbisComment : public Prototype {
 		public:
@@ -720,7 +720,7 @@ namespace FLAC {
 
 		/** CUESHEET metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_cuesheet">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_cuesheet">format specification</A>.
 		 */
 		class FLACPP_API CueSheet : public Prototype {
 		public:
@@ -859,7 +859,7 @@ namespace FLAC {
 
 		/** PICTURE metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
-		 *  and the <A HREF="../format.html#metadata_block_picture">format specification</A>.
+		 *  and the <A HREF="https://xiph.org/flac/format.html#metadata_block_picture">format specification</A>.
 		 */
 		class FLACPP_API Picture : public Prototype {
 		public:

@@ -1,6 +1,6 @@
 /* libFLAC++ - Free Lossless Audio Codec library
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -198,26 +198,23 @@ namespace FLAC {
 		bool Stream::set_metadata(FLAC::Metadata::Prototype **metadata, uint32_t num_blocks)
 		{
 			FLAC__ASSERT(is_valid());
-#ifndef HAVE_CXX_VARARRAYS
-			// some compilers (MSVC++, Borland C, SunPro, some GCCs w/ -pedantic) can't handle:
-			// ::FLAC__StreamMetadata *m[num_blocks];
-			// so we do this ugly workaround
+			// because C++ doesn't have VLA's (variable length arrays)
+			// this ugly workaround is needed
 			::FLAC__StreamMetadata **m = new ::FLAC__StreamMetadata*[num_blocks];
-#else
-			::FLAC__StreamMetadata *m[num_blocks];
-#endif
 			for(uint32_t i = 0; i < num_blocks; i++) {
 				// we can get away with the const_cast since we know the encoder will only correct the is_last flags
 				m[i] = const_cast< ::FLAC__StreamMetadata*>(static_cast<const ::FLAC__StreamMetadata*>(*metadata[i]));
 			}
-#ifndef HAVE_CXX_VARARRAYS
 			// complete the hack
 			const bool ok = static_cast<bool>(::FLAC__stream_encoder_set_metadata(encoder_, m, num_blocks));
 			delete [] m;
 			return ok;
-#else
-			return static_cast<bool>(::FLAC__stream_encoder_set_metadata(encoder_, m, num_blocks));
-#endif
+		}
+
+		bool Stream::set_limit_min_bitrate(bool value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_set_limit_min_bitrate(encoder_, value));
 		}
 
 		Stream::State Stream::get_state() const
@@ -338,6 +335,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_total_samples_estimate(encoder_);
+		}
+
+		bool Stream::get_limit_min_bitrate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_get_limit_min_bitrate(encoder_));
 		}
 
 		::FLAC__StreamEncoderInitStatus Stream::init()

@@ -1,6 +1,6 @@
 #  test_libFLAC++ - Unit tester for libFLAC++
 #  Copyright (C) 2002-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -17,11 +17,7 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite \
-	test_libFLAC++.vcproj \
-	test_libFLAC++.vcxproj \
-	test_libFLAC++.vcxproj.filters
+	CMakeLists.txt
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 check_PROGRAMS = test_libFLAC++

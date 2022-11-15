@@ -1,6 +1,6 @@
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -16,20 +16,18 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-if FLaC__HAS_XMMS
-XMMS_DIRS = plugin_common plugin_xmms
-endif
-
 if FLaC__WITH_CPPLIBS
 CPPLIBS_DIRS = libFLAC++ test_libFLAC++
+endif
+
+if FLaC__WITH_PROGRAMS
+PROGRAMS_DIRS = flac metaflac
 endif
 
 SUBDIRS = \
 	libFLAC \
 	share \
-	flac \
-	metaflac \
-	$(XMMS_DIRS) \
+	$(PROGRAMS_DIRS) \
 	test_grabbag \
 	test_libs_common \
 	test_libFLAC \
@@ -39,5 +37,4 @@ SUBDIRS = \
 	$(CPPLIBS_DIRS)
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite
+	CMakeLists.txt

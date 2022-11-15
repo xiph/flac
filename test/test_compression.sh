@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 #  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2012-2016  Xiph.Org Foundation
+#  Copyright (C) 2012-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -19,11 +19,11 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
 
-echo "Using FLAC binary :" $(which flac)
+printf "Using FLAC binary : %s\n" "$(which flac)"
 
-date=`date "+%Y%m%dT%H%M%S"`
+date="$(date "+%Y%m%dT%H%M%S")"
 fname="comp${date}.flac"
 
 last_k=0
@@ -40,7 +40,7 @@ for k in 0 1 2 3 4 5 6 7 8 ; do
 		exit 1
 		fi
 	# Need this because OSX's 'wc -c' returns a number with leading whitespace.
-	last_size=$((${size}+10))
+	last_size=$((size+10))
 	last_k=${k}
 	rm -f ${fname}
 	done

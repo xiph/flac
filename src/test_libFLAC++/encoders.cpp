@@ -1,6 +1,6 @@
 /* test_libFLAC++ - Unit tester for libFLAC++
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -322,6 +322,11 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
+	printf("testing set_limit_min_bitrate()... ");
+	if(!encoder->set_limit_min_bitrate(true))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
 	if(layer < LAYER_FILENAME) {
 		printf("opening file for FLAC output... ");
 		file = ::flac_fopen(flacfilename(is_ogg), "w+b");
@@ -494,6 +499,13 @@ static bool test_stream_encoder(Layer layer, bool is_ogg)
 	printf("testing get_total_samples_estimate()... ");
 	if(encoder->get_total_samples_estimate() != streaminfo_.data.stream_info.total_samples) {
 		printf("FAILED, expected %" PRIu64 ", got %" PRIu64 "\n", streaminfo_.data.stream_info.total_samples, encoder->get_total_samples_estimate());
+		return false;
+	}
+	printf("OK\n");
+	
+	printf("testing get_limit_min_bitrate()... ");
+	if(encoder->get_limit_min_bitrate() != true) {
+		printf("FAILED, expected true, got false\n");
 		return false;
 	}
 	printf("OK\n");

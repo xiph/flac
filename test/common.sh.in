@@ -1,6 +1,6 @@
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -19,20 +19,20 @@
 export MALLOC_CHECK_=3
 export MALLOC_PERTURB_=$((RANDOM % 255 + 1))
 
-if [ x = x"$1" ] ; then
+if [ -z "$1" ] ; then
 	BUILD=debug
 else
 	BUILD="$1"
 fi
 
 LD_LIBRARY_PATH=../objs/$BUILD/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../objs/$BUILD/lib:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/libFLAC/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/getopt/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/grabbag/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH
-LD_LIBRARY_PATH=`pwd`/../src/share/utf8/.libs:$LD_LIBRARY_PATH
+LD_LIBRARY_PATH="$(pwd)/../objs/$BUILD/lib:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/libFLAC/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/getopt/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/grabbag/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/replaygain_analysis/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/replaygain_synthesis/.libs:$LD_LIBRARY_PATH"
+LD_LIBRARY_PATH="$(pwd)/../src/share/utf8/.libs:$LD_LIBRARY_PATH"
 LD_LIBRARY_PATH=../src/libFLAC/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/libFLAC++/.libs:$LD_LIBRARY_PATH
 LD_LIBRARY_PATH=../src/share/getopt/.libs:$LD_LIBRARY_PATH
@@ -43,12 +43,16 @@ LD_LIBRARY_PATH=../src/share/utf8/.libs:$LD_LIBRARY_PATH
 
 export LD_LIBRARY_PATH
 
+PATH="$(pwd)/../objs/$CMAKE_CONFIG_TYPE:$PATH"
+PATH="$(pwd)/../objs:$PATH"
+
 EXE=@EXEEXT@
 
 # Needed for building out-of-tree where source files are in the $top_srcdir tree
 # and build products in the $top_builddir tree.
 top_srcdir=@top_srcdir@
 top_builddir=@top_builddir@
+git_commit_version_hash=@GIT_COMMIT_VERSION_HASH@
 
 # Set `is_win` variable which is used in other scripts that source this one.
 if test $(env | grep -ic '^comspec=') != 0 ; then

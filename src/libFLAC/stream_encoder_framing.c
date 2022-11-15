@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -96,9 +96,13 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
 			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.bits_per_sample-1, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
 				return false;
-			FLAC__ASSERT(metadata->data.stream_info.total_samples < (FLAC__U64L(1) << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN));
-			if(!FLAC__bitwriter_write_raw_uint64(bw, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
-				return false;
+			if(metadata->data.stream_info.total_samples >= (FLAC__U64L(1) << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN)){
+				if(!FLAC__bitwriter_write_raw_uint64(bw, 0, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
+					return false;
+			}else{
+				if(!FLAC__bitwriter_write_raw_uint64(bw, metadata->data.stream_info.total_samples, FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN))
+					return false;
+			}
 			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.stream_info.md5sum, 16))
 				return false;
 			break;
@@ -278,7 +282,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 		default:
 			if(header->sample_rate <= 255000 && header->sample_rate % 1000 == 0)
 				sample_rate_hint = u = 12;
-			else if(header->sample_rate % 10 == 0)
+			else if(header->sample_rate <= 655350 && header->sample_rate % 10 == 0)
 				sample_rate_hint = u = 14;
 			else if(header->sample_rate <= 0xffff)
 				sample_rate_hint = u = 13;
@@ -319,6 +323,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 		case 16: u = 4; break;
 		case 20: u = 5; break;
 		case 24: u = 6; break;
+		case 32: u = 7; break;
 		default: u = 0; break;
 	}
 	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN))
@@ -371,7 +376,7 @@ FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, 
 	ok =
 		FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
 		(wasted_bits? FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1) : true) &&
-		FLAC__bitwriter_write_raw_int32(bw, subframe->value, subframe_bps)
+		FLAC__bitwriter_write_raw_int64(bw, subframe->value, subframe_bps)
 	;
 
 	return ok;
@@ -388,7 +393,7 @@ FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, uint32
 			return false;
 
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitwriter_write_raw_int32(bw, subframe->warmup[i], subframe_bps))
+		if(!FLAC__bitwriter_write_raw_int64(bw, subframe->warmup[i], subframe_bps))
 			return false;
 
 	if(!add_entropy_coding_method_(bw, &subframe->entropy_coding_method))
@@ -426,7 +431,7 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, uint32_t r
 			return false;
 
 	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitwriter_write_raw_int32(bw, subframe->warmup[i], subframe_bps))
+		if(!FLAC__bitwriter_write_raw_int64(bw, subframe->warmup[i], subframe_bps))
 			return false;
 
 	if(!FLAC__bitwriter_write_raw_uint32(bw, subframe->qlp_coeff_precision-1, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
@@ -464,7 +469,6 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, uint32_t r
 FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, uint32_t samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw)
 {
 	uint32_t i;
-	const FLAC__int32 *signal = subframe->data;
 
 	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
@@ -472,9 +476,24 @@ FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, 
 		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
 			return false;
 
-	for(i = 0; i < samples; i++)
-		if(!FLAC__bitwriter_write_raw_int32(bw, signal[i], subframe_bps))
-			return false;
+	if(subframe->data_type == FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32) {
+		const FLAC__int32 *signal = subframe->data.int32;
+
+		FLAC__ASSERT(subframe_bps < 33);
+
+		for(i = 0; i < samples; i++)
+			if(!FLAC__bitwriter_write_raw_int32(bw, signal[i], subframe_bps))
+				return false;
+	}
+	else {
+		const FLAC__int64 *signal = subframe->data.int64;
+
+		FLAC__ASSERT(subframe_bps == 33);
+
+		for(i = 0; i < samples; i++)
+			if(!FLAC__bitwriter_write_raw_int64(bw, (FLAC__int64)signal[i], subframe_bps))
+				return false;
+	}
 
 	return true;
 }

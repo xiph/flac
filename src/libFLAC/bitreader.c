@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2018  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -111,6 +111,9 @@ struct FLAC__BitReader {
 	uint32_t read_crc16; /* the running frame CRC */
 	uint32_t crc16_offset; /* the number of words in the current buffer that should not be CRC'd */
 	uint32_t crc16_align; /* the number of bits in the current consumed word that should not be CRC'd */
+	FLAC__bool read_limit_set; /* whether reads are limited */
+	uint32_t read_limit; /* the remaining size of what can be read */
+	uint32_t last_seen_framesync; /* the location of the last seen framesync, if it is in the buffer, in bits from front of buffer */
 	FLAC__BitReaderReadCallback read_callback;
 	void *client_data;
 };
@@ -155,6 +158,13 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	uint32_t start, end;
 	size_t bytes;
 	FLAC__byte *target;
+#if WORDS_BIGENDIAN
+#else
+	brword preswap_backup;
+#endif
+
+	/* invalidate last seen framesync */
+	br->last_seen_framesync = -1;
 
 	/* first shift the unconsumed buffer data toward the front as much as possible */
 	if(br->consumed_words > 0) {
@@ -186,6 +196,7 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	 */
 #if WORDS_BIGENDIAN
 #else
+	preswap_backup = br->buffer[br->words];
 	if(br->bytes)
 		br->buffer[br->words] = SWAP_BE_WORD_TO_HOST(br->buffer[br->words]);
 #endif
@@ -198,8 +209,16 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	 */
 
 	/* read in the data; note that the callback may return a smaller number of bytes */
-	if(!br->read_callback(target, &bytes, br->client_data))
+	if(!br->read_callback(target, &bytes, br->client_data)){
+		/* Despite the read callback failing, the data in the target
+		 * might be used later, when the buffer is rewound. Therefore
+		 * we revert the swap that was just done */
+#if WORDS_BIGENDIAN
+#else
+		br->buffer[br->words] = preswap_backup;
+#endif
 		return false;
+	}
 
 	/* after reading bytes 66 77 88 99 AA BB CC DD EE FF from the client:
 	 *   bitstream :  11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF
@@ -275,6 +294,9 @@ FLAC__bool FLAC__bitreader_init(FLAC__BitReader *br, FLAC__BitReaderReadCallback
 		return false;
 	br->read_callback = rcb;
 	br->client_data = cd;
+	br->read_limit_set = false;
+	br->read_limit = -1;
+	br->last_seen_framesync = -1;
 
 	return true;
 }
@@ -291,13 +313,37 @@ void FLAC__bitreader_free(FLAC__BitReader *br)
 	br->consumed_words = br->consumed_bits = 0;
 	br->read_callback = 0;
 	br->client_data = 0;
+	br->read_limit_set = false;
+	br->read_limit = -1;
+	br->last_seen_framesync = -1;
 }
 
 FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br)
 {
 	br->words = br->bytes = 0;
 	br->consumed_words = br->consumed_bits = 0;
+	br->read_limit_set = false;
+	br->read_limit = -1;
+	br->last_seen_framesync = -1;
 	return true;
+}
+
+void FLAC__bitreader_set_framesync_location(FLAC__BitReader *br)
+{
+	br->last_seen_framesync = br->consumed_words * FLAC__BYTES_PER_WORD + br->consumed_bits / 8;
+}
+
+FLAC__bool FLAC__bitreader_rewind_to_after_last_seen_framesync(FLAC__BitReader *br)
+{
+	if(br->last_seen_framesync == (uint32_t)-1) {
+		br->consumed_words = br->consumed_bits = 0;
+		return false;
+	}
+	else {
+		br->consumed_words = (br->last_seen_framesync + 1) / FLAC__BYTES_PER_WORD;
+		br->consumed_bits  = ((br->last_seen_framesync + 1) % FLAC__BYTES_PER_WORD) * 8;
+		return true;
+	}
 }
 
 void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out)
@@ -376,6 +422,28 @@ inline uint32_t FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader 
 	return (br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits;
 }
 
+void FLAC__bitreader_set_limit(FLAC__BitReader *br, uint32_t limit)
+{
+	br->read_limit = limit;
+	br->read_limit_set = true;
+}
+
+void FLAC__bitreader_remove_limit(FLAC__BitReader *br)
+{
+	br->read_limit_set = false;
+	br->read_limit = -1;
+}
+
+uint32_t FLAC__bitreader_limit_remaining(FLAC__BitReader *br)
+{
+	FLAC__ASSERT(br->read_limit_set);
+	return br->read_limit;
+}
+void FLAC__bitreader_limit_invalidate(FLAC__BitReader *br)
+{
+	br->read_limit = -1;
+}
+
 FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *val, uint32_t bits)
 {
 	FLAC__ASSERT(0 != br);
@@ -391,6 +459,15 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
 	if(bits == 0) { /* OPT: investigate if this can ever happen, maybe change to assertion */
 		*val = 0;
 		return true;
+	}
+
+	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
+		if(br->read_limit < bits) {
+			br->read_limit = -1;
+			return false;
+		}
+		else
+			br->read_limit -= bits;
 	}
 
 	while((br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits < bits) {
@@ -465,7 +542,7 @@ FLAC__bool FLAC__bitreader_read_raw_int32(FLAC__BitReader *br, FLAC__int32 *val,
 		return false;
 	/* sign-extend *val assuming it is currently bits wide. */
 	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
-	mask = bits >= 33 ? 0 : 1u << (bits - 1);
+	mask = bits >= 33 ? 0 : 1lu << (bits - 1);
 	*val = (uval ^ mask) - mask;
 	return true;
 }
@@ -488,6 +565,19 @@ FLAC__bool FLAC__bitreader_read_raw_uint64(FLAC__BitReader *br, FLAC__uint64 *va
 			return false;
 		*val = lo;
 	}
+	return true;
+}
+
+FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val, uint32_t bits)
+{
+	FLAC__uint64 uval, mask;
+	/* OPT: inline raw uint64 code here, or make into a macro if possible in the .h file */
+	if (bits < 1 || ! FLAC__bitreader_read_raw_uint64(br, &uval, bits))
+		return false;
+	/* sign-extend *val assuming it is currently bits wide. */
+	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
+	mask = bits >= 65 ? 0 : 1llu << (bits - 1);
+	*val = (uval ^ mask) - mask;
 	return true;
 }
 
@@ -559,6 +649,13 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 	FLAC__ASSERT(0 != br->buffer);
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
 
+	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
+		if(br->read_limit < nvals*8){
+			br->read_limit = -1;
+			return false;
+		}
+	}
+
 	/* step 1: skip over partial head word to get word aligned */
 	while(nvals && br->consumed_bits) { /* i.e. run until we read 'nvals' bytes or we hit the end of the head word */
 		if(!FLAC__bitreader_read_raw_uint32(br, &x, 8))
@@ -567,11 +664,14 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 	}
 	if(0 == nvals)
 		return true;
+
 	/* step 2: skip whole words in chunks */
 	while(nvals >= FLAC__BYTES_PER_WORD) {
 		if(br->consumed_words < br->words) {
 			br->consumed_words++;
 			nvals -= FLAC__BYTES_PER_WORD;
+			if(br->read_limit_set)
+				br->read_limit -= FLAC__BITS_PER_WORD;
 		}
 		else if(!bitreader_read_from_client_(br))
 			return false;
@@ -593,6 +693,13 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 	FLAC__ASSERT(0 != br);
 	FLAC__ASSERT(0 != br->buffer);
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
+
+	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
+		if(br->read_limit < nvals*8){
+			br->read_limit = -1;
+			return false;
+		}
+	}
 
 	/* step 1: read from partial head word to get word aligned */
 	while(nvals && br->consumed_bits) { /* i.e. run until we read 'nvals' bytes or we hit the end of the head word */
@@ -627,6 +734,8 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 #endif
 			val += FLAC__BYTES_PER_WORD;
 			nvals -= FLAC__BYTES_PER_WORD;
+			if(br->read_limit_set)
+				br->read_limit -= FLAC__BITS_PER_WORD;
 		}
 		else if(!bitreader_read_from_client_(br))
 			return false;
@@ -721,6 +830,7 @@ FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, uint32_t *va
 }
 #endif
 
+#if 0 /* unused */
 FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint32_t parameter)
 {
 	FLAC__uint32 lsbs = 0, msbs = 0;
@@ -747,6 +857,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint3
 
 	return true;
 }
+#endif
 
 /* this is by far the most heavily used reader call.  it ain't pretty but it's fast */
 FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter)
@@ -754,7 +865,7 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 	/* try and get br->consumed_words and br->consumed_bits into register;
 	 * must remember to flush them back to *br before calling other
 	 * bitreader functions that use them, and before returning */
-	uint32_t cwords, words, lsbs, msbs, x, y;
+	uint32_t cwords, words, lsbs, msbs, x, y, limit;
 	uint32_t ucbits; /* keep track of the number of unconsumed bits in word */
 	brword b;
 	int *val, *end;
@@ -766,6 +877,8 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 	FLAC__ASSERT(parameter < 32);
 	/* the above two asserts also guarantee that the binary part never straddles more than 2 words, so we don't have to loop to read it */
 
+	limit = UINT32_MAX >> parameter; /* Maximal msbs that can occur with residual bounded to int32_t */
+
 	val = vals;
 	end = vals + nvals;
 
@@ -774,7 +887,8 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 			/* read the unary MSBs and end bit */
 			if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
 				return false;
-
+			/* Checking limit here would be overzealous: coding UINT32_MAX
+			 * with parameter == 0 would take 4GiB */
 			*val++ = (int)(msbs >> 1) ^ -(int)(msbs & 1);
 		}
 
@@ -814,6 +928,9 @@ FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[
 		b <<= 1; /* account for stop bit */
 		ucbits = (ucbits - x - 1) % FLAC__BITS_PER_WORD;
 		msbs = x;
+
+		if(x > limit)
+			return false;
 
 		/* read the binary LSBs */
 		x = (FLAC__uint32)(b >> (FLAC__BITS_PER_WORD - parameter)); /* parameter < 32, so we can cast to 32-bit uint32_t */

@@ -1,6 +1,6 @@
 #  test_cuesheet - Simple tester for cuesheet routines in grabbag
 #  Copyright (C) 2002-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -17,19 +17,21 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite \
-	test_cuesheet.vcproj \
-	test_cuesheet.vcxproj \
-	test_cuesheet.vcxproj.filters
+	CMakeLists.txt
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 check_PROGRAMS = test_cuesheet
 test_cuesheet_SOURCES = \
 	main.c
+
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 test_cuesheet_LDADD = \
 	$(top_builddir)/src/share/grabbag/libgrabbag.la \
 	$(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
-	$(top_builddir)/src/libFLAC/libFLAC.la
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	$(win_utf8_lib)
 
 CLEANFILES = test_cuesheet.exe

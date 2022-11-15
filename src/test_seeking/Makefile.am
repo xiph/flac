@@ -1,6 +1,6 @@
 #  test_seeking - Seeking tester for libFLAC
 #  Copyright (C) 2004-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -17,19 +17,21 @@
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
 EXTRA_DIST = \
-	CMakeLists.txt \
-	Makefile.lite \
-	test_seeking.vcproj \
-	test_seeking.vcxproj \
-	test_seeking.vcxproj.filters
+	CMakeLists.txt
 
 AM_CFLAGS = @OGG_CFLAGS@
 
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 
 check_PROGRAMS = test_seeking
+
+if OS_IS_WINDOWS
+win_utf8_lib = $(top_builddir)/src/share/win_utf8_io/libwin_utf8_io.la
+endif
+
 test_seeking_LDADD = \
-	$(top_builddir)/src/libFLAC/libFLAC.la
+	$(top_builddir)/src/libFLAC/libFLAC.la \
+	$(win_utf8_lib)
 
 test_seeking_SOURCES = \
 	main.c

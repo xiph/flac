@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2004-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -168,12 +168,12 @@ typedef int (*FLAC__IOCallback_Close) (FLAC__IOHandle handle);
  *  a data source is not seekable by setting the \a seek field to \c NULL.
  */
 typedef struct {
-	FLAC__IOCallback_Read read;
-	FLAC__IOCallback_Write write;
-	FLAC__IOCallback_Seek seek;
-	FLAC__IOCallback_Tell tell;
-	FLAC__IOCallback_Eof eof;
-	FLAC__IOCallback_Close close;
+	FLAC__IOCallback_Read read;   /**< See FLAC__IOCallbacks */
+	FLAC__IOCallback_Write write; /**< See FLAC__IOCallbacks */
+	FLAC__IOCallback_Seek seek;   /**< See FLAC__IOCallbacks */
+	FLAC__IOCallback_Tell tell;   /**< See FLAC__IOCallbacks */
+	FLAC__IOCallback_Eof eof;     /**< See FLAC__IOCallbacks */
+	FLAC__IOCallback_Close close; /**< See FLAC__IOCallbacks */
 } FLAC__IOCallbacks;
 
 /* \} */

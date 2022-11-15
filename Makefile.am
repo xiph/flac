@@ -1,6 +1,6 @@
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -31,7 +31,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = doc include m4 man src test build microbench oss-fuzz
+SUBDIRS = doc include m4 man src test microbench oss-fuzz
 
 if EXAMPLES
 SUBDIRS += examples
@@ -41,22 +41,25 @@ EXTRA_DIST = \
 	CMakeLists.txt \
 	config.cmake.h.in \
 	flac-config.cmake.in \
+	cmake/CheckA64NEON.c.in \
+	cmake/CheckA64NEON.cmake \
+	cmake/CheckAttribute.c.in \
+	cmake/CheckAttribute.cmake \
+	cmake/CheckCPUArch.c.in \
+	cmake/CheckCPUArch.cmake \
+	cmake/CheckVSX.c.in \
+	cmake/CheckVSX.cmake \
 	cmake/FindOgg.cmake \
 	cmake/UseSystemExtensions.cmake \
-	cmake/CheckCPUArch.cmake \
-	cmake/CheckCPUArch.c.in \
+	CHANGELOG.md \
 	COPYING.FDL \
 	COPYING.GPL \
 	COPYING.LGPL \
 	COPYING.Xiph \
-	FLAC.sln \
-	FLAC-vs2005.sln \
-	Makefile.lite \
-	Makefile.deps \
+	README.md \
 	autogen.sh \
 	config.rpath \
 	depcomp \
-	ltmain.sh \
-	strip_non_asm_libtool_args.sh
+	ltmain.sh
 
 CLEANFILES = *~

@@ -1,6 +1,6 @@
 /* grabbag - Convenience lib for various routines common to several tools
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -47,6 +47,11 @@
 #undef local_max
 #endif
 #define local_max(a,b) ((a)>(b)?(a):(b))
+
+#ifdef abs32
+#undef abs32
+#endif
+#define abs32(a) (((a)==INT32_MIN)?INT32_MAX:abs(a))
 
 static const char *reference_format_ = "%s=%2.1f dB";
 static const char *gain_format_ = "%s=%+2.2f dB";
@@ -134,14 +139,8 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 	FLAC__int32 block_peak = 0, s;
 	uint32_t i, j;
 
-	FLAC__ASSERT(bps >= 4 && bps <= FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE);
-	FLAC__ASSERT(FLAC__MIN_BITS_PER_SAMPLE == 4);
-	/*
-	 * We use abs() on a FLAC__int32 which is undefined for the most negative value.
-	 * If the reference codec ever handles 32bps we will have to write a special
-	 * case here.
-	 */
-	FLAC__ASSERT(FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE < 32);
+	FLAC__ASSERT(bps >= FLAC__MIN_BITS_PER_SAMPLE && bps <= FLAC__MAX_BITS_PER_SAMPLE);
+	FLAC__ASSERT(FLAC__MIN_BITS_PER_SAMPLE == 4 && FLAC__MAX_BITS_PER_SAMPLE == 32);
 
 	if(bps == 16) {
 		if(is_stereo) {
@@ -180,7 +179,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 			}
 		}
 	}
-	else { /* bps must be < 32 according to above assertion */
+	else {
 		const double scale = (
 			(bps > 16)?
 				(double)1. / (double)(1u << (bps - 16)) :
@@ -194,12 +193,12 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
 					lbuffer[i] = (flac_float_t)(scale * (double)s);
-					s = abs(s);
+					s = abs32(s);
 					block_peak = local_max(block_peak, s);
 
 					s = input[1][j];
 					rbuffer[i] = (flac_float_t)(scale * (double)s);
-					s = abs(s);
+					s = abs32(s);
 					block_peak = local_max(block_peak, s);
 				}
 				samples -= n;
@@ -214,7 +213,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 				for(i = 0; i < n; i++, j++) {
 					s = input[0][j];
 					lbuffer[i] = (flac_float_t)(scale * (double)s);
-					s = abs(s);
+					s = abs32(s);
 					block_peak = local_max(block_peak, s);
 				}
 				samples -= n;

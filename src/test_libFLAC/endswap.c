@@ -1,5 +1,5 @@
 /* test_libFLAC - Unit tester for libFLAC
- * Copyright (C) 2014-2016  Xiph.Org Foundation
+ * Copyright (C) 2014-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -43,7 +43,7 @@ FLAC__bool test_endswap(void)
 		uint32_t u32;
 	} data;
 
-	printf("\n+++ libFLAC unit test: endswap (%s endian host)\n\n", CPU_IS_LITTLE_ENDIAN ? "little" : "big");
+	printf("\n+++ libFLAC unit test: endswap (%s endian host)\n\n", CPU_IS_BIG_ENDIAN ? "big" : "little");
 
 	printf("testing ENDSWAP_16 on int16_t ... ");
 	if (((int16_t) ENDSWAP_16(i16)) == i16) {

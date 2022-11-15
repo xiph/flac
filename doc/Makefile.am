@@ -1,6 +1,6 @@
 #  flac - Command-line FLAC encoder/decoder
 #  Copyright (C) 2002-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -16,26 +16,47 @@
 #  with this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-SUBDIRS = . html
+SUBDIRS = . images
 
 if FLaC__HAS_DOXYGEN
 all-local: Doxyfile
 FLAC.tag: Doxyfile
 	doxygen Doxyfile
-	rm -rf html/api
-	mv doxytmp/html html/api
+	rm -rf api
+	mv doxytmp/html api
 	rm -rf doxytmp
-else
-FLAC.tag:
-	touch $@
-	mkdir -p html/api
-endif
 
 doc_DATA = \
 	FLAC.tag
+else
+if FLaC__HAS_PREBUILT_DOXYGEN
+doc_DATA = \
+	FLAC.tag
+endif
+endif
 
-EXTRA_DIST = Doxyfile.in Makefile.lite doxygen.footer.html doxygen.header.html \
-	isoflac.txt $(doc_DATA) CMakeLists.txt
+EXTRA_DIST = Doxyfile.in doxygen.footer.html \
+	isoflac.txt $(doc_DATA) CMakeLists.txt \
+	api
 
+if FLaC__HAS_DOXYGEN
+# The install targets don't copy whole directories so we have to
+# handle 'api/' specially:
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
+	(cd $(builddir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+uninstall-local:
+	rm -rf $(DESTDIR)$(docdir)/api
 distclean-local:
-	rm -rf FLAC.tag html/api doxytmp
+	rm -rf FLAC.tag api doxytmp
+endif
+
+if FLaC__HAS_PREBUILT_DOXYGEN
+# The install targets don't copy whole directories so we have to
+# handle 'api/' specially:
+install-data-local:
+	$(mkinstalldirs) $(DESTDIR)$(docdir)/api
+	(cd $(srcdir)/api && $(INSTALL_DATA) * $(DESTDIR)$(docdir)/api)
+uninstall-local:
+	rm -rf $(DESTDIR)$(docdir)/api
+endif

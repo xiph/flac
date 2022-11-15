@@ -1,6 +1,6 @@
 /* grabbag - Convenience lib for various routines common to several tools
  * Copyright (C) 2006-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -287,7 +287,7 @@ static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj
 	if (size < 0)
 		return error_messages[5];
 
-	if (size >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) /* actual limit is less because of other fields in the PICTURE metadata block */
+	if (size >= (FLAC__off_t)(1u << FLAC__STREAM_METADATA_LENGTH_LEN)) /* actual limit is less because of other fields in the PICTURE metadata block */
 		return error_messages[11];
 
 	if ((buffer = safe_malloc_(size)) == NULL)
@@ -305,7 +305,7 @@ static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj
 	}
 	fclose(file);
 
-	if (!FLAC__metadata_object_picture_set_data(obj, buffer, size, /*copy=*/false))
+	if (!FLAC__metadata_object_picture_set_data(obj, buffer, (FLAC__uint32)size, /*copy=*/false))
 		error_message = error_messages[6];
 	/* try to extract MIME type if user left it blank */
 	else if (*obj->data.picture.mime_type == '\0' && !local__extract_mime_type_(obj))

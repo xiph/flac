@@ -2,7 +2,7 @@
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -29,7 +29,7 @@ test_picture -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_picture ex
 
 run_test_cuesheet ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 test_cuesheet $*" >>test_grabbag.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_cuesheet${EXE} $* 4>>test_grabbag.valgrind.log
 	else
@@ -39,7 +39,7 @@ run_test_cuesheet ()
 
 run_test_picture ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 test_picture $*" >>test_grabbag.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_picture${EXE} $* 4>>test_grabbag.valgrind.log
 	else
@@ -79,8 +79,8 @@ echo "PASSED (results are in $log)"
 log=cuesheet.log
 bad_cuesheets=${top_srcdir}/test/cuesheets/bad.*.cue
 good_cuesheets=${top_srcdir}/test/cuesheets/good.*.cue
-good_leadout=`expr 80 \* 60 \* 44100`
-bad_leadout=`expr $good_leadout + 1`
+good_leadout=$((80 * 60 * 44100))
+bad_leadout=$((good_leadout + 1))
 
 echo "Running test_cuesheet..."
 

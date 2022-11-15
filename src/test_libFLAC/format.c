@@ -1,6 +1,6 @@
 /* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2004-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -65,11 +65,14 @@ static struct {
 	{ 500010 , true , true  },
 	{ 655349 , true , false },
 	{ 655350 , true , true  },
-	{ 655351 , false, false },
-	{ 655360 , false, false },
-	{ 700000 , false, false },
-	{ 700010 , false, false },
-	{ 1000000, false, false },
+	{ 655351 , true , false },
+	{ 655360 , true , false },
+	{ 700000 , true , false },
+	{ 700010 , true , false },
+	{ 705600 , true , false },
+	{ 768000 , true , false },
+	{ 1000000, true , false },
+	{ 1048575, true , false },
 	{ 1100000, false, false }
 };
 

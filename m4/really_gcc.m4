@@ -17,16 +17,13 @@ dnl
 AC_DEFUN([XIPH_GCC_REALLY_IS_GCC],
 [	AC_LANG_ASSERT(C)
 	if test "x$ac_cv_c_compiler_gnu" = "xyes" ; then
-		AC_TRY_LINK([
+		AC_LINK_IFELSE([AC_LANG_PROGRAM([[
 			#include <stdio.h>
-			],
-			[
+			]], [[
 			#ifdef __clang__
 				This is clang!
 			#endif
-			],
-		ac_cv_c_compiler_gnu=yes,
-		ac_cv_c_compiler_gnu=no
-		)
+			]])],[ac_cv_c_compiler_gnu=yes],[ac_cv_c_compiler_gnu=no
+		])
 		fi
 ])

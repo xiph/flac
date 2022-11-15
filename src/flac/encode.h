@@ -1,6 +1,6 @@
 /* flac - Command-line FLAC encoder/decoder
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -85,8 +85,11 @@ typedef struct {
 	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool sector_align;
 	FLAC__bool error_on_compression_fail;
+	FLAC__bool limit_min_bitrate;
+	FLAC__bool relaxed_foreign_metadata_handling;
 
 	FLAC__StreamMetadata *vorbis_comment;
+	FLAC__StreamMetadata *vorbis_comment_with_channel_mask_tag;
 	FLAC__StreamMetadata *pictures[64];
 	unsigned num_pictures;
 

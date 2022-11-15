@@ -1,6 +1,6 @@
 /* flacdiff - Displays where two FLAC streams differ
  * Copyright (C) 2007-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -218,11 +218,11 @@ int main(int argc, char *argv[])
 #endif
 
 	if(argc > 1 && 0 == strcmp(argv[1], "-h")) {
-		printf(usage);
+		printf("%s", usage);
 		return 0;
 	}
 	else if(argc != 3) {
-		fprintf(stderr, usage);
+		fprintf(stderr, "%s", usage);
 		return 255;
 	}
 

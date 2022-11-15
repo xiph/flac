@@ -1,6 +1,6 @@
 /* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -275,6 +275,11 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 		return die_s_("returned false", encoder);
 	printf("OK\n");
 
+	printf("testing FLAC__stream_encoder_set_limit_min_bitrate()... ");
+	if(!FLAC__stream_encoder_set_limit_min_bitrate(encoder, true))
+		return die_s_("returned false", encoder);
+	printf("OK\n");
+
 	if(layer < LAYER_FILENAME) {
 		printf("opening file for FLAC output... ");
 		file = flac_fopen(flacfilename(is_ogg), "w+b");
@@ -455,6 +460,12 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 		return false;
 	}
 	printf("OK\n");
+	
+	printf("testing FLAC__stream_encoder_get_limit_min_bitrate()... ");
+	if(FLAC__stream_encoder_get_limit_min_bitrate(encoder) != true) {
+		printf("FAILED, expected true, got false\n");
+		return false;
+	}
 
 	/* init the dummy sample buffer */
 	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)

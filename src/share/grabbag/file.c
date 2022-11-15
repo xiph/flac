@@ -1,6 +1,6 @@
 /* grabbag - Convenience lib for various routines common to several tools
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -54,7 +54,7 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 	struct flac_stat_s srcstat;
 
 	if(0 == flac_stat(srcpath, &srcstat)) {
-#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L)
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
 		struct timespec srctime[2] = {};
 		srctime[0].tv_sec = srcstat.st_atime;
 		srctime[1].tv_sec = srcstat.st_mtime;
@@ -84,8 +84,10 @@ const char *grabbag__file_get_basename(const char *srcpath)
 
 	p = strrchr(srcpath, '/');
 	if(0 == p) {
+#if defined _WIN32 && !defined __CYGWIN__
 		p = strrchr(srcpath, '\\');
 		if(0 == p)
+#endif
 			return srcpath;
 	}
 	return ++p;
@@ -123,6 +125,10 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 {
 #if defined _WIN32 && !defined __CYGWIN__
+#if !defined(WINAPI_FAMILY_PARTITION)
+#define WINAPI_FAMILY_PARTITION(x) x
+#define WINAPI_PARTITION_DESKTOP 1
+#endif
 	/* see
 	 *  http://www.hydrogenaudio.org/forums/index.php?showtopic=49439&pid=444300&st=0
 	 *  http://msdn.microsoft.com/library/default.asp?url=/library/en-us/fileio/fs/getfileinformationbyhandle.asp
@@ -138,6 +144,7 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 	h2 = CreateFile_utf8(f2, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
 	if(h1 == INVALID_HANDLE_VALUE || h2 == INVALID_HANDLE_VALUE)
 		ok = 0;
+#if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
 	ok &= GetFileInformationByHandle(h1, &info1);
 	ok &= GetFileInformationByHandle(h2, &info2);
 	if(ok)
@@ -146,6 +153,13 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 			info1.nFileIndexHigh == info2.nFileIndexHigh &&
 			info1.nFileIndexLow == info2.nFileIndexLow
 		;
+#else // !WINAPI_PARTITION_DESKTOP
+	FILE_ID_INFO id_info1, id_info2;
+	same = GetFileInformationByHandleEx(h1, FileIdInfo, &id_info1, sizeof (id_info1)) &&
+	       GetFileInformationByHandleEx(h2, FileIdInfo, &id_info2, sizeof (id_info2)) &&
+	       id_info1.VolumeSerialNumber == id_info2.VolumeSerialNumber &&
+	       memcmp(&id_info1.FileId, &id_info2.FileId, sizeof(id_info1.FileId)) == 0;
+#endif // !WINAPI_PARTITION_DESKTOP
 	if(h1 != INVALID_HANDLE_VALUE)
 		CloseHandle(h1);
 	if(h2 != INVALID_HANDLE_VALUE)

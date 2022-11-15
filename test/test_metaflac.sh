@@ -2,7 +2,7 @@
 
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2002-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -20,9 +20,9 @@
 
 . ./common.sh
 
-PATH=`pwd`/../src/flac:$PATH
-PATH=`pwd`/../src/metaflac:$PATH
-PATH=`pwd`/../objs/$BUILD/bin:$PATH
+PATH="$(pwd)/../src/flac:$PATH"
+PATH="$(pwd)/../src/metaflac:$PATH"
+PATH="$(pwd)/../objs/$BUILD/bin:$PATH"
 
 if echo a | (grep -E '(a|b)') >/dev/null 2>&1
 	then EGREP='grep -E'
@@ -37,7 +37,7 @@ metaflac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac 
 
 run_flac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_metaflac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} ${TOTALLY_SILENT} --no-error-on-compression-fail $* 4>>test_metaflac.valgrind.log
 	else
@@ -47,7 +47,7 @@ run_flac ()
 
 run_metaflac ()
 {
-	if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 4>>test_metaflac.valgrind.log
 	else
@@ -60,7 +60,7 @@ run_metaflac_silent ()
 	if [ -z "$SILENT" ] ; then
 		run_metaflac $*
 	else
-		if [ x"$FLAC__TEST_WITH_VALGRIND" = xyes ] ; then
+		if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
 			echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
 			valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 2>/dev/null 4>>test_metaflac.valgrind.log
 		else
@@ -147,7 +147,11 @@ run_metaflac --set-tag="TITLE=He_who_smelt_it_dealt_it" $flacfile
 check_flac
 metaflac_test case06 "--set-tag=TITLE" "--list"
 
-metaflac_test case07 "--show-vendor-tag --show-tag=ARTIST" "--show-vendor-tag --show-tag=ARTIST"
+if [ ! $git_commit_version_hash ] ; then
+	metaflac_test case07 "--show-vendor-tag --show-tag=ARTIST" "--show-vendor-tag --show-tag=ARTIST"
+else
+	echo "test case07 is skipped because version is taken from git"
+fi
 
 run_metaflac --remove-first-tag=ARTIST $flacfile
 check_flac
@@ -313,7 +317,7 @@ for f in \
 	run_metaflac --import-picture-from="|image/gif|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 for f in \
 	0.jpg \
@@ -322,7 +326,7 @@ for f in \
 	run_metaflac --import-picture-from="4|image/jpeg|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 for f in \
 	0.png \
@@ -338,7 +342,7 @@ for f in \
 	run_metaflac --import-picture-from="5|image/png|$f||${top_srcdir}/test/pictures/$f" $flacfile
 	check_flac
 	metaflac_test "case$ncase" "--import-picture-from" "--list"
-	ncase=`expr $ncase + 1`
+	ncase=$((ncase + 1))
 done
 [ $ncase = 60 ] || die "expected case# to be 60"
 
@@ -365,6 +369,11 @@ metaflac_test case61 "--import-picture-from" "--list"
 run_metaflac --import-picture-from="2|image/png|icon|64x64x24|${top_srcdir}/test/pictures/1.png" $flacfile
 check_flac
 metaflac_test case62 "--import-picture-from" "--list"
+run_metaflac --remove-all-tags-except=artist=title $flacfile
+check_flac
+metaflac_test case63 "--remove-all-tags-except=artist=title" "--list"
+metaflac_test case64 "--export-tags-to=-" "--export-tags-to=-"
+metaflac_test case64 "--show-all-tags" "--show-all-tags"
 
 # UNKNOWN blocks
 echo $ECHO_N "Testing FLAC file with unknown metadata... " $ECHO_C

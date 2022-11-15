@@ -1,6 +1,6 @@
 /* flac - Command-line FLAC encoder/decoder
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2016  Xiph.Org Foundation
+ * Copyright (C) 2011-2022  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -35,8 +35,7 @@
 #endif
 #define min(x,y) ((x)<(y)?(x):(y))
 
-
-static const char *FLAC__FOREIGN_METADATA_APPLICATION_ID[3] = { "aiff" , "riff", "w64 " };
+const char *FLAC__FOREIGN_METADATA_APPLICATION_ID[FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS] = { "aiff" , "riff", "w64 " };
 
 static FLAC__uint32 unpack32be_(const FLAC__byte *b)
 {
@@ -75,7 +74,7 @@ static FLAC__bool copy_data_(FILE *fin, FILE *fout, size_t size, const char **er
 
 static FLAC__bool append_block_(foreign_metadata_t *fm, FLAC__off_t offset, FLAC__uint32 size, const char **error)
 {
-	foreign_block_t *fb = safe_realloc_muladd2_(fm->blocks, sizeof(foreign_block_t), /*times (*/fm->num_blocks, /*+*/1/*)*/);
+	foreign_block_t *fb = safe_realloc_nofree_muladd2_(fm->blocks, sizeof(foreign_block_t), /*times (*/fm->num_blocks, /*+*/1/*)*/);
 	if(fb) {
 		fb[fm->num_blocks].offset = offset;
 		fb[fm->num_blocks].size = size;
@@ -204,7 +203,7 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 			eof_offset++;
 	}
 	while(!feof(f)) {
-		FLAC__uint32 size;
+		FLAC__off_t size;
 		if((offset = ftello(f)) < 0) {
 			if(error) *error = "ftello() error (003)";
 			return false;
@@ -256,11 +255,11 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 			}
 			/* unpack the size again since we don't want the padding byte effect */
 			size = unpack32le_(buffer+4);
-			if(size < sizeof(buffer2)) {
+			if(size < (FLAC__off_t)sizeof(buffer2)) {
 				if(error) *error = "invalid RF64 file: \"ds64\" chunk size is < 28 (r03)";
 				return false;
 			}
-			if(size > sizeof(buffer2)) {
+			if(size > (FLAC__off_t)sizeof(buffer2)) {
 				if(error) *error = "RF64 file has \"ds64\" chunk with extra size table, which is not currently supported (r04)";
 				return false;
 			}
@@ -474,7 +473,8 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 {
 	FLAC__byte id[4], buffer[12];
 	FLAC__off_t offset;
-	FLAC__bool type_found = false, ds64_found = false;
+	FLAC__bool foreign_metadata_found = false, type_found = false, ds64_found = false;
+	uint32_t foreign_metadata_found_type = 0;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_APPLICATION_ID_LEN == sizeof(id)*8);
 
@@ -485,8 +485,18 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 			if(error) *error = "FLAC__metadata_simple_iterator_get_application_id() error (002)";
 			return false;
 		}
-		if(memcmp(id, FLAC__FOREIGN_METADATA_APPLICATION_ID[fm->type], sizeof(id)))
+		if(memcmp(id, FLAC__FOREIGN_METADATA_APPLICATION_ID[fm->type], sizeof(id))) {
+			/* The found application metadata block is not of the right type, check
+			 * whether it is of another recognized type so we can tell the user it
+			 * is decoding to the wrong file format */
+			uint32_t i;
+			for(i = 0; i < FLAC__FOREIGN_METADATA_NUMBER_OF_RECOGNIZED_APPLICATION_IDS; i++)
+				if(memcmp(id, FLAC__FOREIGN_METADATA_APPLICATION_ID[i], sizeof(id)) == 0) {
+					foreign_metadata_found = true;
+					foreign_metadata_found_type = i;
+				}
 			continue;
+		}
 		offset = FLAC__metadata_simple_iterator_get_block_offset(it);
 		/* skip over header and app ID */
 		offset += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
@@ -614,8 +624,21 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 			return false;
 	}
 	if(!type_found) {
-		if(error) *error = "no foreign metadata found (022)";
-		return false;
+		if(foreign_metadata_found) {
+			if(error) {
+				if(foreign_metadata_found_type == 0 /*"aiff"*/)
+					*error = "found foreign metadata of wrong type, try decoding to AIFF instead";
+				else if(foreign_metadata_found_type == 1 /*"riff"*/)
+					*error = "found foreign metadata of wrong type, try decoding to WAV or RF64 instead";
+				else if(foreign_metadata_found_type == 2 /*"w64 "*/)
+					*error = "found foreign metadata of wrong type, try decoding to WAVE64 instead";
+			}
+			return false;
+		}
+		else {
+			if(error) *error = "no foreign metadata found (022)";
+			return false;
+		}
 	}
 	if(fm->is_rf64 && !ds64_found) {
 		if(error) *error = "invalid RF64 file: second chunk is not \"ds64\" (023)";

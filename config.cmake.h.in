@@ -6,8 +6,14 @@
 /* Target processor is big endian. */
 #cmakedefine01 CPU_IS_BIG_ENDIAN
 
-/* Target processor is little endian. */
-#cmakedefine01 CPU_IS_LITTLE_ENDIAN
+/* Target processor ARM64 */
+#cmakedefine FLAC__CPU_ARM64
+
+/* Target processor PPC */
+#cmakedefine FLAC__CPU_PPC
+
+/* Target processor PPC64 */
+#cmakedefine FLAC__CPU_PPC64
 
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
@@ -17,9 +23,6 @@
 
 /* define if you have docbook-to-man or docbook2man */
 #cmakedefine FLAC__HAS_DOCBOOK_TO_MAN
-
-/* define if you are compiling for x86 and have the NASM assembler */
-#cmakedefine FLAC__HAS_NASM
 
 /* define if you have the ogg library */
 #cmakedefine01 OGG_FOUND
@@ -34,6 +37,12 @@
 /* Set to 1 if <x86intrin.h> is available. */
 #cmakedefine01 FLAC__HAS_X86INTRIN
 
+/* Set to 1 if <arm_neon.h> is available. */
+#cmakedefine01 FLAC__HAS_NEONINTRIN
+
+/* Set to 1 if <arm_neon.h> contains A64 intrinsics */
+#cmakedefine01 FLAC__HAS_A64NEONINTRIN
+
 /* define if building for Darwin / MacOS X */
 #cmakedefine FLAC__SYS_DARWIN
 
@@ -44,17 +53,28 @@
 #cmakedefine FLAC__USE_ALTIVEC
 
 /* define to enable use of AVX instructions */
-#cmakedefine01 WITH_AVX
-#define FLAC__USE_AVX WITH_AVX
+#cmakedefine WITH_AVX
+#ifdef WITH_AVX
+  #define FLAC__USE_AVX
+#endif
 
 /* define to enable use of VSX instructions */
 #cmakedefine FLAC__USE_VSX
 
+/* Define to the commit date of the current git HEAD */
+#cmakedefine GIT_COMMIT_DATE "@GIT_COMMIT_DATE@"
+
+/* Define to the short hash of the current git HEAD */
+#cmakedefine GIT_COMMIT_HASH "@GIT_COMMIT_HASH@"
+
+/* Define to the tag of the current git HEAD */
+#cmakedefine GIT_COMMIT_TAG "@GIT_COMMIT_TAG@"
+
 /* Compiler has the __builtin_bswap16 intrinsic */
-#cmakedefine01 HAVE_BSWAP16
+#cmakedefine HAVE_BSWAP16
 
 /* Compiler has the __builtin_bswap32 intrinsic */
-#cmakedefine01 HAVE_BSWAP32
+#cmakedefine HAVE_BSWAP32
 
 /* Define to 1 if you have the <byteswap.h> header file. */
 #cmakedefine HAVE_BYTESWAP_H
@@ -64,12 +84,6 @@
 
 /* Define to 1 if you have the <cpuid.h> header file. */
 #cmakedefine HAVE_CPUID_H
-
-/* Define to 1 if C++ supports variable-length arrays. */
-#cmakedefine HAVE_CXX_VARARRAYS
-
-/* Define to 1 if C supports variable-length arrays. */
-#cmakedefine HAVE_C_VARARRAYS
 
 /* Define to 1 if fseeko (and presumably ftello) exists and is declared. */
 #cmakedefine HAVE_FSEEKO
@@ -81,7 +95,7 @@
 #cmakedefine HAVE_ICONV
 
 /* Define to 1 if you have the <inttypes.h> header file. */
-#cmakedefine01 HAVE_INTTYPES_H
+#cmakedefine HAVE_INTTYPES_H
 
 /* Define if you have <langinfo.h> and nl_langinfo(CODESET). */
 #cmakedefine HAVE_LANGINFO_CODESET
@@ -92,11 +106,8 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #cmakedefine HAVE_MEMORY_H
 
-/* Define to 1 if the system has the type `socklen_t'. */
-#cmakedefine HAVE_SOCKLEN_T
-
 /* Define to 1 if you have the <stdint.h> header file. */
-#cmakedefine01 HAVE_STDINT_H
+#cmakedefine HAVE_STDINT_H
 
 /* Define to 1 if you have the <stdlib.h> header file. */
 #cmakedefine HAVE_STDLIB_H
@@ -161,9 +172,6 @@
 /* The size of `void*', as computed by sizeof. */
 #cmakedefine SIZEOF_VOIDP
 
-/* Define to 1 if you have the ANSI C header files. */
-#cmakedefine STDC_HEADERS
-
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE
 #define _ALL_SOURCE
@@ -174,14 +182,11 @@
 #define _GNU_SOURCE
 #endif
 
-#ifndef _FORTIFY_SOURCE
-#cmakedefine DODEFINE_FORTIFY_SOURCE 2
-#define _FORTIFY_SOURCE DODEFINE_FORTIFY_SOURCE
-#endif
-
 #ifndef _XOPEN_SOURCE
 #cmakedefine DODEFINE_XOPEN_SOURCE 500
+#ifdef DODEFINE_XOPEN_SOURCE
 #define _XOPEN_SOURCE DODEFINE_XOPEN_SOURCE
+#endif
 #endif
 
 /* Enable threading extensions on Solaris.  */
@@ -195,7 +200,9 @@
 /* Enable general extensions on Solaris.  */
 #ifndef __EXTENSIONS__
 #cmakedefine DODEFINE_EXTENSIONS
+#ifdef DODEFINE_EXTENSIONS
 #define __EXTENSIONS__ DODEFINE_EXTENSIONS
+#endif
 #endif
 
 

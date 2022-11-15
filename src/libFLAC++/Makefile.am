@@ -1,6 +1,6 @@
 #  libFLAC++ - Free Lossless Audio Codec library
 #  Copyright (C) 2002-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  Redistribution and use in source and binary forms, with or without
 #  modification, are permitted provided that the following conditions
@@ -40,14 +40,7 @@ pkgconfig_DATA = flac++.pc
 AM_CPPFLAGS = -I$(top_builddir) -I$(srcdir)/include -I$(top_srcdir)/include
 EXTRA_DIST = \
 	CMakeLists.txt \
-	Makefile.lite \
 	flac++.pc.in \
-	libFLAC++_dynamic.vcproj \
-	libFLAC++_dynamic.vcxproj \
-	libFLAC++_dynamic.vcxproj.filters \
-	libFLAC++_static.vcproj \
-	libFLAC++_static.vcxproj \
-	libFLAC++_static.vcxproj.filters \
 	libFLAC++.m4
 
 libFLAC___sources = \
@@ -56,7 +49,7 @@ libFLAC___sources = \
 	stream_encoder.cpp
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 9:0:3
+libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 10:0:0
 libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
 libFLAC___la_SOURCES = $(libFLAC___sources)
 

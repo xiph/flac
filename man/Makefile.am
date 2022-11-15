@@ -1,6 +1,6 @@
 #  flac - Command-line FLAC encoder/decoder
 #  Copyright (C) 2000-2009  Josh Coalson
-#  Copyright (C) 2011-2016  Xiph.Org Foundation
+#  Copyright (C) 2011-2022  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -16,23 +16,19 @@
 #  with this program; if not, write to the Free Software Foundation, Inc.,
 #  51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
 
-if FLaC__HAS_DOCBOOK_TO_MAN
-flac.1: flac.sgml
-	docbook-to-man $? > $@
-	(docbook2man $? && mv FLAC.1 $@)
+if FLaC__HAS_PANDOC
+flac.1: flac.md
+	pandoc --standalone --to man $? > $@
 
-metaflac.1: metaflac.sgml
-	docbook-to-man $? > $@
-	(docbook2man $? && mv METAFLAC.1 $@)
-else
-flac.1:
-	echo "*** Warning: docbook-to-man not found; man pages will not be built."
-	touch $@
-
-metaflac.1:
-	touch $@
-endif
+metaflac.1: metaflac.md
+	pandoc --standalone --to man $? > $@
 
 man_MANS = flac.1 metaflac.1
 
-EXTRA_DIST = $(man_MANS) flac.sgml metaflac.sgml
+else
+if FLaC__HAS_PREBUILT_MANPAGES
+man_MANS = flac.1 metaflac.1
+endif
+endif
+
+EXTRA_DIST = flac.1 metaflac.1 flac.md metaflac.md
