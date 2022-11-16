@@ -427,6 +427,7 @@ FLAC__bool FLAC__bitwriter_write_unary_unsigned(FLAC__BitWriter *bw, uint32_t va
 			FLAC__bitwriter_write_raw_uint32_nocheck(bw, 1, 1);
 }
 
+#if 0 /* UNUSED */
 uint32_t FLAC__bitwriter_rice_bits(FLAC__int32 val, uint32_t parameter)
 {
 	FLAC__uint32 uval;
@@ -441,7 +442,6 @@ uint32_t FLAC__bitwriter_rice_bits(FLAC__int32 val, uint32_t parameter)
 	return 1 + parameter + (uval >> parameter);
 }
 
-#if 0 /* UNUSED */
 uint32_t FLAC__bitwriter_golomb_bits_signed(int val, uint32_t parameter)
 {
 	uint32_t bits, msbs, uval;
