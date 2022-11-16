@@ -33,6 +33,8 @@
 #include "FLAC++/metadata.h"
 #include "fuzzer_common.h"
 
+#define MAX_NUM_METADATA_BLOCKS 2048
+
 namespace FLAC {
      namespace Encoder {
          class FuzzerStream : public Stream {
@@ -57,12 +59,13 @@ namespace FLAC {
             FuzzerDecoder(fuzzing::datasource::Datasource& dsrc, FLAC::Encoder::FuzzerStream& encoder_arg) :
                 Stream(), ds(dsrc), encoder(encoder_arg) { }
 
-            ::FLAC__StreamMetadata * metadata_blocks[16] = {0};
+            ::FLAC__StreamMetadata * metadata_blocks[MAX_NUM_METADATA_BLOCKS] = {0};
             int num_metadata_blocks = 0;
 
             void metadata_callback(const ::FLAC__StreamMetadata *metadata) override {
-                if((metadata_blocks[num_metadata_blocks] = FLAC__metadata_object_clone(metadata)) != NULL)
-			num_metadata_blocks++;
+		if(num_metadata_blocks < MAX_NUM_METADATA_BLOCKS)
+	                if((metadata_blocks[num_metadata_blocks] = FLAC__metadata_object_clone(metadata)) != NULL)
+				num_metadata_blocks++;
             }
 
             ::FLAC__StreamDecoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes)  override {
