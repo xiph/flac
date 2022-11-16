@@ -3733,7 +3733,7 @@ FLAC__bool process_subframe_(
 								if(subframe_bps <= 32)
 									FLAC__lpc_window_data_partial(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize, frame_header->blocksize/b/2, (c/2*frame_header->blocksize)/b);
 								else
-									FLAC__lpc_window_data_partial(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize, frame_header->blocksize/b/2, (c/2*frame_header->blocksize)/b);
+									FLAC__lpc_window_data_partial_wide(integer_signal, encoder->private_->window[a], encoder->private_->windowed_signal, frame_header->blocksize, frame_header->blocksize/b/2, (c/2*frame_header->blocksize)/b);
 								encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->windowed_signal, frame_header->blocksize/b, max_lpc_order_this_apodization+1, autoc);
 							}else{
 								/* on uneven c, evaluate the root window (over the whole block) minus the previous partial window
