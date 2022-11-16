@@ -522,6 +522,7 @@ FLAC_API FLAC__bool FLAC__format_picture_is_legal(const FLAC__StreamMetadata_Pic
 /*
  * These routines are private to libFLAC
  */
+#if 0 /* UNUSED */
 uint32_t FLAC__format_get_max_rice_partition_order(uint32_t blocksize, uint32_t predictor_order)
 {
 	return
@@ -531,6 +532,7 @@ uint32_t FLAC__format_get_max_rice_partition_order(uint32_t blocksize, uint32_t 
 			predictor_order
 		);
 }
+#endif
 
 uint32_t FLAC__format_get_max_rice_partition_order_from_blocksize(uint32_t blocksize)
 {

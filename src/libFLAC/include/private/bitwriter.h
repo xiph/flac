@@ -86,8 +86,8 @@ FLAC__bool FLAC__bitwriter_write_raw_int64(FLAC__BitWriter *bw, FLAC__int64 val,
 FLAC__bool FLAC__bitwriter_write_raw_uint32_little_endian(FLAC__BitWriter *bw, FLAC__uint32 val); /*only for bits=32*/
 FLAC__bool FLAC__bitwriter_write_byte_block(FLAC__BitWriter *bw, const FLAC__byte vals[], uint32_t nvals);
 FLAC__bool FLAC__bitwriter_write_unary_unsigned(FLAC__BitWriter *bw, uint32_t val);
-uint32_t FLAC__bitwriter_rice_bits(FLAC__int32 val, uint32_t parameter);
 #if 0 /* UNUSED */
+uint32_t FLAC__bitwriter_rice_bits(FLAC__int32 val, uint32_t parameter);
 uint32_t FLAC__bitwriter_golomb_bits_signed(int val, uint32_t parameter);
 uint32_t FLAC__bitwriter_golomb_bits_unsigned(uint32_t val, uint32_t parameter);
 FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 val, uint32_t parameter);
