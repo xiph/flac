@@ -50,7 +50,6 @@ void FLAC__bitwriter_delete(FLAC__BitWriter *bw);
 FLAC__bool FLAC__bitwriter_init(FLAC__BitWriter *bw);
 void FLAC__bitwriter_free(FLAC__BitWriter *bw); /* does not 'free(buffer)' */
 void FLAC__bitwriter_clear(FLAC__BitWriter *bw);
-void FLAC__bitwriter_dump(const FLAC__BitWriter *bw, FILE *out);
 
 /*
  * CRC functions

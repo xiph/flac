@@ -55,7 +55,6 @@ void FLAC__bitreader_free(FLAC__BitReader *br); /* does not 'free(br)' */
 FLAC__bool FLAC__bitreader_clear(FLAC__BitReader *br);
 void FLAC__bitreader_set_framesync_location(FLAC__BitReader *br);
 FLAC__bool FLAC__bitreader_rewind_to_after_last_seen_framesync(FLAC__BitReader *br);
-void FLAC__bitreader_dump(const FLAC__BitReader *br, FILE *out);
 
 /*
  * CRC functions
