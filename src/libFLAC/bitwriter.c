@@ -198,30 +198,6 @@ void FLAC__bitwriter_clear(FLAC__BitWriter *bw)
 	bw->words = bw->bits = 0;
 }
 
-void FLAC__bitwriter_dump(const FLAC__BitWriter *bw, FILE *out)
-{
-	uint32_t i, j;
-	if(bw == 0) {
-		fprintf(out, "bitwriter is NULL\n");
-	}
-	else {
-		fprintf(out, "bitwriter: capacity=%u words=%u bits=%u total_bits=%u\n", bw->capacity, bw->words, bw->bits, FLAC__TOTAL_BITS(bw));
-
-		for(i = 0; i < bw->words; i++) {
-			fprintf(out, "%08X: ", i);
-			for(j = 0; j < FLAC__BITS_PER_WORD; j++)
-				fprintf(out, "%01d", bw->buffer[i] & ((bwword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
-			fprintf(out, "\n");
-		}
-		if(bw->bits > 0) {
-			fprintf(out, "%08X: ", i);
-			for(j = 0; j < bw->bits; j++)
-				fprintf(out, "%01d", bw->accum & ((bwword)1 << (bw->bits-j-1)) ? 1:0);
-			fprintf(out, "\n");
-		}
-	}
-}
-
 FLAC__bool FLAC__bitwriter_get_write_crc16(FLAC__BitWriter *bw, FLAC__uint16 *crc)
 {
 	const FLAC__byte *buffer;
