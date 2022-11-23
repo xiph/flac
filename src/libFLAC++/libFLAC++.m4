@@ -57,7 +57,7 @@ dnl
 #include <string.h>
 #include <FLAC++/decoder.h>
 
-int main ()
+int main (void)
 {
   system("touch conf.libFLAC++test");
   return 0;
