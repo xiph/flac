@@ -49,7 +49,6 @@
 #include "share/alloc.h"
 #include "share/compat.h"
 #include "share/macros.h"
-#include "share/safe_str.h"
 #include "private/macros.h"
 #include "private/memory.h"
 
