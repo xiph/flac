@@ -53,7 +53,12 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
+
+if test "x$ac_cv_header_stdint_h" != xyes -o "x$ac_cv_header_stdbool_h" != xyes; then
+AC_MSG_ERROR("Header stdint.h and/or stdbool.h not found")
+fi
+
 
 XIPH_C_BSWAP32
 XIPH_C_BSWAP16
