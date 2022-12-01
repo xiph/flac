@@ -205,6 +205,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
         if ( ds.Get<bool>() ) {
             use_ogg = false;
         }
+
+	decoder.set_ogg_allow_chaining(true);
+
         if ( ds.Get<bool>() ) {
 #ifdef FUZZER_DEBUG
             printf("set_ogg_serial_number\n");

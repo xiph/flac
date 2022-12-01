@@ -109,6 +109,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	ogg =  init_bools[0];
 
+	FLAC__stream_decoder_set_ogg_allow_chaining(decoder,true);
+
 	FLAC__stream_decoder_set_md5_checking(decoder,init_bools[1]);
 	if(init_bools[2])
 		FLAC__stream_decoder_set_metadata_respond_all(decoder);
