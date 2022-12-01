@@ -25,7 +25,7 @@ jobs:
      with:
        oss-fuzz-project-name: 'flac'
        language: c++
-       fuzz-seconds: 3600
+       fuzz-seconds: 10800
        sanitizer: ${{ matrix.sanitizer }}
    - name: Upload Crash
      uses: actions/upload-artifact@v1
