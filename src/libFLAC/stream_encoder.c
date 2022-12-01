@@ -744,6 +744,18 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->protected_->min_residual_partition_order = encoder->protected_->max_residual_partition_order;
 
 #if FLAC__HAS_OGG
+	/* drop any seektable for ogg */
+	if(is_ogg && 0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 0) {
+		uint32_t i1;
+		for(i1 = 0; i1 < encoder->protected_->num_metadata_blocks; i1++) {
+			if(0 != encoder->protected_->metadata[i1] && encoder->protected_->metadata[i1]->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+				encoder->protected_->num_metadata_blocks--;
+				for( ; i1 < encoder->protected_->num_metadata_blocks; i1++)
+					encoder->protected_->metadata[i1] = encoder->protected_->metadata[i1+1];
+				break;
+			}
+		}
+	}
 	/* reorder metadata if necessary to ensure that any VORBIS_COMMENT is the first, according to the mapping spec */
 	if(is_ogg && 0 != encoder->protected_->metadata && encoder->protected_->num_metadata_blocks > 1) {
 		uint32_t i1;
@@ -3125,63 +3137,6 @@ void update_ogg_metadata_(FLAC__StreamEncoder *encoder)
 		return; /* state already set */
 	}
 	simple_ogg_page__clear(&page);
-
-	/*
-	 * Write seektable
-	 */
-	if(0 != encoder->private_->seek_table && encoder->private_->seek_table->num_points > 0 && encoder->protected_->seektable_offset > 0) {
-		uint32_t i;
-		FLAC__byte *p;
-
-		FLAC__format_seektable_sort(encoder->private_->seek_table);
-
-		FLAC__ASSERT(FLAC__format_seektable_is_legal(encoder->private_->seek_table));
-
-		simple_ogg_page__init(&page);
-		if(!simple_ogg_page__get_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->read_callback, encoder->private_->client_data)) {
-			simple_ogg_page__clear(&page);
-			return; /* state already set */
-		}
-
-		if((FLAC__STREAM_METADATA_HEADER_LENGTH + 18*encoder->private_->seek_table->num_points) != (uint32_t)page.body_len) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_OGG_ERROR;
-			simple_ogg_page__clear(&page);
-			return;
-		}
-
-		for(i = 0, p = page.body + FLAC__STREAM_METADATA_HEADER_LENGTH; i < encoder->private_->seek_table->num_points; i++, p += 18) {
-			FLAC__uint64 xx;
-			uint32_t x;
-			xx = encoder->private_->seek_table->points[i].sample_number;
-			b[7] = (FLAC__byte)xx; xx >>= 8;
-			b[6] = (FLAC__byte)xx; xx >>= 8;
-			b[5] = (FLAC__byte)xx; xx >>= 8;
-			b[4] = (FLAC__byte)xx; xx >>= 8;
-			b[3] = (FLAC__byte)xx; xx >>= 8;
-			b[2] = (FLAC__byte)xx; xx >>= 8;
-			b[1] = (FLAC__byte)xx; xx >>= 8;
-			b[0] = (FLAC__byte)xx; xx >>= 8;
-			xx = encoder->private_->seek_table->points[i].stream_offset;
-			b[15] = (FLAC__byte)xx; xx >>= 8;
-			b[14] = (FLAC__byte)xx; xx >>= 8;
-			b[13] = (FLAC__byte)xx; xx >>= 8;
-			b[12] = (FLAC__byte)xx; xx >>= 8;
-			b[11] = (FLAC__byte)xx; xx >>= 8;
-			b[10] = (FLAC__byte)xx; xx >>= 8;
-			b[9] = (FLAC__byte)xx; xx >>= 8;
-			b[8] = (FLAC__byte)xx; xx >>= 8;
-			x = encoder->private_->seek_table->points[i].frame_samples;
-			b[17] = (FLAC__byte)x; x >>= 8;
-			b[16] = (FLAC__byte)x; x >>= 8;
-			memcpy(p, b, 18);
-		}
-
-		if(!simple_ogg_page__set_at(encoder, encoder->protected_->seektable_offset, &page, encoder->private_->seek_callback, encoder->private_->write_callback, encoder->private_->client_data)) {
-			simple_ogg_page__clear(&page);
-			return; /* state already set */
-		}
-		simple_ogg_page__clear(&page);
-	}
 }
 #endif
 
