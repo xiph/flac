@@ -332,7 +332,12 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 		/* When testing, we can be a little more pedantic, as long
 		 * as we can seek properly */
 		FLAC__byte buffer[3];
-		FILE * f = flac_fopen(infilename, "rb");
+		FILE * f;
+
+		if(0 == (f = flac_fopen(infilename, "rb"))) {
+			flac__utils_printf(stderr, 1, "ERROR: can't open input file %s: %s\n", infilename, strerror(errno));
+			return false;
+		}
 
 		if(fread(buffer, 1, 3, f) < 3) {
 			flac__utils_printf(stderr, 1, "%s: ERROR checking for ID3v2 tag\n", decoder_session->inbasefilename);
