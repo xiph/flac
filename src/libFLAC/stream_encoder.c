@@ -3705,7 +3705,8 @@ FLAC__bool process_subframe_(
 						                       &max_lpc_order_this_apodization,
 						                       subframe_bps, integer_signal,
 						                       &guess_lpc_order))
-							break;
+							/* If apply_apodization_ fails, try next apodization */
+							continue;
 
 						if(encoder->protected_->do_exhaustive_model_search) {
 							min_lpc_order = 1;
@@ -3841,10 +3842,7 @@ FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
 			 * and to enable widening this rounding up to larger values in the future, windowing
 			 * parts smaller than or equal to FLAC__MAX_LPC_ORDER (which is 32) samples is not supported */
 			set_next_subdivide_tukey(apply_apodization_state->current_apodization->parameters.subdivide_tukey.parts, &apply_apodization_state->a, &apply_apodization_state->b, &apply_apodization_state->c);
-			if(apply_apodization_state->a < encoder->protected_->num_apodizations)
-				return apply_apodization_(encoder, apply_apodization_state, blocksize, lpc_error, max_lpc_order_this_apodization, subframe_bps, integer_signal, guess_lpc_order);
-			else
-				return false;
+			return false;
 		}
 		if(!(apply_apodization_state->c % 2)) {
 			/* on even c, evaluate the (c/2)th partial window of size blocksize/b  */
@@ -3865,6 +3863,8 @@ FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
 		set_next_subdivide_tukey(apply_apodization_state->current_apodization->parameters.subdivide_tukey.parts, &apply_apodization_state->a, &apply_apodization_state->b, &apply_apodization_state->c);
 	}
 
+	if(apply_apodization_state->autoc[0] == 0.0) /* Signal seems to be constant, so we can't do lp. Constant detection is probably disabled */
+		return false;
 	FLAC__lpc_compute_lp_coefficients(apply_apodization_state->autoc, max_lpc_order_this_apodization, encoder->private_->lp_coeff, lpc_error);
 	*guess_lpc_order =
 	FLAC__lpc_compute_best_order(
