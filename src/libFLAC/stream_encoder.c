@@ -167,7 +167,7 @@ static FLAC__bool process_subframe_(
 );
 
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
-static void apply_apodization_(
+static FLAC__bool apply_apodization_(
 	FLAC__StreamEncoder *encoder,
 	apply_apodization_state_struct *apply_apodization_state,
 	uint32_t blocksize,
@@ -3700,11 +3700,12 @@ FLAC__bool process_subframe_(
 					while (apply_apodization_state.a < encoder->protected_->num_apodizations) {
 						uint32_t max_lpc_order_this_apodization = max_lpc_order;
 
-						apply_apodization_(encoder, &apply_apodization_state,
-						                   frame_header->blocksize, lpc_error,
-						                   &max_lpc_order_this_apodization,
-						                   subframe_bps, integer_signal,
-						                   &guess_lpc_order);
+						if(!apply_apodization_(encoder, &apply_apodization_state,
+						                       frame_header->blocksize, lpc_error,
+						                       &max_lpc_order_this_apodization,
+						                       subframe_bps, integer_signal,
+						                       &guess_lpc_order))
+							break;
 
 						if(encoder->protected_->do_exhaustive_model_search) {
 							min_lpc_order = 1;
@@ -3803,7 +3804,7 @@ static inline void set_next_subdivide_tukey(FLAC__int32 parts, uint32_t * apodiz
 	}
 }
 
-void apply_apodization_(FLAC__StreamEncoder *encoder,
+FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
                         apply_apodization_state_struct *apply_apodization_state,
                         uint32_t blocksize,
                         double *lpc_error,
@@ -3840,10 +3841,10 @@ void apply_apodization_(FLAC__StreamEncoder *encoder,
 			 * and to enable widening this rounding up to larger values in the future, windowing
 			 * parts smaller than or equal to FLAC__MAX_LPC_ORDER (which is 32) samples is not supported */
 			set_next_subdivide_tukey(apply_apodization_state->current_apodization->parameters.subdivide_tukey.parts, &apply_apodization_state->a, &apply_apodization_state->b, &apply_apodization_state->c);
-			apply_apodization_(encoder, apply_apodization_state, blocksize,
-                        lpc_error, max_lpc_order_this_apodization,
-                        subframe_bps, integer_signal, guess_lpc_order);
-			return;
+			if(apply_apodization_state->a < encoder->protected_->num_apodizations)
+				return apply_apodization_(encoder, apply_apodization_state, blocksize, lpc_error, max_lpc_order_this_apodization, subframe_bps, integer_signal, guess_lpc_order);
+			else
+				return false;
 		}
 		if(!(apply_apodization_state->c % 2)) {
 			/* on even c, evaluate the (c/2)th partial window of size blocksize/b  */
@@ -3876,6 +3877,7 @@ void apply_apodization_(FLAC__StreamEncoder *encoder,
 				encoder->protected_->qlp_coeff_precision
 		)
 	);
+	return true;
 }
 #endif
 
