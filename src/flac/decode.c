@@ -1563,8 +1563,13 @@ void print_error_with_init_status(const DecoderSession *d, const char *message, 
 	if (init_status == FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE) {
 		flac__utils_printf(stderr, 1,
 			"\n"
+#ifdef _WIN32
+			"An error occurred opening the input file; it is likely that it does not exist,\n"
+			"is not readable or has a filename that exceeds the path length limit.\n"
+#else
 			"An error occurred opening the input file; it is likely that it does not exist\n"
 			"or is not readable.\n"
+#endif
 		);
 	}
 }
