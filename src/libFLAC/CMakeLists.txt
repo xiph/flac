@@ -8,7 +8,6 @@ check_function_exists(lround HAVE_LROUND)
 
 include(CheckCSourceCompiles)
 include(CheckCPUArch)
-include(CheckAttribute)
 include(CheckA64NEON)
 
 check_cpu_arch_x64(FLAC__CPU_X86_64)
