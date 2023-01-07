@@ -9,7 +9,6 @@ check_function_exists(lround HAVE_LROUND)
 include(CheckCSourceCompiles)
 include(CheckCPUArch)
 include(CheckAttribute)
-include(CheckVSX)
 include(CheckA64NEON)
 
 check_cpu_arch_x64(FLAC__CPU_X86_64)
@@ -24,17 +23,9 @@ if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
         set_source_files_properties(lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
     endif()
 else()
-    check_cpu_arch_ppc64(FLAC__CPU_PPC64)
-    if(FLAC__CPU_PPC64)
-        set(FLAC__CPU_PPC 1 CACHE INTERNAL "Set because FLAC__CPU_PPC64 depends on it" FORCE)
-        check_attribute_power8(FLAC__HAS_TARGET_POWER8)
-        check_attribute_power9(FLAC__HAS_TARGET_POWER9)
-        check_vsx(FLAC__USE_VSX)
-    else()
-        check_cpu_arch_arm64(FLAC__CPU_ARM64)
-        if(FLAC__CPU_ARM64)
-             check_a64neon(FLAC__HAS_A64NEONINTRIN)
-        endif()
+    check_cpu_arch_arm64(FLAC__CPU_ARM64)
+    if(FLAC__CPU_ARM64)
+         check_a64neon(FLAC__HAS_A64NEONINTRIN)
     endif()
 endif()
 
@@ -61,7 +52,6 @@ add_library(FLAC
     lpc_intrin_sse41.c
     lpc_intrin_avx2.c
     lpc_intrin_fma.c
-    lpc_intrin_vsx.c
     md5.c
     memory.c
     metadata_iterators.c

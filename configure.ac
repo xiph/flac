@@ -126,36 +126,15 @@ case "$host_cpu" in
 		AC_DEFINE(FLAC__CPU_IA32)
 		AH_TEMPLATE(FLAC__CPU_IA32, [define if building for ia32/i386])
 		;;
-	powerpc64|powerpc64le)
-		cpu_ppc64=true
-		cpu_ppc=true
-		AC_DEFINE(FLAC__CPU_PPC)
-		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
-		AC_DEFINE(FLAC__CPU_PPC64)
-		AH_TEMPLATE(FLAC__CPU_PPC64, [define if building for PowerPC64])
-		;;
-	powerpc|powerpcle)
-		cpu_ppc=true
-		AC_DEFINE(FLAC__CPU_PPC)
-		AH_TEMPLATE(FLAC__CPU_PPC, [define if building for PowerPC])
-		;;
 	arm64|aarch64)
 		cpu_arm64=true
 		AC_DEFINE(FLAC__CPU_ARM64)
 		AH_TEMPLATE(FLAC__CPU_ARM64, [define if building for ARM])
 		;;
-	sparc)
-		cpu_sparc=true
-		AC_DEFINE(FLAC__CPU_SPARC)
-		AH_TEMPLATE(FLAC__CPU_SPARC, [define if building for SPARC])
-		;;
 esac
 AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
-AM_CONDITIONAL(FLaC__CPU_PPC, test "x$cpu_ppc" = xtrue)
-AM_CONDITIONAL(FLaC__CPU_PPC64, test "x$cpu_ppc64" = xtrue)
 AM_CONDITIONAL(FLAC__CPU_ARM64, test "x$cpu_arm64" = xtrue)
-AM_CONDITIONAL(FLaC__CPU_SPARC, test "x$cpu_sparc" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes -a "x$asm_opt" = xyes; then
   AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
@@ -181,36 +160,6 @@ if test "x$ac_cv_header_arm_neon_h" = xyes -a "x$asm_opt" = xyes; then
   fi
 else
   AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
-fi
-
-if test x"$cpu_ppc64" = xtrue -a "x$asm_opt" = xyes ; then
-
-AC_C_ATTRIBUTE([target("cpu=power8")],
-  [have_cpu_power8=yes],
-  [have_cpu_power8=no])
-if test x"$have_cpu_power8" = xyes ; then
-  AC_DEFINE(FLAC__HAS_TARGET_POWER8)
-  AH_TEMPLATE(FLAC__HAS_TARGET_POWER8, [define if compiler has __attribute__((target("cpu=power8"))) support])
-fi
-
-AC_C_ATTRIBUTE([target("cpu=power9")],
-  [have_cpu_power9=yes],
-  [have_cpu_power9=no])
-if test x"$have_cpu_power9" = xyes ; then
-  AC_DEFINE(FLAC__HAS_TARGET_POWER9)
-  AH_TEMPLATE(FLAC__HAS_TARGET_POWER9, [define if compiler has __attribute__((target("cpu=power9"))) support])
-fi
-
-if test x"$have_cpu_power8" = xyes || test x"$have_cpu_power9" = xyes ; then
-  AC_MSG_CHECKING([whether altivec.h has vec_doubleh()])
-  AC_COMPILE_IFELSE(
-	[AC_LANG_PROGRAM([[#include <altivec.h>]],
-	[[vector float d = {0.0f,0.0f,0.0f,0.0f}; vec_doubleh(d);]])],
-	[AC_MSG_RESULT([yes])
-	 has_vec_doubleh=true],
-	[AC_MSG_RESULT([no])])
-fi
-
 fi
 
 case "$host" in
@@ -253,33 +202,6 @@ AH_TEMPLATE(FLAC__ALIGN_MALLOC_DATA, [define to align allocated memory on 32-byt
 fi
 
 AM_CONDITIONAL([DEBUG], [test "x${ax_enable_debug}" = "xyes" || test "x${ax_enable_debug}" = "xinfo"])
-
-AC_ARG_ENABLE(altivec,
-AS_HELP_STRING([--disable-altivec],[Disable use of Altivec instructions]),
-[case "${enableval}" in
-	yes) use_altivec=true ;;
-	no)  use_altivec=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-altivec) ;;
-esac],[use_altivec=true])
-AM_CONDITIONAL(FLaC__USE_ALTIVEC, test "x$use_altivec" = xtrue)
-if test "x$use_altivec" = xtrue ; then
-AC_DEFINE(FLAC__USE_ALTIVEC)
-AH_TEMPLATE(FLAC__USE_ALTIVEC, [define to enable use of Altivec instructions])
-fi
-
-AC_ARG_ENABLE(vsx,
-AS_HELP_STRING([--disable-vsx],[Disable VSX optimizations]),
-[case "${enableval}" in
-	yes) use_vsx=true ;;
-	no)  use_vsx=false ;;
-	*) AC_MSG_ERROR(bad value ${enableval} for --enable-vsx) ;;
-esac],[use_vsx=true])
-AM_CONDITIONAL(FLaC__USE_VSX, test "x$use_vsx" = xtrue)
-if test "x$use_vsx$has_vec_doubleh" = xtruetrue ; then
-AC_DEFINE(FLAC__USE_VSX)
-AH_TEMPLATE(FLAC__USE_VSX, [define to enable use of VSX instructions])
-asm_optimisation=yes
-fi
 
 AC_ARG_ENABLE(avx,
 AS_HELP_STRING([--disable-avx],[Disable AVX, AVX2 optimizations. There is runtime detection of CPU features, so disabling is only necessary when a compiler does not know about them]),

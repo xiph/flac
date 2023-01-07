@@ -9,12 +9,6 @@
 /* Target processor ARM64 */
 #cmakedefine FLAC__CPU_ARM64
 
-/* Target processor PPC */
-#cmakedefine FLAC__CPU_PPC
-
-/* Target processor PPC64 */
-#cmakedefine FLAC__CPU_PPC64
-
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 
@@ -27,12 +21,6 @@
 /* define if you have the ogg library */
 #cmakedefine01 OGG_FOUND
 #define FLAC__HAS_OGG OGG_FOUND
-
-/* define if compiler has __attribute__((target("cpu=power8"))) support */
-#cmakedefine FLAC__HAS_TARGET_POWER8
-
-/* define if compiler has __attribute__((target("cpu=power9"))) support */
-#cmakedefine FLAC__HAS_TARGET_POWER9
 
 /* Set to 1 if <x86intrin.h> is available. */
 #cmakedefine01 FLAC__HAS_X86INTRIN
@@ -49,17 +37,11 @@
 /* define if building for Linux */
 #cmakedefine FLAC__SYS_LINUX
 
-/* define to enable use of Altivec instructions */
-#cmakedefine FLAC__USE_ALTIVEC
-
 /* define to enable use of AVX instructions */
 #cmakedefine WITH_AVX
 #ifdef WITH_AVX
   #define FLAC__USE_AVX
 #endif
-
-/* define to enable use of VSX instructions */
-#cmakedefine FLAC__USE_VSX
 
 /* Define to the commit date of the current git HEAD */
 #cmakedefine GIT_COMMIT_DATE "@GIT_COMMIT_DATE@"
