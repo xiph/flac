@@ -529,7 +529,7 @@ the HTML documentation.
 :	Set sample rate (in Hz).
 
 **\--sign={***signed***\|***unsigned***}**
-:	Set the sign of samples (the default is signed).
+:	Set the sign of samples.
 
 **\--input-size=***\#*
 :	Specify the size of the raw input in bytes. If you are encoding raw
