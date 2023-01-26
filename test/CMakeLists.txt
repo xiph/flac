@@ -50,12 +50,16 @@ if(BUILD_CXXLIBS)
         COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_libFLAC++.sh"
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     list(APPEND ALL_TESTS libFLAC++)
+    set_tests_properties(libFLAC++ PROPERTIES DEPENDS libFLAC)
 endif()
 file(MAKE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/cuesheets")
 add_test(NAME grabbag
     COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_grabbag.sh"
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 if(BUILD_PROGRAMS)
+    add_test(NAME generate_streams
+        COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/generate_streams.sh"
+        WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
     add_test(NAME flac
         COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_flac.sh"
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
@@ -85,7 +89,8 @@ if(BUILD_PROGRAMS)
     add_test(NAME compression
         COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_compression.sh"
         WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
-    list(APPEND ALL_TESTS flac metaflac replaygain seeking streams compression)
+    set_tests_properties(flac metaflac replaygain seeking streams compression PROPERTIES DEPENDS generate_streams)
+    list(APPEND ALL_TESTS generate_streams flac metaflac replaygain seeking streams compression)
 endif()
 
 
