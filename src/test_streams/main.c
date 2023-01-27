@@ -992,7 +992,7 @@ static FLAC__bool write_simple_wavex_header (FILE * f, unsigned samplerate, unsi
 
 	if (fwrite("RIFF", 1, 4, f) != 4)
 		return false;
-	if (!write_little_endian_uint32(f, 40 + 4 + 4 + datalen))
+	if (!write_little_endian_uint32(f, 60 + datalen))
 		return false;
 
 	if (fwrite("WAVEfmt ", 8, 1, f) != 1)
