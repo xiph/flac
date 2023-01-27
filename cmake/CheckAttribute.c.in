@@ -1,6 +1,0 @@
-int main (void)
-{
- void foo(void) __attribute__ ((@CHECK_ATTRIBUTE@));
-  ;
-  return 0;
-}

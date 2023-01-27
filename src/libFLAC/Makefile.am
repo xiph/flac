@@ -40,21 +40,7 @@ ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freci
 endif
 endif
 
-# FIXME: The following logic should be part of configure, not of Makefile.am
-
-if FLaC__CPU_PPC
-if FLaC__SYS_DARWIN
-CPUCFLAGS = -faltivec
-else
-CPUCFLAGS =
-if FLaC__USE_ALTIVEC
-CPUCFLAGS += -maltivec -mabi=altivec
-endif
-endif
-endif
-
-
-AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
+AM_CFLAGS = $(DEBUGCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
 
 libFLAC_la_LIBADD = @OGG_LIBS@ -lm
 
@@ -72,7 +58,6 @@ EXTRA_DIST = \
 	libFLAC.m4 \
 	deduplication/lpc_compute_autocorrelation_intrin.c \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
-	deduplication/lpc_compute_autocorrelation_intrin_vsx.c \
 	deduplication/lpc_compute_autocorrelation_intrin_neon.c
 
 if OS_IS_WINDOWS
@@ -106,7 +91,6 @@ libFLAC_sources = \
 	lpc_intrin_sse41.c \
 	lpc_intrin_avx2.c \
 	lpc_intrin_fma.c \
-	lpc_intrin_vsx.c \
 	lpc_intrin_neon.c \
 	md5.c \
 	memory.c \

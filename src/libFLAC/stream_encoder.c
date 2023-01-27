@@ -937,33 +937,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	/* now override with asm where appropriate */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 # ifndef FLAC__NO_ASM
-#if defined(FLAC__CPU_PPC64) && defined(FLAC__USE_VSX)
-#ifdef FLAC__HAS_TARGET_POWER8
-#ifdef FLAC__HAS_TARGET_POWER9
-	if (encoder->private_->cpuinfo.ppc.arch_3_00) {
-		if(encoder->protected_->max_lpc_order < 8)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_8;
-		else if(encoder->protected_->max_lpc_order < 10)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_10;
-		else if(encoder->protected_->max_lpc_order < 14)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power9_vsx_lag_14;
-		else
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
-	} else
-#endif
-	if (encoder->private_->cpuinfo.ppc.arch_2_07) {
-		if(encoder->protected_->max_lpc_order < 8)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_8;
-		else if(encoder->protected_->max_lpc_order < 10)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_10;
-		else if(encoder->protected_->max_lpc_order < 14)
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_power8_vsx_lag_14;
-		else
-			encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
-	}
-#endif
-#endif /* defined(FLAC__CPU_PPC64) && defined(FLAC__USE_VSX) */
-
 #if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN
 #if FLAC__HAS_A64NEONINTRIN
 	if(encoder->protected_->max_lpc_order < 8)
