@@ -72,6 +72,31 @@ static FLAC__bool copy_data_(FILE *fin, FILE *fout, size_t size, const char **er
 	return true;
 }
 
+/* compare 'size' bytes from file 'fin' to 'fout', filling in *error with 'read_error' or 'write_error' as necessary */
+static FLAC__bool compare_data_(FILE *fin, FILE *fout, size_t size, const char **error, const char * const read_error, const char * const write_error, const char * const compare_error)
+{
+	FLAC__byte buffer_in[4096];
+	FLAC__byte buffer_out[4096]; /* sizes need to be the same */
+	size_t left;
+	for(left = size; left > 0; ) {
+		size_t need = min(sizeof(buffer_in), left);
+		if(fread(buffer_in, 1, need, fin) < need) {
+			if(error) *error = read_error;
+			return false;
+		}
+		if(fread(buffer_out, 1, need, fout) < need) {
+			if(error) *error = write_error;
+			return false;
+		}
+		if(memcmp(buffer_in, buffer_out, need)) {
+			if(error) *error = compare_error;
+			return false;
+		}
+		left -= need;
+	}
+	return true;
+}
+
 static FLAC__bool append_block_(foreign_metadata_t *fm, FLAC__off_t offset, FLAC__uint32 size, const char **error)
 {
 	foreign_block_t *fb = safe_realloc_nofree_muladd2_(fm->blocks, sizeof(foreign_block_t), /*times (*/fm->num_blocks, /*+*/1/*)*/);
@@ -666,12 +691,18 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, FLAC__off_t offset1, FLAC__off_t offset2, FLAC__off_t offset3, const char **error)
 {
 	size_t i;
-	if(fseeko(fout, offset1, SEEK_SET) < 0) {
-		if(error) *error = "seek failed in WAVE/AIFF file (002)";
-		return false;
+	(void)offset1, (void)offset2;
+	/* don't write first (RIFF/RF64/FORM) chunk, or ds64 chunk in the case of RF64, compare instead */
+	for(i = 0; i < (fm->is_rf64?2:1); i++) {
+		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
+			if(error) *error = "seek failed in FLAC file (003)";
+			return false;
+		}
+		if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (004)", "write failed in FLAC file (005)", "stored foreign metadata seems invalid"))
+			return false;
 	}
-	/* don't write first (RIFF/RF64/FORM) chunk, or ds64 chunk in the case of RF64 */
-	for(i = fm->is_rf64?2:1; i < fm->format_block; i++) {
+
+	for(; i < fm->format_block; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
 			if(error) *error = "seek failed in FLAC file (003)";
 			return false;
@@ -679,11 +710,16 @@ static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, F
 		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (004)", "write failed in FLAC file (005)"))
 			return false;
 	}
-	if(fseeko(fout, offset2, SEEK_SET) < 0) {
-		if(error) *error = "seek failed in WAVE/AIFF file (006)";
+	/* compare format block */
+	if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
+		if(error) *error = "seek failed in FLAC file (003)";
 		return false;
 	}
-	for(i = fm->format_block+1; i < fm->audio_block; i++) {
+	if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (004)", "write failed in FLAC file (005)", "stored foreign format block differs from written block. Perhaps the file is being restored to a different format than that of the original file"))
+		return false;
+	i++;
+
+	for(; i < fm->audio_block; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
 			if(error) *error = "seek failed in FLAC file (007)";
 			return false;
