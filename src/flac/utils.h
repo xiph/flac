@@ -29,6 +29,7 @@
 #include <stdio.h> /* for FILE */
 
 typedef enum { FORMAT_RAW, FORMAT_WAVE, FORMAT_WAVE64, FORMAT_RF64, FORMAT_AIFF, FORMAT_AIFF_C, FORMAT_FLAC, FORMAT_OGGFLAC } FileFormat;
+static const char * const FileFormatString[] = { " raw", " WAVE", " Wave64", "n RF64", "n AIFF", "n AIFF-C", " FLAC", "n Ogg FLAC" };
 
 typedef struct {
 	FLAC__bool is_relative; /* i.e. specification string started with + or - */

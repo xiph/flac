@@ -75,7 +75,7 @@ static int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__b
 static int decode_file(const char *infilename);
 
 static const char *get_encoded_outfilename(const char *infilename);
-static const char *get_decoded_outfilename(const char *infilename);
+static const char *get_decoded_outfilename(const char *infilename, const FileFormat format);
 static const char *get_outfilename(const char *infilename, const char *suffix);
 
 static void die(const char *message);
@@ -1726,8 +1726,7 @@ void show_explain(void)
 void format_mistake(const char *infilename, FileFormat wrong, FileFormat right)
 {
 	/* WATCHOUT: indexed by FileFormat */
-	static const char * const ff[] = { " raw", " WAVE", " Wave64", "n RF64", "n AIFF", "n AIFF-C", " FLAC", "n Ogg FLAC" };
-	flac__utils_printf(stderr, 1, "WARNING: %s is not a%s file; treating as a%s file\n", infilename, ff[wrong], ff[right]);
+	flac__utils_printf(stderr, 1, "WARNING: %s is not a%s file; treating as a%s file\n", infilename, FileFormatString[wrong], FileFormatString[right]);
 }
 
 int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_last_file)
@@ -2108,7 +2107,9 @@ int decode_file(const char *infilename)
 	FLAC__bool treat_as_ogg = false;
 	FileFormat output_format = FORMAT_WAVE;
 	decode_options_t decode_options;
-	const char *outfilename = get_decoded_outfilename(infilename);
+	foreign_metadata_t foreign_metadata_instance = {0}; /* Allocate space */
+	foreign_metadata_t *foreign_metadata = 0;
+	const char *outfilename = get_outfilename(infilename, ".    "); /* Placeholder until we know what the actual suffix is */
 	size_t infilename_length;
 
 	if(0 == outfilename) {
@@ -2116,13 +2117,29 @@ int decode_file(const char *infilename)
 		return 1;
 	}
 
-	/*
-	 * Error if output file already exists (and -f not used).
-	 * Use grabbag__file_get_filesize() as a cheap way to check.
-	 */
-	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (FLAC__off_t)(-1)) {
-		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
-		return 1;
+	if(!option_values.analyze && !option_values.test_only &&(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present)) {
+		const char *error;
+		if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
+			return usage_error("ERROR: --keep-foreign-metadata cannot be used when decoding from stdin or to stdout\n");
+		if(output_format == FORMAT_RAW)
+			return usage_error("ERROR: --keep-foreign-metadata cannot be used with raw output\n");
+		foreign_metadata = &foreign_metadata_instance;
+		if(!flac__foreign_metadata_read_from_flac(foreign_metadata, infilename, &error)) {
+			if(option_values.keep_foreign_metadata_if_present) {
+				flac__utils_printf(stderr, 1, "%s: WARNING reading foreign metadata: %s\n", infilename, error);
+				if(option_values.treat_warnings_as_errors) {
+					return 1;
+				}
+				else {
+					/* Couldn't find foreign metadata, stop processing */
+					foreign_metadata = 0;
+				}
+			}
+			else {
+				flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", infilename, error);
+				return 1;
+			}
+		}
 	}
 
 	if(option_values.force_raw_format)
@@ -2143,19 +2160,51 @@ int decode_file(const char *infilename)
 		(strlen(outfilename) >= 4 && 0 == FLAC__STRCASECMP(outfilename+(strlen(outfilename)-4), ".w64"))
 	)
 		output_format = FORMAT_WAVE64;
+	else if(foreign_metadata != NULL) {
+		/* Pick a format based on what the foreign metadata contains */
+		if(foreign_metadata->type == FOREIGN_BLOCK_TYPE__WAVE64)
+			output_format = FORMAT_WAVE64;
+		else if(foreign_metadata->is_rf64)
+			output_format = FORMAT_RF64;
+		else if(foreign_metadata->type == FOREIGN_BLOCK_TYPE__AIFF) {
+			output_format = FORMAT_AIFF;
+			if(foreign_metadata->is_aifc) {
+				flac__utils_printf(stderr, 1, "ERROR restoring foreign metadata: restoring AIFF-C files is not yet supported\n");
+				return 1;
+			}
+		}
+		else
+			output_format = FORMAT_WAVE;
+		/* Further split is determined in decode.c */
+	}
 	else
 		output_format = FORMAT_WAVE;
+
+	/* Check whether output format agrees with foreign metadata */
+	if(foreign_metadata != NULL) {
+		if((output_format != FORMAT_WAVE && output_format != FORMAT_RF64) && foreign_metadata->type == FOREIGN_BLOCK_TYPE__RIFF)
+			return usage_error("ERROR: foreign metadata type RIFF cannot be restored to a%s file, only to WAVE and RF64\n",FileFormatString[output_format]);
+		if((output_format != FORMAT_AIFF && output_format != FORMAT_AIFF_C) && foreign_metadata->type == FOREIGN_BLOCK_TYPE__AIFF)
+			return usage_error("ERROR: foreign metadata type AIFF cannot be restored to a%s file, only to AIFF and AIFF-C\n",FileFormatString[output_format]);
+		if(output_format != FORMAT_WAVE64 && foreign_metadata->type == FOREIGN_BLOCK_TYPE__WAVE64)
+			return usage_error("ERROR: foreign metadata type Wave64 cannot be restored to a%s file, only to Wave64\n",FileFormatString[output_format]);
+	}
+
+	/* Now reassemble outfilename */
+	get_decoded_outfilename(infilename, output_format);
+
+	/*
+	 * Error if output file already exists (and -f not used).
+	 * Use grabbag__file_get_filesize() as a cheap way to check.
+	 */
+	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (FLAC__off_t)(-1)) {
+		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		return 1;
+	}
 
 	if(!option_values.test_only && !option_values.analyze) {
 		if(output_format == FORMAT_RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
-	}
-
-	if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
-		if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
-			return usage_error("ERROR: --keep-foreign-metadata cannot be used when decoding from stdin or to stdout\n");
-		if(output_format != FORMAT_WAVE && output_format != FORMAT_WAVE64 && output_format != FORMAT_RF64 && output_format != FORMAT_AIFF && output_format != FORMAT_AIFF_C)
-			return usage_error("ERROR: --keep-foreign-metadata can only be used with WAVE, Wave64, RF64, or AIFF output\n");
 	}
 
 	infilename_length = strlen(infilename);
@@ -2212,28 +2261,10 @@ int decode_file(const char *infilename)
 		retval = flac__decode_file(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, decode_options);
 	}
 	else {
-		decode_options.format_options.iff.foreign_metadata = 0;
-
-		/* initialize foreign metadata if requested */
-		if(option_values.keep_foreign_metadata || option_values.keep_foreign_metadata_if_present) {
-			decode_options.format_options.iff.foreign_metadata =
-				flac__foreign_metadata_new(
-					output_format==FORMAT_WAVE || output_format==FORMAT_RF64?
-						FOREIGN_BLOCK_TYPE__RIFF :
-					output_format==FORMAT_WAVE64?
-						FOREIGN_BLOCK_TYPE__WAVE64 :
-						FOREIGN_BLOCK_TYPE__AIFF
-				);
-			if(0 == decode_options.format_options.iff.foreign_metadata) {
-				flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
-				return 1;
-			}
-		}
+		decode_options.format_options.iff.foreign_metadata = foreign_metadata;
 
 		retval = flac__decode_file(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, decode_options);
 
-		if(decode_options.format_options.iff.foreign_metadata)
-			flac__foreign_metadata_delete(decode_options.format_options.iff.foreign_metadata);
 	}
 
 	if(retval == 0 && strcmp(infilename, "-")) {
@@ -2261,7 +2292,7 @@ const char *get_encoded_outfilename(const char *infilename)
 	return get_outfilename(p, suffix);
 }
 
-const char *get_decoded_outfilename(const char *infilename)
+const char *get_decoded_outfilename(const char *infilename, const FileFormat format)
 {
 	const char *suffix;
 	const char *p;
@@ -2276,16 +2307,16 @@ const char *get_decoded_outfilename(const char *infilename)
 	if(option_values.analyze) {
 		suffix = ".ana";
 	}
-	else if(option_values.force_raw_format) {
+	else if(format == FORMAT_RAW) {
 		suffix = ".raw";
 	}
-	else if(option_values.force_aiff_format) {
+	else if(format == FORMAT_AIFF) {
 		suffix = ".aiff";
 	}
-	else if(option_values.force_rf64_format) {
+	else if(format == FORMAT_RF64) {
 		suffix = ".rf64";
 	}
-	else if(option_values.force_wave64_format) {
+	else if(format == FORMAT_WAVE64) {
 		suffix = ".w64";
 	}
 	else {

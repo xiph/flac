@@ -309,26 +309,7 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 
 	is_big_endian_host_ = (*((FLAC__byte*)(&test)))? false : true;
 
-	if(!decoder_session->analysis_mode && !decoder_session->test_only && decoder_session->foreign_metadata) {
-		const char *error;
-		if(!flac__foreign_metadata_read_from_flac(decoder_session->foreign_metadata, infilename, &error)) {
-			if(decoder_session->relaxed_foreign_metadata_handling) {
-				flac__utils_printf(stderr, 1, "%s: WARNING reading foreign metadata: %s\n", decoder_session->inbasefilename, error);
-				if(decoder_session->treat_warnings_as_errors) {
-					return false;
-				}
-				else {
-					/* Couldn't find foreign metadata, stop processing */
-					decoder_session->foreign_metadata = 0;
-				}
-			}
-			else {
-				flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", decoder_session->inbasefilename, error);
-				return false;
-			}
-		}
-	}
-	else if(decoder_session->test_only && strcmp(infilename, "-") != 0) {
+	if(decoder_session->test_only && strcmp(infilename, "-") != 0) {
 		/* When testing, we can be a little more pedantic, as long
 		 * as we can seek properly */
 		FLAC__byte buffer[3];
