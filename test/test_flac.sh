@@ -182,6 +182,20 @@ rt_test_wav ()
 	rm -f rt.flac rt.wav
 }
 
+rt_test_wav_autokf ()
+{
+	f="$1"
+	extra="$2"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f rt.wav || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.wav
+}
+
 rt_test_w64 ()
 {
 	f="$1"
@@ -196,6 +210,20 @@ rt_test_w64 ()
 	rm -f rt.flac rt.w64
 }
 
+rt_test_w64_autokf ()
+{
+	f="$1"
+	extra="$2"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f rt.w64 || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.w64
+}
+
 rt_test_rf64 ()
 {
 	f="$1"
@@ -204,6 +232,20 @@ rt_test_rf64 ()
 	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo $ECHO_N "decode... " $ECHO_C
 	run_flac --force --decode --channel-map=none -o rt.rf64 $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f rt.rf64 || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.rf64
+}
+
+rt_test_rf64_autokf ()
+{
+	f="$1"
+	extra="$2"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none $extra rt.flac || die "ERROR"
 	echo $ECHO_N "compare... " $ECHO_C
 	cmp $f rt.rf64 || die "ERROR: file mismatch"
 	echo "OK"
@@ -1177,6 +1219,12 @@ rt_test_w64 wacky2.w64 '--keep-foreign-metadata'
 rt_test_rf64 wacky1.rf64 '--keep-foreign-metadata'
 rt_test_rf64 wacky2.rf64 '--keep-foreign-metadata'
 
+rt_test_wav_autokf wacky1.wav '--keep-foreign-metadata'
+rt_test_wav_autokf wacky2.wav '--keep-foreign-metadata'
+rt_test_w64_autokf wacky1.w64 '--keep-foreign-metadata'
+rt_test_w64_autokf wacky2.w64 '--keep-foreign-metadata'
+rt_test_rf64_autokf wacky1.rf64 '--keep-foreign-metadata'
+rt_test_rf64_autokf wacky2.rf64 '--keep-foreign-metadata'
 
 ############################################################################
 # test the metadata-handling properties of flac-to-flac encoding
