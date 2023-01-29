@@ -2704,7 +2704,12 @@ void print_error_with_init_status(const EncoderSession *e, const char *message, 
 				"\n"
 				"An error occurred opening the output file; it is likely that the output\n"
 				"directory does not exist or is not writable, the output file already exists and\n"
+#ifdef _WIN32
+				"is not writeable, the disk is full or the file has a filename that exceeds the\n"
+				"path length limit.\n"
+#else
 				"is not writable, or the disk is full.\n"
+#endif
 			);
 		}
 	}
