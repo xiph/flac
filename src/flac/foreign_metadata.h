@@ -60,6 +60,9 @@ typedef struct {
 	size_t format_block; /* block number of 'fmt ' or 'COMM' chunk */
 	size_t audio_block; /* block number of 'data' or 'SSND' chunk */
 	FLAC__bool is_rf64; /* always false if type!=RIFF */
+	FLAC__bool is_wavefmtex; /* always false if type!=RIFF */
+	FLAC__bool is_aifc;  /* always false if type!=AIFF */
+	FLAC__bool is_sowt;  /* always false if type!=AIFF */
 	FLAC__uint32 ssnd_offset_size; /* 0 if type!=AIFF */
 } foreign_metadata_t;
 

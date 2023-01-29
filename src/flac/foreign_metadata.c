@@ -496,7 +496,7 @@ static FLAC__bool write_to_flac_(foreign_metadata_t *fm, FILE *fin, FILE *fout, 
 
 static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadata_SimpleIterator *it, const char **error)
 {
-	FLAC__byte id[4], buffer[12];
+	FLAC__byte id[4], buffer[32];
 	FLAC__off_t offset;
 	FLAC__bool foreign_metadata_found = false, type_found = false, ds64_found = false;
 	uint32_t foreign_metadata_found_type = 0;
@@ -536,13 +536,24 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 			return false;
 		}
 		if(fm->num_blocks == 0) { /* first block? */
+			/* Initialize bools */
+			fm->is_wavefmtex = 0;
+			fm->is_aifc = 0;
+			fm->is_sowt = 0;
 			fm->is_rf64 = 0 == memcmp(buffer, "RF64", 4);
+
 			if(fm->type == FOREIGN_BLOCK_TYPE__RIFF && (0 == memcmp(buffer, "RIFF", 4) || fm->is_rf64))
 				type_found = true;
 			else if(fm->type == FOREIGN_BLOCK_TYPE__WAVE64 && 0 == memcmp(buffer, "riff", 4)) /* use first 4 bytes instead of whole GUID */
 				type_found = true;
-			else if(fm->type == FOREIGN_BLOCK_TYPE__AIFF && 0 == memcmp(buffer, "FORM", 4))
+			else if(fm->type == FOREIGN_BLOCK_TYPE__AIFF && 0 == memcmp(buffer, "FORM", 4)) {
 				type_found = true;
+				if(fread(buffer+4, 1, 8, f) != 8) {
+					if(error) *error = "read error (020)";
+					return false;
+				}
+				fm->is_aifc = 0 == memcmp(buffer+8, "AIFC", 4);
+			}
 			else {
 				if(error) *error = "unsupported foreign metadata found, may need newer FLAC decoder (005)";
 				return false;
@@ -565,6 +576,11 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 					return false;
 				}
 				fm->format_block = fm->num_blocks;
+				if(fread(buffer+4, 1, 8, f) != 8) {
+					if(error) *error = "read error (020)";
+					return false;
+				}
+				fm->is_wavefmtex = 0 == memcmp(buffer+8, "\xfe\xff", 2);
 			}
 			else if(!memcmp(buffer, "data", 4)) {
 				if(fm->audio_block) {
@@ -620,6 +636,13 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 					return false;
 				}
 				fm->format_block = fm->num_blocks;
+				if(fm->is_aifc) {
+					if(fread(buffer+4, 1, 28, f) != 28) {
+						if(error) *error = "read error (020)";
+						return false;
+					}
+					fm->is_sowt = 0 == memcmp(buffer+26, "sowt", 2);
+				}
 			}
 			else if(!memcmp(buffer, "SSND", 4)) {
 				if(fm->audio_block) {
