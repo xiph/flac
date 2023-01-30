@@ -40,11 +40,11 @@ typedef struct {
 #endif
 
 	FileFormat format;
+	FileSubFormat subformat;
 	FLAC__bool treat_warnings_as_errors;
 	FLAC__bool continue_through_decode_errors;
 	FLAC__bool channel_map_none;
 	FLAC__bool relaxed_foreign_metadata_handling;
-	FLAC__bool force_legacy_wave_format;
 
 	struct {
 		replaygain_synthesis_spec_t spec;
@@ -104,7 +104,7 @@ static FLAC__bool is_big_endian_host_;
 /*
  * local routines
  */
-static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, FLAC__bool relaxed_foreign_metadata_handling, FLAC__bool force_legacy_wave_format, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename);
+static FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FileSubFormat subformat, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, FLAC__bool relaxed_foreign_metadata_handling, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename);
 static void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred);
 static FLAC__bool DecoderSession_init_decoder(DecoderSession *d, const char *infilename);
 static FLAC__bool DecoderSession_process(DecoderSession *d);
@@ -113,7 +113,7 @@ static int DecoderSession_finish_error(DecoderSession *d);
 static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
 static FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uint64 samples);
 static FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, uint32_t bps, uint32_t channels, uint32_t sample_rate, FLAC__uint32 channel_mask);
-static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate);
+static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 val);
@@ -163,11 +163,11 @@ int flac__decode_file(const char *infilename, const char *outfilename, FLAC__boo
 			/*serial_number=*/0,
 #endif
 			options.format,
+			options.force_subformat,
 			options.treat_warnings_as_errors,
 			options.continue_through_decode_errors,
 			options.channel_map_none,
 			options.relaxed_foreign_metadata_handling,
-			options.force_legacy_wave_format,
 			options.replaygain_synthesis_spec,
 			analysis_mode,
 			aopts,
@@ -191,7 +191,7 @@ int flac__decode_file(const char *infilename, const char *outfilename, FLAC__boo
 	return DecoderSession_finish_ok(&decoder_session);
 }
 
-FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, FLAC__bool relaxed_foreign_metadata_handling, FLAC__bool force_legacy_wave_format, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename)
+FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__bool use_first_serial_number, long serial_number, FileFormat format, FileSubFormat subformat, FLAC__bool treat_warnings_as_errors, FLAC__bool continue_through_decode_errors, FLAC__bool channel_map_none, FLAC__bool relaxed_foreign_metadata_handling, replaygain_synthesis_spec_t replaygain_synthesis_spec, FLAC__bool analysis_mode, analysis_options aopts, utils__SkipUntilSpecification *skip_specification, utils__SkipUntilSpecification *until_specification, utils__CueSpecification *cue_specification, foreign_metadata_t *foreign_metadata, const char *infilename, const char *outfilename)
 {
 #if FLAC__HAS_OGG
 	d->is_ogg = is_ogg;
@@ -204,11 +204,11 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 #endif
 
 	d->format = format;
+	d->subformat = subformat;
 	d->treat_warnings_as_errors = treat_warnings_as_errors;
 	d->continue_through_decode_errors = continue_through_decode_errors;
 	d->channel_map_none = channel_map_none;
 	d->relaxed_foreign_metadata_handling = relaxed_foreign_metadata_handling;
-	d->force_legacy_wave_format = force_legacy_wave_format;
 	d->replaygain.spec = replaygain_synthesis_spec;
 	d->replaygain.apply = false;
 	d->replaygain.scale = 0.0;
@@ -624,19 +624,22 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uint64 samples)
 {
 	const FileFormat format = decoder_session->format;
+	const FileSubFormat subformat = decoder_session->subformat;
 	const char *fmt_desc =
 		format==FORMAT_WAVE? "WAVE" :
 		format==FORMAT_WAVE64? "Wave64" :
 		format==FORMAT_RF64? "RF64" :
-		"AIFF";
+		format==FORMAT_AIFF? "AIFF" :
+		"AIFC";
 	const FLAC__bool is_waveformatextensible =
+		subformat == SUBFORMAT_WAVE_EXTENSIBLE || (
 		(format == FORMAT_WAVE || format == FORMAT_WAVE64 || format == FORMAT_RF64) &&
-		!decoder_session->force_legacy_wave_format &&
+		subformat != SUBFORMAT_WAVE_PCM &&
 		(
 			(decoder_session->channel_mask != 0 && decoder_session->channel_mask != 0x0004 && decoder_session->channel_mask != 0x0003) ||
 			(decoder_session->bps != 8 && decoder_session->bps != 16) ||
 			decoder_session->channels > 2
-		);
+		));
 	const FLAC__uint64 data_size = samples * decoder_session->channels * ((decoder_session->bps+7)/8);
 	const FLAC__uint64 aligned_data_size =
 		format == FORMAT_WAVE64?
@@ -694,8 +697,10 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		/* +16+8+{40,16} for fmt chunk header (GUID and size field) and body */
 		/* +16+8 for data chunk header (GUID and size field) */
 		iff_size = 16+8 + 16 + 16+8+(is_waveformatextensible?40:16) + 16+8 + foreign_metadata_size + aligned_data_size;
-	else /* AIFF */
+	else if(format == FORMAT_AIFF)
 		iff_size = 46 + foreign_metadata_size + aligned_data_size;
+	else /* AIFF-C */
+		iff_size = 52 + foreign_metadata_size + aligned_data_size;
 
 	if(format != FORMAT_WAVE64 && format != FORMAT_RF64 && iff_size >= 0xFFFFFFF4) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: stream is too big to fit in a single %s file\n", decoder_session->inbasefilename, fmt_desc);
@@ -822,8 +827,13 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		if(!write_big_endian_uint32(f, (FLAC__uint32)iff_size)) /* filesize-8 */
 			return false;
 
-		if(flac__utils_fwrite("AIFF", 1, 4, f) != 4)
-			return false;
+		if(format == FORMAT_AIFF) {
+			if(flac__utils_fwrite("AIFF", 1, 4, f) != 4)
+				return false;
+		}
+		else
+			if(flac__utils_fwrite("AIFC", 1, 4, f) != 4)
+				return false;
 
 		decoder_session->fm_offset1 = ftello(f);
 
@@ -837,7 +847,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 			}
 		}
 
-		if(!write_aiff_form_comm_chunk(f, samples, decoder_session->bps, decoder_session->channels, decoder_session->sample_rate))
+		if(!write_aiff_form_comm_chunk(f, samples, decoder_session->bps, decoder_session->channels, decoder_session->sample_rate, format, subformat))
 			return false;
 
 		decoder_session->fm_offset2 = ftello(f);
@@ -908,15 +918,21 @@ FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatexten
 	return true;
 }
 
-FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate)
+FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat)
 {
 	FLAC__ASSERT(samples <= 0xffffffff);
 
 	if(flac__utils_fwrite("COMM", 1, 4, f) != 4)
 		return false;
 
-	if(!write_big_endian_uint32(f, 18)) /* chunk size = 18 */
-		return false;
+	if(format == FORMAT_AIFF) {
+		if(!write_big_endian_uint32(f, 18)) /* chunk size = 18 */
+			return false;
+	}
+	else {
+		if(!write_big_endian_uint32(f, 24)) /* chunk size = 24 */
+			return false;
+	}
 
 	if(!write_big_endian_uint16(f, (FLAC__uint16)channels))
 		return false;
@@ -929,6 +945,21 @@ FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bp
 
 	if(!write_sane_extended(f, sample_rate))
 		return false;
+
+	if(format == FORMAT_AIFF_C) {
+		if(subformat == SUBFORMAT_AIFF_C_NONE) {
+			if(flac__utils_fwrite("NONE", 1, 4, f) != 4)
+				return false;
+		}
+		else if(subformat == SUBFORMAT_AIFF_C_SOWT) {
+			if(flac__utils_fwrite("sowt", 1, 4, f) != 4)
+				return false;
+		}
+		if(flac__utils_fwrite("\x00\x00", 1, 2, f) != 2)
+			return false;
+	}
+
+
 
 	return true;
 }
@@ -1049,8 +1080,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	const uint32_t bps = frame->header.bits_per_sample, channels = frame->header.channels;
 	const uint32_t shift = (decoder_session->format != FORMAT_RAW && (bps%8))? 8-(bps%8): 0;
 	FLAC__bool is_big_endian = (
-		decoder_session->format == FORMAT_AIFF || decoder_session->format == FORMAT_AIFF_C ? true : (
-		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 ? false :
+		(decoder_session->format == FORMAT_AIFF || (decoder_session->format == FORMAT_AIFF_C && decoder_session->subformat == SUBFORMAT_AIFF_C_NONE)) ? true : (
+		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 || (decoder_session->format == FORMAT_AIFF_C && decoder_session->subformat == SUBFORMAT_AIFF_C_SOWT) ? false :
 		decoder_session->is_big_endian
 	));
 	FLAC__bool is_unsigned_samples = (

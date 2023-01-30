@@ -144,6 +144,9 @@ static struct share__option long_options_[] = {
 	{ "force-rf64-format"         , share__no_argument, 0, 0 },
 	{ "force-wave64-format"       , share__no_argument, 0, 0 },
 	{ "force-legacy-wave-format"  , share__no_argument, 0, 0 },
+	{ "force-extensible-wave-format",share__no_argument,0, 0 },
+	{ "force-aiff-c-none-format"  , share__no_argument, 0, 0 },
+	{ "force-aiff-c-sowt-format"  , share__no_argument, 0, 0 },
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
 	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
@@ -244,6 +247,9 @@ static struct {
 	FLAC__bool force_rf64_format;
 	FLAC__bool force_wave64_format;
 	FLAC__bool force_legacy_wave_format;
+	FLAC__bool force_extensible_wave_format;
+	FLAC__bool force_aiff_c_none_format;
+	FLAC__bool force_aiff_c_sowt_format;
 	FLAC__bool delete_input;
 	FLAC__bool preserve_modtime;
 	FLAC__bool keep_foreign_metadata;
@@ -402,8 +408,16 @@ int do_it(void)
 			if(!FLAC__format_sample_rate_is_valid(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", option_values.format_sample_rate, FLAC__MAX_SAMPLE_RATE);
 		}
-		if((option_values.force_raw_format?1:0) + (option_values.force_aiff_format?1:0) + (option_values.force_rf64_format?1:0) + (option_values.force_wave64_format?1:0) > 1)
-			return usage_error("ERROR: only one of --force-raw-format/--force-aiff-format/--force-rf64-format/--force-wave64-format allowed\n");
+		if((option_values.force_raw_format?1:0) +
+		   (option_values.force_aiff_format?1:0) +
+		   (option_values.force_rf64_format?1:0) +
+		   (option_values.force_wave64_format?1:0) +
+		   (option_values.force_legacy_wave_format?1:0) +
+		   (option_values.force_extensible_wave_format?1:0) +
+		   (option_values.force_aiff_c_none_format?1:0) +
+		   (option_values.force_aiff_c_sowt_format?1:0)
+		    > 1)
+			return usage_error("ERROR: only one of force format options allowed\n");
 		if(option_values.mode_decode) {
 			if(!option_values.force_raw_format) {
 				if(option_values.format_is_big_endian >= 0)
@@ -574,6 +588,9 @@ FLAC__bool init_options(void)
 	option_values.force_rf64_format = false;
 	option_values.force_wave64_format = false;
 	option_values.force_legacy_wave_format = false;
+	option_values.force_extensible_wave_format = false;
+	option_values.force_aiff_c_none_format = false;
+	option_values.force_aiff_c_sowt_format = false;
 	option_values.delete_input = false;
 	option_values.preserve_modtime = true;
 	option_values.keep_foreign_metadata = false;
@@ -780,6 +797,15 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "force-legacy-wave-format")) {
 			option_values.force_legacy_wave_format = true;
+		}
+		else if(0 == strcmp(long_option, "force-extensible-wave-format")) {
+			option_values.force_extensible_wave_format = true;
+		}
+		else if(0 == strcmp(long_option, "force-aiff-c-none-format")) {
+			option_values.force_aiff_c_none_format = true;
+		}
+		else if(0 == strcmp(long_option, "force-aiff-c-sowt-format")) {
+			option_values.force_aiff_c_sowt_format = true;
 		}
 		else if(0 == strcmp(long_option, "lax")) {
 			option_values.lax = true;
@@ -1319,11 +1345,14 @@ void show_help(void)
 	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
 	printf("      --limit-min-bitrate            Limit minimum bitrate (for streaming)\n");
 	printf("format options:\n");
-	printf("      --force-raw-format       Treat input or output as raw samples\n");
-	printf("      --force-aiff-format      Force decoding to AIFF format\n");
-	printf("      --force-rf64-format      Force decoding to RF64 format\n");
-	printf("      --force-wave64-format    Force decoding to Wave64 format\n");
-	printf("      --force-legacy-wave-format  Force decoding to legacy wave format\n");
+	printf("      --force-raw-format             Treat input or output as raw samples\n");
+	printf("      --force-aiff-format            Decode to AIFF format\n");
+	printf("      --force-rf64-format            Decode to RF64 format\n");
+	printf("      --force-wave64-format          Decode to Wave64 format\n");
+	printf("      --force-legacy-wave-format     Decode to legacy wave format\n");
+	printf("      --force-extensible-wave-format Decode to extensible wave format\n");
+	printf("      --force-aiff-c-none-format     Decode to AIFF-C NONE format\n");
+	printf("      --force-aiff-c-sowt-format     Decode to AIFF-C sowt format\n");
 	printf("raw format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
@@ -1662,26 +1691,27 @@ void show_explain(void)
 	printf("format options:\n");
 	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
 	printf("                               decoding) to be treated as raw samples\n");
-	printf("      --force-aiff-format      Force the decoder to output AIFF format.  This\n");
-	printf("                               option is not needed if the output filename (as\n");
-	printf("                               set by -o) ends with .aif or .aiff; this option\n");
-	printf("                               has no effect when encoding since input AIFF is\n");
-	printf("                               auto-detected.\n");
-	printf("      --force-rf64-format      Force the decoder to output RF64 format.  This\n");
-	printf("                               option is not needed if the output filename (as\n");
-	printf("                               set by -o) ends with .rf64; this option\n");
-	printf("                               has no effect when encoding since input RF64 is\n");
-	printf("                               auto-detected.\n");
-	printf("      --force-wave64-format    Force the decoder to output Wave64 format.  This\n");
-	printf("                               option is not needed if the output filename (as\n");
-	printf("                               set by -o) ends with .w64; this option\n");
-	printf("                               has no effect when encoding since input Wave64 is\n");
-	printf("                               auto-detected.\n");
-	printf("      --force-legacy-wave-format    Force the decoder to output to\n");
-	printf("                                    WAVE_FORMAT_PCM when WAVE_FORMAT_EXTENSIBLE\n");
-	printf("                                    would be appropriate. This is the case for\n");
-	printf("                                    audio with 24 or 32 bits per sample or more\n");
-	printf("                                    than 2 channels.\n");
+	printf("      --force-aiff-format\n");
+	printf("      --force-rf64-format\n");
+	printf("      --force-wave64-format\n");
+	printf("            Force the decoder to output AIFF/RF64/WAVE64 format respectively.\n");
+	printf("            This option is not needed if the output filename (as set by -o)\n");
+	printf("            ends with *.aif* or *.aiff*, *.rf64* and *.w64* respectively. Also,\n");
+	printf("            this option has no effect when encoding since input is\n");
+	printf("            auto-detected. When none of these options nor\n");
+	printf("            --keep-foreign-metadata are given and no output filename is set,\n");
+	printf("            the output format is WAV by default.\n");
+	printf("      --force-legacy-wave-format\n");
+	printf("      --force-extensible-wave-format\n");
+	printf("            Instruct the decoder to output a WAVE file with WAVE_FORMAT_PCM and\n");
+	printf("            WAVE_FORMAT_EXTENSIBLE respectively. If none of these options nor\n");
+	printf("            --keep-foreign-metadata are given, FLAC outputs WAVE_FORMAT_PCM\n");
+	printf("            for mono or stereo with a bit depth of 8 or 16 bits, and\n");
+	printf("            WAVE_FORMAT_EXTENSIBLE for all other audio formats.\n");
+	printf("      --force-aiff-c-none-format\n");
+	printf("      --force-aiff-c-sowt-format\n");
+	printf("            Instruct the decoder to output an AIFF-C file with format NONE and\n");
+	printf("            sowt respectively.\n");
 	printf("raw format options:\n");
 	printf("      --endian={big|little}    Set byte order for samples\n");
 	printf("      --channels=#             Number of channels\n");
@@ -2106,6 +2136,7 @@ int decode_file(const char *infilename)
 	int retval;
 	FLAC__bool treat_as_ogg = false;
 	FileFormat output_format = FORMAT_WAVE;
+	FileSubFormat output_subformat = SUBFORMAT_UNSPECIFIED;
 	decode_options_t decode_options;
 	foreign_metadata_t foreign_metadata_instance = {0}; /* Allocate space */
 	foreign_metadata_t *foreign_metadata = 0;
@@ -2169,16 +2200,41 @@ int decode_file(const char *infilename)
 		else if(foreign_metadata->type == FOREIGN_BLOCK_TYPE__AIFF) {
 			output_format = FORMAT_AIFF;
 			if(foreign_metadata->is_aifc) {
-				flac__utils_printf(stderr, 1, "ERROR restoring foreign metadata: restoring AIFF-C files is not yet supported\n");
-				return 1;
+				output_format = FORMAT_AIFF_C;
 			}
 		}
 		else
 			output_format = FORMAT_WAVE;
-		/* Further split is determined in decode.c */
 	}
 	else
 		output_format = FORMAT_WAVE;
+
+	/* Now do subformats */
+	if(option_values.force_legacy_wave_format)
+		output_subformat = SUBFORMAT_WAVE_PCM;
+	else if(option_values.force_extensible_wave_format)
+		output_subformat = SUBFORMAT_WAVE_EXTENSIBLE;
+	else if(option_values.force_aiff_c_none_format) {
+		output_format = FORMAT_AIFF_C;
+		output_subformat = SUBFORMAT_AIFF_C_NONE;
+	}
+	else if(option_values.force_aiff_c_sowt_format) {
+		output_format = FORMAT_AIFF_C;
+		output_subformat = SUBFORMAT_AIFF_C_SOWT;
+	}
+	else if(foreign_metadata != NULL) {
+		if(foreign_metadata->is_wavefmtex)
+			output_subformat = SUBFORMAT_WAVE_EXTENSIBLE;
+		else if(output_format == FORMAT_WAVE)
+			output_subformat = SUBFORMAT_WAVE_PCM;
+		else if(foreign_metadata->is_aifc) {
+			if(foreign_metadata->is_sowt)
+				output_subformat = SUBFORMAT_AIFF_C_SOWT;
+			else
+				output_subformat = SUBFORMAT_AIFF_C_NONE;
+		}
+	}
+
 
 	/* Check whether output format agrees with foreign metadata */
 	if(foreign_metadata != NULL) {
@@ -2245,7 +2301,7 @@ int decode_file(const char *infilename)
 	decode_options.continue_through_decode_errors = option_values.continue_through_decode_errors;
 	decode_options.relaxed_foreign_metadata_handling = option_values.keep_foreign_metadata_if_present;
 	decode_options.replaygain_synthesis_spec = option_values.replaygain_synthesis_spec;
-	decode_options.force_legacy_wave_format = option_values.force_legacy_wave_format;
+	decode_options.force_subformat = output_subformat;
 #if FLAC__HAS_OGG
 	decode_options.is_ogg = treat_as_ogg;
 	decode_options.use_first_serial_number = !option_values.has_serial_number;
@@ -2312,6 +2368,9 @@ const char *get_decoded_outfilename(const char *infilename, const FileFormat for
 	}
 	else if(format == FORMAT_AIFF) {
 		suffix = ".aiff";
+	}
+	else if(format == FORMAT_AIFF_C) {
+		suffix = ".aifc";
 	}
 	else if(format == FORMAT_RF64) {
 		suffix = ".rf64";
