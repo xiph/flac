@@ -31,6 +31,9 @@
 typedef enum { FORMAT_RAW, FORMAT_WAVE, FORMAT_WAVE64, FORMAT_RF64, FORMAT_AIFF, FORMAT_AIFF_C, FORMAT_FLAC, FORMAT_OGGFLAC } FileFormat;
 static const char * const FileFormatString[] = { " raw", " WAVE", " Wave64", "n RF64", "n AIFF", "n AIFF-C", " FLAC", "n Ogg FLAC" };
 
+typedef enum { SUBFORMAT_UNSPECIFIED = 0, SUBFORMAT_WAVE_PCM, SUBFORMAT_WAVE_EXTENSIBLE, SUBFORMAT_AIFF_C_NONE, SUBFORMAT_AIFF_C_SOWT } FileSubFormat;
+
+
 typedef struct {
 	FLAC__bool is_relative; /* i.e. specification string started with + or - */
 	FLAC__bool value_is_samples;
