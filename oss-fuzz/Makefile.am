@@ -32,7 +32,7 @@ EXTRA_DIST = \
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder
+noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder fuzzer_tool_flac
 endif
 
 fuzzer_encoder_SOURCES = fuzzer_encoder.cc
@@ -60,12 +60,28 @@ fuzzer_metadata_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
 fuzzer_metadata_LDFLAGS = $(AM_LDFLAGS)
 fuzzer_metadata_LDADD = $(flac_libs)
 
-
 fuzzer_reencoder_SOURCES = fuzzer_reencoder.cc
 fuzzer_reencoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
 fuzzer_reencoder_LDFLAGS = $(AM_LDFLAGS)
 fuzzer_reencoder_LDADD = $(flac_libs)
 
+fuzzer_tool_flac_SOURCES = ${flac_SOURCES} fuzzer_tool_flac.c
+fuzzer_tool_flac_CFLAGS = $(LIB_FUZZING_ENGINE)
+fuzzer_tool_flac_LDFLAGS = $(AM_LDFLAGS)
+fuzzer_tool_flac_LDADD =  \
+        $(top_builddir)/src/share/utf8/libutf8.la \
+        $(top_builddir)/src/share/grabbag/libgrabbag.la \
+        $(top_builddir)/src/share/getopt/libgetopt.la \
+        $(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+        $(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
+        $(top_builddir)/src/libFLAC/libFLAC.la \
+        @LTLIBICONV@ \
+        -lm
+
+flac_clibs = \
+	$(top_builddir)/src/libFLAC/libFLAC-static.la \
+	@OGG_LIBS@ \
+	-lm
 
 flac_libs = \
 	$(top_builddir)/src/libFLAC/libFLAC-static.la \
@@ -73,3 +89,19 @@ flac_libs = \
 	@OGG_LIBS@ \
 	-lm
 
+
+flac_SOURCES = \
+        ${top_builddir}/src/flac/analyze.c \
+        ${top_builddir}/src/flac/decode.c \
+        ${top_builddir}/src/flac/encode.c \
+        ${top_builddir}/src/flac/foreign_metadata.c \
+        ${top_builddir}/src/flac/local_string_utils.c \
+        ${top_builddir}/src/flac/utils.c \
+        ${top_builddir}/src/flac/vorbiscomment.c \
+        ${top_builddir}/src/flac/analyze.h \
+        ${top_builddir}/src/flac/decode.h \
+        ${top_builddir}/src/flac/encode.h \
+        ${top_builddir}/src/flac/foreign_metadata.h \
+        ${top_builddir}/src/flac/local_string_utils.h \
+        ${top_builddir}/src/flac/utils.h \
+        ${top_builddir}/src/flac/vorbiscomment.h
