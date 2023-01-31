@@ -113,7 +113,7 @@ static int DecoderSession_finish_error(DecoderSession *d);
 static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
 static FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uint64 samples);
 static FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, uint32_t bps, uint32_t channels, uint32_t sample_rate, FLAC__uint32 channel_mask);
-static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat);
+static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat, FLAC__uint32 comm_length);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
 static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 val);
 static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 val);
@@ -700,7 +700,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 	else if(format == FORMAT_AIFF)
 		iff_size = 46 + foreign_metadata_size + aligned_data_size;
 	else /* AIFF-C */
-		iff_size = 52 + foreign_metadata_size + aligned_data_size;
+		iff_size = 16 + foreign_metadata_size + aligned_data_size +  fm->aifc_comm_length;
 
 	if(format != FORMAT_WAVE64 && format != FORMAT_RF64 && iff_size >= 0xFFFFFFF4) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: stream is too big to fit in a single %s file\n", decoder_session->inbasefilename, fmt_desc);
@@ -847,7 +847,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 			}
 		}
 
-		if(!write_aiff_form_comm_chunk(f, samples, decoder_session->bps, decoder_session->channels, decoder_session->sample_rate, format, subformat))
+		if(!write_aiff_form_comm_chunk(f, samples, decoder_session->bps, decoder_session->channels, decoder_session->sample_rate, format, subformat, fm?fm->aifc_comm_length:0))
 			return false;
 
 		decoder_session->fm_offset2 = ftello(f);
@@ -918,21 +918,23 @@ FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatexten
 	return true;
 }
 
-FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat)
+FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat, FLAC__uint32 comm_length)
 {
+	FLAC__uint32 i;
 	FLAC__ASSERT(samples <= 0xffffffff);
+
+	if(comm_length == 0) {
+		if(format == FORMAT_AIFF)
+			comm_length = 30;
+		else
+			comm_length = 36;
+	}
 
 	if(flac__utils_fwrite("COMM", 1, 4, f) != 4)
 		return false;
 
-	if(format == FORMAT_AIFF) {
-		if(!write_big_endian_uint32(f, 18)) /* chunk size = 18 */
-			return false;
-	}
-	else {
-		if(!write_big_endian_uint32(f, 24)) /* chunk size = 24 */
-			return false;
-	}
+	if(!write_big_endian_uint32(f, comm_length-12)) /* chunk size = 18 */
+		return false;
 
 	if(!write_big_endian_uint16(f, (FLAC__uint16)channels))
 		return false;
@@ -955,8 +957,10 @@ FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bp
 			if(flac__utils_fwrite("sowt", 1, 4, f) != 4)
 				return false;
 		}
-		if(flac__utils_fwrite("\x00\x00", 1, 2, f) != 2)
-			return false;
+		for(i = 34; i < comm_length; i++) {
+			if(flac__utils_fwrite("\x00", 1, 1, f) != 1)
+				return false;
+		}
 	}
 
 

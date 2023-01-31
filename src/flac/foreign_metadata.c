@@ -498,6 +498,7 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 {
 	FLAC__byte id[4], buffer[32];
 	FLAC__off_t offset;
+	FLAC__uint32 length;
 	FLAC__bool first_block = true, type_found = false, ds64_found = false;
 
 	FLAC__ASSERT(FLAC__STREAM_METADATA_APPLICATION_ID_LEN == sizeof(id)*8);
@@ -522,6 +523,7 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 		else if(memcmp(id, FLAC__FOREIGN_METADATA_APPLICATION_ID[fm->type], sizeof(id)))
 			continue;
 		offset = FLAC__metadata_simple_iterator_get_block_offset(it);
+		length = FLAC__metadata_simple_iterator_get_block_length(it);
 		/* skip over header and app ID */
 		offset += (FLAC__STREAM_METADATA_IS_LAST_LEN + FLAC__STREAM_METADATA_TYPE_LEN + FLAC__STREAM_METADATA_LENGTH_LEN) / 8;
 		offset += sizeof(id);
@@ -636,11 +638,12 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 				}
 				fm->format_block = fm->num_blocks;
 				if(fm->is_aifc) {
-					if(fread(buffer+4, 1, 28, f) != 28) {
+					if(fread(buffer+4, 1, 26, f) != 26) {
 						if(error) *error = "read error (020)";
 						return false;
 					}
 					fm->is_sowt = 0 == memcmp(buffer+26, "sowt", 2);
+					fm->aifc_comm_length = length;
 				}
 			}
 			else if(!memcmp(buffer, "SSND", 4)) {
@@ -700,48 +703,68 @@ static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, F
 	/* don't write first (RIFF/RF64/FORM) chunk, or ds64 chunk in the case of RF64, compare instead */
 	for(i = 0; i < (fm->is_rf64?2:1); i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-			if(error) *error = "seek failed in FLAC file (003)";
+			if(error) *error = "seek failed in FLAC file";
 			return false;
 		}
-		if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (004)", "write failed in FLAC file (005)", "stored foreign metadata seems invalid"))
+		if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file", "stored main chunk length differs from written length"))
 			return false;
 	}
 
 	for(; i < fm->format_block; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-			if(error) *error = "seek failed in FLAC file (003)";
+			if(error) *error = "seek failed in FLAC file";
 			return false;
 		}
-		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (004)", "write failed in FLAC file (005)"))
+		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file"))
 			return false;
 	}
+
+	if(fm->is_aifc) {
+		/* Need to restore compression type name */
+		if(fseeko(fout, 30, SEEK_CUR) < 0) {
+			if(error) *error = "seek failed in AIFF-C file";
+			return false;
+		}
+		if(fseeko(fin, fm->blocks[i].offset+30, SEEK_SET) < 0) {
+			if(error) *error = "seek failed in FLAC file";
+			return false;
+		}
+		if(!copy_data_(fin, fout, fm->aifc_comm_length-34, error, "read failed in FLAC file", "write failed in WAVE/AIFF file"))
+			return false;
+		/* Now seek back */
+		if(fseeko(fout, ((FLAC__int32)(fm->aifc_comm_length) * -1) + 4, SEEK_CUR) < 0) {
+			if(error) *error = "seek failed in AIFF-C file";
+			return false;
+		}
+	}
+
 	/* compare format block */
 	if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-		if(error) *error = "seek failed in FLAC file (003)";
+		if(error) *error = "seek failed in FLAC file";
 		return false;
 	}
-	if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (004)", "write failed in FLAC file (005)", "stored foreign format block differs from written block. Perhaps the file is being restored to a different format than that of the original file"))
+	if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file", "stored foreign format block differs from written block. Perhaps the file is being restored to a different format than that of the original file"))
 		return false;
 	i++;
 
 	for(; i < fm->audio_block; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-			if(error) *error = "seek failed in FLAC file (007)";
+			if(error) *error = "seek failed in FLAC file";
 			return false;
 		}
-		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (008)", "write failed in FLAC file (009)"))
+		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "write failed in WAVE/AIFF file"))
 			return false;
 	}
 	if(fseeko(fout, offset3, SEEK_SET) < 0) {
-		if(error) *error = "seek failed in WAVE/AIFF file (010)";
+		if(error) *error = "seek failed in WAVE/AIFF file";
 		return false;
 	}
 	for(i = fm->audio_block+1; i < fm->num_blocks; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-			if(error) *error = "seek failed in FLAC file (011)";
+			if(error) *error = "seek failed in FLAC file";
 			return false;
 		}
-		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in WAVE/AIFF file (012)", "write failed in FLAC file (013)"))
+		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "write failed in WAVE/AIFF file"))
 			return false;
 	}
 	return true;
