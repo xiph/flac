@@ -17,6 +17,7 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/oss-fuzz
 
+AM_CFLAGS = ${LIB_FUZZING_ENGINE}
 AM_CXXFLAGS = -std=c++11 $(LIB_FUZZING_ENGINE)
 LDADD = $(flac_libs)
 
@@ -34,7 +35,7 @@ EXTRA_DIST = \
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder
+noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder fuzzer_tool_flac
 endif
 
 fuzzer_encoder_SOURCES = encoder.cc
@@ -43,6 +44,16 @@ fuzzer_decoder_SOURCES = decoder.cc
 fuzzer_seek_SOURCES = seek.cc
 fuzzer_metadata_SOURCES = metadata.cc
 fuzzer_reencoder_SOURCES = reencoder.cc
+fuzzer_tool_flac_SOURCES = ${flac_SOURCES} tool_flac.c
+fuzzer_tool_flac_LDADD =  \
+        $(top_builddir)/src/share/utf8/libutf8.la \
+        $(top_builddir)/src/share/grabbag/libgrabbag.la \
+        $(top_builddir)/src/share/getopt/libgetopt.la \
+        $(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+        $(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
+        $(top_builddir)/src/libFLAC/libFLAC.la \
+        @LTLIBICONV@ \
+        -lm
 
 flac_libs = \
 	$(top_builddir)/src/libFLAC/libFLAC-static.la \
@@ -50,3 +61,18 @@ flac_libs = \
 	@OGG_LIBS@ \
 	-lm
 
+flac_SOURCES = \
+        ${top_builddir}/src/flac/analyze.c \
+        ${top_builddir}/src/flac/decode.c \
+        ${top_builddir}/src/flac/encode.c \
+        ${top_builddir}/src/flac/foreign_metadata.c \
+        ${top_builddir}/src/flac/local_string_utils.c \
+        ${top_builddir}/src/flac/utils.c \
+        ${top_builddir}/src/flac/vorbiscomment.c \
+        ${top_builddir}/src/flac/analyze.h \
+        ${top_builddir}/src/flac/decode.h \
+        ${top_builddir}/src/flac/encode.h \
+        ${top_builddir}/src/flac/foreign_metadata.h \
+        ${top_builddir}/src/flac/local_string_utils.h \
+        ${top_builddir}/src/flac/utils.h \
+        ${top_builddir}/src/flac/vorbiscomment.h

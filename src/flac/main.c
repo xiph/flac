@@ -306,7 +306,11 @@ static FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 
 static uint32_t align_reservoir_samples = 0; /* 0 .. 587 */
 
 
+#ifndef FUZZ_TOOL_FLAC
 int main(int argc, char *argv[])
+#else
+static int main_to_fuzz(int argc, char *argv[])
+#endif
 {
 	int retval = 0;
 
@@ -879,7 +883,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.continue_through_decode_errors = false;
 		}
 		else if(0 == strcmp(long_option, "no-silent")) {
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 			flac__utils_verbosity_ = 2;
+#endif
 		}
 		else if(0 == strcmp(long_option, "no-force")) {
 			option_values.force_file_overwrite = false;
@@ -989,7 +995,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				option_values.force_to_stdout = true;
 				break;
 			case 's':
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 				flac__utils_verbosity_ = 1;
+#endif
 				break;
 			case 'f':
 				option_values.force_file_overwrite = true;
@@ -1160,7 +1168,11 @@ void free_options(void)
 void add_compression_setting_bool(compression_setting_type_t type, FLAC__bool value)
 {
 	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 		die("too many compression settings");
+#else
+		return;
+#endif
 	option_values.compression_settings[option_values.num_compression_settings].type = type;
 	option_values.compression_settings[option_values.num_compression_settings].value.t_bool = value;
 	option_values.num_compression_settings++;
@@ -1169,7 +1181,11 @@ void add_compression_setting_bool(compression_setting_type_t type, FLAC__bool va
 void add_compression_setting_string(compression_setting_type_t type, const char *value)
 {
 	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 		die("too many compression settings");
+#else
+		return;
+#endif
 	option_values.compression_settings[option_values.num_compression_settings].type = type;
 	option_values.compression_settings[option_values.num_compression_settings].value.t_string = value;
 	option_values.num_compression_settings++;
@@ -1178,7 +1194,11 @@ void add_compression_setting_string(compression_setting_type_t type, const char 
 void add_compression_setting_uint32_t(compression_setting_type_t type, uint32_t value)
 {
 	if(option_values.num_compression_settings >= sizeof(option_values.compression_settings)/sizeof(option_values.compression_settings[0]))
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 		die("too many compression settings");
+#else
+		return;
+#endif
 	if(type == CST_COMPRESSION_LEVEL) {
 		/* Compression level always goes first */
 		option_values.compression_settings[0].type = type;
@@ -1200,7 +1220,9 @@ int usage_error(const char *message, ...)
 
 		va_start(args, message);
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 		(void) vfprintf(stderr, message, args);
+#endif
 
 		va_end(args);
 
@@ -1780,11 +1802,14 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		return 1;
 	}
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = (FLAC__off_t)(-1);
 		encode_infile = grabbag__file_get_binary_stdin();
 	}
-	else {
+	else
+#endif
+	{
 		infilesize = grabbag__file_get_filesize(infilename);
 		if(0 == (encode_infile = flac_fopen(infilename, "rb"))) {
 			flac__utils_printf(stderr, 1, "ERROR: can't open input file %s: %s\n", infilename, strerror(errno));
@@ -2334,6 +2359,12 @@ int decode_file(const char *infilename)
 #endif
 	decode_options.channel_map_none = option_values.channel_map_none;
 	decode_options.format = output_format;
+
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Can't fuzz from stdin */
+	if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
+		return 1;
+#endif
 
 	if(output_format == FORMAT_RAW) {
 		decode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
