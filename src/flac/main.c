@@ -2138,7 +2138,6 @@ int decode_file(const char *infilename)
 	FileFormat output_format = FORMAT_WAVE;
 	FileSubFormat output_subformat = SUBFORMAT_UNSPECIFIED;
 	decode_options_t decode_options;
-	foreign_metadata_t foreign_metadata_instance = {0}; /* Allocate space */
 	foreign_metadata_t *foreign_metadata = 0;
 	const char *outfilename = get_outfilename(infilename, ".    "); /* Placeholder until we know what the actual suffix is */
 	size_t infilename_length;
@@ -2154,11 +2153,18 @@ int decode_file(const char *infilename)
 			return usage_error("ERROR: --keep-foreign-metadata cannot be used when decoding from stdin or to stdout\n");
 		if(output_format == FORMAT_RAW)
 			return usage_error("ERROR: --keep-foreign-metadata cannot be used with raw output\n");
-		foreign_metadata = &foreign_metadata_instance;
+		decode_options.format_options.iff.foreign_metadata = 0;
+		/* initialize foreign metadata structure */
+		foreign_metadata = flac__foreign_metadata_new(FOREIGN_BLOCK_TYPE__RIFF); /* RIFF is just a placeholder */
+		if(0 == foreign_metadata) {
+			flac__utils_printf(stderr, 1, "ERROR: creating foreign metadata object\n");
+			return 1;
+		}
 		if(!flac__foreign_metadata_read_from_flac(foreign_metadata, infilename, &error)) {
 			if(option_values.keep_foreign_metadata_if_present) {
 				flac__utils_printf(stderr, 1, "%s: WARNING reading foreign metadata: %s\n", infilename, error);
 				if(option_values.treat_warnings_as_errors) {
+					flac__foreign_metadata_delete(foreign_metadata);
 					return 1;
 				}
 				else {
@@ -2168,6 +2174,7 @@ int decode_file(const char *infilename)
 			}
 			else {
 				flac__utils_printf(stderr, 1, "%s: ERROR reading foreign metadata: %s\n", infilename, error);
+				flac__foreign_metadata_delete(foreign_metadata);
 				return 1;
 			}
 		}
@@ -2238,12 +2245,18 @@ int decode_file(const char *infilename)
 
 	/* Check whether output format agrees with foreign metadata */
 	if(foreign_metadata != NULL) {
-		if((output_format != FORMAT_WAVE && output_format != FORMAT_RF64) && foreign_metadata->type == FOREIGN_BLOCK_TYPE__RIFF)
+		if((output_format != FORMAT_WAVE && output_format != FORMAT_RF64) && foreign_metadata->type == FOREIGN_BLOCK_TYPE__RIFF) {
+			flac__foreign_metadata_delete(foreign_metadata);
 			return usage_error("ERROR: foreign metadata type RIFF cannot be restored to a%s file, only to WAVE and RF64\n",FileFormatString[output_format]);
-		if((output_format != FORMAT_AIFF && output_format != FORMAT_AIFF_C) && foreign_metadata->type == FOREIGN_BLOCK_TYPE__AIFF)
+		}
+		if((output_format != FORMAT_AIFF && output_format != FORMAT_AIFF_C) && foreign_metadata->type == FOREIGN_BLOCK_TYPE__AIFF) {
+			flac__foreign_metadata_delete(foreign_metadata);
 			return usage_error("ERROR: foreign metadata type AIFF cannot be restored to a%s file, only to AIFF and AIFF-C\n",FileFormatString[output_format]);
-		if(output_format != FORMAT_WAVE64 && foreign_metadata->type == FOREIGN_BLOCK_TYPE__WAVE64)
+		}
+		if(output_format != FORMAT_WAVE64 && foreign_metadata->type == FOREIGN_BLOCK_TYPE__WAVE64) {
+			flac__foreign_metadata_delete(foreign_metadata);
 			return usage_error("ERROR: foreign metadata type Wave64 cannot be restored to a%s file, only to Wave64\n",FileFormatString[output_format]);
+		}
 	}
 
 	/* Now reassemble outfilename */
@@ -2255,12 +2268,15 @@ int decode_file(const char *infilename)
 	 */
 	if(!option_values.test_only && !option_values.force_file_overwrite && strcmp(outfilename, "-") && grabbag__file_get_filesize(outfilename) != (FLAC__off_t)(-1)) {
 		flac__utils_printf(stderr, 1, "ERROR: output file %s already exists, use -f to override\n", outfilename);
+		flac__foreign_metadata_delete(foreign_metadata);
 		return 1;
 	}
 
 	if(!option_values.test_only && !option_values.analyze) {
-		if(output_format == FORMAT_RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0))
+		if(output_format == FORMAT_RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0)) {
+			flac__foreign_metadata_delete(foreign_metadata);
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
+		}
 	}
 
 	infilename_length = strlen(infilename);
@@ -2276,22 +2292,29 @@ int decode_file(const char *infilename)
 #if !FLAC__HAS_OGG
 	if(treat_as_ogg) {
 		flac__utils_printf(stderr, 1, "%s: Ogg support has not been built into this copy of flac\n", infilename);
+		flac__foreign_metadata_delete(foreign_metadata);
 		return 1;
 	}
 #endif
 
-	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &decode_options.skip_specification) || decode_options.skip_specification.is_relative)
+	if(!flac__utils_parse_skip_until_specification(option_values.skip_specification, &decode_options.skip_specification) || decode_options.skip_specification.is_relative) {
+		flac__foreign_metadata_delete(foreign_metadata);
 		return usage_error("ERROR: invalid value for --skip\n");
+	}
 
-	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &decode_options.until_specification)) /*@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
+	if(!flac__utils_parse_skip_until_specification(option_values.until_specification, &decode_options.until_specification)) { /*@@@ more checks: no + without --skip, no - unless known total_samples_to_{en,de}code */
+		flac__foreign_metadata_delete(foreign_metadata);
 		return usage_error("ERROR: invalid value for --until\n");
+	}
 	/* if there is no "--until" we want to default to "--until=-0" */
 	if(0 == option_values.until_specification)
 		decode_options.until_specification.is_relative = true;
 
 	if(option_values.cue_specification) {
-		if(!flac__utils_parse_cue_specification(option_values.cue_specification, &decode_options.cue_specification))
+		if(!flac__utils_parse_cue_specification(option_values.cue_specification, &decode_options.cue_specification)) {
+			flac__foreign_metadata_delete(foreign_metadata);
 			return usage_error("ERROR: invalid value for --cue\n");
+		}
 		decode_options.has_cue_specification = true;
 	}
 	else
@@ -2322,6 +2345,9 @@ int decode_file(const char *infilename)
 		retval = flac__decode_file(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, decode_options);
 
 	}
+
+	if(foreign_metadata)
+		flac__foreign_metadata_delete(foreign_metadata);
 
 	if(retval == 0 && strcmp(infilename, "-")) {
 		if(option_values.preserve_modtime && strcmp(outfilename, "-"))
