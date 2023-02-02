@@ -559,6 +559,10 @@ int DecoderSession_finish_ok(DecoderSession *d)
 				flac__utils_printf(stderr, 1, "ERROR updating foreign metadata from %s to %s: %s\n", d->infilename, d->outfilename, error);
 				return 1;
 			}
+			if(!flac__foreign_metadata_compare_with_iff(d->foreign_metadata, d->infilename, d->outfilename, d->fm_offset3, &error)) {
+				flac__utils_printf(stderr, 1, "ERROR verifying foreign metadata restore from %s to %s: %s\n", d->infilename, d->outfilename, error);
+				return 1;
+			}
 		}
 	}
 	return ok? 0 : 1;
