@@ -561,6 +561,7 @@ AC_CONFIG_FILES([ \
 	test/common.sh \
 	test/Makefile \
 	test/cuesheets/Makefile \
+	test/foreign-metadata-test-files/Makefile \
 	test/flac-to-flac-metadata-test-files/Makefile \
 	test/metaflac-test-files/Makefile \
 	test/pictures/Makefile \
