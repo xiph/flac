@@ -78,5 +78,6 @@ FLAC__bool flac__foreign_metadata_write_to_flac(foreign_metadata_t *fm, const ch
 
 FLAC__bool flac__foreign_metadata_read_from_flac(foreign_metadata_t *fm, const char *filename, const char **error);
 FLAC__bool flac__foreign_metadata_write_to_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, FLAC__off_t offset1, FLAC__off_t offset2, FLAC__off_t offset3, const char **error);
+FLAC__bool flac__foreign_metadata_compare_with_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, FLAC__off_t offset3, const char **error);
 
 #endif

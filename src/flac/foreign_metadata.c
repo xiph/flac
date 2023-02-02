@@ -699,23 +699,18 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, FLAC__off_t offset1, FLAC__off_t offset2, FLAC__off_t offset3, const char **error)
 {
 	size_t i;
-	(void)offset1, (void)offset2;
-	/* don't write first (RIFF/RF64/FORM) chunk, or ds64 chunk in the case of RF64, compare instead */
-	for(i = 0; i < (fm->is_rf64?2:1); i++) {
-		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-			if(error) *error = "seek failed in FLAC file";
-			return false;
-		}
-		if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file", "stored main chunk length differs from written length"))
-			return false;
+	if(fseeko(fout, offset1, SEEK_SET) < 0) {
+		if(error) *error = "seek failed in WAVE/AIFF file";
+		return false;
 	}
 
-	for(; i < fm->format_block; i++) {
+	/* don't write first (RIFF/RF64/FORM) chunk, or ds64 chunk in the case of RF64 */
+	for(i = fm->is_rf64?2:1; i < fm->format_block; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
 			if(error) *error = "seek failed in FLAC file";
 			return false;
 		}
-		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file"))
+		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "write failed in WAVE/AIFF file"))
 			return false;
 	}
 
@@ -737,17 +732,11 @@ static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, F
 			return false;
 		}
 	}
-
-	/* compare format block */
-	if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
-		if(error) *error = "seek failed in FLAC file";
+	if(fseeko(fout, offset2, SEEK_SET) < 0) {
+		if(error) *error = "seek failed in WAVE/AIFF file (006)";
 		return false;
 	}
-	if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file", "stored foreign format block differs from written block. Perhaps the file is being restored to a different format than that of the original file"))
-		return false;
-	i++;
-
-	for(; i < fm->audio_block; i++) {
+	for(i = fm->format_block+1; i < fm->audio_block; i++) {
 		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
 			if(error) *error = "seek failed in FLAC file";
 			return false;
@@ -765,6 +754,39 @@ static FLAC__bool write_to_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, F
 			return false;
 		}
 		if(!copy_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "write failed in WAVE/AIFF file"))
+			return false;
+	}
+	return true;
+}
+
+static FLAC__bool compare_with_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fout, FLAC__off_t offset3, const char **error)
+{
+	size_t i;
+
+	/* Compare blocks before audio data */
+	for(i = 0; i <= (fm->audio_block); i++) {
+		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
+			if(error) *error = "seek failed in FLAC file";
+			return false;
+		}
+		if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file",
+		      i==0?"stored main chunk length differs from written length":(
+		      i==fm->format_block?"stored foreign format block differs from written block. Perhaps the file is being restored to a different format than that of the original file":(
+		      i==fm->audio_block?"stored audio length differs from written length. Perhaps the file changed in length after being originally encoded":"restore of foreign metadata failed"))))
+			return false;
+	}
+
+	/* Seek beyond audio */
+	if(fseeko(fout, offset3, SEEK_SET) < 0) {
+		if(error) *error = "seek failed in WAVE/AIFF file";
+		return false;
+	}
+	for(; i < fm->num_blocks; i++) {
+		if(fseeko(fin, fm->blocks[i].offset, SEEK_SET) < 0) {
+			if(error) *error = "seek failed in FLAC file";
+			return false;
+		}
+		if(!compare_data_(fin, fout, fm->blocks[i].size, error, "read failed in FLAC file", "read failed in WAVE/AIFF file", "restore of foreign metadata failed"))
 			return false;
 	}
 	return true;
@@ -900,6 +922,25 @@ FLAC__bool flac__foreign_metadata_write_to_iff(foreign_metadata_t *fm, const cha
 		return false;
 	}
 	ok = write_to_iff_(fm, fin, fout, offset1, offset2, offset3, error);
+	fclose(fin);
+	fclose(fout);
+	return ok;
+}
+
+FLAC__bool flac__foreign_metadata_compare_with_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, FLAC__off_t offset3, const char **error)
+{
+	FLAC__bool ok;
+	FILE *fin, *fout;
+	if(0 == (fin = flac_fopen(infilename, "rb"))) {
+		if(error) *error = "can't open FLAC file for reading";
+		return false;
+	}
+	if(0 == (fout = flac_fopen(outfilename, "rb"))) {
+		if(error) *error = "can't open WAVE/AIFF file for comparing";
+		fclose(fin);
+		return false;
+	}
+	ok = compare_with_iff_(fm, fin, fout, offset3, error);
 	fclose(fin);
 	fclose(fout);
 	return ok;
