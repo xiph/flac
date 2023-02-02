@@ -266,6 +266,20 @@ rt_test_aiff ()
 	rm -f rt.flac rt.aiff
 }
 
+rt_test_autokf ()
+{
+	f="$1"
+	extra="$2"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f $3 || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac $3
+}
+
 # assumes input file is WAVE; does not check the metadata-preserving features of flac-to-flac; that is checked later
 rt_test_flac ()
 {
@@ -1225,6 +1239,14 @@ rt_test_w64_autokf wacky1.w64 '--keep-foreign-metadata'
 rt_test_w64_autokf wacky2.w64 '--keep-foreign-metadata'
 rt_test_rf64_autokf wacky1.rf64 '--keep-foreign-metadata'
 rt_test_rf64_autokf wacky2.rf64 '--keep-foreign-metadata'
+
+testdatadir=${top_srcdir}/test/foreign-metadata-test-files
+
+rt_test_autokf "$testdatadir/BWF-WaveFmtEx.wav" '--keep-foreign-metadata' 'rt.wav'
+rt_test_autokf "$testdatadir/AIFF-ID3.aiff" '--keep-foreign-metadata' 'rt.aiff'
+rt_test_autokf "$testdatadir/AIFF-C-sowt-tag.aifc" '--keep-foreign-metadata' 'rt.aifc'
+rt_test_autokf "$testdatadir/AIFF-C-sowt-compression-type-name.aifc" '--keep-foreign-metadata' 'rt.aifc'
+rt_test_autokf "$testdatadir/24bit-WaveFmtPCM.wav" '--keep-foreign-metadata' 'rt.wav'
 
 ############################################################################
 # test the metadata-handling properties of flac-to-flac encoding
