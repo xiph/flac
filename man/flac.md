@@ -262,7 +262,8 @@ the HTML documentation.
 	metadata when writing the decoded file. Foreign metadata cannot be
 	transcoded, e.g. WAVE chunks saved in a FLAC file cannot be restored
 	when decoding to AIFF. Input and output must be regular files (not
-	stdin or stdout).
+	stdin or stdout). With this option, FLAC will pick the right output
+	format on decoding.
 
 **\--keep-foreign-metadata-if-present**
 :	Like \--keep-foreign-metadata, but without throwing an error if

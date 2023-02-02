@@ -1449,6 +1449,8 @@ void show_explain(void)
 	printf("                               transcoded, e.g. WAVE chunks saved in a FLAC file\n");
 	printf("                               cannot be restored when decoding to AIFF.  Input\n");
 	printf("                               and output must be regular files, not stdin/out.\n");
+	printf("                               With this option, FLAC will pick the right\n");
+	printf("                               output format on decoding.\n");
 	printf("      --keep-foreign-metadata-if-present  As previous option, but do not throw\n");
 	printf("                               an error in case no foreign metadata is found,\n");
 	printf("                               the wrong kind of foreign metadata is found (on\n");
