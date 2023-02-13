@@ -113,6 +113,19 @@ metaflac_test ()
 	echo OK
 }
 
+metaflac_test_binary ()
+{
+	case="$testdatadir/$1"
+	desc="$2"
+	args="$3"
+	expect="$case-expect.meta"
+	echo $ECHO_N "test $1: $desc... " $ECHO_C
+	run_metaflac $args $flacfile > $testdir/out.meta || die "ERROR running metaflac"
+	cmp $expect $testdir/out.meta || die "ERROR: metadata does not match expected $expect"
+	# To blindly accept (and check later): cp -f $testdir/out.meta $expect
+	echo OK
+}
+
 metaflac_test case00 "--list" "--list"
 
 metaflac_test case01 "STREAMINFO --show-* shortcuts" "
@@ -374,6 +387,9 @@ check_flac
 metaflac_test case63 "--remove-all-tags-except=artist=title" "--list"
 metaflac_test case64 "--export-tags-to=-" "--export-tags-to=-"
 metaflac_test case64 "--show-all-tags" "--show-all-tags"
+
+run_flac ${top_srcdir}/test/foreign-metadata-test-files/AIFF-ID3.aiff --keep-foreign-metadata -f -o $flacfile
+metaflac_test_binary case65 "--data-format=binary" "--list --data-format=binary-headerless --block-type=APPLICATION:aiff"
 
 # UNKNOWN blocks
 echo $ECHO_N "Testing FLAC file with unknown metadata... " $ECHO_C
