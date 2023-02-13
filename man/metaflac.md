@@ -261,6 +261,13 @@ modification time is set to the current time):
 	application data contents instead using
 	\--application-data-format=hexdump.
 
+**\--data-format=binary\|binary-headerless\|text**
+:	By default a human-readable text representation of the data is
+	displayed. You may specify --data-format=binary to dump the raw
+	binary form of each metadata block. Specify
+	--data-format=binary-headerless to omit output of metadata block
+	headers, including the id of APPLICATION metadata blocks.
+
 **\--remove-all**  
 :	Remove all metadata blocks (except the STREAMINFO block) from the
 	metadata. Unless \--dont-use-padding is specified, the blocks will be
