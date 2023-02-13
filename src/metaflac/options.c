@@ -139,6 +139,8 @@ void init_options(CommandLineOptions *options)
 	options->cued_seekpoints = true;
 	options->show_long_help = false;
 	options->show_version = false;
+	options->data_format_is_binary = false;
+	options->data_format_is_binary_headerless = false;
 	options->application_data_format_is_hexdump = false;
 
 	options->ops.operations = 0;
@@ -713,6 +715,8 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 			flac_fprintf(stderr, "ERROR (--%s): illegal data format \"%s\"\n", opt, option_argument);
 			ok = false;
 		}
+		options->data_format_is_binary = arg->value.data_format.is_binary;
+		options->data_format_is_binary_headerless = arg->value.data_format.is_headerless;
 	}
 	else if(0 == strcmp(opt, "application-data-format")) {
 		FLAC__ASSERT(0 != option_argument);
@@ -1108,10 +1112,18 @@ FLAC__bool parse_block_type(const char *in, Argument_BlockType *out)
 
 FLAC__bool parse_data_format(const char *in, Argument_DataFormat *out)
 {
-	if(0 == strcmp(in, "binary"))
-		out->is_binary = true;
-	else if(0 == strcmp(in, "text"))
+	if(0 == strcmp(in, "binary-headerless")) {
 		out->is_binary = false;
+		out->is_headerless = true;
+	}
+	else if(0 == strcmp(in, "binary")) {
+		out->is_binary = true;
+		out->is_headerless = false;
+	}
+	else if(0 == strcmp(in, "text")) {
+		out->is_binary = false;
+		out->is_headerless = false;
+	}
 	else
 		return false;
 	return true;

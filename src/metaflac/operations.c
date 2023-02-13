@@ -49,6 +49,7 @@ static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC
 
 static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number);
 static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, FLAC__bool hexdump_application);
+static void write_metadata_binary(FLAC__StreamMetadata *block, FLAC__byte *block_raw, FLAC__bool headerless);
 
 /* from operations_shorthand_seektable.c */
 extern FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Metadata_Chain *chain, const char *specification, FLAC__bool *needs_write);
@@ -189,8 +190,19 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 		ok &= (0 != block);
 		if(!ok)
 			flac_fprintf(stderr, "%s: ERROR: couldn't get block from chain\n", filename);
-		else if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number))
-			write_metadata(filename, block, block_number, !options->utf8_convert, options->application_data_format_is_hexdump);
+		else if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number)) {
+			if(!options->data_format_is_binary && !options->data_format_is_binary_headerless)
+				write_metadata(filename, block, block_number, !options->utf8_convert, options->application_data_format_is_hexdump);
+			else {
+				FLAC__byte * block_raw = FLAC__metadata_object_get_raw(block);
+				if(block_raw == 0) {
+					flac_fprintf(stderr, "%s: ERROR: couldn't get block in raw form\n", filename);
+					return false;
+				}
+				write_metadata_binary(block, block_raw, options->data_format_is_binary_headerless);
+				free(block_raw);
+			}
+		}
 		block_number++;
 	} while(ok && FLAC__metadata_iterator_next(iterator));
 
@@ -674,4 +686,14 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			break;
 	}
 #undef PPR
+}
+
+void write_metadata_binary(FLAC__StreamMetadata *block, FLAC__byte *block_raw, FLAC__bool headerless)
+{
+	if(!headerless)
+		local_fwrite(block_raw, 1, block->length+FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
+	else if(block->type == FLAC__METADATA_TYPE_APPLICATION && block->length > 3)
+		local_fwrite(block_raw+FLAC__STREAM_METADATA_HEADER_LENGTH+4, 1, block->length-4, stdout);
+	else
+		local_fwrite(block_raw+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, block->length, stdout);
 }

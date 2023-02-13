@@ -275,15 +275,16 @@ int long_usage(const char *message, ...)
 	fprintf(out, "    NOTE: if both --block-number and --[except-]block-type are specified,\n");
 	fprintf(out, "          the result is the logical AND of both arguments.\n");
 	fprintf(out, "\n");
-#if 0
-	/*@@@ not implemented yet */
-	fprintf(out, "    --data-format=binary|text\n");
+	fprintf(out, "    --data-format=binary|binary-headerless|text\n");
 	fprintf(out, "    By default a human-readable text representation of the data is displayed.\n");
 	fprintf(out, "    You may specify --data-format=binary to dump the raw binary form of each\n");
-	fprintf(out, "    metadata block.  The output can be read in using a subsequent call to\n");
-	fprintf(out, "    "metaflac --append --from-file=..."\n");
-	fprintf(out, "\n");
+	fprintf(out, "    metadata block. Specify --data-format=binary-headerless to omit output of\n");
+	fprintf(out, "    metadata block headers, including the id of APPLICATION metadata blocks.\n");
+#if 0
+	fprintf(out, "    The output can be read in using a subsequent call\n");
+	fprintf(out, "    to \"metaflac --append --from-file=...\"\n");
 #endif
+	fprintf(out, "\n");
 	fprintf(out, "    --application-data-format=hexdump|text\n");
 	fprintf(out, "    If the application block you are displaying contains binary data but your\n");
 	fprintf(out, "    --data-format=text, you can display a hex dump of the application data\n");
