@@ -39,6 +39,7 @@
 
 #include "private/metadata.h"
 #include "private/memory.h"
+#include "private/stream_encoder_framing.h"
 
 #include "FLAC/assert.h"
 #include "share/alloc.h"
@@ -1854,4 +1855,46 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_is_legal(const FLAC__StreamMet
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_PICTURE);
 
 	return FLAC__format_picture_is_legal(&object->data.picture, violation);
+}
+
+FLAC_API FLAC__byte * FLAC__metadata_object_get_raw(const FLAC__StreamMetadata *object)
+{
+	FLAC__BitWriter *bw;
+	const FLAC__byte * buffer;
+	FLAC__byte * output;
+	size_t bytes;
+
+	FLAC__ASSERT(object != NULL);
+
+	if((bw = FLAC__bitwriter_new()) == NULL)
+		return 0;
+	if(!FLAC__bitwriter_init(bw)) {
+		FLAC__bitwriter_delete(bw);
+		return 0;
+	}
+	if(!FLAC__add_metadata_block(object, bw, false)) {
+		FLAC__bitwriter_delete(bw);
+		return 0;
+	}
+
+	if(!FLAC__bitwriter_get_buffer(bw, &buffer, &bytes)) {
+		FLAC__bitwriter_delete(bw);
+		return 0;
+	}
+
+	/* Extra check whether length of bitwriter agrees with length of metadata block */
+	if(bytes != (object->length+FLAC__STREAM_METADATA_HEADER_LENGTH)) {
+		FLAC__bitwriter_delete(bw);
+		return 0;
+	}
+
+	output = safe_malloc_(bytes);
+	if(output == 0) {
+		FLAC__bitwriter_delete(bw);
+		return 0;
+	}
+
+	memcpy(output,buffer,bytes);
+	FLAC__bitwriter_delete(bw);
+	return output;
 }

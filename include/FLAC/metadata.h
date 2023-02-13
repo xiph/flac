@@ -2197,6 +2197,20 @@ FLAC_API FLAC__bool FLAC__metadata_object_picture_set_data(FLAC__StreamMetadata 
  */
 FLAC_API FLAC__bool FLAC__metadata_object_picture_is_legal(const FLAC__StreamMetadata *object, const char **violation);
 
+
+/** Get the raw (binary) representation of a FLAC__StreamMetadata objeect.
+ *  After use, free() the returned buffer. The length of the buffer is
+ *  the length of the input metadata object plus 4 bytes for the header.
+ *
+ * \param object     A pointer to metadata block to be converted.
+ * \assert
+ *    \code object != NULL \endcode
+ * \retval FLAC__byte*
+ *    \c  NULL if there was an error, else a pointer to a buffer holding
+ *        the requested data.
+ */
+FLAC_API FLAC__byte * FLAC__metadata_object_get_raw(const FLAC__StreamMetadata *object);
+
 /* \} */
 
 #ifdef __cplusplus

@@ -44,7 +44,7 @@
 static FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method);
 static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__bool is_extended);
 
-FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw)
+FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw, FLAC__bool update_vendor_string)
 {
 	uint32_t i, j, metadata_length;
 	const uint32_t vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
@@ -62,7 +62,7 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 	 * First, for VORBIS_COMMENTs, adjust the length to reflect our vendor string
 	 */
 	metadata_length = metadata->length;
-	if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+	if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT && update_vendor_string) {
 		FLAC__ASSERT(metadata->data.vorbis_comment.vendor_string.length == 0 || 0 != metadata->data.vorbis_comment.vendor_string.entry);
 		metadata_length -= metadata->data.vorbis_comment.vendor_string.length;
 		metadata_length += vendor_string_length;
@@ -130,10 +130,18 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, vendor_string_length))
-				return false;
-			if(!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte*)FLAC__VENDOR_STRING, vendor_string_length))
-				return false;
+			if(update_vendor_string) {
+				if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, vendor_string_length))
+					return false;
+				if(!FLAC__bitwriter_write_byte_block(bw, (const FLAC__byte*)FLAC__VENDOR_STRING, vendor_string_length))
+					return false;
+			}
+			else {
+				if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, metadata->data.vorbis_comment.vendor_string.length))
+					return false;
+				if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.vorbis_comment.vendor_string.entry, metadata->data.vorbis_comment.vendor_string.length))
+					return false;
+			}
 			if(!FLAC__bitwriter_write_raw_uint32_little_endian(bw, metadata->data.vorbis_comment.num_comments))
 				return false;
 			for(i = 0; i < metadata->data.vorbis_comment.num_comments; i++) {
