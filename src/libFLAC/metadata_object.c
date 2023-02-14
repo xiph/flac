@@ -42,6 +42,7 @@
 #include "private/stream_encoder_framing.h"
 
 #include "FLAC/assert.h"
+#include "FLAC/stream_decoder.h"
 #include "share/alloc.h"
 #include "share/compat.h"
 
@@ -1897,4 +1898,121 @@ FLAC_API FLAC__byte * FLAC__metadata_object_get_raw(const FLAC__StreamMetadata *
 	memcpy(output,buffer,bytes);
 	FLAC__bitwriter_delete(bw);
 	return output;
+}
+
+/* The following callbacks are for FLAC__metadata_object_set_raw */
+
+static FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte *buffer, size_t *bytes, void *client_data);
+static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data);
+static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data);
+static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data);
+
+typedef struct {
+	FLAC__StreamMetadata *object;
+	FLAC__bool got_error;
+        FLAC__byte *buffer;
+        FLAC__int32 length;
+	FLAC__int32 tell;
+} set_raw_client_data;
+
+FLAC_API FLAC__StreamMetadata * FLAC__metadata_object_set_raw(FLAC__byte *buffer, FLAC__uint32 length)
+{
+	set_raw_client_data cd;
+	FLAC__StreamDecoder * decoder;
+
+	cd.buffer = buffer;
+	cd.length = length;
+	cd.got_error = false;
+	cd.object = 0;
+	cd.tell = -4;
+
+	decoder = FLAC__stream_decoder_new();
+
+	if(0 == decoder)
+		return 0;
+
+	FLAC__stream_decoder_set_md5_checking(decoder, false);
+	FLAC__stream_decoder_set_metadata_respond_all(decoder);
+
+	if(FLAC__stream_decoder_init_stream(decoder, read_callback_, NULL, NULL, NULL, NULL, write_callback_, metadata_callback_, error_callback_, &cd) != FLAC__STREAM_DECODER_INIT_STATUS_OK || cd.got_error) {
+		(void)FLAC__stream_decoder_finish(decoder);
+		FLAC__stream_decoder_delete(decoder);
+		return 0;
+	}
+
+	if((!FLAC__stream_decoder_process_until_end_of_metadata(decoder) && FLAC__stream_decoder_get_state(decoder) != FLAC__STREAM_DECODER_END_OF_STREAM) || cd.got_error) {
+		(void)FLAC__stream_decoder_finish(decoder);
+		FLAC__stream_decoder_delete(decoder);
+		if(0 != cd.object)
+			FLAC__metadata_object_delete(cd.object);
+		return 0;
+	}
+
+	(void)FLAC__stream_decoder_finish(decoder);
+	FLAC__stream_decoder_delete(decoder);
+
+	return cd.object;
+
+}
+
+FLAC__StreamDecoderReadStatus read_callback_(const FLAC__StreamDecoder *decoder, FLAC__byte *buffer, size_t *bytes, void *client_data)
+{
+	set_raw_client_data *cd = (set_raw_client_data *)client_data;
+	(void)decoder;
+
+	if(cd->tell == -4) {
+		if(*bytes < 4)
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+		buffer[0] = 'f';
+		buffer[1] = 'L';
+		buffer[2] = 'a';
+		buffer[3] = 'C';
+		*bytes = 4;
+		cd->tell = 0;
+		return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+	}
+	else if(cd->tell < 0)
+		return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
+	else if(cd->tell == cd->length) {
+		*bytes = 0;
+		return FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM;
+	}
+	else {
+		if((FLAC__int32)(*bytes) > (cd->length - cd->tell))
+			*bytes = cd->length - cd->tell;
+		memcpy(buffer, cd->buffer+cd->tell, *bytes);
+		cd->tell += *bytes;
+		return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
+	}
+}
+
+FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+	(void)decoder, (void)frame, (void)buffer, (void)client_data;
+
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+}
+
+void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	set_raw_client_data *cd = (set_raw_client_data *)client_data;
+	(void)decoder;
+
+	/*
+	 * we assume we only get here when the one metadata block we were
+	 * looking for was passed to us
+	 */
+	if(!cd->got_error && 0 == cd->object) {
+		if(0 == (cd->object = FLAC__metadata_object_clone(metadata)))
+			cd->got_error = true;
+	}
+}
+
+void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	set_raw_client_data *cd = (set_raw_client_data *)client_data;
+	(void)decoder;
+
+	if(status != FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC)
+		cd->got_error = true;
 }
