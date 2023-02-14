@@ -213,9 +213,71 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 
 FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
 {
-	(void) chain, (void) options;
-	flac_fprintf(stderr, "ERROR: --append not implemented yet\n");
-	return false;
+	FLAC__byte header[FLAC__STREAM_METADATA_HEADER_LENGTH];
+	FLAC__byte *buffer;
+	FLAC__uint32 buffer_size, num_objects = 0, i, append_after = UINT32_MAX;
+	FLAC__StreamMetadata *object;
+	FLAC__Metadata_Iterator *iterator;
+
+	/* First, find out after which block appending should take place */
+	for(i = 0; i < options->args.num_arguments; i++) {
+		if(options->args.arguments[i].type == ARG__BLOCK_NUMBER) {
+			if(append_after != UINT32_MAX || options->args.arguments[i].value.block_number.num_entries > 1)	{
+				flac_fprintf(stderr, "ERROR: more than one block number specified with --append\n");
+				return false;
+			}
+			append_after = options->args.arguments[i].value.block_number.entries[0];
+		}
+	}
+
+	iterator = FLAC__metadata_iterator_new();
+
+	if(0 == iterator)
+		die("out of memory allocating iterator");
+
+	FLAC__metadata_iterator_init(iterator, chain);
+
+	/* Go to requested block */
+	for(i = 0; i < append_after; i++) {
+		if(!FLAC__metadata_iterator_next(iterator))
+			break;
+	}
+
+	/* Read header from stdin */
+	while(fread(header, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, stdin) == FLAC__STREAM_METADATA_HEADER_LENGTH) {
+
+		buffer_size = ((FLAC__uint32)(header[1]) << 16) + ((FLAC__uint32)(header[2]) << 8) + header[3];
+		buffer = safe_malloc_(buffer_size + FLAC__STREAM_METADATA_HEADER_LENGTH);
+		memcpy(buffer, header, FLAC__STREAM_METADATA_HEADER_LENGTH);
+
+		if(fread(buffer+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, buffer_size, stdin) < buffer_size) {
+			flac_fprintf(stderr, "ERROR: couldn't read metadata block #%u from stdin\n",(num_objects+1));
+			free(buffer);
+			break;
+		}
+
+		if((object = FLAC__metadata_object_set_raw(buffer, buffer_size + FLAC__STREAM_METADATA_HEADER_LENGTH)) == NULL) {
+			flac_fprintf(stderr, "ERROR: couldn't parse supplied metadata block #%u\n",(num_objects+1));
+			free(buffer);
+			break;
+		}
+		free(buffer);
+
+		if(!FLAC__metadata_iterator_insert_block_after(iterator, object)) {
+			flac_fprintf(stderr, "ERROR: couldn't add supplied metadata block #%u to file\n",(num_objects+1));
+			FLAC__metadata_object_delete(object);
+			FLAC__metadata_iterator_delete(iterator);
+			break;
+		}
+		num_objects++;
+	}
+
+	if(num_objects == 0)
+		flac_fprintf(stderr, "ERROR: unable to find a metadata block in the supplied input\n");
+
+	FLAC__metadata_iterator_delete(iterator);
+
+	return true;
 }
 
 FLAC__bool do_major_operation__remove(FLAC__Metadata_Chain *chain, const CommandLineOptions *options)
