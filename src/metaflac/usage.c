@@ -280,18 +280,14 @@ int long_usage(const char *message, ...)
 	fprintf(out, "    You may specify --data-format=binary to dump the raw binary form of each\n");
 	fprintf(out, "    metadata block. Specify --data-format=binary-headerless to omit output of\n");
 	fprintf(out, "    metadata block headers, including the id of APPLICATION metadata blocks.\n");
-#if 0
-	fprintf(out, "    The output can be read in using a subsequent call\n");
-	fprintf(out, "    to \"metaflac --append --from-file=...\"\n");
-#endif
+	fprintf(out, "    The output can be read in using a subsequent call to\n");
+	fprintf(out, "    \"metaflac --append\"\n");
 	fprintf(out, "\n");
 	fprintf(out, "    --application-data-format=hexdump|text\n");
 	fprintf(out, "    If the application block you are displaying contains binary data but your\n");
 	fprintf(out, "    --data-format=text, you can display a hex dump of the application data\n");
 	fprintf(out, "    contents instead using --application-data-format=hexdump\n");
 	fprintf(out, "\n");
-#if 0
-	/*@@@ not implemented yet */
 	fprintf(out, "--append\n");
 	fprintf(out, "    Insert a metadata block from a file.  The input file must be in the same\n");
 	fprintf(out, "    format as generated with --list.\n");
@@ -302,6 +298,8 @@ int long_usage(const char *message, ...)
 	fprintf(out, "    of a block before the first STREAMINFO block.  You may not --append another\n");
 	fprintf(out, "    STREAMINFO block.\n");
 	fprintf(out, "\n");
+#if 0
+	/*@@@ not implemented yet */
 	fprintf(out, "    --from-file=filename\n");
 	fprintf(out, "    Mandatory 'option' to specify the input file containing the block contents.\n");
 	fprintf(out, "\n");
