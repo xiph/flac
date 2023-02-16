@@ -267,39 +267,45 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 		if(fread(buffer+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, buffer_size, stdin) < buffer_size) {
 			flac_fprintf(stderr, "ERROR: couldn't read metadata block #%u from stdin\n",(num_objects));
 			free(buffer);
-			break;
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
 		}
 
 		if((object = FLAC__metadata_object_set_raw(buffer, buffer_size + FLAC__STREAM_METADATA_HEADER_LENGTH)) == NULL) {
 			flac_fprintf(stderr, "ERROR: couldn't parse supplied metadata block #%u\n",(num_objects));
 			free(buffer);
-			break;
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
 		}
 		free(buffer);
 
 		if(has_vorbiscomment && object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 			flac_fprintf(stderr, "ERROR: can't add another vorbis comment block to file, it already has one\n");
 			FLAC__metadata_object_delete(object);
-			break;
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
 		}
 
 
 		if(object->type == FLAC__METADATA_TYPE_STREAMINFO) {
 			flac_fprintf(stderr, "ERROR: can't add streaminfo to file\n");
 			FLAC__metadata_object_delete(object);
-			break;
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
 		}
 
 		if(object->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 			flac_fprintf(stderr, "ERROR: can't add seektable to file, please use --add-seekpoint instead\n");
 			FLAC__metadata_object_delete(object);
-			break;
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
 		}
 
 		if(!FLAC__metadata_iterator_insert_block_after(iterator, object)) {
 			flac_fprintf(stderr, "ERROR: couldn't add supplied metadata block #%u to file\n",(num_objects));
 			FLAC__metadata_object_delete(object);
-			break;
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
 		}
 		/* Now check whether what type of block was added */
 		{
@@ -312,8 +318,7 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 	if(num_objects == 0)
 		flac_fprintf(stderr, "ERROR: unable to find a metadata block in the supplied input\n");
 
-	if(iterator != 0)
-		FLAC__metadata_iterator_delete(iterator);
+	FLAC__metadata_iterator_delete(iterator);
 
 	return true;
 }
