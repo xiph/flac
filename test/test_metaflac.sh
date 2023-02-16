@@ -69,6 +69,17 @@ run_metaflac_silent ()
 	fi
 }
 
+run_metaflac_to_metaflac_silent ()
+{
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 metaflac $*" >>test_metaflac.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 metaflac${EXE} $* 2>/dev/null 4>>test_metaflac.valgrind.log
+	else
+		metaflac${EXE} $1 | metaflac${EXE} $2 2>/dev/null
+	fi
+}
+
+
 check_flac ()
 {
 	run_flac --silent --test $flacfile || die "ERROR in $flacfile" 1>&2
@@ -398,5 +409,57 @@ cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
 run_metaflac --remove --block-type=VORBIS_COMMENT --dont-use-padding $flacfile
 cmp $flacfile ${top_srcdir}/test/metaflac.flac.ok || die "ERROR, $flacfile and metaflac.flac.ok differ"
 echo OK
+
+cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
+
+flacfile2=metaflac2.flac
+cp $flacfile $flacfile2
+run_metaflac --remove-all --dont-use-padding $flacfile
+
+echo $ECHO_N "Appending a streaminfo metadata block... " $ECHO_C
+if run_metaflac_to_metaflac_silent "--list --data-format=binary $flacfile2" "--append $flacfile" ; then
+        die "ERROR: it should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+
+echo $ECHO_N "Appending a seektable metadata block... " $ECHO_C
+if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO $flacfile2" "--append $flacfile" ; then
+        die "ERROR: it should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+
+run_metaflac --add-seekpoint=0 $flacfile
+
+echo $ECHO_N "Appending a vorbis comment metadata block... " $ECHO_C
+if run_metaflac_to_metaflac_silent "--list --data-format=binary --block-type=VORBIS_COMMENT $flacfile2" "--append $flacfile" ; then
+        echo "OK"
+else
+        die "ERROR, couldn't add vorbis comment metadata block"
+fi
+
+echo $ECHO_N "Appending another vorbis comment metadata block... " $ECHO_C
+if run_metaflac_to_metaflac_silent "--list --data-format=binary --block-type=VORBIS_COMMENT $flacfile2" "--append $flacfile" ; then
+        die "ERROR: it should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+
+if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO,SEEKTABLE,VORBIS_COMMENT $flacfile2" "--append $flacfile" ; then
+		:
+else
+        die "ERROR, couldn't add vorbis comment metadata block"
+fi
+
+metaflac_test_binary case66 "--append" "--list"
+
+if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO,SEEKTABLE,VORBIS_COMMENT $flacfile2" "--append --block-number=0 $flacfile" ; then
+		:
+else
+        die "ERROR, couldn't add vorbis comment metadata block"
+fi
+
+metaflac_test_binary case67 "--append --block-number=0" "--list"
 
 rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta
