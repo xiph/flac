@@ -217,7 +217,8 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 	FLAC__byte *buffer;
 	FLAC__uint32 buffer_size, num_objects = 0, i, append_after = UINT32_MAX;
 	FLAC__StreamMetadata *object;
-	FLAC__Metadata_Iterator *iterator;
+	FLAC__Metadata_Iterator *iterator = 0;
+	FLAC__bool has_vorbiscomment = false;
 
 	/* First, find out after which block appending should take place */
 	for(i = 0; i < options->args.num_arguments; i++) {
@@ -237,6 +238,17 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 
 	FLAC__metadata_iterator_init(iterator, chain);
 
+	/* Find out whether there is already a vorbis comment block present */
+	do {
+		FLAC__MetadataType type = FLAC__metadata_iterator_get_block_type(iterator);
+		if(type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+			has_vorbiscomment = true;
+	}
+	while(FLAC__metadata_iterator_next(iterator));
+
+	/* Reset iterator */
+	FLAC__metadata_iterator_init(iterator, chain);
+
 	/* Go to requested block */
 	for(i = 0; i < append_after; i++) {
 		if(!FLAC__metadata_iterator_next(iterator))
@@ -250,32 +262,58 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 		buffer = safe_malloc_(buffer_size + FLAC__STREAM_METADATA_HEADER_LENGTH);
 		memcpy(buffer, header, FLAC__STREAM_METADATA_HEADER_LENGTH);
 
+		num_objects++;
+
 		if(fread(buffer+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, buffer_size, stdin) < buffer_size) {
-			flac_fprintf(stderr, "ERROR: couldn't read metadata block #%u from stdin\n",(num_objects+1));
+			flac_fprintf(stderr, "ERROR: couldn't read metadata block #%u from stdin\n",(num_objects));
 			free(buffer);
 			break;
 		}
 
 		if((object = FLAC__metadata_object_set_raw(buffer, buffer_size + FLAC__STREAM_METADATA_HEADER_LENGTH)) == NULL) {
-			flac_fprintf(stderr, "ERROR: couldn't parse supplied metadata block #%u\n",(num_objects+1));
+			flac_fprintf(stderr, "ERROR: couldn't parse supplied metadata block #%u\n",(num_objects));
 			free(buffer);
 			break;
 		}
 		free(buffer);
 
-		if(!FLAC__metadata_iterator_insert_block_after(iterator, object)) {
-			flac_fprintf(stderr, "ERROR: couldn't add supplied metadata block #%u to file\n",(num_objects+1));
+		if(has_vorbiscomment && object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+			flac_fprintf(stderr, "ERROR: can't add another vorbis comment block to file, it already has one\n");
 			FLAC__metadata_object_delete(object);
-			FLAC__metadata_iterator_delete(iterator);
 			break;
 		}
-		num_objects++;
+
+
+		if(object->type == FLAC__METADATA_TYPE_STREAMINFO) {
+			flac_fprintf(stderr, "ERROR: can't add streaminfo to file\n");
+			FLAC__metadata_object_delete(object);
+			break;
+		}
+
+		if(object->type == FLAC__METADATA_TYPE_SEEKTABLE) {
+			flac_fprintf(stderr, "ERROR: can't add seektable to file, please use --add-seekpoint instead\n");
+			FLAC__metadata_object_delete(object);
+			break;
+		}
+
+		if(!FLAC__metadata_iterator_insert_block_after(iterator, object)) {
+			flac_fprintf(stderr, "ERROR: couldn't add supplied metadata block #%u to file\n",(num_objects));
+			FLAC__metadata_object_delete(object);
+			break;
+		}
+		/* Now check whether what type of block was added */
+		{
+			FLAC__MetadataType type = FLAC__metadata_iterator_get_block_type(iterator);
+			if(type == FLAC__METADATA_TYPE_VORBIS_COMMENT)
+				has_vorbiscomment = true;
+		}
 	}
 
 	if(num_objects == 0)
 		flac_fprintf(stderr, "ERROR: unable to find a metadata block in the supplied input\n");
 
-	FLAC__metadata_iterator_delete(iterator);
+	if(iterator != 0)
+		FLAC__metadata_iterator_delete(iterator);
 
 	return true;
 }
