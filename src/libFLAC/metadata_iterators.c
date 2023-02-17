@@ -1142,6 +1142,12 @@ static FLAC__bool chain_merge_adjacent_padding_(FLAC__Metadata_Chain *chain, FLA
 static FLAC__off_t chain_prepare_for_write_(FLAC__Metadata_Chain *chain, FLAC__bool use_padding)
 {
 	FLAC__off_t current_length = chain_calculate_length_(chain);
+	FLAC__Metadata_Node * i;
+
+	/* Check all is_last settings on the blocks */
+	for(i = chain->head; i->next != NULL; i = i->next)
+		i->data->is_last = 0;
+	chain->tail->data->is_last = 1;
 
 	if(use_padding) {
 		/* if the metadata shrank and the last block is padding, we just extend the last padding block */
