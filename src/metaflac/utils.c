@@ -87,6 +87,7 @@ void local_strcat(char **dest, const char *source)
 static inline int local_isprint(int c)
 {
 	if (c < 32) return 0;
+	if (c > 127) return 0;
 	return isprint(c);
 }
 
