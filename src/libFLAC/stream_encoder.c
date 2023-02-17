@@ -1565,6 +1565,14 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncod
 	return true;
 }
 
+/*
+ * The following routine was intended as debug routine and is not in the
+ * public headers, but SHOULD NOT CHANGE! It is known is is used in
+ * some non-audio projects needing every last bit of performance.
+ * See https://github.com/xiph/flac/issues/547 for details. These projects
+ * provide their own prototype, so changing the signature of this function
+ * would break building.
+ */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_do_md5(FLAC__StreamEncoder *encoder, FLAC__bool value)
 {
 	FLAC__ASSERT(0 != encoder);
