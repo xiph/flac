@@ -30,7 +30,7 @@ if echo a | (grep -E '(a|b)') >/dev/null 2>&1
 fi
 
 testdir="metaflac-test-files"
-flacfile="metaflac.flac"
+flacfile="metaflac1.flac"
 
 flac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 metaflac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
@@ -403,6 +403,7 @@ run_flac ${top_srcdir}/test/foreign-metadata-test-files/AIFF-ID3.aiff --keep-for
 metaflac_test_binary case65 "--data-format=binary" "--list --data-format=binary-headerless --block-type=APPLICATION:aiff"
 
 # UNKNOWN blocks
+flacfile=metaflac2.flac
 echo $ECHO_N "Testing FLAC file with unknown metadata... " $ECHO_C
 cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
 # remove the VORBIS_COMMENT block so vendor string changes don't interfere with the comparison:
@@ -410,9 +411,10 @@ run_metaflac --remove --block-type=VORBIS_COMMENT --dont-use-padding $flacfile
 cmp $flacfile ${top_srcdir}/test/metaflac.flac.ok || die "ERROR, $flacfile and metaflac.flac.ok differ"
 echo OK
 
+flacfile=metaflac3.flac
 cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
 
-flacfile2=metaflac2.flac
+flacfile2=metaflac4.flac
 cp $flacfile $flacfile2
 run_metaflac --remove-all --dont-use-padding $flacfile
 

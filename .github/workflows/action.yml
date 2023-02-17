@@ -196,4 +196,6 @@ jobs:
         if: failure()
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs
-          path: ./**/*.log
+          path: |
+            ./**/*.log
+            ./**/out*.meta
