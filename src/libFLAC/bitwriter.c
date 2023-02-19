@@ -604,12 +604,10 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 	}
 #endif
 
-	{
-		/* Reserve one FLAC__TEMP_BITS per symbol, so checks for space are only necessary when very large symbols are encountered */
-		FLAC__uint32 capacity_needed = bw->words * FLAC__BITS_PER_WORD + nvals * FLAC__TEMP_BITS + bw->bits;
-		if(bw->capacity * FLAC__BITS_PER_WORD <= capacity_needed && !bitwriter_grow_(bw, capacity_needed - bw->capacity * FLAC__BITS_PER_WORD))
-			return false;
-	}
+	/* Reserve one FLAC__TEMP_BITS per symbol, so checks for space are only necessary when very large symbols are encountered
+	 * this might be considered wasteful, but is only at most 8kB more than necessary for a blocksize of 4096 */
+	if(bw->capacity * FLAC__BITS_PER_WORD <= bw->words * FLAC__BITS_PER_WORD + nvals * FLAC__TEMP_BITS + bw->bits && !bitwriter_grow_(bw, nvals * FLAC__TEMP_BITS))
+		return false;
 
 	while(nvals) {
 		/* fold signed to uint32_t; actual formula is: negative(v)? -2v-1 : 2v */
@@ -639,7 +637,7 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 			if(total_bits > FLAC__TEMP_BITS) {
 				FLAC__uint32 oversize_in_bits = total_bits - FLAC__TEMP_BITS;
 				FLAC__uint32 capacity_needed = bw->words * FLAC__BITS_PER_WORD + bw->bits + nvals * FLAC__TEMP_BITS + oversize_in_bits;
-				if(bw->capacity * FLAC__BITS_PER_WORD <= capacity_needed && !bitwriter_grow_(bw, capacity_needed * FLAC__BITS_PER_WORD - bw->capacity))
+				if(bw->capacity * FLAC__BITS_PER_WORD <= capacity_needed && !bitwriter_grow_(bw, nvals * FLAC__TEMP_BITS + oversize_in_bits))
 					return false;
 			}
 			if(msbits > bitpointer) {
