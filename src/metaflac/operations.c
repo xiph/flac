@@ -255,6 +255,10 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 			break;
 	}
 
+#ifdef _WIN32
+	_setmode(fileno(stdin),_O_BINARY);
+#endif
+
 	/* Read header from stdin */
 	while(fread(header, 1, FLAC__STREAM_METADATA_HEADER_LENGTH, stdin) == FLAC__STREAM_METADATA_HEADER_LENGTH) {
 
@@ -314,6 +318,10 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 				has_vorbiscomment = true;
 		}
 	}
+
+#ifdef _WIN32
+	_setmode(fileno(stdin),_O_TEXT);
+#endif
 
 	if(num_objects == 0)
 		flac_fprintf(stderr, "ERROR: unable to find a metadata block in the supplied input\n");
@@ -795,10 +803,18 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 
 void write_metadata_binary(FLAC__StreamMetadata *block, FLAC__byte *block_raw, FLAC__bool headerless)
 {
+#ifdef _WIN32
+	fflush(stdout);
+	_setmode(fileno(stdout),_O_BINARY);
+#endif
 	if(!headerless)
 		local_fwrite(block_raw, 1, block->length+FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
 	else if(block->type == FLAC__METADATA_TYPE_APPLICATION && block->length > 3)
 		local_fwrite(block_raw+FLAC__STREAM_METADATA_HEADER_LENGTH+4, 1, block->length-4, stdout);
 	else
 		local_fwrite(block_raw+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, block->length, stdout);
+#ifdef _WIN32
+	fflush(stdout);
+	_setmode(fileno(stdout),_O_TEXT);
+#endif
 }
