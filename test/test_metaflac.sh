@@ -124,6 +124,18 @@ metaflac_test ()
 	echo OK
 }
 
+metaflac_test_nofilter ()
+{
+	case="$testdatadir/$1"
+	desc="$2"
+	args="$3"
+	expect="$case-expect.meta"
+	echo $ECHO_N "test $1: $desc... " $ECHO_C
+	run_metaflac $args $flacfile > $testdir/out.meta || die "ERROR running metaflac"
+	diff -w $expect $testdir/out.meta || die "ERROR: metadata does not match expected $expect"
+	echo OK
+}
+
 metaflac_test_binary ()
 {
 	case="$testdatadir/$1"
@@ -133,7 +145,6 @@ metaflac_test_binary ()
 	echo $ECHO_N "test $1: $desc... " $ECHO_C
 	run_metaflac $args $flacfile > $testdir/out.meta || die "ERROR running metaflac"
 	cmp $expect $testdir/out.meta || die "ERROR: metadata does not match expected $expect"
-	# To blindly accept (and check later): cp -f $testdir/out.meta $expect
 	echo OK
 }
 
@@ -454,7 +465,7 @@ else
         die "ERROR, couldn't add vorbis comment metadata block"
 fi
 
-metaflac_test_binary case66 "--append" "--list"
+metaflac_test_nofilter case66 "--append" "--list"
 
 if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO,SEEKTABLE,VORBIS_COMMENT $flacfile2" "--append --block-number=0 $flacfile" ; then
 		:
@@ -462,6 +473,6 @@ else
         die "ERROR, couldn't add vorbis comment metadata block"
 fi
 
-metaflac_test_binary case67 "--append --block-number=0" "--list"
+metaflac_test_nofilter case67 "--append --block-number=0" "--list"
 
 rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta
