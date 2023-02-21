@@ -32,7 +32,7 @@
 #include <cstdlib>
 #include <cstring> /* for memcpy */
 #include "FLAC/stream_decoder.h"
-#include "fuzzer_common.h"
+#include "common.h"
 
 int write_abort_check_counter = -1;
 

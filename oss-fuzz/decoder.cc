@@ -29,7 +29,7 @@
 
 #include "FLAC++/decoder.h"
 #include "FLAC++/metadata.h"
-#include "fuzzer_common.h"
+#include "common.h"
 
 template <> FLAC__MetadataType fuzzing::datasource::Base::Get<FLAC__MetadataType>(const uint64_t id) {
     (void)id;

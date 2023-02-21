@@ -17,11 +17,13 @@
 
 AM_CPPFLAGS = -I$(top_srcdir)/include -I$(top_srcdir)/oss-fuzz
 
-AM_CXXFLAGS = -std=c++11
+AM_CXXFLAGS = -std=c++11 $(LIB_FUZZING_ENGINE)
+LDADD = $(flac_libs)
+
 
 EXTRA_DIST = \
 	fuzzer_encoder.dict \
-	fuzzer_common.h \
+	common.h \
 	Readme.md \
 	fuzzing/datasource/datasource.hpp \
 	fuzzing/datasource/id.hpp \
@@ -35,37 +37,12 @@ if USE_OSSFUZZERS
 noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder
 endif
 
-fuzzer_encoder_SOURCES = fuzzer_encoder.cc
-fuzzer_encoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
-fuzzer_encoder_LDFLAGS = $(AM_LDFLAGS)
-fuzzer_encoder_LDADD = $(flac_libs)
-
-fuzzer_encoder_v2_SOURCES = fuzzer_encoder_v2.cc
-fuzzer_encoder_v2_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
-fuzzer_encoder_v2_LDFLAGS = $(AM_LDFLAGS)
-fuzzer_encoder_v2_LDADD = $(flac_libs)
-
-fuzzer_decoder_SOURCES = fuzzer_decoder.cc
-fuzzer_decoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
-fuzzer_decoder_LDFLAGS = $(AM_LDFLAGS)
-fuzzer_decoder_LDADD = $(flac_libs)
-
-fuzzer_seek_SOURCES = fuzzer_seek.cc
-fuzzer_seek_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
-fuzzer_seek_LDFLAGS = $(AM_LDFLAGS)
-fuzzer_seek_LDADD = $(flac_libs)
-
-fuzzer_metadata_SOURCES = fuzzer_metadata.cc
-fuzzer_metadata_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
-fuzzer_metadata_LDFLAGS = $(AM_LDFLAGS)
-fuzzer_metadata_LDADD = $(flac_libs)
-
-
-fuzzer_reencoder_SOURCES = fuzzer_reencoder.cc
-fuzzer_reencoder_CXXFLAGS = $(AM_CXXFLAGS) $(LIB_FUZZING_ENGINE)
-fuzzer_reencoder_LDFLAGS = $(AM_LDFLAGS)
-fuzzer_reencoder_LDADD = $(flac_libs)
-
+fuzzer_encoder_SOURCES = encoder.cc
+fuzzer_encoder_v2_SOURCES = encoder_v2.cc
+fuzzer_decoder_SOURCES = decoder.cc
+fuzzer_seek_SOURCES = seek.cc
+fuzzer_metadata_SOURCES = metadata.cc
+fuzzer_reencoder_SOURCES = reencoder.cc
 
 flac_libs = \
 	$(top_builddir)/src/libFLAC/libFLAC-static.la \
