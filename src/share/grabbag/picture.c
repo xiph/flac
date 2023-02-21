@@ -142,7 +142,10 @@ static FLAC__bool local__extract_resolution_color_info_(FLAC__StreamMetadata_Pic
 		len -= 8;
 		while(len > 12) { /* every PNG chunk must be at least 12 bytes long */
 			const FLAC__uint32 clen = (FLAC__uint32)data[0] << 24 | (FLAC__uint32)data[1] << 16 | (FLAC__uint32)data[2] << 8 | (FLAC__uint32)data[3];
-			if(0 == memcmp(data+4, "IHDR", 4) && clen == 13) {
+			/* First check whether clen makes sense or causes overflow in this bit of code */
+			if(clen + 12 <= clen || clen + 12 > len)
+				return false;
+			else if(0 == memcmp(data+4, "IHDR", 4) && clen == 13) {
 				uint32_t color_type = data[17];
 				picture->width = (FLAC__uint32)data[8] << 24 | (FLAC__uint32)data[9] << 16 | (FLAC__uint32)data[10] << 8 | (FLAC__uint32)data[11];
 				picture->height = (FLAC__uint32)data[12] << 24 | (FLAC__uint32)data[13] << 16 | (FLAC__uint32)data[14] << 8 | (FLAC__uint32)data[15];
@@ -173,8 +176,6 @@ static FLAC__bool local__extract_resolution_color_info_(FLAC__StreamMetadata_Pic
 				picture->colors = clen / 3u;
 				return true;
 			}
-			else if(clen + 12 > len)
-				return false;
 			else {
 				data += 12 + clen;
 				len -= 12 + clen;
@@ -274,7 +275,8 @@ static const char *error_messages[] = {
 	"unable to guess MIME type from file, user must set explicitly",
 	"type 1 icon must be a 32x32 pixel PNG",
 	"file not found", /* currently unused */
-	"file is too large"
+	"file is too large",
+	"empty file"
 };
 
 static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj)
@@ -286,6 +288,9 @@ static const char * read_file (const char * filepath, FLAC__StreamMetadata * obj
 
 	if (size < 0)
 		return error_messages[5];
+
+	if (size == 0)
+		return error_messages[12];
 
 	if (size >= (FLAC__off_t)(1u << FLAC__STREAM_METADATA_LENGTH_LEN)) /* actual limit is less because of other fields in the PICTURE metadata block */
 		return error_messages[11];
@@ -399,7 +404,9 @@ FLAC__StreamMetadata *grabbag__picture_parse_specification(const char *spec, con
 			*error_message = error_messages[1];
 		else { /* 'spec' points to filename/URL */
 			if(0 == strcmp(obj->data.picture.mime_type, "-->")) { /* magic MIME type means URL */
-				if(!FLAC__metadata_object_picture_set_data(obj, (FLAC__byte*)spec, strlen(spec), /*copy=*/true))
+				if(strlen(spec) == 0)
+					*error_message = error_messages[1];
+				else if(!FLAC__metadata_object_picture_set_data(obj, (FLAC__byte*)spec, strlen(spec), /*copy=*/true))
 					*error_message = error_messages[0];
 				else if(obj->data.picture.width == 0 || obj->data.picture.height == 0 || obj->data.picture.depth == 0)
 					*error_message = error_messages[3];
