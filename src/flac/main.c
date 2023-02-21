@@ -2360,7 +2360,7 @@ int decode_file(const char *infilename)
 	decode_options.channel_map_none = option_values.channel_map_none;
 	decode_options.format = output_format;
 
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/* Can't fuzz from stdin */
 	if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
 		return 1;
