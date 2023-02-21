@@ -36,7 +36,7 @@
 extern "C" {
 #include "share/private.h"
 }
-#include "fuzzer_common.h"
+#include "common.h"
 
 /* This C++ fuzzer uses the FLAC and not FLAC++ because the latter lacks a few
  * hidden functions like FLAC__stream_encoder_disable_constant_subframes. It

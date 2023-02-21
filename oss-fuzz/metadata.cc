@@ -34,7 +34,7 @@
 #include <cstring> /* for memcpy */
 #include <unistd.h>
 #include "FLAC++/metadata.h"
-#include "fuzzer_common.h"
+#include "common.h"
 
 #define CONFIG_LENGTH 2
 
