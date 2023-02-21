@@ -3070,7 +3070,7 @@ FLAC__bool read_callback_(FLAC__byte buffer[], size_t *bytes, void *client_data)
 	 */
 }
 
-#ifdef FUZZING_BUILD_MODE_NO_SANITIZE_SIGNED_INTEGER_OVERFLOW
+#if defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION) && !defined(FUZZING_BUILD_MODE_FLAC_SANITIZE_SIGNED_INTEGER_OVERFLOW)
 /* The attribute below is to silence the undefined sanitizer of oss-fuzz.
  * Because fuzzing feeds bogus predictors and residual samples to the
  * decoder, having overflows in this section is unavoidable. Also,
