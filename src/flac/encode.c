@@ -2567,6 +2567,18 @@ FLAC__StreamDecoderWriteStatus flac_decoder_write_callback(const FLAC__StreamDec
 	FLAC__uint64 n = min(data->samples_left_to_process, frame->header.blocksize);
 	(void)decoder;
 
+	/* Do some checks */
+	if(frame->header.channels != e->info.channels) {
+		print_error_with_state(e, "ERROR: number of channels of input changed mid-stream");
+		data->fatal_error = true;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+	if(frame->header.bits_per_sample > e->info.bits_per_sample) {
+		print_error_with_state(e, "ERROR: bits-per-sample of input changed mid-stream");
+		data->fatal_error = true;
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+
 	if(!EncoderSession_process(e, buffer, (uint32_t)n)) {
 		print_error_with_state(e, "ERROR during encoding");
 		data->fatal_error = true;
