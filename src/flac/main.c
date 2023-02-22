@@ -38,6 +38,7 @@
 #include "share/alloc.h"
 #include "share/grabbag.h"
 #include "share/compat.h"
+#include "share/endswap.h"
 #include "share/safe_str.h"
 #include "analyze.h"
 #include "decode.h"
@@ -1895,10 +1896,10 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(input_format == FORMAT_WAVE || input_format == FORMAT_AIFF || input_format == FORMAT_AIFF_C) {
-		if(input_format == FORMAT_WAVE)
-			master_chunk_size = lookahead[4] + (lookahead[5] << 8) + (lookahead[6] << 16) + (lookahead[7] << 24);
-		else if(input_format == FORMAT_AIFF || input_format == FORMAT_AIFF_C)
-			master_chunk_size = (lookahead[4] << 24) + (lookahead[5] << 16) + (lookahead[6] << 8) + lookahead[7];
+		memcpy(&master_chunk_size,lookahead+4,sizeof(master_chunk_size));
+		if((input_format != FORMAT_WAVE) != CPU_IS_BIG_ENDIAN /* logical xor */)
+			/* true for WAVE on big endian CPUs or AIFF/AIFF-C on little endian CPUs */
+			master_chunk_size = ENDSWAP_32(master_chunk_size);
 
 		if(infilesize != (FLAC__off_t)(-1) && infilesize > 8 && (infilesize - 8) != master_chunk_size) {
 			flac__utils_printf(stderr, 1, "WARNING: %s chunk size of file %s does not agree with filesize\n", (input_format == FORMAT_WAVE)?"RIFF":"FORM", infilename);
