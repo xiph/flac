@@ -2241,14 +2241,14 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 			append_to_verify_fifo_(&encoder->private_->verify.input_fifo, buffer, j, channels, n);
 
 		for(channel = 0; channel < channels; channel++) {
+			if (buffer[channel] == NULL) {
+				return false;
+			}
 			for(i = encoder->private_->current_sample_number, k = j; i <= blocksize && k < samples; i++, k++) {
 				if(buffer[channel][k] < sample_min || buffer[channel][k] > sample_max){
 					encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 					return false;
 				}
-			}
-			if (buffer[channel] == NULL) {
-				return false;
 			}
 			memcpy(&encoder->private_->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
 		}
