@@ -44,7 +44,7 @@ fuzzer_decoder_SOURCES = decoder.cc
 fuzzer_seek_SOURCES = seek.cc
 fuzzer_metadata_SOURCES = metadata.cc
 fuzzer_reencoder_SOURCES = reencoder.cc
-fuzzer_tool_flac_SOURCES = ${flac_SOURCES} tool_flac.c
+fuzzer_tool_flac_SOURCES = ${flac_SOURCES} empty.cc tool_flac.c # empty.cc is to force use of C++ linker, which is mandated by oss-fuzz
 fuzzer_tool_flac_LDADD =  \
         $(top_builddir)/src/share/utf8/libutf8.la \
         $(top_builddir)/src/share/grabbag/libgrabbag.la \
