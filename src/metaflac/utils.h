@@ -23,6 +23,11 @@
 #include "FLAC/metadata.h"
 #include <stdio.h> /* for FILE */
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+#undef stderr
+#define stderr stdout
+#endif
+
 void die(const char *message);
 #ifdef FLAC__VALGRIND_TESTING
 size_t local_fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream);

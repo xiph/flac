@@ -122,9 +122,11 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 		flac_fprintf(stderr, "%s: ERROR: empty import file name\n", filename);
 		return false;
 	}
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	if(0 == strcmp(cs_filename, "-"))
 		f = stdin;
 	else
+#endif
 		f = flac_fopen(cs_filename, "r");
 
 	if(0 == f) {
