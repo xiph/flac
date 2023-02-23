@@ -21,6 +21,7 @@
 #  include <config.h>
 #endif
 
+#include "utils.h"
 #include "usage.h"
 #include "FLAC/format.h"
 #include <stdarg.h>

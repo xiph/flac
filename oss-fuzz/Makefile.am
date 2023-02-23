@@ -35,7 +35,7 @@ EXTRA_DIST = \
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder fuzzer_tool_flac
+noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder fuzzer_tool_flac fuzzer_tool_metaflac
 endif
 
 fuzzer_encoder_SOURCES = encoder.cc
@@ -46,6 +46,16 @@ fuzzer_metadata_SOURCES = metadata.cc
 fuzzer_reencoder_SOURCES = reencoder.cc
 fuzzer_tool_flac_SOURCES = ${flac_SOURCES} empty.cc tool_flac.c # empty.cc is to force use of C++ linker, which is mandated by oss-fuzz
 fuzzer_tool_flac_LDADD =  \
+        $(top_builddir)/src/share/utf8/libutf8.la \
+        $(top_builddir)/src/share/grabbag/libgrabbag.la \
+        $(top_builddir)/src/share/getopt/libgetopt.la \
+        $(top_builddir)/src/share/replaygain_analysis/libreplaygain_analysis.la \
+        $(top_builddir)/src/share/replaygain_synthesis/libreplaygain_synthesis.la \
+        $(top_builddir)/src/libFLAC/libFLAC.la \
+        @LTLIBICONV@ \
+        -lm
+fuzzer_tool_metaflac_SOURCES = ${metaflac_SOURCES} empty.cc tool_metaflac.c # empty.cc is to force use of C++ linker, which is mandated by oss-fuzz
+fuzzer_tool_metaflac_LDADD =  \
         $(top_builddir)/src/share/utf8/libutf8.la \
         $(top_builddir)/src/share/grabbag/libgrabbag.la \
         $(top_builddir)/src/share/getopt/libgetopt.la \
@@ -76,3 +86,19 @@ flac_SOURCES = \
         ${top_builddir}/src/flac/local_string_utils.h \
         ${top_builddir}/src/flac/utils.h \
         ${top_builddir}/src/flac/vorbiscomment.h
+
+metaflac_SOURCES = \
+        ${top_builddir}/src/metaflac/operations.c \
+        ${top_builddir}/src/metaflac/operations_shorthand_cuesheet.c \
+        ${top_builddir}/src/metaflac/operations_shorthand_picture.c \
+        ${top_builddir}/src/metaflac/operations_shorthand_seektable.c \
+        ${top_builddir}/src/metaflac/operations_shorthand_streaminfo.c \
+        ${top_builddir}/src/metaflac/operations_shorthand_vorbiscomment.c \
+        ${top_builddir}/src/metaflac/options.c \
+        ${top_builddir}/src/metaflac/usage.c \
+        ${top_builddir}/src/metaflac/utils.c \
+        ${top_builddir}/src/metaflac/operations.h \
+        ${top_builddir}/src/metaflac/operations_shorthand.h \
+        ${top_builddir}/src/metaflac/options.h \
+        ${top_builddir}/src/metaflac/usage.h \
+        ${top_builddir}/src/metaflac/utils.h

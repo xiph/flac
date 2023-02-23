@@ -28,7 +28,11 @@
 #include <string.h>
 #include "share/compat.h"
 
+#ifndef FUZZ_TOOL_METAFLAC
 int main(int argc, char *argv[])
+#else
+static int main_to_fuzz(int argc, char *argv[])
+#endif
 {
 	CommandLineOptions options;
 	int ret = 0;
