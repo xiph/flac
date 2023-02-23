@@ -210,7 +210,7 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 	}
 
 	/* check for only one FLAC file used with certain options */
-	if(options->num_files > 1) {
+	if(!had_error && options->num_files > 1) {
 		if(0 != find_shorthand_operation(options, OP__IMPORT_CUESHEET_FROM)) {
 			flac_fprintf(stderr, "ERROR: you may only specify one FLAC file when using '--import-cuesheet-from'\n");
 			had_error = true;
