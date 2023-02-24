@@ -322,14 +322,17 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 
 		if(fread(buffer, 1, 3, f) < 3) {
 			flac__utils_printf(stderr, 1, "%s: ERROR checking for ID3v2 tag\n", decoder_session->inbasefilename);
+			fclose(f);
 			return false;
 		}
 		if(memcmp(buffer, "ID3", 3) == 0){
 			flac__utils_printf(stderr, 1, "%s: WARNING, ID3v2 tag found. This is non-standard and strongly discouraged\n", decoder_session->inbasefilename);
 			if(decoder_session->treat_warnings_as_errors) {
+				fclose(f);
 				return false;
 			}
 		}
+		fclose(f);
 	}
 
 	decoder_session->decoder = FLAC__stream_decoder_new();
