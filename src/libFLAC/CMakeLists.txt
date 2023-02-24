@@ -43,6 +43,7 @@ add_library(FLAC
     fixed.c
     fixed_intrin_sse2.c
     fixed_intrin_ssse3.c
+    fixed_intrin_sse42.c
     fixed_intrin_avx2.c
     float.c
     format.c

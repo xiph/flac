@@ -385,12 +385,12 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 dat
 	uint32_t order = 0;
 	int i;
 
-	for(i = 0; i < (int)data_len; i++) {
+	for(i = -4; i < (int)data_len; i++) {
 		error_0 = local_abs64((FLAC__int64)data[i]);
-		error_1 = (i > 0) ? local_abs64((FLAC__int64)data[i] - data[i-1]) : 0 ;
-		error_2 = (i > 1) ? local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]) : 0;
-		error_3 = (i > 2) ? local_abs64((FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3]) : 0;
-		error_4 = (i > 3) ? local_abs64((FLAC__int64)data[i] - 4 * (FLAC__int64)data[i-1] + 6 * (FLAC__int64)data[i-2] - 4 * (FLAC__int64)data[i-3] + data[i-4]) : 0;
+		error_1 = (i > -4) ? local_abs64((FLAC__int64)data[i] - data[i-1]) : 0 ;
+		error_2 = (i > -3) ? local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]) : 0;
+		error_3 = (i > -2) ? local_abs64((FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3]) : 0;
+		error_4 = (i > -1) ? local_abs64((FLAC__int64)data[i] - 4 * (FLAC__int64)data[i-1] + 6 * (FLAC__int64)data[i-2] - 4 * (FLAC__int64)data[i-3] + data[i-4]) : 0;
 
 		total_error_0 += error_0;
 		total_error_1 += error_1;
@@ -432,12 +432,12 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int
 	uint32_t order = 0;
 	int i;
 
-	for(i = 0; i < (int)data_len; i++) {
+	for(i = -4; i < (int)data_len; i++) {
 		error_0 = local_abs64(data[i]);
-		error_1 = (i > 0) ? local_abs64(data[i] - data[i-1]) : 0 ;
-		error_2 = (i > 1) ? local_abs64(data[i] - 2 * data[i-1] + data[i-2]) : 0;
-		error_3 = (i > 2) ? local_abs64(data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3]) : 0;
-		error_4 = (i > 3) ? local_abs64(data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4]) : 0;
+		error_1 = (i > -4) ? local_abs64(data[i] - data[i-1]) : 0 ;
+		error_2 = (i > -3) ? local_abs64(data[i] - 2 * data[i-1] + data[i-2]) : 0;
+		error_3 = (i > -2) ? local_abs64(data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3]) : 0;
+		error_4 = (i > -1) ? local_abs64(data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4]) : 0;
 
 		total_error_0 += error_0;
 		total_error_1 += error_1;

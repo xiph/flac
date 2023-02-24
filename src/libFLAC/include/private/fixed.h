@@ -66,6 +66,9 @@ uint32_t FLAC__fixed_compute_best_predictor_intrin_sse2(const FLAC__int32 data[]
 #   ifdef FLAC__SSSE3_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #   endif
+#   ifdef FLAC__SSE4_2_SUPPORTED
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_sse42(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#   endif
 #   ifdef FLAC__AVX2_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_avx2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #   endif
