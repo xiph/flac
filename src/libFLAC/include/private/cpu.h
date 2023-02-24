@@ -68,6 +68,7 @@
   #if (__INTEL_COMPILER >= 1000) /* Intel C++ Compiler 10.0 */
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
+    #define FLAC__SSE4_2_SUPPORTED 1
   #endif
   #ifdef FLAC__USE_AVX
     #if (__INTEL_COMPILER >= 1110) /* Intel C++ Compiler 11.1 */
@@ -84,6 +85,7 @@
   #define FLAC__SSE2_SUPPORTED 1
   #define FLAC__SSSE3_SUPPORTED 1
   #define FLAC__SSE4_1_SUPPORTED 1
+  #define FLAC__SSE4_2_SUPPORTED 1
   #ifdef FLAC__USE_AVX
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
@@ -95,6 +97,7 @@
   #define FLAC__SSE2_SUPPORTED 1
   #define FLAC__SSSE3_SUPPORTED 1
   #define FLAC__SSE4_1_SUPPORTED 1
+  #define FLAC__SSE4_2_SUPPORTED 1
   #ifdef FLAC__USE_AVX
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
@@ -107,6 +110,7 @@
   #if (_MSC_VER >= 1500) /* MS Visual Studio 2008 */
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
+    #define FLAC__SSE4_2_SUPPORTED 1
   #endif
   #ifdef FLAC__USE_AVX
     #if (_MSC_FULL_VER >= 160040219) /* MS Visual Studio 2010 SP1 */
@@ -130,6 +134,9 @@
   #endif
   #ifdef __SSE4_1__
     #define FLAC__SSE4_1_SUPPORTED 1
+  #endif
+  #ifdef __SSE4_2__
+    #define FLAC__SSE4_2_SUPPORTED 1
   #endif
   #ifdef FLAC__USE_AVX
     #ifdef __AVX__

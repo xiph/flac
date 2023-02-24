@@ -375,9 +375,10 @@ typedef struct FLAC__StreamEncoderPrivate {
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	uint32_t (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	uint32_t (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+	uint32_t (*local_fixed_compute_best_predictor_limit_residual)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #else
 	uint32_t (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-	uint32_t (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+	uint32_t (*local_fixed_compute_best_predictor_limit_residual)(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #endif
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	void (*local_lpc_compute_autocorrelation)(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
@@ -389,6 +390,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__bool disable_sse2;
 	FLAC__bool disable_ssse3;
 	FLAC__bool disable_sse41;
+	FLAC__bool disable_sse42;
 	FLAC__bool disable_avx2;
 	FLAC__bool disable_fma;
 	FLAC__bool disable_constant_subframes;
@@ -918,6 +920,8 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->private_->cpuinfo.x86.ssse3 = false;
 	if(encoder->private_->disable_sse41)
 		encoder->private_->cpuinfo.x86.sse41 = false;
+	if(encoder->private_->disable_sse42)
+		encoder->private_->cpuinfo.x86.sse42 = false;
 	if(encoder->private_->disable_avx2)
 		encoder->private_->cpuinfo.x86.avx2 = false;
 	if(encoder->private_->disable_fma)
@@ -929,6 +933,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->local_precompute_partition_info_sums = precompute_partition_info_sums_;
 	encoder->private_->local_fixed_compute_best_predictor = FLAC__fixed_compute_best_predictor;
 	encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide;
+	encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual;
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide;
@@ -994,6 +999,11 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_ssse3;
 		}
 #    endif
+#    ifdef FLAC__SSE4_2_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.sse42) {
+			encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual_intrin_sse42;
+		}
+#    endif
 #    ifdef FLAC__AVX2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.avx2) {
 			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_avx2;
@@ -1047,6 +1057,12 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSSE3_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.ssse3) {
 			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_ssse3;
+		}
+#    endif
+#    ifdef FLAC__SSE4_2_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.sse42) {
+			encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual_intrin_sse42;
+
 		}
 #    endif
 #    ifdef FLAC__AVX2_SUPPORTED
@@ -1989,6 +2005,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_disable_instruction_set(FLAC__StreamEnc
 	encoder->private_->disable_sse41 = value & 8;
 	encoder->private_->disable_avx2 = value & 16;
 	encoder->private_->disable_fma = value & 32;
+	encoder->private_->disable_sse42 = value & 64;
 	return true;
 }
 
@@ -2447,6 +2464,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->private_->disable_sse2 = false;
 	encoder->private_->disable_ssse3 = false;
 	encoder->private_->disable_sse41 = false;
+	encoder->private_->disable_sse42 = false;
 	encoder->private_->disable_avx2 = false;
 	encoder->private_->disable_constant_subframes = false;
 	encoder->private_->disable_fixed_subframes = false;
@@ -3537,9 +3555,9 @@ FLAC__bool process_subframe_(
 		}
 		else
 			if(subframe_bps <= 32)
-				guess_fixed_order = FLAC__fixed_compute_best_predictor_limit_residual(((FLAC__int32 *)integer_signal),frame_header->blocksize, fixed_residual_bits_per_sample);
+				guess_fixed_order = encoder->private_->local_fixed_compute_best_predictor_limit_residual(((FLAC__int32 *)integer_signal+FLAC__MAX_FIXED_ORDER),frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 			else
-				guess_fixed_order = FLAC__fixed_compute_best_predictor_limit_residual_33bit(((FLAC__int64 *)integer_signal),frame_header->blocksize, fixed_residual_bits_per_sample);
+				guess_fixed_order = FLAC__fixed_compute_best_predictor_limit_residual_33bit(((FLAC__int64 *)integer_signal+FLAC__MAX_FIXED_ORDER),frame_header->blocksize-FLAC__MAX_FIXED_ORDER, fixed_residual_bits_per_sample);
 
 		/* check for constant subframe */
 		if(
