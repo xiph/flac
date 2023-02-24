@@ -167,6 +167,176 @@ uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_avx2(const FLAC__int32 d
 	return order;
 }
 
+#ifdef local_abs64
+#undef local_abs64
+#endif
+#define local_abs64(x) ((uint64_t)((x)<0? -(x) : (x)))
+
+#define CHECK_ORDER_IS_VALID(macro_order)  \
+if(shadow_error_##macro_order <= INT32_MAX) { \
+	if(total_error_##macro_order < smallest_error) { \
+		order = macro_order; \
+		smallest_error = total_error_##macro_order ; \
+	} \
+	residual_bits_per_sample[ macro_order ] = (float)((total_error_0 > 0) ? log(M_LN2 * (double)total_error_0 / (double)data_len) / M_LN2 : 0.0); \
+} \
+else \
+	residual_bits_per_sample[ macro_order ] = 34.0f;
+
+FLAC__SSE_TARGET("avx2")
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1])
+{
+	FLAC__uint64 total_error_0 = 0, total_error_1 = 0, total_error_2 = 0, total_error_3 = 0, total_error_4 = 0, smallest_error = UINT64_MAX;
+	FLAC__uint64 shadow_error_0 = 0, shadow_error_1 = 0, shadow_error_2 = 0, shadow_error_3 = 0, shadow_error_4 = 0;
+	FLAC__uint64 error_0, error_1, error_2, error_3, error_4;
+	FLAC__int32 i, data_len_int;
+	uint32_t order = 0;
+	__m256i total_err0, total_err1, total_err2, total_err3, total_err4;
+	__m256i shadow_err0, shadow_err1, shadow_err2, shadow_err3, shadow_err4;
+	__m256i prev_err0,  prev_err1,  prev_err2,  prev_err3;
+	__m256i tempA, tempB, bitmask;
+	FLAC__int64 data_scalar[4];
+	FLAC__int64 prev_err0_scalar[4];
+	FLAC__int64 prev_err1_scalar[4];
+	FLAC__int64 prev_err2_scalar[4];
+	FLAC__int64 prev_err3_scalar[4];
+	total_err0 = _mm256_setzero_si256();
+	total_err1 = _mm256_setzero_si256();
+	total_err2 = _mm256_setzero_si256();
+	total_err3 = _mm256_setzero_si256();
+	total_err4 = _mm256_setzero_si256();
+	shadow_err0 = _mm256_setzero_si256();
+	shadow_err1 = _mm256_setzero_si256();
+	shadow_err2 = _mm256_setzero_si256();
+	shadow_err3 = _mm256_setzero_si256();
+	shadow_err4 = _mm256_setzero_si256();
+	data_len_int = data_len;
+
+	/* First take care of preceding samples */
+	for(i = -4; i < 0; i++) {
+		error_0 = local_abs64((FLAC__int64)data[i]);
+		error_1 = (i > -4) ? local_abs64((FLAC__int64)data[i] - data[i-1]) : 0 ;
+		error_2 = (i > -3) ? local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]) : 0;
+		error_3 = (i > -2) ? local_abs64((FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3]) : 0;
+
+		total_error_0 += error_0;
+		total_error_1 += error_1;
+		total_error_2 += error_2;
+		total_error_3 += error_3;
+
+		shadow_error_0 |= error_0;
+		shadow_error_1 |= error_1;
+		shadow_error_2 |= error_2;
+		shadow_error_3 |= error_3;
+	}
+
+	for(i = 0; i < 4; i++){
+		prev_err0_scalar[i] = data[-1+i*(data_len_int/4)];
+		prev_err1_scalar[i] = (FLAC__int64)(data[-1+i*(data_len_int/4)]) - data[-2+i*(data_len_int/4)];
+		prev_err2_scalar[i] = prev_err1_scalar[i] - ((FLAC__int64)(data[-2+i*(data_len_int/4)]) - data[-3+i*(data_len_int/4)]);
+		prev_err3_scalar[i] = prev_err2_scalar[i] - ((FLAC__int64)(data[-2+i*(data_len_int/4)]) - 2*(FLAC__int64)(data[-3+i*(data_len_int/4)]) + data[-4+i*(data_len_int/4)]);
+	}
+	prev_err0 = _mm256_loadu_si256((const __m256i*)prev_err0_scalar);
+	prev_err1 = _mm256_loadu_si256((const __m256i*)prev_err1_scalar);
+	prev_err2 = _mm256_loadu_si256((const __m256i*)prev_err2_scalar);
+	prev_err3 = _mm256_loadu_si256((const __m256i*)prev_err3_scalar);
+	for(i = 0; i < data_len_int / 4; i++){
+		data_scalar[0] = data[i];
+		data_scalar[1] = data[i+data_len/4];
+		data_scalar[2] = data[i+2*data_len/4];
+		data_scalar[3] = data[i+3*data_len/4];
+		tempA = _mm256_loadu_si256((const __m256i*)data_scalar);
+		/* Next three intrinsics calculate tempB as abs of tempA */
+		bitmask = _mm256_cmpgt_epi64(_mm256_set1_epi64x(0), tempA);
+		tempB = _mm256_xor_si256(tempA, bitmask);
+		tempB = _mm256_sub_epi64(tempB, bitmask);
+		total_err0 = _mm256_add_epi64(total_err0,tempB);
+		shadow_err0 = _mm256_xor_si256(shadow_err0,tempB);
+		tempB = _mm256_sub_epi64(tempA,prev_err0);
+		prev_err0 = tempA;
+		/* Next three intrinsics calculate tempA as abs of tempB */
+		bitmask = _mm256_cmpgt_epi64(_mm256_set1_epi64x(0), tempB);
+		tempA = _mm256_xor_si256(tempB, bitmask);
+		tempA = _mm256_sub_epi64(tempA, bitmask);
+		total_err1 = _mm256_add_epi64(total_err1,tempA);
+		shadow_err1 = _mm256_xor_si256(shadow_err1,tempA);
+		tempA = _mm256_sub_epi64(tempB,prev_err1);
+		prev_err1 = tempB;
+		/* Next three intrinsics calculate tempB as abs of tempA */
+		bitmask = _mm256_cmpgt_epi64(_mm256_set1_epi64x(0), tempA);
+		tempB = _mm256_xor_si256(tempA, bitmask);
+		tempB = _mm256_sub_epi64(tempB, bitmask);
+		total_err2 = _mm256_add_epi64(total_err2,tempB);
+		shadow_err2 = _mm256_xor_si256(shadow_err2,tempB);
+		tempB = _mm256_sub_epi64(tempA,prev_err2);
+		prev_err2 = tempA;
+		/* Next three intrinsics calculate tempA as abs of tempB */
+		bitmask = _mm256_cmpgt_epi64(_mm256_set1_epi64x(0), tempB);
+		tempA = _mm256_xor_si256(tempB, bitmask);
+		tempA = _mm256_sub_epi64(tempA, bitmask);
+		total_err3 = _mm256_add_epi64(total_err3,tempA);
+		shadow_err3 = _mm256_xor_si256(shadow_err3,tempA);
+		tempA = _mm256_sub_epi64(tempB,prev_err3);
+		prev_err3 = tempB;
+		/* Next three intrinsics calculate tempB as abs of tempA */
+		bitmask = _mm256_cmpgt_epi64(_mm256_set1_epi64x(0), tempA);
+		tempB = _mm256_xor_si256(tempA, bitmask);
+		tempB = _mm256_sub_epi64(tempB, bitmask);
+		total_err4 = _mm256_add_epi64(total_err4,tempB);
+		shadow_err4 = _mm256_xor_si256(shadow_err4,tempB);
+	}
+	_mm256_storeu_si256((__m256i*)data_scalar,total_err0);
+	total_error_0 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,total_err1);
+	total_error_1 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,total_err2);
+	total_error_2 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,total_err3);
+	total_error_3 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,total_err4);
+	total_error_4 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err0);
+	shadow_error_0 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err1);
+	shadow_error_1 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err2);
+	shadow_error_2 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err3);
+	shadow_error_3 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err4);
+	shadow_error_4 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+
+	/* Take care of remaining sample */
+	for(i = (data_len/4)*4; i < data_len_int; i++) {
+		error_0 = local_abs64((FLAC__int64)data[i]);
+		error_1 = local_abs64((FLAC__int64)data[i] - data[i-1]);
+		error_2 = local_abs64((FLAC__int64)data[i] - 2 * (FLAC__int64)data[i-1] + data[i-2]);
+		error_3 = local_abs64((FLAC__int64)data[i] - 3 * (FLAC__int64)data[i-1] + 3 * (FLAC__int64)data[i-2] - data[i-3]);
+		error_4 = local_abs64((FLAC__int64)data[i] - 4 * (FLAC__int64)data[i-1] + 6 * (FLAC__int64)data[i-2] - 4 * (FLAC__int64)data[i-3] + data[i-4]);
+
+		total_error_0 += error_0;
+		total_error_1 += error_1;
+		total_error_2 += error_2;
+		total_error_3 += error_3;
+		total_error_4 += error_4;
+
+		shadow_error_0 |= error_0;
+		shadow_error_1 |= error_1;
+		shadow_error_2 |= error_2;
+		shadow_error_3 |= error_3;
+		shadow_error_4 |= error_4;
+	}
+
+
+	CHECK_ORDER_IS_VALID(0);
+	CHECK_ORDER_IS_VALID(1);
+	CHECK_ORDER_IS_VALID(2);
+	CHECK_ORDER_IS_VALID(3);
+	CHECK_ORDER_IS_VALID(4);
+
+	return order;
+}
+
 #endif /* FLAC__AVX2_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
 #endif /* FLAC__NO_ASM */
