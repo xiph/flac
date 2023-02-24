@@ -71,6 +71,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_sse42(const FL
 #   endif
 #   ifdef FLAC__AVX2_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_avx2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #   endif
 #  endif
 # endif
