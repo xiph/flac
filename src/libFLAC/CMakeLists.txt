@@ -19,7 +19,7 @@ if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
     set(FLAC__ALIGN_MALLOC_DATA 1)
     option(WITH_AVX "Enable AVX, AVX2 optimizations (with runtime detection, resulting binary does not require AVX2, so only necessary when a compiler doesn't know about AVX)" ON)
     if(WITH_AVX AND MSVC)
-        set_source_files_properties(lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
+        set_source_files_properties(fixed_intrin_avx2.c lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
     endif()
 else()
     check_cpu_arch_arm64(FLAC__CPU_ARM64)
@@ -43,6 +43,7 @@ add_library(FLAC
     fixed.c
     fixed_intrin_sse2.c
     fixed_intrin_ssse3.c
+    fixed_intrin_avx2.c
     float.c
     format.c
     lpc.c

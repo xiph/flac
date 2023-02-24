@@ -84,6 +84,7 @@ libFLAC_sources = \
 	fixed.c \
 	fixed_intrin_sse2.c \
 	fixed_intrin_ssse3.c \
+	fixed_intrin_avx2.c \
 	float.c \
 	format.c \
 	lpc.c \

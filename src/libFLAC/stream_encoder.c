@@ -994,6 +994,11 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_ssse3;
 		}
 #    endif
+#    ifdef FLAC__AVX2_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.avx2) {
+			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_avx2;
+		}
+#    endif
 #   endif /* FLAC__HAS_X86INTRIN */
 #  elif defined FLAC__CPU_X86_64
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_X86_64);
@@ -1042,6 +1047,11 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSSE3_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.ssse3) {
 			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_ssse3;
+		}
+#    endif
+#    ifdef FLAC__AVX2_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.avx2) {
+			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_avx2;
 		}
 #    endif
 #   endif /* FLAC__HAS_X86INTRIN */
