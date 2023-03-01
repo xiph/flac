@@ -35,6 +35,7 @@
 #include "share/compat.h"
 #include "share/private.h"
 #include "share/safe_str.h"
+#include "share/endswap.h"
 #include "encode.h"
 
 #ifdef min
@@ -128,6 +129,8 @@ static union {
 	FLAC__uint8 u8[UBUFFER_INT8_SIZE];
 	FLAC__int16 s16[UBUFFER_INT8_SIZE/2];
 	FLAC__uint16 u16[UBUFFER_INT8_SIZE/2];
+	FLAC__int32 s32[UBUFFER_INT8_SIZE/4];
+	FLAC__uint32 u32[UBUFFER_INT8_SIZE/4];
 } ubuffer;
 
 
@@ -2394,43 +2397,29 @@ FLAC__bool format_input(FLAC__int32 *dest[], uint32_t wide_samples, FLAC__bool i
 		}
 	}
 	else if(bps == 32) {
-		if(!is_big_endian) {
-			uint8_t tmp;
-			const uint32_t bytes = wide_samples * channels * (bps >> 3);
-			uint32_t b;
-			for(b = 0; b < bytes; b += 4) {
-				tmp = ubuffer.u8[b];
-				ubuffer.u8[b] = ubuffer.u8[b+3];
-				ubuffer.u8[b+3] = tmp;
-
-				tmp = ubuffer.u8[b+1];
-				ubuffer.u8[b+1] = ubuffer.u8[b+2];
-				ubuffer.u8[b+2] = tmp;
+		if(is_unsigned_samples) {
+			if(is_big_endian != is_big_endian_host_) {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						out[channel][wide_sample] = ENDSWAP_32(ubuffer.u32[sample]) - 0x80000000;
+			}
+			else {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						out[channel][wide_sample] = ubuffer.u32[sample] - 0x80000000;
 			}
 		}
-		if(is_unsigned_samples) {
-			uint32_t b;
-			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++) {
-					uint32_t t;
-					t  = ubuffer.u8[b++]; t <<= 8;
-					t |= ubuffer.u8[b++]; t <<= 8;
-					t |= ubuffer.u8[b++]; t <<= 8;
-					t |= ubuffer.u8[b++];
-					out[channel][wide_sample] = (FLAC__int32)t - 0x80000000;
-				}
-		}
 		else {
-			uint32_t b;
-			for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++) {
-					uint32_t t;
-					t  = ubuffer.s8[b++]; t <<= 8;
-					t |= ubuffer.u8[b++]; t <<= 8;
-					t |= ubuffer.u8[b++]; t <<= 8;
-					t |= ubuffer.u8[b++];
-					out[channel][wide_sample] = t;
-				}
+			if(is_big_endian != is_big_endian_host_) {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						out[channel][wide_sample] = ENDSWAP_32(ubuffer.s32[sample]);
+			}
+			else {
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
+					for(channel = 0; channel < channels; channel++, sample++)
+						out[channel][wide_sample] = ubuffer.u32[sample];
+			}
 		}
 	}
 	else {
