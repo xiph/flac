@@ -2331,36 +2331,41 @@ FLAC__bool format_input(FLAC__int32 *dest[], uint32_t wide_samples, FLAC__bool i
 
 	if(bps == 8) {
 		if(is_unsigned_samples) {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
+			for(channel = 0; channel < channels; channel++)
+				for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
 					out[channel][wide_sample] = (FLAC__int32)ubuffer.u8[sample] - 0x80;
 		}
 		else {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
+			for(channel = 0; channel < channels; channel++)
+				for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
 					out[channel][wide_sample] = (FLAC__int32)ubuffer.s8[sample];
 		}
 	}
 	else if(bps == 16) {
-		if(is_big_endian != is_big_endian_host_) {
-			uint8_t tmp;
-			const uint32_t bytes = wide_samples * channels * (bps >> 3);
-			uint32_t b;
-			for(b = 0; b < bytes; b += 2) {
-				tmp = ubuffer.u8[b];
-				ubuffer.u8[b] = ubuffer.u8[b+1];
-				ubuffer.u8[b+1] = tmp;
+		if(is_unsigned_samples) {
+			if(is_big_endian != is_big_endian_host_) {
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
+						out[channel][wide_sample] = (FLAC__int32)(ENDSWAP_16(ubuffer.u16[sample])) - 0x8000;
+			}
+			else {
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
+						out[channel][wide_sample] = (FLAC__int32)ubuffer.u16[sample] - 0x8000;
 			}
 		}
-		if(is_unsigned_samples) {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
-					out[channel][wide_sample] = ubuffer.u16[sample] - 0x8000;
-		}
 		else {
-			for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-				for(channel = 0; channel < channels; channel++, sample++)
-					out[channel][wide_sample] = ubuffer.s16[sample];
+			if(is_big_endian != is_big_endian_host_) {
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
+						out[channel][wide_sample] = (int16_t)(ENDSWAP_16(ubuffer.s16[sample]));
+
+			}
+			else {
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
+						out[channel][wide_sample] = ubuffer.s16[sample];
+			}
 		}
 	}
 	else if(bps == 24) {
@@ -2424,26 +2429,26 @@ FLAC__bool format_input(FLAC__int32 *dest[], uint32_t wide_samples, FLAC__bool i
 	else if(bps == 32) {
 		if(is_unsigned_samples) {
 			if(is_big_endian != is_big_endian_host_) {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
 						out[channel][wide_sample] = ENDSWAP_32(ubuffer.u32[sample]) - 0x80000000;
 			}
 			else {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
 						out[channel][wide_sample] = ubuffer.u32[sample] - 0x80000000;
 			}
 		}
 		else {
 			if(is_big_endian != is_big_endian_host_) {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
 						out[channel][wide_sample] = ENDSWAP_32(ubuffer.s32[sample]);
 			}
 			else {
-				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++)
-						out[channel][wide_sample] = ubuffer.u32[sample];
+				for(channel = 0; channel < channels; channel++)
+					for(sample = channel, wide_sample = 0; wide_sample < wide_samples; wide_sample++, sample+=channels)
+						out[channel][wide_sample] = ubuffer.s32[sample];
 			}
 		}
 	}
@@ -2912,3 +2917,4 @@ uint32_t count_channel_mask_bits(FLAC__uint32 mask)
 	}
 	return count;
 }
+
