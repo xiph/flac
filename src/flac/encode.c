@@ -2366,50 +2366,58 @@ FLAC__bool format_input(FLAC__int32 *dest[], uint32_t wide_samples, FLAC__bool i
 	else if(bps == 24) {
 		if(!is_big_endian) {
 			if(is_unsigned_samples) {
-				uint32_t b;
-				for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					uint32_t b = 3*channel;
+					for(wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
 						uint32_t t;
-						t  = ubuffer.u8[b++];
-						t |= (uint32_t)(ubuffer.u8[b++]) << 8;
-						t |= (uint32_t)(ubuffer.u8[b++]) << 16;
+						t  = ubuffer.u8[b];
+						t |= (uint32_t)(ubuffer.u8[b+1]) << 8;
+						t |= (uint32_t)(ubuffer.u8[b+2]) << 16;
 						out[channel][wide_sample] = (FLAC__int32)t - 0x800000;
+						b += 3*channels;
 					}
+				}
 			}
 			else {
-				uint32_t b;
-				for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					uint32_t b = 3*channel;
+					for(wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
 						uint32_t t;
-						t  = ubuffer.u8[b++];
-						t |= (uint32_t)(ubuffer.u8[b++]) << 8;
-						t |= (int32_t)(ubuffer.s8[b++]) << 16;
+						t  = ubuffer.u8[b];
+						t |= (uint32_t)(ubuffer.u8[b+1]) << 8;
+						t |= (int32_t)(ubuffer.s8[b+2]) << 16;
 						out[channel][wide_sample] = t;
+						b += 3*channels;
 					}
+				}
 			}
 		}
 		else {
 			if(is_unsigned_samples) {
-				uint32_t b;
-				for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					uint32_t b = 3*channel;
+					for(wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
 						uint32_t t;
-						t  = ubuffer.u8[b++]; t <<= 8;
-						t |= ubuffer.u8[b++]; t <<= 8;
-						t |= ubuffer.u8[b++];
+						t  = ubuffer.u8[b]; t <<= 8;
+						t |= ubuffer.u8[b+1]; t <<= 8;
+						t |= ubuffer.u8[b+2];
 						out[channel][wide_sample] = (FLAC__int32)t - 0x800000;
+						b += 3*channels;
 					}
+				}
 			}
 			else {
-				uint32_t b;
-				for(b = sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++)
-					for(channel = 0; channel < channels; channel++, sample++) {
+				for(channel = 0; channel < channels; channel++) {
+					uint32_t b = 3*channel;
+					for(wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
 						uint32_t t;
-						t  = ubuffer.s8[b++]; t <<= 8;
-						t |= ubuffer.u8[b++]; t <<= 8;
-						t |= ubuffer.u8[b++];
+						t  = ubuffer.s8[b]; t <<= 8;
+						t |= ubuffer.u8[b+1]; t <<= 8;
+						t |= ubuffer.u8[b+2];
 						out[channel][wide_sample] = t;
+						b += 3*channels;
 					}
+				}
 			}
 		}
 	}
