@@ -1490,6 +1490,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 #else
 	e->old_clock_t = 0;
 #endif
+	e->compression_ratio = 0.0;
 
 	memset(&e->info, 0, sizeof(e->info));
 
