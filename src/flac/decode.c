@@ -1038,13 +1038,19 @@ FLAC__bool write_sane_extended(FILE *f, uint32_t val)
 	* of exponent, and 64 bits of significand (mantissa).  Unlike most IEEE-754
 	* representations, it does not imply a 1 above the MSB of the significand.
 	*
-	* Preconditions:
-	*  val!=0U
 	*/
 {
 	uint32_t shift, exponent;
 
-	FLAC__ASSERT(val!=0U); /* handling 0 would require a special case */
+	if(val == 0U) {
+		if(!write_big_endian_uint16(f, 0))
+			return false;
+		if(!write_big_endian_uint32(f, 0))
+			return false;
+		if(!write_big_endian_uint32(f, 0))
+			return false;
+		return true;
+	}
 
 	for(shift= 0U; (val>>(31-shift))==0U; ++shift)
 		;
