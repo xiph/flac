@@ -55,6 +55,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 
 	if(total_samples == 0) {
 		flac_fprintf(stderr, "%s: ERROR: cannot add seekpoints because STREAMINFO block does not specify total_samples\n", filename);
+		FLAC__metadata_iterator_delete(iterator);
 		return false;
 	}
 
@@ -68,6 +69,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 		if(!FLAC__metadata_iterator_insert_block_after(iterator, block)) {
 			print_error_with_chain_status(chain, "%s: ERROR: adding new SEEKTABLE block to metadata", filename);
 			FLAC__metadata_object_delete(block);
+			FLAC__metadata_iterator_delete(iterator);
 			return false;
 		}
 		/* iterator is left pointing to new block */
