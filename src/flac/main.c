@@ -2197,6 +2197,7 @@ int decode_file(const char *infilename)
 				}
 				else {
 					/* Couldn't find foreign metadata, stop processing */
+					flac__foreign_metadata_delete(foreign_metadata);
 					foreign_metadata = 0;
 				}
 			}
