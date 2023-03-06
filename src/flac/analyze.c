@@ -152,18 +152,20 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 				update_stats(&all_, stats.buckets[i].residual, stats.buckets[i].count);
 			}
 
-			/* write the subframe */
-			flac_snprintf(outfilename, sizeof (outfilename), "f%06u.s%u.gp", frame_number, channel);
-			compute_stats(&stats);
+			if(stats.nsamples > 0) {
+				/* write the subframe */
+				flac_snprintf(outfilename, sizeof (outfilename), "f%06u.s%u.gp", frame_number, channel);
+				compute_stats(&stats);
 
-			(void)dump_stats(&stats, outfilename);
+				(void)dump_stats(&stats, outfilename);
+			}
 		}
 	}
 }
 
 void flac__analyze_finish(analysis_options aopts)
 {
-	if(aopts.do_residual_gnuplot) {
+	if(aopts.do_residual_gnuplot && all_.nsamples > 0) {
 		compute_stats(&all_);
 		(void)dump_stats(&all_, "all");
 	}
