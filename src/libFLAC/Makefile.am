@@ -34,36 +34,17 @@ lib_LTLIBRARIES = libFLAC.la
 noinst_LTLIBRARIES = libFLAC-static.la
 if DEBUG
 DEBUGCFLAGS = -DFLAC__OVERFLOW_DETECT
-endif
-
-# FIXME: The following logic should be part of configure, not of Makefile.am
-
-if FLaC__CPU_PPC
-if FLaC__SYS_DARWIN
-CPUCFLAGS = -faltivec
 else
-CPUCFLAGS =
-if FLaC__USE_ALTIVEC
-CPUCFLAGS += -maltivec -mabi=altivec
-endif
-endif
-endif
-
-AM_CFLAGS = $(DEBUGCFLAGS) $(CPUCFLAGS) @OGG_CFLAGS@
-
-if FLaC__NO_ASM
-else
-if FLaC__CPU_IA32
-if FLaC__HAS_NASM
-ARCH_SUBDIRS = ia32
-LOCAL_EXTRA_LIBADD = ia32/libFLAC-asm.la
-endif
+if ASSOC_MATH_AVAILABLE
+ASSOCMATHCFLAGS = -fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math
 endif
 endif
 
-libFLAC_la_LIBADD = $(LOCAL_EXTRA_LIBADD) @OGG_LIBS@ -lm
+AM_CFLAGS = $(DEBUGCFLAGS) ${ASSOCMATHCFLAGS} @OGG_CFLAGS@
 
-SUBDIRS = $(ARCH_SUBDIRS) include .
+libFLAC_la_LIBADD = @OGG_LIBS@ -lm
+
+SUBDIRS = include .
 
 m4datadir = $(datadir)/aclocal
 m4data_DATA = libFLAC.m4
@@ -77,7 +58,6 @@ EXTRA_DIST = \
 	libFLAC.m4 \
 	deduplication/lpc_compute_autocorrelation_intrin.c \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
-	deduplication/lpc_compute_autocorrelation_intrin_vsx.c \
 	deduplication/lpc_compute_autocorrelation_intrin_neon.c
 
 if OS_IS_WINDOWS
@@ -93,7 +73,7 @@ extra_ogg_sources = \
 endif
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 12:0:0 $(LOCAL_EXTRA_LDFLAGS)
+libFLAC_la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 12:0:0
 
 libFLAC_sources = \
 	bitmath.c \
@@ -104,6 +84,8 @@ libFLAC_sources = \
 	fixed.c \
 	fixed_intrin_sse2.c \
 	fixed_intrin_ssse3.c \
+	fixed_intrin_sse42.c \
+	fixed_intrin_avx2.c \
 	float.c \
 	format.c \
 	lpc.c \
@@ -111,7 +93,6 @@ libFLAC_sources = \
 	lpc_intrin_sse41.c \
 	lpc_intrin_avx2.c \
 	lpc_intrin_fma.c \
-	lpc_intrin_vsx.c \
 	lpc_intrin_neon.c \
 	md5.c \
 	memory.c \
@@ -130,5 +111,4 @@ libFLAC_sources = \
 libFLAC_la_SOURCES = $(libFLAC_sources)
 
 # needed for test_libFLAC
-libFLAC_static_la_LIBADD = $(LOCAL_EXTRA_LIBADD)
 libFLAC_static_la_SOURCES = $(libFLAC_sources)

@@ -670,11 +670,10 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	num_expected_ = 0;
-	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping */
+	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping. Also removes the seektable */
 		expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 		expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 		expected_metadata_sequence_[num_expected_++] = &padding_;
-		expected_metadata_sequence_[num_expected_++] = &seektable_;
 		expected_metadata_sequence_[num_expected_++] = &application1_;
 		expected_metadata_sequence_[num_expected_++] = &application2_;
 		expected_metadata_sequence_[num_expected_++] = &cuesheet_;
@@ -727,7 +726,8 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
-	expected_metadata_sequence_[num_expected_++] = &seektable_;
+	if(!is_ogg) /* encoder removes seektable for ogg */
+		expected_metadata_sequence_[num_expected_++] = &seektable_;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 	expected_metadata_sequence_[num_expected_++] = &cuesheet_;
@@ -752,11 +752,10 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	num_expected_ = 0;
-	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping */
+	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping. Also removes the seektable */
 		expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 		expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 		expected_metadata_sequence_[num_expected_++] = &padding_;
-		expected_metadata_sequence_[num_expected_++] = &seektable_;
 		expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 		expected_metadata_sequence_[num_expected_++] = &picture_;
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
@@ -789,11 +788,10 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	num_expected_ = 0;
-	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping */
+	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping. Also removes the seektable */
 		expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 		expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 		expected_metadata_sequence_[num_expected_++] = &padding_;
-		expected_metadata_sequence_[num_expected_++] = &seektable_;
 		expected_metadata_sequence_[num_expected_++] = &application2_;
 		expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 		expected_metadata_sequence_[num_expected_++] = &picture_;
@@ -833,11 +831,10 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	num_expected_ = 0;
-	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping */
+	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping. Also removes the seektable */
 		expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 		expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 		expected_metadata_sequence_[num_expected_++] = &padding_;
-		expected_metadata_sequence_[num_expected_++] = &seektable_;
 		expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 		expected_metadata_sequence_[num_expected_++] = &picture_;
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
@@ -962,11 +959,10 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg)
 	printf("OK\n");
 
 	num_expected_ = 0;
-	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping */
+	if(is_ogg) { /* encoder moves vorbis comment after streaminfo according to ogg mapping. Also removes the seektable */
 		expected_metadata_sequence_[num_expected_++] = &streaminfo_;
 		expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 		expected_metadata_sequence_[num_expected_++] = &padding_;
-		expected_metadata_sequence_[num_expected_++] = &seektable_;
 		expected_metadata_sequence_[num_expected_++] = &application1_;
 		expected_metadata_sequence_[num_expected_++] = &cuesheet_;
 		expected_metadata_sequence_[num_expected_++] = &picture_;

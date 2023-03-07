@@ -2,6 +2,25 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
+## FLAC 1.4.2 (22-Oct-2022)
+
+Once again, this release only has a few changes. A problem with FLAC playback in GStreamer (and possibly other libFLAC users) was the reason for the short time since the last release
+
+* General
+    * Remove xmms plugin (Martijn van Beurden, TokyoBlackHole)
+    * Remove all pure assembler, removing build dependency on nasm
+    * Made console output more uniform across different platforms and CPUs
+    * Improve ability to tune compile for a certain system (for example with -march=native) when combining with --disable-asm-optimizations: plain C functions can now be better optimized
+* Build system
+    * Default CFLAGS are now prepended instead of dropped when user CFLAGS are set
+    * -msse2 is no longer added by default (was only applicable to x86)
+    * Fix cross-compiling and out-of-tree building when pandoc and doxygen are not available
+    * Fix issue with Clang not compiling functions with intrinsics
+    * Fix detection of bswap intrinsics (Ozkan Sezer)
+    * Improve search for libssp on MinGW (Ozkan Sezer, Martijn van Beurden)
+* libFLAC
+    * Fix issue when the libFLAC user seeks in a file instead of libFLAC itself
+
 ## FLAC 1.4.1 (22-Sep-2022)
 
 This release only has a few changes. It was triggered by a problem in the 1.4.0 tarball: man pages were empty and api documentation missing

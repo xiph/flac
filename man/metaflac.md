@@ -1,4 +1,4 @@
-% metaflac(1) Version 1.4.1 | Free Lossless Audio Codec metadata tool
+% metaflac(1) Version 1.4.2 | Free Lossless Audio Codec metadata tool
 
 # NAME
 
@@ -109,6 +109,9 @@ modification time is set to the current time):
 **\--show-tag=name**  
 :	Show all tags where the field name matches 'name'.
 
+**\--show-all-tags**  
+:	Show all tags. This is an alias for --export-tags-to=-.
+
 **\--remove-tag=name**  
 :	Remove all tags whose field name is 'name'.
 
@@ -117,6 +120,10 @@ modification time is set to the current time):
 
 **\--remove-all-tags**  
 :	Remove all tags, leaving only the vendor string.
+
+**\--remove-all-tags-except=NAME1\[=NAME2\[=...\]\]**  
+:   Remove all tags, except the vendor string and the tag names
+    specified. Tag names must be separated by an = character.
 
 **\--set-tag=field**  
 :	Add a tag. The field must comply with the Vorbis comment spec, of the
@@ -179,9 +186,10 @@ modification time is set to the current time):
 	requires two passes, it is always executed last, after all other
 	operations have been completed and written to disk. All FLAC files
 	specified must have the same resolution, sample rate, and number of
-	channels. The sample rate must be one of 8, 11.025, 12, 16, 18.9,
-	22.05, 24, 28, 32, 37.8, 44.1, 48, 56, 64, 88.2, 96, 112, 128, 144,
-	176.4, or 192kHz.
+	channels. Only mono and stereo files are allowed, and the sample
+	rate must be 8, 11.025, 12, 16, 18.9, 22.05, 24, 28, 32, 36, 37.8,
+	44.1, 48, 56, 64, 72, 75.6, 88.2, 96, 112, 128, 144, 151.2, 176.4,
+	192, 224, 256, 288, 302.4, 352.8, 384, 448, 512, 576, or 604.8 kHz.
 
 **\--scan-replay-gain**  
 :	Like \--add-replay-gain, but only analyzes the files rather than

@@ -60,6 +60,10 @@ typedef struct {
 	size_t format_block; /* block number of 'fmt ' or 'COMM' chunk */
 	size_t audio_block; /* block number of 'data' or 'SSND' chunk */
 	FLAC__bool is_rf64; /* always false if type!=RIFF */
+	FLAC__bool is_wavefmtex; /* always false if type!=RIFF */
+	FLAC__bool is_aifc;  /* always false if type!=AIFF */
+	FLAC__bool is_sowt;  /* always false if type!=AIFF */
+	FLAC__uint32 aifc_comm_length;
 	FLAC__uint32 ssnd_offset_size; /* 0 if type!=AIFF */
 } foreign_metadata_t;
 
@@ -74,5 +78,6 @@ FLAC__bool flac__foreign_metadata_write_to_flac(foreign_metadata_t *fm, const ch
 
 FLAC__bool flac__foreign_metadata_read_from_flac(foreign_metadata_t *fm, const char *filename, const char **error);
 FLAC__bool flac__foreign_metadata_write_to_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, FLAC__off_t offset1, FLAC__off_t offset2, FLAC__off_t offset3, const char **error);
+FLAC__bool flac__foreign_metadata_compare_with_iff(foreign_metadata_t *fm, const char *infilename, const char *outfilename, FLAC__off_t offset3, const char **error);
 
 #endif

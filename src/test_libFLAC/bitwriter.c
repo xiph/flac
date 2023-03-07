@@ -60,6 +60,29 @@ struct FLAC__BitWriter {
 #define WORDS_TO_BITS(words) ((words) * FLAC__BITS_PER_WORD)
 #define TOTAL_BITS(bw) (WORDS_TO_BITS((bw)->words) + (bw)->bits)
 
+static void FLAC__bitwriter_dump(const FLAC__BitWriter *bw, FILE *out)
+{
+	uint32_t i, j;
+	if(bw == 0) {
+		fprintf(out, "bitwriter is NULL\n");
+	}
+	else {
+		fprintf(out, "bitwriter: capacity=%u words=%u bits=%u total_bits=%u\n", bw->capacity, bw->words, bw->bits, TOTAL_BITS(bw));
+
+		for(i = 0; i < bw->words; i++) {
+			fprintf(out, "%08X: ", i);
+			for(j = 0; j < FLAC__BITS_PER_WORD; j++)
+				fprintf(out, "%01d", bw->buffer[i] & ((bwword)1 << (FLAC__BITS_PER_WORD-j-1)) ? 1:0);
+			fprintf(out, "\n");
+		}
+		if(bw->bits > 0) {
+			fprintf(out, "%08X: ", i);
+			for(j = 0; j < bw->bits; j++)
+				fprintf(out, "%01d", bw->accum & ((bwword)1 << (bw->bits-j-1)) ? 1:0);
+			fprintf(out, "\n");
+		}
+	}
+}
 
 FLAC__bool test_bitwriter(void)
 {

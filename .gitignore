@@ -8,8 +8,6 @@
 *.exe
 .deps
 .libs
-Makefile
-Makefile.in
 aclocal.m4
 ar-lib
 autom4te.cache/
@@ -81,6 +79,8 @@ oss-fuzz/fuzzer_seek
 oss-fuzz/fuzzer_metadata
 oss-fuzz/fuzzer_encoder
 oss-fuzz/fuzzer_encoder_v2
+oss-fuzz/fuzzer_reencoder
+oss-fuzz/fuzzer_tool_flac
 
 /*[Bb]uild*/
 /out/
@@ -91,6 +91,7 @@ CMakeFiles
 CMakeScripts
 Testing
 Makefile
+Makefile.in
 cmake_install.cmake
 install_manifest.txt
 compile_commands.json

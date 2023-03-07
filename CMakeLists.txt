@@ -8,7 +8,7 @@ if(NOT (CMAKE_BUILD_TYPE OR CMAKE_CONFIGURATION_TYPES OR DEFINED ENV{CFLAGS} OR 
     set(CMAKE_BUILD_TYPE Release CACHE STRING "Choose the type of build, options are: None Debug Release RelWithDebInfo")
 endif()
 
-project(FLAC VERSION 1.4.1) # HOMEPAGE_URL "https://www.xiph.org/flac/")
+project(FLAC VERSION 1.4.2) # HOMEPAGE_URL "https://www.xiph.org/flac/")
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake")
 
@@ -111,7 +111,12 @@ enable_testing()
 check_include_file("byteswap.h" HAVE_BYTESWAP_H)
 check_include_file("inttypes.h" HAVE_INTTYPES_H)
 check_include_file("stdint.h" HAVE_STDINT_H)
+check_include_file("stdbool.h" HAVE_STDBOOL_H)
 check_include_file("arm_neon.h" FLAC__HAS_NEONINTRIN)
+
+if(NOT HAVE_STDINT_H OR NOT HAVE_STDBOOL_H)
+    message(SEND_ERROR "Header stdint.h and/or stdbool.h not found")
+endif()
 
 if(MSVC)
     check_include_file("intrin.h" FLAC__HAS_X86INTRIN)

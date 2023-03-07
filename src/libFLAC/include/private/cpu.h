@@ -63,12 +63,12 @@
 /* SSE intrinsics support by ICC/MSVC/GCC */
 #if defined __INTEL_COMPILER
   #define FLAC__SSE_TARGET(x)
-  #define FLAC__FAST_MATH_TARGET(x)
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
   #if (__INTEL_COMPILER >= 1000) /* Intel C++ Compiler 10.0 */
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
+    #define FLAC__SSE4_2_SUPPORTED 1
   #endif
   #ifdef FLAC__USE_AVX
     #if (__INTEL_COMPILER >= 1110) /* Intel C++ Compiler 11.1 */
@@ -81,37 +81,23 @@
   #endif
 #elif defined __clang__ && __has_attribute(__target__) /* clang */
   #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
-  #define FLAC__FAST_MATH_TARGET(x) __attribute__ ((__target__ (x)))
-  #if __has_builtin(__builtin_ia32_maxps)
-    #define FLAC__SSE_SUPPORTED 1
-  #endif
-  #if __has_builtin(__builtin_ia32_pmuludq128)
-    #define FLAC__SSE2_SUPPORTED 1
-  #endif
-  #if __has_builtin(__builtin_ia32_pabsd128)
-    #define FLAC__SSSE3_SUPPORTED 1
-  #endif
-  #if __has_builtin(__builtin_ia32_pmuldq128)
-    #define FLAC__SSE4_1_SUPPORTED 1
-  #endif
-  #ifdef FLAC__USE_AVX
-    #if __has_builtin(__builtin_ia32_maxps256)
-      #define FLAC__AVX_SUPPORTED 1
-    #endif
-    #if __has_builtin(__builtin_ia32_pabsd256)
-      #define FLAC__AVX2_SUPPORTED 1
-    #endif
-    #if __has_builtin(__builtin_ia32_vfmaddps)
-      #define FLAC__FMA_SUPPORTED 1
-    #endif
-  #endif
-#elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
-  #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
-  #define FLAC__FAST_MATH_TARGET(x) __attribute__ ((__target__ (x), optimize("-ffast-math")))
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
   #define FLAC__SSSE3_SUPPORTED 1
   #define FLAC__SSE4_1_SUPPORTED 1
+  #define FLAC__SSE4_2_SUPPORTED 1
+  #ifdef FLAC__USE_AVX
+    #define FLAC__AVX_SUPPORTED 1
+    #define FLAC__AVX2_SUPPORTED 1
+    #define FLAC__FMA_SUPPORTED 1
+  #endif
+#elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
+  #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
+  #define FLAC__SSE_SUPPORTED 1
+  #define FLAC__SSE2_SUPPORTED 1
+  #define FLAC__SSSE3_SUPPORTED 1
+  #define FLAC__SSE4_1_SUPPORTED 1
+  #define FLAC__SSE4_2_SUPPORTED 1
   #ifdef FLAC__USE_AVX
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
@@ -119,12 +105,12 @@
   #endif
 #elif defined _MSC_VER
   #define FLAC__SSE_TARGET(x)
-  #define FLAC__FAST_MATH_TARGET(x)
   #define FLAC__SSE_SUPPORTED 1
   #define FLAC__SSE2_SUPPORTED 1
   #if (_MSC_VER >= 1500) /* MS Visual Studio 2008 */
     #define FLAC__SSSE3_SUPPORTED 1
     #define FLAC__SSE4_1_SUPPORTED 1
+    #define FLAC__SSE4_2_SUPPORTED 1
   #endif
   #ifdef FLAC__USE_AVX
     #if (_MSC_FULL_VER >= 160040219) /* MS Visual Studio 2010 SP1 */
@@ -137,7 +123,6 @@
   #endif
 #else
   #define FLAC__SSE_TARGET(x)
-  #define FLAC__FAST_MATH_TARGET(x)
   #ifdef __SSE__
     #define FLAC__SSE_SUPPORTED 1
   #endif
@@ -149,6 +134,9 @@
   #endif
   #ifdef __SSE4_1__
     #define FLAC__SSE4_1_SUPPORTED 1
+  #endif
+  #ifdef __SSE4_2__
+    #define FLAC__SSE4_2_SUPPORTED 1
   #endif
   #ifdef FLAC__USE_AVX
     #ifdef __AVX__
@@ -172,7 +160,6 @@
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_X86_64,
-	FLAC__CPUINFO_TYPE_PPC,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
@@ -194,15 +181,9 @@ typedef struct {
 } FLAC__CPUInfo_x86;
 
 typedef struct {
-	FLAC__bool arch_3_00;
-	FLAC__bool arch_2_07;
-} FLAC__CPUInfo_ppc;
-
-typedef struct {
 	FLAC__bool use_asm;
 	FLAC__CPUInfo_Type type;
 	FLAC__CPUInfo_x86 x86;
-	FLAC__CPUInfo_ppc ppc;
 } FLAC__CPUInfo;
 
 void FLAC__cpu_info(FLAC__CPUInfo *info);

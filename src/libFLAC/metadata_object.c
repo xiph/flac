@@ -136,7 +136,6 @@ static FLAC__bool copy_vcentry_(FLAC__StreamMetadata_VorbisComment_Entry *to, co
 	}
 	else {
 		FLAC__byte *x;
-		FLAC__ASSERT(from->length > 0);
 		if ((x = safe_malloc_add_2op_(from->length, /*+*/1)) == NULL)
 			return false;
 		memcpy(x, from->entry, from->length);
@@ -217,7 +216,7 @@ static void vorbiscomment_entry_array_delete_(FLAC__StreamMetadata_VorbisComment
 {
 	uint32_t i;
 
-	FLAC__ASSERT(object_array != NULL && num_comments > 0);
+	FLAC__ASSERT(object_array != NULL);
 
 	for (i = 0; i < num_comments; i++)
 		free(object_array[i].entry);
@@ -651,7 +650,6 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 				object->data.vorbis_comment.vendor_string.entry = 0;
 			}
 			if (object->data.vorbis_comment.comments != NULL) {
-				FLAC__ASSERT(object->data.vorbis_comment.num_comments > 0);
 				vorbiscomment_entry_array_delete_(object->data.vorbis_comment.comments, object->data.vorbis_comment.num_comments);
 				object->data.vorbis_comment.comments = NULL;
 				object->data.vorbis_comment.num_comments = 0;
@@ -1089,7 +1087,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 {
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
-	FLAC__ASSERT(total_samples > 0);
 
 	if (num > 0 && total_samples > 0) {
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
@@ -1114,8 +1111,6 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_template_append_spaced_point
 {
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
-	FLAC__ASSERT(samples > 0);
-	FLAC__ASSERT(total_samples > 0);
 
 	if (samples > 0 && total_samples > 0) {
 		FLAC__StreamMetadata_SeekTable *seek_table = &object->data.seek_table;
@@ -1179,9 +1174,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		if (new_num_comments == 0)
 			return true;
 		else {
+			uint32_t i;
 			if ((object->data.vorbis_comment.comments = vorbiscomment_entry_array_new_(new_num_comments)) == NULL)
 				return false;
-			for (uint32_t i = 0; i < new_num_comments; i++) {
+			for (i = 0; i < new_num_comments; i++) {
 				object->data.vorbis_comment.comments[i].length = 0;
 				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL) {
 					object->data.vorbis_comment.num_comments = i+1;
@@ -1223,7 +1219,8 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 
 		/* if growing, zero all the length/pointers of new elements */
 		if (new_size > old_size) {
-			for (uint32_t i = object->data.vorbis_comment.num_comments; i < new_num_comments; i++) {
+			uint32_t i;
+			for (i = object->data.vorbis_comment.num_comments; i < new_num_comments; i++) {
 				object->data.vorbis_comment.comments[i].length = 0;
 				if ((object->data.vorbis_comment.comments[i].entry = safe_malloc_(1)) == NULL) {
 					object->data.vorbis_comment.num_comments = i+1;
@@ -1285,7 +1282,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_append_comment(FLAC__Str
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_replace_comment(FLAC__StreamMetadata *object, FLAC__StreamMetadata_VorbisComment_Entry entry, FLAC__bool all, FLAC__bool copy)
 {
-	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
+	FLAC__ASSERT(entry.entry != NULL);
 
 	if (!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length))
 		return false;
@@ -1375,7 +1372,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_from_name_value_pa
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair(const FLAC__StreamMetadata_VorbisComment_Entry entry, char **field_name, char **field_value)
 {
-	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
+	FLAC__ASSERT(entry.entry != NULL);
 	FLAC__ASSERT(field_name != NULL);
 	FLAC__ASSERT(field_value != NULL);
 
@@ -1406,7 +1403,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_to_name_value_pair
 
 FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_entry_matches(const FLAC__StreamMetadata_VorbisComment_Entry entry, const char *field_name, uint32_t field_name_length)
 {
-	FLAC__ASSERT(entry.entry != NULL && entry.length > 0);
+	FLAC__ASSERT(entry.entry != NULL);
 	{
 		const FLAC__byte *eq = (FLAC__byte*)memchr(entry.entry, '=', entry.length);
 		return (eq != NULL && (uint32_t)(eq-entry.entry) == field_name_length && FLAC__STRNCASECMP(field_name, (const char *)entry.entry, field_name_length) == 0);

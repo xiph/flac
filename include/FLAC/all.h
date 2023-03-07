@@ -52,7 +52,7 @@
  * level idea of the structure and how to find the information you
  * need.  As a prerequisite you should have at least a basic
  * knowledge of the FLAC format, documented
- * <A HREF="../format.html">here</A>.
+ * <A HREF="https://xiph.org/flac/format.html">here</A>.
  *
  * \section c_api FLAC C API
  *
@@ -64,7 +64,7 @@
  *
  * By writing a little code and linking against libFLAC, it is
  * relatively easy to add FLAC support to another program.  The
- * library is licensed under <A HREF="../license.html">Xiph's BSD license</A>.
+ * library is licensed under <A HREF="https://xiph.org/flac/license.html">Xiph's BSD license</A>.
  * Complete source code of libFLAC as well as the command-line
  * encoder and plugins is available and is a useful source of
  * examples.
@@ -97,7 +97,7 @@
  * example /usr/include/FLAC++/...).
  *
  * libFLAC++ is also licensed under
- * <A HREF="../license.html">Xiph's BSD license</A>.
+ * <A HREF="https://xiph.org/flac/license.html">Xiph's BSD license</A>.
  *
  * \section getting_started Getting Started
  *
@@ -113,7 +113,7 @@
  * functions through the links in top bar across this page.
  *
  * If you prefer a more hands-on approach, you can jump right to some
- * <A HREF="../documentation_example_code.html">example code</A>.
+ * <A HREF="https://xiph.org/flac/documentation_example_code.html">example code</A>.
  *
  * \section porting_guide Porting Guide
  *

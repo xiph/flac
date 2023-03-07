@@ -52,19 +52,15 @@ dnl
 dnl Now check if the installed libFLAC is sufficiently new.
 dnl
       rm -f conf.libFLACtest
-      AC_TRY_RUN([
+      AC_RUN_IFELSE([AC_LANG_PROGRAM([[
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <FLAC/format.h>
-
-int main ()
-{
+]],[[
   system("touch conf.libFLACtest");
   return 0;
-}
-
-],, no_libFLAC=yes,[echo $ac_n "cross compiling; assumed OK... $ac_c"])
+]])],[],[no_libFLAC=yes],[echo $ac_n "cross compiling; assumed OK... $ac_c"])
        CFLAGS="$ac_save_CFLAGS"
        CXXFLAGS="$ac_save_CXXFLAGS"
        LIBS="$ac_save_LIBS"

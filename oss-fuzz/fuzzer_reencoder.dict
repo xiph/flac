@@ -1,0 +1,6 @@
+flac_stream_marker="fLaC"
+ogg_stream_marker="OggS"
+flac_in_ogg_marker="\x7fFLAC"
+
+synccode_fixed_blocksize="\xFF\xF8"
+synccode_variable_blocksize="\xFF\xF9"

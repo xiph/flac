@@ -194,6 +194,8 @@ static inline void *safe_malloc_muladd2_(size_t size1, size_t size2, size_t size
 
 static inline void *safe_realloc_(void *ptr, size_t size)
 {
+	void *oldptr;
+	void *newptr;
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/* Fail if requested */
 	if(alloc_check() && size > 0) {
@@ -201,8 +203,8 @@ static inline void *safe_realloc_(void *ptr, size_t size)
 		return NULL;
 	}
 #endif
-	void *oldptr = ptr;
-	void *newptr = realloc(ptr, size);
+	oldptr = ptr;
+	newptr = realloc(ptr, size);
 	if(size > 0 && newptr == 0)
 		free(oldptr);
 	return newptr;

@@ -18,8 +18,11 @@
  */
 
 This file lists major contributors to the FLAC project. This list is not
-exhaustive. For an exhaustive list, see CHANGELOG.md or the git log, for
-example at https://github.com/xiph/flac/commits or
+exhaustive. For an exhaustive list, run the command `git shortlog -s` on
+the git repo or visit https://gitlab.xiph.org/xiph/flac/-/graphs/master
+
+For a complete list of contributions, run the command `git log` on the
+git repo, visit https://github.com/xiph/flac/commits or visit
 https://gitlab.xiph.org/xiph/flac/commits
 
 Original author: Josh Coalson <jcoalson@users.sourceforge.net>

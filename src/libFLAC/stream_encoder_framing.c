@@ -46,8 +46,11 @@ static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC
 
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw)
 {
-	uint32_t i, j;
+	uint32_t i, j, metadata_length;
 	const uint32_t vendor_string_length = (uint32_t)strlen(FLAC__VENDOR_STRING);
+	const uint32_t start_bits = FLAC__bitwriter_get_input_bits_unconsumed(bw);
+
+	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(bw));
 
 	if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->is_last, FLAC__STREAM_METADATA_IS_LAST_LEN))
 		return false;
@@ -58,17 +61,17 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 	/*
 	 * First, for VORBIS_COMMENTs, adjust the length to reflect our vendor string
 	 */
-	i = metadata->length;
+	metadata_length = metadata->length;
 	if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
 		FLAC__ASSERT(metadata->data.vorbis_comment.vendor_string.length == 0 || 0 != metadata->data.vorbis_comment.vendor_string.entry);
-		i -= metadata->data.vorbis_comment.vendor_string.length;
-		i += vendor_string_length;
+		metadata_length -= metadata->data.vorbis_comment.vendor_string.length;
+		metadata_length += vendor_string_length;
 	}
-	FLAC__ASSERT(i < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
+	FLAC__ASSERT(metadata_length < (1u << FLAC__STREAM_METADATA_LENGTH_LEN));
 	/* double protection */
-	if(i >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+	if(metadata_length >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
 		return false;
-	if(!FLAC__bitwriter_write_raw_uint32(bw, i, FLAC__STREAM_METADATA_LENGTH_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, metadata_length, FLAC__STREAM_METADATA_LENGTH_LEN))
 		return false;
 
 	switch(metadata->type) {
@@ -215,6 +218,16 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.unknown.data, metadata->length))
 				return false;
 			break;
+	}
+
+	/* Now check whether metadata block length was correct */
+	{
+		uint32_t length_in_bits = FLAC__bitwriter_get_input_bits_unconsumed(bw);
+		if(length_in_bits < start_bits)
+			return false;
+		length_in_bits -= start_bits;
+		if(length_in_bits % 8 != 0 || length_in_bits != (metadata_length*8+32))
+			return false;
 	}
 
 	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(bw));

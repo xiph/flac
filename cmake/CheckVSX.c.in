@@ -1,6 +1,0 @@
-#include <altivec.h>
-int main (void)
-{
-  vector float d = {0.0f,0.0f,0.0f,0.0f};
-  vec_doubleh(d);
-}

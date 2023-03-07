@@ -907,6 +907,9 @@ static FLAC__bool test_level_1_(void)
 	else
 		return die_("FLAC__metadata_simple_iterator_set_block() returned true but shouldn't have");
 
+	if(FLAC__metadata_simple_iterator_status(iterator) != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT)
+		return die_("FLAC__metadata_simple_iterator_status() should have been FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT");
+
 	printf("[S]VP\tnext\n");
 	if(!FLAC__metadata_simple_iterator_next(iterator))
 		return die_("iterator ended early\n");
@@ -957,6 +960,9 @@ static FLAC__bool test_level_1_(void)
 	printf("[S]VPPP\tdelete (STREAMINFO block), must fail\n");
 	if(FLAC__metadata_simple_iterator_delete_block(iterator, false))
 		return die_ss_("FLAC__metadata_simple_iterator_delete_block(iterator, false) should have returned false", iterator);
+
+	if(FLAC__metadata_simple_iterator_status(iterator) != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT)
+		return die_("FLAC__metadata_simple_iterator_status() should have been FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT");
 
 	if(!test_file_(/*is_ogg=*/false, decoder_metadata_callback_compare_))
 		return false;

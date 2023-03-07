@@ -124,9 +124,13 @@ int long_usage(const char *message, ...)
 	fprintf(out, "\n");
 	fprintf(out, "--show-vendor-tag     Show the vendor string from the VORBIS_COMMENT block.\n");
 	fprintf(out, "--show-tag=NAME       Show all tags where the field name matches 'NAME'.\n");
+	fprintf(out, "--show-all-tags       Show all tags. This is an alias for --export-tags-to=-.\n");
 	fprintf(out, "--remove-tag=NAME     Remove all tags whose field name is 'NAME'.\n");
 	fprintf(out, "--remove-first-tag=NAME  Remove first tag whose field name is 'NAME'.\n");
 	fprintf(out, "--remove-all-tags     Remove all tags, leaving only the vendor string.\n");
+	fprintf(out, "--remove-all-tags-except=NAME1[=NAME2[=...]] Remove all tags, except the vendor\n");
+	fprintf(out, "                      string and the tag names specified. Tag names must be\n");
+	fprintf(out, "                      separated by an = character.\n");
 	fprintf(out, "--set-tag=FIELD       Add a tag.  The FIELD must comply with the Vorbis comment\n");
 	fprintf(out, "                      spec, of the form \"NAME=VALUE\".  If there is currently\n");
 	fprintf(out, "                      no tag block, one will be created.\n");
@@ -216,8 +220,11 @@ int long_usage(const char *message, ...)
 	fprintf(out, "                      executed last, after all other operations have been\n");
 	fprintf(out, "                      completed and written to disk.  All FLAC files specified\n");
 	fprintf(out, "                      must have the same resolution, sample rate, and number\n");
-	fprintf(out, "                      of channels.  The sample rate must be one of 8, 11.025,\n");
-	fprintf(out, "                      12, 16, 22.05, 24, 32, 44.1, or 48 kHz.\n");
+	fprintf(out, "                      of channels.  Only mono and stereo files are allowed,\n");
+	fprintf(out, "                      and the sample rate must be 8, 11.025, 12, 16, 18.9,\n");
+	fprintf(out, "                      22.05, 24, 28, 32, 36, 37.8, 44.1, 48, 56, 64, 72, 75.6,\n");
+	fprintf(out, "                      88.2, 96, 112, 128, 144, 151.2, 176.4, 192, 224, 256,\n");
+	fprintf(out, "                      288, 302.4, 352.8, 384, 448, 512, 576, or 604.8 kHz.\n");
 	fprintf(out, "--scan-replay-gain    Like --add-replay-gain, but only analyzes the files\n");
 	fprintf(out, "                      rather than writing them to tags.\n");
 	fprintf(out, "--remove-replay-gain  Removes the ReplayGain tags.\n");
