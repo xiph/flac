@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.11)
 
-option(ENABLE_64_BIT_WORDS "Set FLAC__BYTES_PER_WORD to 8 (4 is the default)" OFF)
+option(ENABLE_64_BIT_WORDS "Set FLAC__BYTES_PER_WORD to 8, for 64-bit machines. For 32-bit machines, turning this off might give a tiny speed improvement" ON)
 option(BUILD_UTILS "Build utils" OFF)
 
 add_subdirectory("libFLAC")

@@ -265,12 +265,12 @@ esac
 
 
 AC_ARG_ENABLE(64-bit-words,
-	AS_HELP_STRING([--enable-64-bit-words],[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)]))
-if test "x$enable_64_bit_words" = xyes ; then
-	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],1,[Set FLAC__BYTES_PER_WORD to 8 (4 is the default)])
+	AS_HELP_STRING([--disable-64-bit-words],[Set FLAC__BYTES_PER_WORD to 4 (8 is the default)]))
+if test "x$enable_64_bit_words" = xno ; then
+	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],0,[Set FLAC__BYTES_PER_WORD to 8 (this is the default)])
 else
-	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],0)
-	fi
+	AC_DEFINE_UNQUOTED([ENABLE_64_BIT_WORDS],1)
+fi
 AC_SUBST(ENABLE_64_BIT_WORDS)
 
 AC_ARG_ENABLE(valgrind-testing,

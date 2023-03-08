@@ -26,7 +26,7 @@ jobs:
     dist: focal
     arch: arm64
     compiler: gcc
-    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=OFF
   - os: linux
     dist: focal
     arch: ppc64le
@@ -51,7 +51,7 @@ jobs:
     dist: focal
     arch: ppc64le
     compiler: gcc
-    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=ON
+    env: BUILD_SYSTEM="cmake" CONFIGURE_OPTS=-DENABLE_64_BIT_WORDS=OFF
 
 install:
   - if [ $TRAVIS_OS_NAME = linux ]; then sudo apt-get -y install libtool-bin libogg-dev; fi
