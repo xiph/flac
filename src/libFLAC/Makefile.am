@@ -56,6 +56,7 @@ EXTRA_DIST = \
 	CMakeLists.txt \
 	flac.pc.in \
 	libFLAC.m4 \
+	deduplication/bitreader_read_rice_signed_block.c \
 	deduplication/lpc_compute_autocorrelation_intrin.c \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
 	deduplication/lpc_compute_autocorrelation_intrin_neon.c

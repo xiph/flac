@@ -76,6 +76,7 @@ static const uint32_t FLAC__CPUINFO_X86_CPUID_FMA     = 0x00001000;
 
 /* these are flags in EBX of CPUID AX=00000007 */
 static const uint32_t FLAC__CPUINFO_X86_CPUID_AVX2    = 0x00000020;
+static const uint32_t FLAC__CPUINFO_X86_CPUID_BMI2    = 0x00000100;
 
 static uint32_t
 cpu_xgetbv_x86(void)
@@ -186,6 +187,7 @@ x86_cpu_info (FLAC__CPUInfo *info)
 		info->x86.fma   = (flags_ecx & FLAC__CPUINFO_X86_CPUID_FMA    ) ? true : false;
 		cpuinfo_x86(7, &flags_eax, &flags_ebx, &flags_ecx, &flags_edx);
 		info->x86.avx2  = (flags_ebx & FLAC__CPUINFO_X86_CPUID_AVX2   ) ? true : false;
+		info->x86.bmi2  = (flags_ebx & FLAC__CPUINFO_X86_CPUID_BMI2   ) ? true : false;
 	}
 
 #if defined FLAC__CPU_IA32
@@ -206,6 +208,7 @@ x86_cpu_info (FLAC__CPUInfo *info)
 		dfprintf(stderr, "  AVX ........ %c\n", info->x86.avx     ? 'Y' : 'n');
 		dfprintf(stderr, "  FMA ........ %c\n", info->x86.fma     ? 'Y' : 'n');
 		dfprintf(stderr, "  AVX2 ....... %c\n", info->x86.avx2    ? 'Y' : 'n');
+		dfprintf(stderr, "  BMI2 ....... %c\n", info->x86.bmi2    ? 'Y' : 'n');
 	}
 
 	/*

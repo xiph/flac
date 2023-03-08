@@ -90,6 +90,7 @@
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
+    #define FLAC__BMI2_SUPPORTED 1
   #endif
 #elif defined __GNUC__ && !defined __clang__ && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 9)) /* GCC 4.9+ */
   #define FLAC__SSE_TARGET(x) __attribute__ ((__target__ (x)))
@@ -102,6 +103,7 @@
     #define FLAC__AVX_SUPPORTED 1
     #define FLAC__AVX2_SUPPORTED 1
     #define FLAC__FMA_SUPPORTED 1
+    #define FLAC__BMI2_SUPPORTED 1
   #endif
 #elif defined _MSC_VER
   #define FLAC__SSE_TARGET(x)
@@ -178,6 +180,7 @@ typedef struct {
 	FLAC__bool avx;
 	FLAC__bool avx2;
 	FLAC__bool fma;
+	FLAC__bool bmi2;
 } FLAC__CPUInfo_x86;
 
 typedef struct {

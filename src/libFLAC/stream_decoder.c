@@ -45,6 +45,7 @@
 #include "protected/stream_decoder.h"
 #include "private/bitreader.h"
 #include "private/bitmath.h"
+#include "private/cpu.h"
 #include "private/crc.h"
 #include "private/fixed.h"
 #include "private/format.h"
@@ -147,6 +148,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	size_t metadata_filter_ids_count, metadata_filter_ids_capacity; /* units for both are IDs, not bytes */
 	FLAC__Frame frame;
 	FLAC__bool cached; /* true if there is a byte in lookahead */
+	FLAC__CPUInfo cpuinfo;
 	FLAC__byte header_warmup[2]; /* contains the sync code and reserved bits */
 	FLAC__byte lookahead; /* temp storage when we need to look ahead one byte in the stream */
 	/* unaligned (original) pointers to allocated data */
@@ -164,6 +166,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__uint64 target_sample;
 	uint32_t unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine to check when process_single() actually writes a frame */
+	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -367,6 +370,15 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 	decoder->private_->is_ogg = is_ogg;
 	if(is_ogg && !FLAC__ogg_decoder_aspect_init(&decoder->protected_->ogg_decoder_aspect))
 		return decoder->protected_->initstate = FLAC__STREAM_DECODER_INIT_STATUS_ERROR_OPENING_FILE;
+#endif
+
+	FLAC__cpu_info(&decoder->private_->cpuinfo);
+	decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block;
+
+#ifdef FLAC__BMI2_SUPPORTED
+	if (decoder->private_->cpuinfo.x86.bmi2) {
+		decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_bmi2;
+	}
 #endif
 
 	/* from here on, errors are fatal */
@@ -2940,7 +2952,7 @@ FLAC__bool read_residual_partitioned_rice_(FLAC__StreamDecoder *decoder, uint32_
 		if(rice_parameter < pesc) {
 			partitioned_rice_contents->raw_bits[partition] = 0;
 			u = (partition == 0) ? partition_samples - predictor_order : partition_samples;
-			if(!FLAC__bitreader_read_rice_signed_block(decoder->private_->input, residual + sample, u, rice_parameter)){
+			if(!decoder->private_->local_bitreader_read_rice_signed_block(decoder->private_->input, residual + sample, u, rice_parameter)){
 				if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME) {
 					/* no error was set, read_callback_ didn't set it, so
 					 * invalid rice symbol was found */
