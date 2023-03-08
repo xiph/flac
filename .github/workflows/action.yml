@@ -19,12 +19,12 @@ jobs:
             macos-latest-clang-autotools,
             macos-latest-clang-cmake,
             windows-latest-cmake,
-            ubuntu-latest-gcc-autotools-64-bit-words,
-            ubuntu-latest-clang-autotools-64-bit-words,
-            ubuntu-latest-gcc-cmake-64-bit-words,
-            ubuntu-latest-clang-cmake-64-bit-words,
-            macos-latest-clang-autotools-64-bit-words,
-            macos-latest-clang-cmake-64-bit-words
+            ubuntu-latest-gcc-autotools-32-bit-words,
+            ubuntu-latest-clang-autotools-32-bit-words,
+            ubuntu-latest-gcc-cmake-32-bit-words,
+            ubuntu-latest-clang-cmake-32-bit-words,
+            macos-latest-clang-autotools-32-bit-words,
+            macos-latest-clang-cmake-32-bit-words
           ]
         include:
           - name: ubuntu-latest-gcc-autotools
@@ -79,47 +79,47 @@ jobs:
             build-system: cmake
             configure-opts: '-DBUILD_SHARED_LIBS=ON'
 
-          - name: ubuntu-latest-gcc-autotools-64-bit-words
+          - name: ubuntu-latest-gcc-autotools-32-bit-words
             os: ubuntu-latest
             cc: gcc
             cxx: g++
             build-system: autotools
-            configure-opts: --enable-64-bit-words
+            configure-opts: --disable-64-bit-words
 
-          - name: ubuntu-latest-clang-autotools-64-bit-words
+          - name: ubuntu-latest-clang-autotools-32-bit-words
             os: ubuntu-latest
             cc: clang
             cxx: clang++
             build-system: autotools
-            configure-opts: --enable-64-bit-words
+            configure-opts: --disable-64-bit-words
 
-          - name: ubuntu-latest-gcc-cmake-64-bit-words
+          - name: ubuntu-latest-gcc-cmake-32-bit-words
             os: ubuntu-latest
             cc: gcc
             cxx: g++
             build-system: cmake
-            configure-opts: -DENABLE_64_BIT_WORDS=ON
+            configure-opts: -DENABLE_64_BIT_WORDS=OFF
 
-          - name: ubuntu-latest-clang-cmake-64-bit-words
+          - name: ubuntu-latest-clang-cmake-32-bit-words
             os: ubuntu-latest
             cc: clang
             cxx: clang++
             build-system: cmake
-            configure-opts: -DENABLE_64_BIT_WORDS=ON
+            configure-opts: -DENABLE_64_BIT_WORDS=OFF
 
-          - name: macos-latest-clang-autotools-64-bit-words
+          - name: macos-latest-clang-autotools-32-bit-words
             os: macos-latest
             cc: clang
             cxx: clang++
             build-system: autotools
-            configure-opts: --enable-64-bit-words
+            configure-opts: --disable-64-bit-words
 
-          - name: macos-latest-clang-cmake-64-bit-words
+          - name: macos-latest-clang-cmake-32-bit-words
             os: macos-latest
             cc: clang
             cxx: clang++
             build-system: cmake
-            configure-opts: -DENABLE_64_BIT_WORDS=ON
+            configure-opts: -DENABLE_64_BIT_WORDS=OFF
 
     runs-on: ${{ matrix.os }}
 
