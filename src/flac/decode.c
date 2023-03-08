@@ -1161,7 +1161,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	}
 
 	/* sanity-check the sample rate */
-	if(decoder_session->sample_rate) {
+	if(!decoder_session->got_stream_info) {
 		if(frame->header.sample_rate != decoder_session->sample_rate) {
 			if(decoder_session->got_stream_info)
 				flac__utils_printf(stderr, 1, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
@@ -1172,8 +1172,6 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		}
 	}
 	else {
-		/* must not have gotten STREAMINFO, save the sample rate from the frame header */
-		FLAC__ASSERT(!decoder_session->got_stream_info);
 		decoder_session->sample_rate = frame->header.sample_rate;
 	}
 
