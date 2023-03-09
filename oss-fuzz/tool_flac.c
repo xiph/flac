@@ -43,10 +43,10 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 {
 	size_t size_left = size;
 	size_t arglen;
-	char * argv[64];
+	char * argv[67];
 	char exename[] = "flac";
 	char filename[] = "/tmp/fuzzXXXXXX";
-	int numarg = 0, maxarg;
+	int numarg = 0, maxarg, pad;
 	int file_to_fuzz;
 
 	flac__utils_verbosity_ = 0;
@@ -57,7 +57,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	if(size < 2)
 		return 0;
 
-	maxarg = data[0] & 16;
+	maxarg = data[0] & 63;
+	pad = data[0] & 64;
 	size_left--;
 
 	argv[0] = exename;
@@ -74,6 +75,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	if (file_to_fuzz < 0)
 		abort();
 	write(file_to_fuzz,data+(size-size_left),size_left);
+	if(pad)
+		write(file_to_fuzz,"\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00",12);
 	close(file_to_fuzz);
 
 	argv[numarg++] = filename;
