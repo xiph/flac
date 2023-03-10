@@ -378,6 +378,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	uint32_t (*local_fixed_compute_best_predictor_limit_residual)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #else
 	uint32_t (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+	uint32_t (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	uint32_t (*local_fixed_compute_best_predictor_limit_residual)(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #endif
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
