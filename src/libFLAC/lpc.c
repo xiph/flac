@@ -130,7 +130,7 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 		autoc[lag] = d;
 	}
 #endif
-	if (data_len < FLAC__MAX_LPC_ORDER || lag > 16) {
+	if (data_len < FLAC__MAX_LPC_ORDER) {
 		/*
 		 * this version tends to run faster because of better data locality
 		 * ('data_len' is usually much larger than 'lag')
@@ -155,19 +155,22 @@ void FLAC__lpc_compute_autocorrelation(const FLAC__real data[], uint32_t data_le
 				autoc[coeff] += d * data[sample+coeff];
 		}
 	}
-	else if(lag <= 8) {
+	else if(lag <= 9) {
+		/* Up to max_lpc_order 8 */
 		#undef MAX_LAG
-		#define MAX_LAG 8
+		#define MAX_LAG 9
 		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
 	}
-	else if(lag <= 12) {
+	else if(lag <= 13) {
+		/* Up to max_lpc_order 12 */
 		#undef MAX_LAG
-		#define MAX_LAG 12
+		#define MAX_LAG 13
 		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
 	}
-	else if(lag <= 16) {
+	else if(lag <= 33) {
+		/* Up to max_lpc_order 32 */
 		#undef MAX_LAG
-		#define MAX_LAG 16
+		#define MAX_LAG 33
 		#include "deduplication/lpc_compute_autocorrelation_intrin.c"
 	}
 
@@ -787,44 +790,11 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide(const FLAC__int32 * f
 		}
 	}
 	else { /* order > 12 */
-		for(i = 0; i < (int)data_len; i++) {
-			sum = 0;
-			switch(order) {
-				case 32: sum += qlp_coeff[31] * (FLAC__int64)data[i-32]; /* Falls through. */
-				case 31: sum += qlp_coeff[30] * (FLAC__int64)data[i-31]; /* Falls through. */
-				case 30: sum += qlp_coeff[29] * (FLAC__int64)data[i-30]; /* Falls through. */
-				case 29: sum += qlp_coeff[28] * (FLAC__int64)data[i-29]; /* Falls through. */
-				case 28: sum += qlp_coeff[27] * (FLAC__int64)data[i-28]; /* Falls through. */
-				case 27: sum += qlp_coeff[26] * (FLAC__int64)data[i-27]; /* Falls through. */
-				case 26: sum += qlp_coeff[25] * (FLAC__int64)data[i-26]; /* Falls through. */
-				case 25: sum += qlp_coeff[24] * (FLAC__int64)data[i-25]; /* Falls through. */
-				case 24: sum += qlp_coeff[23] * (FLAC__int64)data[i-24]; /* Falls through. */
-				case 23: sum += qlp_coeff[22] * (FLAC__int64)data[i-23]; /* Falls through. */
-				case 22: sum += qlp_coeff[21] * (FLAC__int64)data[i-22]; /* Falls through. */
-				case 21: sum += qlp_coeff[20] * (FLAC__int64)data[i-21]; /* Falls through. */
-				case 20: sum += qlp_coeff[19] * (FLAC__int64)data[i-20]; /* Falls through. */
-				case 19: sum += qlp_coeff[18] * (FLAC__int64)data[i-19]; /* Falls through. */
-				case 18: sum += qlp_coeff[17] * (FLAC__int64)data[i-18]; /* Falls through. */
-				case 17: sum += qlp_coeff[16] * (FLAC__int64)data[i-17]; /* Falls through. */
-				case 16: sum += qlp_coeff[15] * (FLAC__int64)data[i-16]; /* Falls through. */
-				case 15: sum += qlp_coeff[14] * (FLAC__int64)data[i-15]; /* Falls through. */
-				case 14: sum += qlp_coeff[13] * (FLAC__int64)data[i-14]; /* Falls through. */
-				case 13: sum += qlp_coeff[12] * (FLAC__int64)data[i-13];
-				         sum += qlp_coeff[11] * (FLAC__int64)data[i-12];
-				         sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
-				         sum += qlp_coeff[ 9] * (FLAC__int64)data[i-10];
-				         sum += qlp_coeff[ 8] * (FLAC__int64)data[i- 9];
-				         sum += qlp_coeff[ 7] * (FLAC__int64)data[i- 8];
-				         sum += qlp_coeff[ 6] * (FLAC__int64)data[i- 7];
-				         sum += qlp_coeff[ 5] * (FLAC__int64)data[i- 6];
-				         sum += qlp_coeff[ 4] * (FLAC__int64)data[i- 5];
-				         sum += qlp_coeff[ 3] * (FLAC__int64)data[i- 4];
-				         sum += qlp_coeff[ 2] * (FLAC__int64)data[i- 3];
-				         sum += qlp_coeff[ 1] * (FLAC__int64)data[i- 2];
-				         sum += qlp_coeff[ 0] * (FLAC__int64)data[i- 1];
-			}
-			residual[i] = data[i] - (sum >> lp_quantization);
-		}
+		#undef FLAC__LPC_DATA_TYPE
+		#undef FLAC__LPC_ACTION
+		#define FLAC__LPC_DATA_TYPE FLAC__int64
+		#define FLAC__LPC_ACTION residual[i] = data[i] - (sum >> lp_quantization);
+		#include "deduplication/lpc_compute_and_use_predictor_above_12.c"
 	}
 }
 #endif
@@ -1445,44 +1415,11 @@ void FLAC__lpc_restore_signal_wide(const FLAC__int32 * flac_restrict residual, u
 		}
 	}
 	else { /* order > 12 */
-		for(i = 0; i < (int)data_len; i++) {
-			sum = 0;
-			switch(order) {
-				case 32: sum += qlp_coeff[31] * (FLAC__int64)data[i-32]; /* Falls through. */
-				case 31: sum += qlp_coeff[30] * (FLAC__int64)data[i-31]; /* Falls through. */
-				case 30: sum += qlp_coeff[29] * (FLAC__int64)data[i-30]; /* Falls through. */
-				case 29: sum += qlp_coeff[28] * (FLAC__int64)data[i-29]; /* Falls through. */
-				case 28: sum += qlp_coeff[27] * (FLAC__int64)data[i-28]; /* Falls through. */
-				case 27: sum += qlp_coeff[26] * (FLAC__int64)data[i-27]; /* Falls through. */
-				case 26: sum += qlp_coeff[25] * (FLAC__int64)data[i-26]; /* Falls through. */
-				case 25: sum += qlp_coeff[24] * (FLAC__int64)data[i-25]; /* Falls through. */
-				case 24: sum += qlp_coeff[23] * (FLAC__int64)data[i-24]; /* Falls through. */
-				case 23: sum += qlp_coeff[22] * (FLAC__int64)data[i-23]; /* Falls through. */
-				case 22: sum += qlp_coeff[21] * (FLAC__int64)data[i-22]; /* Falls through. */
-				case 21: sum += qlp_coeff[20] * (FLAC__int64)data[i-21]; /* Falls through. */
-				case 20: sum += qlp_coeff[19] * (FLAC__int64)data[i-20]; /* Falls through. */
-				case 19: sum += qlp_coeff[18] * (FLAC__int64)data[i-19]; /* Falls through. */
-				case 18: sum += qlp_coeff[17] * (FLAC__int64)data[i-18]; /* Falls through. */
-				case 17: sum += qlp_coeff[16] * (FLAC__int64)data[i-17]; /* Falls through. */
-				case 16: sum += qlp_coeff[15] * (FLAC__int64)data[i-16]; /* Falls through. */
-				case 15: sum += qlp_coeff[14] * (FLAC__int64)data[i-15]; /* Falls through. */
-				case 14: sum += qlp_coeff[13] * (FLAC__int64)data[i-14]; /* Falls through. */
-				case 13: sum += qlp_coeff[12] * (FLAC__int64)data[i-13];
-				         sum += qlp_coeff[11] * (FLAC__int64)data[i-12];
-				         sum += qlp_coeff[10] * (FLAC__int64)data[i-11];
-				         sum += qlp_coeff[ 9] * (FLAC__int64)data[i-10];
-				         sum += qlp_coeff[ 8] * (FLAC__int64)data[i- 9];
-				         sum += qlp_coeff[ 7] * (FLAC__int64)data[i- 8];
-				         sum += qlp_coeff[ 6] * (FLAC__int64)data[i- 7];
-				         sum += qlp_coeff[ 5] * (FLAC__int64)data[i- 6];
-				         sum += qlp_coeff[ 4] * (FLAC__int64)data[i- 5];
-				         sum += qlp_coeff[ 3] * (FLAC__int64)data[i- 4];
-				         sum += qlp_coeff[ 2] * (FLAC__int64)data[i- 3];
-				         sum += qlp_coeff[ 1] * (FLAC__int64)data[i- 2];
-				         sum += qlp_coeff[ 0] * (FLAC__int64)data[i- 1];
-			}
-			data[i] = (FLAC__int32) (residual[i] + (sum >> lp_quantization));
-		}
+		#undef FLAC__LPC_DATA_TYPE
+		#undef FLAC__LPC_ACTION
+		#define FLAC__LPC_DATA_TYPE FLAC__int64
+		#define FLAC__LPC_ACTION data[i] = (FLAC__int32) (residual[i] + (sum >> lp_quantization));
+		#include "deduplication/lpc_compute_and_use_predictor_above_12.c"
 	}
 }
 #endif

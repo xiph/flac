@@ -44,27 +44,26 @@
 #include "FLAC/assert.h"
 
 FLAC__SSE_TARGET("fma")
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_9(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 #undef MAX_LAG
-#define MAX_LAG 8
+#define MAX_LAG 9
 #include "deduplication/lpc_compute_autocorrelation_intrin.c"
 }
 
 FLAC__SSE_TARGET("fma")
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_13(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 #undef MAX_LAG
-#define MAX_LAG 12
+#define MAX_LAG 13
 #include "deduplication/lpc_compute_autocorrelation_intrin.c"
 }
 FLAC__SSE_TARGET("fma")
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_33(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
 #undef MAX_LAG
-#define MAX_LAG 16
+#define MAX_LAG 33
 #include "deduplication/lpc_compute_autocorrelation_intrin.c"
-
 }
 
 #endif /* FLAC__FMA_SUPPORTED */

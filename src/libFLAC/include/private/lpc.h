@@ -82,9 +82,9 @@ void FLAC__lpc_compute_autocorrelation_intrin_sse2_lag_14(const FLAC__real data[
 #  endif
 #  if defined FLAC__CPU_X86_64 && FLAC__HAS_X86INTRIN
 #    ifdef FLAC__FMA_SUPPORTED
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_9(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_13(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_33(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 #    endif
 #  endif
 #if defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN && FLAC__HAS_A64NEONINTRIN
