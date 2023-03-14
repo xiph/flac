@@ -121,15 +121,15 @@ static const  struct CompressionLevels {
 	uint32_t rice_parameter_search_dist;
 	const char *apodization;
 } compression_levels_[] = {
-	{ false, false,  0, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
 	{ true , true ,  0, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
-	{ true , false,  0, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
-	{ false, false,  6, 0, false, false, false, 0, 4, 0, "tukey(5e-1)" },
-	{ true , true ,  8, 0, false, false, false, 0, 4, 0, "tukey(5e-1)" },
+	{ true , false,  0, 0, false, false, false, 0, 5, 0, "tukey(5e-1)" },
+	{ true , false,  0, 0, false, false, true , 0, 6, 0, "tukey(5e-1)" },
+	{ true , true ,  8, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
 	{ true , false,  8, 0, false, false, false, 0, 5, 0, "tukey(5e-1)" },
 	{ true , false,  8, 0, false, false, false, 0, 6, 0, "subdivide_tukey(2)" },
-	{ true , false, 12, 0, false, false, false, 0, 6, 0, "subdivide_tukey(2)" },
-	{ true , false, 12, 0, false, false, false, 0, 6, 0, "subdivide_tukey(3)" }
+	{ true , true , 32, 0, false, false, false, 0, 3, 0, "tukey(5e-1)" },
+	{ true , false, 32, 0, false, false, false, 0, 5, 0, "tukey(5e-1)" },
+	{ true , false, 32, 0, false, false, false, 0, 8, 0, "subdivide_tukey(2)" }
 	/* here we use locale-independent 5e-1 instead of 0.5 or 0,5 */
 };
 
@@ -686,14 +686,16 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_SAMPLE_RATE;
 
 	if(encoder->protected_->blocksize == 0) {
-		if(encoder->protected_->max_lpc_order == 0)
-			encoder->protected_->blocksize = 1152;
-		else
-			encoder->protected_->blocksize = 4096;
+		encoder->protected_->blocksize = 4096;
 	}
 
 	if(encoder->protected_->blocksize < FLAC__MIN_BLOCK_SIZE || encoder->protected_->blocksize > FLAC__MAX_BLOCK_SIZE)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BLOCK_SIZE;
+
+	if(encoder->protected_->sample_rate <= 48000 &&
+	   encoder->protected_->max_lpc_order > FLAC__SUBSET_MAX_LPC_ORDER_48000HZ &&
+	   encoder->protected_->max_lpc_order_set_by_compression_level)
+		encoder->protected_->max_lpc_order = 12;
 
 	if(encoder->protected_->max_lpc_order > FLAC__MAX_LPC_ORDER)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_MAX_LPC_ORDER;
@@ -1671,6 +1673,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_compression_level(FLAC__StreamEncod
 	ok &= FLAC__stream_encoder_set_min_residual_partition_order(encoder, compression_levels_[value].min_residual_partition_order);
 	ok &= FLAC__stream_encoder_set_max_residual_partition_order(encoder, compression_levels_[value].max_residual_partition_order);
 	ok &= FLAC__stream_encoder_set_rice_parameter_search_dist  (encoder, compression_levels_[value].rice_parameter_search_dist);
+	encoder->protected_->max_lpc_order_set_by_compression_level = true;
 	return ok;
 }
 
@@ -1843,6 +1846,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_max_lpc_order(FLAC__StreamEncoder *
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
 		return false;
 	encoder->protected_->max_lpc_order = value;
+	encoder->protected_->max_lpc_order_set_by_compression_level = false;
 	return true;
 }
 
@@ -2371,6 +2375,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->apodizations[0].parameters.tukey.p = 0.5;
 #endif
 	encoder->protected_->max_lpc_order = 0;
+	encoder->protected_->max_lpc_order_set_by_compression_level = false;
 	encoder->protected_->qlp_coeff_precision = 0;
 	encoder->protected_->do_qlp_coeff_prec_search = false;
 	encoder->protected_->do_exhaustive_model_search = false;

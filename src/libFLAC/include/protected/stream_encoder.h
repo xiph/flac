@@ -104,6 +104,7 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__ApodizationSpecification apodizations[FLAC__MAX_APODIZATION_FUNCTIONS];
 #endif
 	uint32_t max_lpc_order;
+	FLAC__bool max_lpc_order_set_by_compression_level;
 	uint32_t qlp_coeff_precision;
 	FLAC__bool do_qlp_coeff_prec_search;
 	FLAC__bool do_exhaustive_model_search;
