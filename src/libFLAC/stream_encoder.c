@@ -3206,7 +3206,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 	 */
 	if(do_mid_side) {
 		uint32_t i;
-		FLAC__ASSERT(channels == 2);
+		FLAC__ASSERT(encoder->protected_->channels == 2);
 		if(encoder->protected_->bits_per_sample < 32)
 			for(i = 0; i < encoder->protected_->blocksize; i++) {
 				encoder->private_->integer_signal_mid_side[1][i] = encoder->private_->integer_signal[0][i] - encoder->private_->integer_signal[1][i];
