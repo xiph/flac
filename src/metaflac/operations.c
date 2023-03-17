@@ -444,8 +444,11 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 			flac_fprintf(stderr, "%s: ERROR: # of channels (%u) is not supported, must be 1 or 2\n", filenames[i], channels);
 			return false;
 		}
+		if(bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || bits_per_sample > FLAC__MAX_BITS_PER_SAMPLE) {
+			flac_fprintf(stderr, "%s: ERROR: resolution (%u) is not supported, must be between %u and %u\n", filenames[i], bits_per_sample, FLAC__MIN_BITS_PER_SAMPLE, FLAC__MAX_BITS_PER_SAMPLE);
+			return false;
+		}
 	}
-	FLAC__ASSERT(bits_per_sample >= FLAC__MIN_BITS_PER_SAMPLE && bits_per_sample <= FLAC__MAX_BITS_PER_SAMPLE);
 
 	if(!grabbag__replaygain_init(sample_rate)) {
 		FLAC__ASSERT(0);
