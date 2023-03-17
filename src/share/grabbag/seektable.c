@@ -61,8 +61,7 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 				}
 			}
 			else if(q[-1] == 's') { /* -S #s */
-				if(total_samples_to_encode > 0) { /* we can only do these if we know the number of samples to encode up front */
-					FLAC__ASSERT(sample_rate > 0);
+				if(total_samples_to_encode > 0 && sample_rate > 0) { /* we can only do these if we know the number of samples and sample rate to encode up front */
 					if(0 != spec_has_real_points)
 						*spec_has_real_points = true;
 					if(!only_explicit_placeholders) {
