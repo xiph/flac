@@ -161,6 +161,8 @@ int iconvert(const char *fromcode, const char *tocode,
 
   /* Truncate the buffer to be tidy */
   utflen = ob - utfbuf;
+  if (utflen == 0)
+    goto fail;
   newbuf = realloc(utfbuf, utflen);
   if (!newbuf)
     goto fail;
