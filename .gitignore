@@ -81,6 +81,7 @@ oss-fuzz/fuzzer_encoder
 oss-fuzz/fuzzer_encoder_v2
 oss-fuzz/fuzzer_reencoder
 oss-fuzz/fuzzer_tool_flac
+oss-fuzz/fuzzer_tool_metaflac
 
 /*[Bb]uild*/
 /out/
