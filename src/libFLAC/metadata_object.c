@@ -929,6 +929,9 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 	FLAC__ASSERT(object != NULL);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_SEEKTABLE);
 
+	if(new_num_points > ((2 << FLAC__STREAM_METADATA_LENGTH_LEN ) / FLAC__STREAM_METADATA_SEEKPOINT_LENGTH))
+		return false;
+
 	if (object->data.seek_table.points == 0) {
 		FLAC__ASSERT(object->data.seek_table.num_points == 0);
 		if (new_num_points == 0)
