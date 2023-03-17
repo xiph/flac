@@ -49,8 +49,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	char filename[] = "/tmp/fuzzXXXXXX";
 	int numarg = 0, maxarg;
 	int file_to_fuzz;
-	int tmp_stderr, tmp_stdout;
-	fpos_t pos_stderr, pos_stdout;
+	int tmp_stdout;
+	fpos_t pos_stdout;
 
 	share__opterr = 0;
 	share__optind = 0;
@@ -59,7 +59,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	if(size < 2)
 		return 0;
 
-	maxarg = data[0] & 16;
+	maxarg = data[0] & 15;
 	size_left--;
 
 	argv[0] = exename;
@@ -80,7 +80,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	argv[numarg++] = filename;
 
-	/* redirect stderr and stdout */
+	/* redirect stdout */
 	fflush(stdout);
 	fgetpos(stdout,&pos_stdout);
 	tmp_stdout = dup(fileno(stdout));
@@ -88,7 +88,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	main_to_fuzz(numarg,argv);
 
-	/* restore stderr and stdout */
+	/* restore stdout */
 	fflush(stdout);
 	dup2(tmp_stdout, fileno(stdout));
 	close(tmp_stdout);
