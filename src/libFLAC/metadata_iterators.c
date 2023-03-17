@@ -2407,7 +2407,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_cb_(
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_SEEK_ERROR;
 	}
 
-	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+	return status;
 }
 
 FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_track_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_CueSheet_Track *track)
