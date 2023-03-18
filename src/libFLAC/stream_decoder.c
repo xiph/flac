@@ -2496,6 +2496,14 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 			x = (x << 8) | _x;
 		}
 		decoder->private_->frame.header.blocksize = x+1;
+		if(decoder->private_->frame.header.blocksize > 65535) { /* invalid blocksize (65536) specified */
+			decoder->private_->lookahead = raw_header[raw_header_len-1]; /* back up as much as we can */
+			decoder->private_->cached = true;
+			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER);
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			return true;
+		}
+
 	}
 
 	if(sample_rate_hint) {
