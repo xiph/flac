@@ -49,10 +49,11 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	int numarg = 0, maxarg, pad;
 	int file_to_fuzz;
 
+	/* reset global vars */
 	flac__utils_verbosity_ = 0;
 	share__opterr = 0;
 	share__optind = 0;
-
+	align_reservoir_samples = 0;
 
 	if(size < 2)
 		return 0;

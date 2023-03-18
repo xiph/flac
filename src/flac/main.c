@@ -571,6 +571,7 @@ FLAC__bool init_options(void)
 {
 	option_values.show_help = false;
 	option_values.show_explain = false;
+	option_values.show_version = false;
 	option_values.mode_decode = false;
 	option_values.verify = false;
 	option_values.treat_warnings_as_errors = false;
