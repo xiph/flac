@@ -1804,13 +1804,11 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		return 1;
 	}
 
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	if(0 == strcmp(infilename, "-")) {
 		infilesize = (FLAC__off_t)(-1);
 		encode_infile = grabbag__file_get_binary_stdin();
 	}
 	else
-#endif
 	{
 		infilesize = grabbag__file_get_filesize(infilename);
 		if(0 == (encode_infile = flac_fopen(infilename, "rb"))) {
@@ -2362,12 +2360,6 @@ int decode_file(const char *infilename)
 #endif
 	decode_options.channel_map_none = option_values.channel_map_none;
 	decode_options.format = output_format;
-
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	/* Can't fuzz from stdin */
-	if(0 == strcmp(infilename, "-") || 0 == strcmp(outfilename, "-"))
-		return 1;
-#endif
 
 	if(output_format == FORMAT_RAW) {
 		decode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
