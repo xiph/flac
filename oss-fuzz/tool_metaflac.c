@@ -47,10 +47,12 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	char * argv[64];
 	char exename[] = "metaflac";
 	char filename[] = "/tmp/fuzzXXXXXX";
+	char filename_stdin[] = "/tmp/fuzzXXXXXX";
 	int numarg = 0, maxarg;
 	int file_to_fuzz;
-	int tmp_stdout;
+	int tmp_stdout, tmp_stdin;
 	fpos_t pos_stdout;
+	bool use_stdin = false;
 
 	share__opterr = 0;
 	share__optind = 0;
@@ -60,6 +62,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		return 0;
 
 	maxarg = data[0] & 15;
+	use_stdin = data[0] & 16;
 	size_left--;
 
 	argv[0] = exename;
@@ -71,20 +74,43 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		size_left -= arglen + 1;
 	}
 
+	/* Create file to feed directly */
 	file_to_fuzz = mkstemp(filename);
-
 	if (file_to_fuzz < 0)
 		abort();
-	write(file_to_fuzz,data+(size-size_left),size_left);
+	if(use_stdin) {
+		write(file_to_fuzz,data+(size-size_left),size_left/2);
+		size_left -= size_left/2;
+	}
+	else
+		write(file_to_fuzz,data+(size-size_left),size_left);
 	close(file_to_fuzz);
 
 	argv[numarg++] = filename;
+
+	/* Create file to feed to stdin */
+	if(use_stdin) {
+		file_to_fuzz = mkstemp(filename_stdin);
+		if (file_to_fuzz < 0)
+			abort();
+		write(file_to_fuzz,data+(size-size_left),size_left);
+		close(file_to_fuzz);
+	}
 
 	/* redirect stdout */
 	fflush(stdout);
 	fgetpos(stdout,&pos_stdout);
 	tmp_stdout = dup(fileno(stdout));
 	freopen("/dev/null","w",stdout);
+
+	/* redirect stdin */
+	tmp_stdin = dup(fileno(stdin));
+	if(use_stdin)
+		freopen(filename_stdin,"r",stdin);
+	else {
+		freopen("/dev/null","r",stdin);
+		argv[numarg++] = filename;
+	}
 
 	main_to_fuzz(numarg,argv);
 
@@ -95,7 +121,15 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	clearerr(stdout);
 	fsetpos(stdout,&pos_stdout);
 
+	/* restore stdin */
+	dup2(tmp_stdin, fileno(stdin));
+	close(tmp_stdin);
+	clearerr(stdin);
+
 	unlink(filename);
+
+	if(use_stdin)
+		unlink(filename_stdin);
 
 	return 0;
 }
