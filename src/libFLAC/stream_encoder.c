@@ -1064,7 +1064,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSE4_2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.sse42) {
 			encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual_intrin_sse42;
-
 		}
 #    endif
 #    ifdef FLAC__AVX2_SUPPORTED
