@@ -251,7 +251,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 		tempB = _mm256_xor_si256(tempA, bitmask);
 		tempB = _mm256_sub_epi64(tempB, bitmask);
 		total_err0 = _mm256_add_epi64(total_err0,tempB);
-		shadow_err0 = _mm256_xor_si256(shadow_err0,tempB);
+		shadow_err0 = _mm256_or_si256(shadow_err0,tempB);
 		tempB = _mm256_sub_epi64(tempA,prev_err0);
 		prev_err0 = tempA;
 		/* Next three intrinsics calculate tempA as abs of tempB */
@@ -259,7 +259,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 		tempA = _mm256_xor_si256(tempB, bitmask);
 		tempA = _mm256_sub_epi64(tempA, bitmask);
 		total_err1 = _mm256_add_epi64(total_err1,tempA);
-		shadow_err1 = _mm256_xor_si256(shadow_err1,tempA);
+		shadow_err1 = _mm256_or_si256(shadow_err1,tempA);
 		tempA = _mm256_sub_epi64(tempB,prev_err1);
 		prev_err1 = tempB;
 		/* Next three intrinsics calculate tempB as abs of tempA */
@@ -267,7 +267,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 		tempB = _mm256_xor_si256(tempA, bitmask);
 		tempB = _mm256_sub_epi64(tempB, bitmask);
 		total_err2 = _mm256_add_epi64(total_err2,tempB);
-		shadow_err2 = _mm256_xor_si256(shadow_err2,tempB);
+		shadow_err2 = _mm256_or_si256(shadow_err2,tempB);
 		tempB = _mm256_sub_epi64(tempA,prev_err2);
 		prev_err2 = tempA;
 		/* Next three intrinsics calculate tempA as abs of tempB */
@@ -275,7 +275,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 		tempA = _mm256_xor_si256(tempB, bitmask);
 		tempA = _mm256_sub_epi64(tempA, bitmask);
 		total_err3 = _mm256_add_epi64(total_err3,tempA);
-		shadow_err3 = _mm256_xor_si256(shadow_err3,tempA);
+		shadow_err3 = _mm256_or_si256(shadow_err3,tempA);
 		tempA = _mm256_sub_epi64(tempB,prev_err3);
 		prev_err3 = tempB;
 		/* Next three intrinsics calculate tempB as abs of tempA */
@@ -283,7 +283,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 		tempB = _mm256_xor_si256(tempA, bitmask);
 		tempB = _mm256_sub_epi64(tempB, bitmask);
 		total_err4 = _mm256_add_epi64(total_err4,tempB);
-		shadow_err4 = _mm256_xor_si256(shadow_err4,tempB);
+		shadow_err4 = _mm256_or_si256(shadow_err4,tempB);
 	}
 	_mm256_storeu_si256((__m256i*)data_scalar,total_err0);
 	total_error_0 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
@@ -296,15 +296,15 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 	_mm256_storeu_si256((__m256i*)data_scalar,total_err4);
 	total_error_4 += data_scalar[0] + data_scalar[1] + data_scalar[2] + data_scalar[3];
 	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err0);
-	shadow_error_0 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	shadow_error_0 |= data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
 	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err1);
-	shadow_error_1 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	shadow_error_1 |= data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
 	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err2);
-	shadow_error_2 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	shadow_error_2 |= data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
 	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err3);
-	shadow_error_3 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	shadow_error_3 |= data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
 	_mm256_storeu_si256((__m256i*)data_scalar,shadow_err4);
-	shadow_error_4 += data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
+	shadow_error_4 |= data_scalar[0] | data_scalar[1] | data_scalar[2] | data_scalar[3];
 
 	/* Take care of remaining sample */
 	for(i = (data_len/4)*4; i < data_len_int; i++) {
