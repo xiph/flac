@@ -261,12 +261,25 @@ modification time is set to the current time):
 	application data contents instead using
 	\--application-data-format=hexdump.
 
-**\--data-format=binary\|binary-headerless\|text**
-:	By default a human-readable text representation of the data is
-	displayed. You may specify --data-format=binary to dump the raw
-	binary form of each metadata block. Specify
-	--data-format=binary-headerless to omit output of metadata block
-	headers, including the id of APPLICATION metadata blocks.
+**\--data-format=binary\|binary-headerless\|text**  
+:	For use with --list. By default a human-readable text
+	representation of the data is isplayed. You may specify
+	--data-format=binary to dump the raw binary form of each metadata
+	block. Specify --data-format=binary-headerless to omit output of
+	metadata block headers, including the id of APPLICATION metadata
+	blocks.
+
+**\--append**  
+:	Insert a metadata block from a file. This must be a binary block as
+	exported with --list --data-format=binary. The insertion point is
+	defined with --block-number=#.  The new block will be added after the
+	given block number.  This prevents the illegal insertion of a block
+	before the first STREAMINFO block.  You may not --append another
+	STREAMINFO block. It is possible to copy a metadata block from one
+	file to another with this option. For example use
+	`metaflac --list --data-format=binary --block-number=6 file.flac > block`
+	to export the block, and then import it with
+	`metaflac --append anotherfile.flac < block`
 
 **\--remove-all**  
 :	Remove all metadata blocks (except the STREAMINFO block) from the
