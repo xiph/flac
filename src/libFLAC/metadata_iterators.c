@@ -2343,7 +2343,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_entr
 	if(max_length < entry->length) {
 		entry->length = 0;
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
-	} else max_length -= entry->length;
+	}
 
 	if(0 != entry->entry)
 		free(entry->entry);
