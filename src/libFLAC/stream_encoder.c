@@ -3623,7 +3623,7 @@ FLAC__bool process_subframe_(
 							min_lpc_order = max_lpc_order_this_apodization = guess_lpc_order;
 						}
 						for(lpc_order = min_lpc_order; lpc_order <= max_lpc_order_this_apodization; lpc_order++) {
-							lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize-lpc_order);
+							lpc_residual_bits_per_sample = FLAC__lpc_compute_expected_bits_per_residual_sample(lpc_error[lpc_order-1], frame_header->blocksize/apply_apodization_state.b-lpc_order);
 							if(lpc_residual_bits_per_sample >= (double)subframe_bps)
 								continue; /* don't even try */
 							if(encoder->protected_->do_qlp_coeff_prec_search) {
@@ -3778,7 +3778,7 @@ FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
 	FLAC__lpc_compute_best_order(
 		lpc_error,
 		*max_lpc_order_this_apodization,
-		blocksize,
+		blocksize/apply_apodization_state->b,
 		subframe_bps + (
 			encoder->protected_->do_qlp_coeff_prec_search?
 				FLAC__MIN_QLP_COEFF_PRECISION : /* have to guess; use the min possible size to avoid accidentally favoring lower orders */
