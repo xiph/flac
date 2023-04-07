@@ -1701,24 +1701,20 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 		FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_ENTRY_LENGTH_LEN == 32);
 		if (!FLAC__bitreader_read_uint32_little_endian(decoder->private_->input, &obj->vendor_string.length))
 			return false; /* read_callback_ sets the state for us */
-		if (obj->vendor_string.length > 0) {
-			if (length < obj->vendor_string.length) {
-				obj->vendor_string.length = 0;
-				obj->vendor_string.entry = 0;
-				goto skip;
-			}
-			else
-				length -= obj->vendor_string.length;
-			if (0 == (obj->vendor_string.entry = safe_malloc_add_2op_(obj->vendor_string.length, /*+*/1))) {
-				decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-				return false;
-			}
-			if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->vendor_string.entry, obj->vendor_string.length))
-				return false; /* read_callback_ sets the state for us */
-			obj->vendor_string.entry[obj->vendor_string.length] = '\0';
+		if (length < obj->vendor_string.length) {
+			obj->vendor_string.length = 0;
+			obj->vendor_string.entry = 0;
+			goto skip;
 		}
 		else
-			obj->vendor_string.entry = 0;
+			length -= obj->vendor_string.length;
+		if (0 == (obj->vendor_string.entry = safe_malloc_add_2op_(obj->vendor_string.length, /*+*/1))) {
+			decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+			return false;
+		}
+		if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->vendor_string.entry, obj->vendor_string.length))
+			return false; /* read_callback_ sets the state for us */
+		obj->vendor_string.entry[obj->vendor_string.length] = '\0';
 
 		/* read num comments */
 		FLAC__ASSERT(FLAC__STREAM_METADATA_VORBIS_COMMENT_NUM_COMMENTS_LEN == 32);
@@ -1753,31 +1749,27 @@ FLAC__bool read_metadata_vorbiscomment_(FLAC__StreamDecoder *decoder, FLAC__Stre
 					obj->num_comments = i;
 					return false; /* read_callback_ sets the state for us */
 				}
-				if (obj->comments[i].length > 0) {
-					if (length < obj->comments[i].length) {
-						obj->num_comments = i;
-						FLAC__bitreader_limit_invalidate(decoder->private_->input);
-						return false;
-					}
-					else
-						length -= obj->comments[i].length;
-					if (0 == (obj->comments[i].entry = safe_malloc_add_2op_(obj->comments[i].length, /*+*/1))) {
-						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
-						obj->num_comments = i;
-						return false;
-					}
-					memset (obj->comments[i].entry, 0, obj->comments[i].length) ;
-					if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->comments[i].entry, obj->comments[i].length)) {
-						/* Current i-th entry is bad, so we delete it. */
-						free (obj->comments[i].entry) ;
-						obj->comments[i].entry = NULL ;
-						obj->num_comments = i;
-						goto skip;
-					}
-					obj->comments[i].entry[obj->comments[i].length] = '\0';
+				if (length < obj->comments[i].length) {
+					obj->num_comments = i;
+					FLAC__bitreader_limit_invalidate(decoder->private_->input);
+					return false;
 				}
 				else
-					obj->comments[i].entry = 0;
+					length -= obj->comments[i].length;
+				if (0 == (obj->comments[i].entry = safe_malloc_add_2op_(obj->comments[i].length, /*+*/1))) {
+					decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+					obj->num_comments = i;
+					return false;
+				}
+				memset (obj->comments[i].entry, 0, obj->comments[i].length) ;
+				if (!FLAC__bitreader_read_byte_block_aligned_no_crc(decoder->private_->input, obj->comments[i].entry, obj->comments[i].length)) {
+					/* Current i-th entry is bad, so we delete it. */
+					free (obj->comments[i].entry) ;
+					obj->comments[i].entry = NULL ;
+					obj->num_comments = i;
+					goto skip;
+				}
+				obj->comments[i].entry[obj->comments[i].length] = '\0';
 			}
 		}
 	}
