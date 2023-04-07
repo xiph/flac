@@ -197,6 +197,7 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 				FLAC__byte * block_raw = FLAC__metadata_object_get_raw(block);
 				if(block_raw == 0) {
 					flac_fprintf(stderr, "%s: ERROR: couldn't get block in raw form\n", filename);
+					FLAC__metadata_iterator_delete(iterator);
 					return false;
 				}
 				write_metadata_binary(block, block_raw, options->data_format_is_binary_headerless);
