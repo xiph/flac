@@ -146,6 +146,7 @@ FLAC__bool import_cs_from(const char *filename, FLAC__StreamMetadata **cuesheet,
 
 	if(!FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/false, &error_message)) {
 		flac_fprintf(stderr, "%s: ERROR parsing cuesheet \"%s\": %s\n", filename, cs_filename, error_message);
+		FLAC__metadata_object_delete(*cuesheet);
 		return false;
 	}
 
