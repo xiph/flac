@@ -2120,17 +2120,26 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	if(decoder->protected_->state == FLAC__STREAM_DECODER_READ_FRAME && frame_crc == x) {
 #endif
 		if(do_full_decode) {
+			int send_error = 0;
 			/* Undo any special channel coding */
 			undo_channel_coding(decoder);
+
 			/* Check whether decoded data actually fits bps, if not clip it */
 			for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
 				for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
 					int shift_bits = 32 - decoder->private_->frame.header.bits_per_sample;
-					if(decoder->private_->output[channel][i] < (INT32_MIN >> shift_bits))
+					if(decoder->private_->output[channel][i] < (INT32_MIN >> shift_bits)) {
 						decoder->private_->output[channel][i] = (INT32_MIN >> shift_bits);
-					else if (decoder->private_->output[channel][i] > (INT32_MAX >> shift_bits))
+						send_error = 1;
+					} else if (decoder->private_->output[channel][i] > (INT32_MAX >> shift_bits)) {
 						decoder->private_->output[channel][i] = (INT32_MAX >> shift_bits);
+						send_error = 1;
+					}
 				}
+			}
+			if (send_error) {
+				/* Bad frame, emit error */
+				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH);
 			}
 		}
 	}
