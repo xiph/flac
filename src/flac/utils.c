@@ -56,8 +56,12 @@ static FLAC__bool local__parse_uint64_(const char *s, FLAC__uint64 *value)
 		return false;
 
 	while('\0' != (c = *s++))
-		if(c >= '0' && c <= '9')
+		if(c >= '0' && c <= '9') {
+			FLAC__uint64 tmp = ret;
 			ret = ret * 10 + (c - '0');
+			if(ret < tmp) /* check for overflow */
+				return false;
+		}
 		else
 			return false;
 
@@ -300,6 +304,8 @@ FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__Skip
 
 		if(local__parse_uint64_(s, &val)) {
 			spec->value_is_samples = true;
+			if(val > INT64_MAX)
+				return false;
 			spec->value.samples = (FLAC__int64)val;
 			if(is_negative)
 				spec->value.samples = -(spec->value.samples);
