@@ -289,6 +289,16 @@ int long_usage(const char *message, ...)
 	fprintf(out, "    contents instead using --application-data-format=hexdump\n");
 	fprintf(out, "\n");
 	fprintf(out, "--append\n");
+	fprintf(out, "    Insert a metadata block from a file. This must be a binary block as\n");
+	fprintf(out, "    exported with --list --data-format=binary. The insertion point is\n");
+	fprintf(out, "    defined with --block-number=#.  The new block will be added after the\n");
+	fprintf(out, "    given block number.  This prevents the illegal insertion of a block\n");
+	fprintf(out, "    before the first STREAMINFO block.  You may not --append another\n");
+	fprintf(out, "    STREAMINFO block. It is possible to copy a metadata block from one\n");
+	fprintf(out, "    file to another with this option. For example use\n");
+	fprintf(out, "    metaflac --list --data-format=binary --block-number=6 file.flac > block\n");
+	fprintf(out, "    to export the block, and then import it with\n");
+	fprintf(out, "    metaflac --append anotherfile.flac < block\n");
 	fprintf(out, "    Insert a metadata block from a file.  The input file must be in the same\n");
 	fprintf(out, "    format as generated with --list.\n");
 	fprintf(out, "\n");
