@@ -57,10 +57,16 @@ static FLAC__bool local__parse_uint64_(const char *s, FLAC__uint64 *value)
 
 	while('\0' != (c = *s++))
 		if(c >= '0' && c <= '9') {
-			FLAC__uint64 tmp = ret;
-			ret = ret * 10 + (c - '0');
-			if(ret < tmp) /* check for overflow */
+			if(ret > UINT64_MAX / 10) /* check for overflow */
 				return false;
+			else if(ret == UINT64_MAX / 10) {
+				FLAC__uint64 tmp = ret;
+				ret = ret * 10 + (c - '0');
+				if(ret < tmp)
+					return false;
+			}
+			else
+				ret = ret * 10 + (c - '0');
 		}
 		else
 			return false;
