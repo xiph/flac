@@ -1871,6 +1871,10 @@ FLAC__bool read_metadata_cuesheet_(FLAC__StreamDecoder *decoder, FLAC__StreamMet
 			}
 		}
 	}
+	else { /* obj->num_tracks == 0 */
+		FLAC__bitreader_limit_invalidate(decoder->private_->input);
+		return false;
+	}
 
 	return true;
 }

@@ -626,6 +626,8 @@ void grabbag__cuesheet_emit(FILE *file, const FLAC__StreamMetadata *cuesheet, co
 		fprintf(file, "CATALOG %s\n", cs->media_catalog_number);
 	fprintf(file, "FILE %s\n", file_reference);
 
+	FLAC__ASSERT(cs->num_tracks > 0);
+
 	for(track_num = 0; track_num < cs->num_tracks-1; track_num++) {
 		const FLAC__StreamMetadata_CueSheet_Track *track = cs->tracks + track_num;
 
