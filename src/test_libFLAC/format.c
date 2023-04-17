@@ -33,7 +33,7 @@ static struct {
 	FLAC__bool valid;
 	FLAC__bool subset;
 } SAMPLE_RATES[] = {
-	{ 0      , false, false },
+	{ 0      , true , true  },
 	{ 1      , true , true  },
 	{ 9      , true , true  },
 	{ 10     , true , true  },

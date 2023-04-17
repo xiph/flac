@@ -208,7 +208,7 @@ FLAC_API const char * const FLAC__StreamMetadata_Picture_TypeString[] = {
 
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(uint32_t sample_rate)
 {
-	if(sample_rate == 0 || sample_rate > FLAC__MAX_SAMPLE_RATE) {
+	if(sample_rate > FLAC__MAX_SAMPLE_RATE) {
 		return false;
 	}
 	else
