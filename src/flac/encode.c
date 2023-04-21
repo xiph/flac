@@ -1626,6 +1626,11 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 		ret = 1;
 	}
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+        /* Always delete output file when fuzzing */
+	flac_unlink(e->outfilename);
+#endif
+
 	EncoderSession_destroy(e);
 
 	return ret;
