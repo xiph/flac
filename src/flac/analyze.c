@@ -245,5 +245,8 @@ FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename)
 	fprintf(outfile, "pause -1 'waiting...'\n");
 
 	fclose(outfile);
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	unlink(filename);
+#endif
 	return true;
 }
