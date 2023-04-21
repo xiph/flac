@@ -2072,19 +2072,25 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				}
 				break;
 			case CST_MAX_LPC_ORDER:
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 				FLAC__stream_encoder_set_max_lpc_order(e->encoder, options.compression_settings[ic].value.t_unsigned);
+#endif
 				break;
 			case CST_QLP_COEFF_PRECISION:
 				FLAC__stream_encoder_set_qlp_coeff_precision(e->encoder, options.compression_settings[ic].value.t_unsigned);
 				break;
 			case CST_DO_QLP_COEFF_PREC_SEARCH:
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 				FLAC__stream_encoder_set_do_qlp_coeff_prec_search(e->encoder, options.compression_settings[ic].value.t_bool);
+#endif
 				break;
 			case CST_DO_ESCAPE_CODING:
 				FLAC__stream_encoder_set_do_escape_coding(e->encoder, options.compression_settings[ic].value.t_bool);
 				break;
 			case CST_DO_EXHAUSTIVE_MODEL_SEARCH:
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 				FLAC__stream_encoder_set_do_exhaustive_model_search(e->encoder, options.compression_settings[ic].value.t_bool);
+#endif
 				break;
 			case CST_MIN_RESIDUAL_PARTITION_ORDER:
 				FLAC__stream_encoder_set_min_residual_partition_order(e->encoder, options.compression_settings[ic].value.t_unsigned);
