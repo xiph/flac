@@ -55,14 +55,8 @@ static FLAC__int64 local__parse_int64_(const char *s)
 
 	while('\0' != (c = *s++))
 		if(c >= '0' && c <= '9') {
-			if(ret > (INT64_MAX / 10))
-				return false;
-			else if(ret == (INT64_MAX/10)) {
-				FLAC__int64 tmp = ret;
-				ret = ret * 10 + (c - '0');
-				if(ret < tmp)
-					return -1;
-			}
+			if(ret >= (INT64_MAX / 10))
+				return -1;
 			else
 				ret = ret * 10 + (c - '0');
 		}
@@ -97,14 +91,8 @@ static FLAC__int64 local__parse_msf_(const char *s, uint32_t sample_rate)
 		return -1;
 	while(':' != (c = *s++)) {
 		if(c >= '0' && c <= '9') {
-			if(field > (INT64_MAX / 10))
-				return false;
-			else if(field == (INT64_MAX/10)) {
-				FLAC__int64 tmp = field;
-				field = field * 10 + (c - '0');
-				if(field < tmp)
-					return -1;
-			}
+			if(field >= (INT64_MAX / 10))
+				return -1;
 			else
 				field = field * 10 + (c - '0');
 		}
@@ -112,7 +100,7 @@ static FLAC__int64 local__parse_msf_(const char *s, uint32_t sample_rate)
 			return -1;
 	}
 
-	if(field > INT64_MAX / (60 * sample_rate))
+	if(field >= INT64_MAX / (60 * sample_rate))
 		return -1;
 	ret = field * 60 * sample_rate;
 
@@ -189,14 +177,8 @@ static FLAC__int64 local__parse_ms_(const char *s, uint32_t sample_rate)
 		return -1;
 	while(':' != (c = *s++)) {
 		if(c >= '0' && c <= '9') {
-			if(field > (INT64_MAX / 10))
-				return false;
-			else if(field == (INT64_MAX/10)) {
-				FLAC__int64 tmp = field;
-				field = field * 10 + (c - '0');
-				if(field < tmp)
-					return -1;
-			}
+			if(field >= (INT64_MAX / 10))
+				return -1;
 			else
 				field = field * 10 + (c - '0');
 		}
