@@ -2157,10 +2157,20 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			   decoder->private_->last_frame.header.channels == decoder->private_->frame.header.channels &&
 			   decoder->private_->last_frame.header.bits_per_sample == decoder->private_->frame.header.bits_per_sample &&
 			   decoder->private_->last_frame.header.blocksize >= 16) {
-
 				FLAC__Frame empty_frame;
+				FLAC__int32 * empty_buffer[FLAC__MAX_CHANNELS] = {NULL};
 				empty_frame.header = decoder->private_->last_frame.header;
 				empty_frame.footer.crc = 0;
+				for(i = 0; i < empty_frame.header.channels; i++) {
+					empty_buffer[i] = safe_calloc_(empty_frame.header.blocksize, sizeof(FLAC__int32));
+					if(empty_buffer[i] == NULL) {
+						for(i = 0; i < empty_frame.header.channels; i++)
+							if(empty_buffer[i] != NULL)
+								free(empty_buffer[i]);
+						decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+						return false;
+					}
+				}
 				/* No repairs larger than 5 seconds or 50 frames are made, to not
 				 * unexpectedly create enormous files when one of the headers was
 				 * corrupt after all */
@@ -2178,21 +2188,24 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 					FLAC__ASSERT(empty_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 					decoder->private_->samples_decoded = empty_frame.header.number.sample_number + empty_frame.header.blocksize;
 
-					if(!allocate_output_(decoder, empty_frame.header.blocksize, empty_frame.header.channels, empty_frame.header.bits_per_sample))
-						return false;
-
 					for(channel = 0; channel < empty_frame.header.channels; channel++) {
 						empty_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_CONSTANT;
 						empty_frame.subframes[channel].data.constant.value = 0;
 						empty_frame.subframes[channel].wasted_bits = 0;
-						memset(decoder->private_->output[channel], 0, sizeof(FLAC__int32) * empty_frame.header.blocksize);
 					}
 
-					if(write_audio_frame_to_client_(decoder, &empty_frame, (const FLAC__int32 * const *)decoder->private_->output) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE) {
+					if(write_audio_frame_to_client_(decoder, &empty_frame, (const FLAC__int32 * const *)empty_buffer) != FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE) {
 						decoder->protected_->state = FLAC__STREAM_DECODER_ABORTED;
+						for(i = 0; i < empty_frame.header.channels; i++)
+							if(empty_buffer[i] != NULL)
+								free(empty_buffer[i]);
 						return false;
 					}
 				}
+				for(i = 0; i < empty_frame.header.channels; i++)
+					if(empty_buffer[i] != NULL)
+						free(empty_buffer[i]);
+
 			}
 		}
 	}
