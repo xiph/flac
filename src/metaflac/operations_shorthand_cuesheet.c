@@ -69,6 +69,12 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 		return false;
 	}
 
+	if(sample_rate == 0) {
+		flac_fprintf(stderr, "%s: ERROR: cannot parse cuesheet when sample rate is unknown\n", filename);
+		FLAC__metadata_iterator_delete(iterator);
+		return false;
+	}
+
 	switch(operation->type) {
 		case OP__IMPORT_CUESHEET_FROM:
 			if(0 != cuesheet) {
