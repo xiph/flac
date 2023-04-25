@@ -10,6 +10,7 @@ add_executable(flacapp
     local_string_utils.c
     utils.c
     vorbiscomment.c
+    version.rc
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
     $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>)
 set_property(TARGET flacapp PROPERTY RUNTIME_OUTPUT_NAME flac)
