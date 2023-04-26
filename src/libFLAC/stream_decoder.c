@@ -2095,6 +2095,8 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			else
 				return false;
 		}
+		if(decoder->protected_->state != FLAC__STREAM_DECODER_READ_FRAME)
+			break;
 	}
 
 	if(decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_STREAM)
