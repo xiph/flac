@@ -8,7 +8,7 @@
 #  define VERSIONSTRING "git-" GIT_COMMIT_HASH
 # endif
 #else
-# define VERSIONSTRING PACKAGE_VERSION;
+# define VERSIONSTRING PACKAGE_VERSION
 #endif
 
 #define xstr(s) str(s)
