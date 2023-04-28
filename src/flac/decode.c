@@ -1099,7 +1099,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	FILE *fout = decoder_session->fout;
 	const uint32_t bps = frame->header.bits_per_sample, channels = frame->header.channels;
-	const uint32_t shift = (decoder_session->format != FORMAT_RAW && (bps%8))? 8-(bps%8): 0;
+	const uint32_t shift = (bps%8)? 8-(bps%8): 0;
 	FLAC__bool is_big_endian = (
 		(decoder_session->format == FORMAT_AIFF || (decoder_session->format == FORMAT_AIFF_C && decoder_session->subformat == SUBFORMAT_AIFF_C_NONE)) ? true : (
 		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 || (decoder_session->format == FORMAT_AIFF_C && decoder_session->subformat == SUBFORMAT_AIFF_C_SOWT) ? false :
