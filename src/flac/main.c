@@ -543,8 +543,10 @@ int do_it(void)
 			for(i = 0, retval = 0; i < option_values.num_files; i++) {
 				if(0 == strcmp(option_values.filenames[i], "-") && !first)
 					continue;
-				retval |= encode_file(option_values.filenames[i], first, i == (option_values.num_files-1));
-				first = false;
+				if(encode_file(option_values.filenames[i], first, i == (option_values.num_files-1)))
+					retval = 1;
+				else
+					first = false;
 			}
 			if(option_values.replay_gain && retval == 0) {
 				float album_gain, album_peak;
