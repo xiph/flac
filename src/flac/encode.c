@@ -1520,7 +1520,9 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 			e->fmt.flac.client_data.fatal_error = false;
 			break;
 		default:
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 			FLAC__ASSERT(0);
+#endif
 			/* double protection */
 			return false;
 	}
