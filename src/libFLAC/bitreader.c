@@ -164,11 +164,11 @@ static FLAC__bool bitreader_read_from_client_(FLAC__BitReader *br)
 	brword preswap_backup;
 #endif
 
-	/* invalidate last seen framesync */
-	br->last_seen_framesync = -1;
-
 	/* first shift the unconsumed buffer data toward the front as much as possible */
 	if(br->consumed_words > 0) {
+		/* invalidate last seen framesync */
+		br->last_seen_framesync = -1;
+
 		crc16_update_block_(br); /* CRC consumed words */
 
 		start = br->consumed_words;
