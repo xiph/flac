@@ -1265,10 +1265,18 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 							wanted = (size_t) min((FLAC__uint64)wanted, max_input_bytes - total_input_bytes_read);
 
 							if(lookahead_length > 0) {
-								FLAC__ASSERT(lookahead_length <= wanted);
-								memcpy(ubuffer.u8, lookahead, lookahead_length);
-								wanted -= lookahead_length;
-								bytes_read = lookahead_length;
+								if(lookahead_length <= wanted) {
+									memcpy(ubuffer.u8, lookahead, lookahead_length);
+									wanted -= lookahead_length;
+									bytes_read = lookahead_length;
+								}
+								else {
+									/* This happens when --until is used on a very short file */
+									FLAC__ASSERT(lookahead_length < CHUNK_OF_SAMPLES * encoder_session.info.bytes_per_wide_sample);
+									memcpy(ubuffer.u8, lookahead, wanted);
+									wanted = 0;
+									bytes_read = wanted;
+								}
 								if(wanted > 0) {
 									bytes_read += fread(ubuffer.u8+lookahead_length, sizeof(uint8_t), wanted, infile);
 									if(ferror(infile)) {
