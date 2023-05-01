@@ -136,6 +136,8 @@ FLAC__bool import_pic_from(const char *filename, FLAC__StreamMetadata **picture,
 
 	if(!FLAC__format_picture_is_legal(&(*picture)->data.picture, &error_message)) {
 		flac_fprintf(stderr, "%s: ERROR: new PICTURE block for \"%s\" is illegal: %s\n", filename, specification, error_message);
+		FLAC__metadata_object_delete(*picture);
+		*picture = 0;
 		return false;
 	}
 
