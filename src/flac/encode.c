@@ -1016,7 +1016,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		 * now that we know the sample rate, canonicalize the
 		 * --skip string to an absolute sample number:
 		 */
-		flac__utils_canonicalize_skip_until_specification(&options.skip_specification, encoder_session.info.sample_rate);
+		if(!flac__utils_canonicalize_skip_until_specification(&options.skip_specification, encoder_session.info.sample_rate)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+			return EncoderSession_finish_error(&encoder_session);
+		}
 		FLAC__ASSERT(options.skip_specification.value.samples >= 0);
 		skip = (FLAC__uint64)options.skip_specification.value.samples;
 		FLAC__ASSERT(!options.sector_align || (options.format != FORMAT_FLAC && options.format != FORMAT_OGGFLAC && skip == 0));
@@ -2255,7 +2258,10 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
 {
 	/* convert from mm:ss.sss to sample number if necessary */
-	flac__utils_canonicalize_skip_until_specification(spec, sample_rate);
+	if(!flac__utils_canonicalize_skip_until_specification(spec, sample_rate)) {
+		flac__utils_printf(stderr, 1, "%s: ERROR, value of --until is too large\n", inbasefilename);
+		return false;
+	}
 
 	/* special case: if "--until=-0", use the special value '0' to mean "end-of-stream" */
 	if(spec->is_relative && spec->value.samples == 0) {

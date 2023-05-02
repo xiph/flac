@@ -330,13 +330,17 @@ FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__Skip
 	return true;
 }
 
-void flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, uint32_t sample_rate)
+FLAC__bool flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, uint32_t sample_rate)
 {
 	FLAC__ASSERT(0 != spec);
 	if(!spec->value_is_samples) {
-		spec->value.samples = (FLAC__int64)(spec->value.seconds * (double)sample_rate);
+		double samples = spec->value.seconds * (double)sample_rate;
+		if(samples >= (double)INT64_MAX || samples <= (double)INT64_MIN)
+			return false;
+		spec->value.samples = (FLAC__int64)(samples);
 		spec->value_is_samples = true;
 	}
+	return true;
 }
 
 FLAC__bool flac__utils_parse_cue_specification(const char *s, utils__CueSpecification *spec)
