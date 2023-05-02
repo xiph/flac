@@ -590,7 +590,10 @@ int DecoderSession_finish_error(DecoderSession *d)
 FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
 {
 	/* convert from mm:ss.sss to sample number if necessary */
-	flac__utils_canonicalize_skip_until_specification(spec, sample_rate);
+	if(!flac__utils_canonicalize_skip_until_specification(spec, sample_rate)) {
+		flac__utils_printf(stderr, 1, "%s: ERROR, value of --until is too large\n", inbasefilename);
+		return false;
+	}
 
 	/* special case: if "--until=-0", use the special value '0' to mean "end-of-stream" */
 	if(spec->is_relative && spec->value.samples == 0) {
@@ -1459,7 +1462,11 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		decoder_session->channels = metadata->data.stream_info.channels;
 		decoder_session->sample_rate = metadata->data.stream_info.sample_rate;
 
-		flac__utils_canonicalize_skip_until_specification(decoder_session->skip_specification, decoder_session->sample_rate);
+		if(!flac__utils_canonicalize_skip_until_specification(decoder_session->skip_specification, decoder_session->sample_rate)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR, value of --skip is too large\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
+		}
 		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
 		skip = (FLAC__uint64)decoder_session->skip_specification->value.samples;
 
