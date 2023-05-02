@@ -2911,7 +2911,7 @@ FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
 		return false;
 	e = ((FLAC__uint16)(buf[0])<<8 | (FLAC__uint16)(buf[1]))-0x3FFF;
 	shift = 63-e;
-	if((buf[0]>>7)==1U || e<0 || e>63) {
+	if((buf[0]>>7)==1U || e<0 || e>=63) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: invalid floating-point value\n", fn);
 		return false;
 	}
