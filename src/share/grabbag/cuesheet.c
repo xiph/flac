@@ -188,7 +188,6 @@ static FLAC__int64 local__parse_ms_(const char *s, uint32_t sample_rate)
 
 	ret = field * 60 * sample_rate;
 
-	s++; /* skip the ':' */
 	if(strspn(s, "0123456789.") != strlen(s))
 		return -1;
 	x = strtod(s, &end);
