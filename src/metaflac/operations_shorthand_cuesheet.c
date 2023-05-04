@@ -216,6 +216,11 @@ FLAC__bool export_cs_to(const char *filename, const FLAC__StreamMetadata *cueshe
 
 	if(f != stdout)
 		fclose(f);
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Delete output file when fuzzing */
+	if(f != stdout)
+		flac_unlink(cs_filename);
+#endif
 
 	return true;
 }

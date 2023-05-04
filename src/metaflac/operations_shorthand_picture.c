@@ -174,5 +174,11 @@ FLAC__bool export_pic_to(const char *filename, const FLAC__StreamMetadata *pictu
 	if(f != stdout)
 		fclose(f);
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Delete output file when fuzzing */
+	if(f != stdout)
+		flac_unlink(pic_filename);
+#endif
+
 	return true;
 }
