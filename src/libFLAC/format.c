@@ -247,6 +247,9 @@ FLAC_API FLAC__bool FLAC__format_seektable_is_legal(const FLAC__StreamMetadata_S
 
 	FLAC__ASSERT(0 != seek_table);
 
+	if((FLAC__uint64)(seek_table->num_points) * FLAC__STREAM_METADATA_SEEKPOINT_LENGTH >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+		return false;
+
 	for(i = 0; i < seek_table->num_points; i++) {
 		if(got_prev) {
 			if(
