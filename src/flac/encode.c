@@ -1038,6 +1038,11 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		/* adjust encoding parameters based on skip and until values */
 		switch(options.format) {
 			case FORMAT_RAW:
+				FLAC__ASSERT(sizeof(FLAC__off_t) == 8);
+				if(skip >= INT64_MAX / encoder_session.info.bytes_per_wide_sample) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				infilesize -= (FLAC__off_t)skip * encoder_session.info.bytes_per_wide_sample;
 				encoder_session.total_samples_to_encode = total_samples_in_input - skip;
 				break;
@@ -1046,6 +1051,11 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			case FORMAT_RF64:
 			case FORMAT_AIFF:
 			case FORMAT_AIFF_C:
+				FLAC__ASSERT(sizeof(FLAC__off_t) == 8);
+				if(skip >= INT64_MAX / encoder_session.info.bytes_per_wide_sample) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				encoder_session.fmt.iff.data_bytes -= skip * encoder_session.info.bytes_per_wide_sample;
 				if(options.ignore_chunk_sizes) {
 					encoder_session.total_samples_to_encode = 0;
