@@ -100,7 +100,7 @@ static FLAC__bool compare_data_(FILE *fin, FILE *fout, size_t size, const char *
 static FLAC__bool append_block_(foreign_metadata_t *fm, FLAC__off_t offset, FLAC__uint32 size, const char **error)
 {
 	foreign_block_t *fb;
-	if(size >= (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+	if(size >= ((1u << FLAC__STREAM_METADATA_LENGTH_LEN) - FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8)) {
 		if(error) *error = "found foreign metadata chunk is too large (max is 16MiB per chunk)";
 		return false;
 	}
