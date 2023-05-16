@@ -265,6 +265,8 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 
 		buffer_size = ((FLAC__uint32)(header[1]) << 16) + ((FLAC__uint32)(header[2]) << 8) + header[3];
 		buffer = safe_malloc_(buffer_size + FLAC__STREAM_METADATA_HEADER_LENGTH);
+		if(0 == buffer)
+			die("out of memory allocating read buffer");
 		memcpy(buffer, header, FLAC__STREAM_METADATA_HEADER_LENGTH);
 
 		num_objects++;
