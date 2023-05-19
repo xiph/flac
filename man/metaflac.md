@@ -58,7 +58,8 @@ modification time is set to the current time):
 
 **\--with-filename**  
 :	Prefix each output line with the FLAC file name (the default if more
-	than one FLAC file is specified).
+	than one FLAC file is specified). This option has no effect for
+	options exporting to a file, like --export-tags-to.
 
 **\--no-filename**  
 :	Do not prefix each output line with the FLAC file name (the default
