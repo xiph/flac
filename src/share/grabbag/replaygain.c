@@ -641,6 +641,8 @@ FLAC__bool grabbag__replaygain_load_from_vorbiscomment(const FLAC__StreamMetadat
 		res = false;
 	if(res && !parse_double_(block->data.vorbis_comment.comments + peak_offset, peak))
 		res = false;
+	if(res && *peak < 0.0)
+		res = false;
 
 	setlocale(LC_ALL, saved_locale);
 	free(saved_locale);
