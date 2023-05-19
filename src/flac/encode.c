@@ -1403,7 +1403,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 						break;
 					}
 
-					if(!FLAC__stream_decoder_process_single(encoder_session.fmt.flac.decoder)) {
+					if(decoder_state == FLAC__STREAM_DECODER_ABORTED || !FLAC__stream_decoder_process_single(encoder_session.fmt.flac.decoder)) {
 						flac__utils_printf(stderr, 1, "%s: ERROR: while decoding FLAC input, state = %s\n", encoder_session.inbasefilename, FLAC__stream_decoder_get_resolved_state_string(encoder_session.fmt.flac.decoder));
 						return EncoderSession_finish_error(&encoder_session);
 					}
