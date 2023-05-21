@@ -47,7 +47,6 @@
 #endif
 #define max(x,y) ((x)>(y)?(x):(y))
 
-/* this MUST be >= 588 so that sector aligning can take place with one read */
 /* this MUST be < 2^sizeof(size_t) / ( FLAC__MAX_CHANNELS * (FLAC__MAX_BITS_PER_SAMPLE/8) ) */
 #define CHUNK_OF_SAMPLES 2048
 
@@ -143,7 +142,7 @@ static FLAC__int32 *input_[FLAC__MAX_CHANNELS];
  */
 static FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options, FLAC__off_t infilesize, FILE *infile, const char *infilename, const char *outfilename, const FLAC__byte *lookahead, uint32_t lookahead_length);
 static void EncoderSession_destroy(EncoderSession *e);
-static int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero, foreign_metadata_t *foreign_metadata, FLAC__bool error_on_compression_fail);
+static int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_metadata, FLAC__bool error_on_compression_fail);
 static int EncoderSession_finish_error(EncoderSession *e);
 static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options);
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], uint32_t samples);
@@ -482,7 +481,6 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 					data_bytes = ds64_data_size;
 			}
 			if(options.ignore_chunk_sizes) {
-				FLAC__ASSERT(!options.sector_align);
 				if(data_bytes) {
 					flac__utils_printf(stderr, 1, "%s: WARNING: 'data' chunk has non-zero size, using --ignore-chunk-sizes is probably a bad idea\n", e->inbasefilename, chunk_id);
 					if(e->treat_warnings_as_errors)
@@ -717,7 +715,6 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 				return false;
 			data_bytes = xx;
 			if(options.ignore_chunk_sizes) {
-				FLAC__ASSERT(!options.sector_align);
 				if(data_bytes) {
 					flac__utils_printf(stderr, 1, "%s: WARNING: 'SSND' chunk has non-zero size, using --ignore-chunk-sizes is probably a bad idea\n", e->inbasefilename, chunk_id);
 					if(e->treat_warnings_as_errors)
@@ -864,7 +861,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 {
 	EncoderSession encoder_session;
 	size_t channel_map[FLAC__MAX_CHANNELS];
-	int info_align_carry = -1, info_align_zero = -1;
 
 	if(!EncoderSession_construct(&encoder_session, options, infilesize, infile, infilename, outfilename, lookahead, lookahead_length))
 		return 1;
@@ -946,34 +942,19 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		flac__utils_printf(stderr, 1, "%s: ERROR: unsupported bits-per-sample %u\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 		return EncoderSession_finish_error(&encoder_session);
 	}
-	if(options.sector_align) {
-		if(encoder_session.info.channels != 2) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: file has %u channels, must be 2 for --sector-align\n", encoder_session.inbasefilename, encoder_session.info.channels);
-			return EncoderSession_finish_error(&encoder_session);
-		}
-		if(encoder_session.info.sample_rate != 44100) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: file's sample rate is %u, must be 44100 for --sector-align\n", encoder_session.inbasefilename, encoder_session.info.sample_rate);
-			return EncoderSession_finish_error(&encoder_session);
-		}
-		if(encoder_session.info.bits_per_sample-encoder_session.info.shift != 16) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: file has %u bits-per-sample, must be 16 for --sector-align\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
-			return EncoderSession_finish_error(&encoder_session);
-		}
-	}
 
 	{
 		FLAC__uint64 total_samples_in_input; /* WATCHOUT: may be 0 to mean "unknown" */
 		FLAC__uint64 skip;
 		FLAC__uint64 until; /* a value of 0 mean end-of-stream (i.e. --until=-0) */
 		uint32_t consecutive_eos_count = 0;
-		uint32_t align_remainder = 0;
 
 		switch(options.format) {
 			case FORMAT_RAW:
 				if(infilesize < 0)
 					total_samples_in_input = 0;
 				else
-					total_samples_in_input = (FLAC__uint64)infilesize / encoder_session.info.bytes_per_wide_sample + *options.align_reservoir_samples;
+					total_samples_in_input = (FLAC__uint64)infilesize / encoder_session.info.bytes_per_wide_sample;
 				break;
 			case FORMAT_WAVE:
 			case FORMAT_WAVE64:
@@ -981,7 +962,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			case FORMAT_AIFF:
 			case FORMAT_AIFF_C:
 				/* truncation in the division removes any padding byte that was counted in encoder_session.fmt.iff.data_bytes */
-				total_samples_in_input = encoder_session.fmt.iff.data_bytes / encoder_session.info.bytes_per_wide_sample + *options.align_reservoir_samples;
+				total_samples_in_input = encoder_session.fmt.iff.data_bytes / encoder_session.info.bytes_per_wide_sample;
 
 				/* check for chunks trailing the audio data */
 				if(!options.ignore_chunk_sizes && !options.format_options.iff.foreign_metadata
@@ -1004,7 +985,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				break;
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:
-				total_samples_in_input = encoder_session.fmt.flac.client_data.metadata_blocks[0]->data.stream_info.total_samples + *options.align_reservoir_samples;
+				total_samples_in_input = encoder_session.fmt.flac.client_data.metadata_blocks[0]->data.stream_info.total_samples;
 				break;
 			default:
 				FLAC__ASSERT(0);
@@ -1022,9 +1003,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		}
 		FLAC__ASSERT(options.skip_specification.value.samples >= 0);
 		skip = (FLAC__uint64)options.skip_specification.value.samples;
-		FLAC__ASSERT(!options.sector_align || (options.format != FORMAT_FLAC && options.format != FORMAT_OGGFLAC && skip == 0));
-		/* *options.align_reservoir_samples will be 0 unless --sector-align is used */
-		FLAC__ASSERT(options.sector_align || *options.align_reservoir_samples == 0);
 
 		/*
 		 * now that we possibly know the input size, canonicalize the
@@ -1033,7 +1011,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		if(!canonicalize_until_specification(&options.until_specification, encoder_session.inbasefilename, encoder_session.info.sample_rate, skip, total_samples_in_input))
 			return EncoderSession_finish_error(&encoder_session);
 		until = (FLAC__uint64)options.until_specification.value.samples;
-		FLAC__ASSERT(!options.sector_align || until == 0);
 
 		/* adjust encoding parameters based on skip and until values */
 		switch(options.format) {
@@ -1077,20 +1054,11 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		if(until > 0) {
 			const FLAC__uint64 trim = total_samples_in_input - until;
 			FLAC__ASSERT(total_samples_in_input > 0);
-			FLAC__ASSERT(!options.sector_align);
 			if(options.format == FORMAT_RAW)
 				infilesize -= (FLAC__off_t)trim * encoder_session.info.bytes_per_wide_sample;
 			else if(EncoderSession_format_is_iff(&encoder_session))
 				encoder_session.fmt.iff.data_bytes -= trim * encoder_session.info.bytes_per_wide_sample;
 			encoder_session.total_samples_to_encode -= trim;
-		}
-		if(options.sector_align && (options.format != FORMAT_RAW || infilesize >=0)) { /* for RAW, need to know the filesize */
-			FLAC__ASSERT(skip == 0); /* asserted above too, but lest we forget */
-			align_remainder = (uint32_t)(encoder_session.total_samples_to_encode % 588);
-			if(options.is_last_file)
-				encoder_session.total_samples_to_encode += (588-align_remainder); /* will pad with zeroes */
-			else
-				encoder_session.total_samples_to_encode -= align_remainder; /* will stop short and carry over to next file */
 		}
 		switch(options.format) {
 			case FORMAT_RAW:
@@ -1192,36 +1160,6 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 					FLAC__ASSERT(0);
 					/* double protection */
 					return EncoderSession_finish_error(&encoder_session);
-			}
-		}
-
-		/*
-		 * first do any samples in the reservoir
-		 */
-		if(options.sector_align && *options.align_reservoir_samples > 0) {
-			FLAC__ASSERT(options.format != FORMAT_FLAC && options.format != FORMAT_OGGFLAC); /* check again */
-			if(!EncoderSession_process(&encoder_session, (const FLAC__int32 * const *)options.align_reservoir, *options.align_reservoir_samples)) {
-				print_error_with_state(&encoder_session, "ERROR during encoding");
-				return EncoderSession_finish_error(&encoder_session);
-			}
-		}
-
-		/*
-		 * decrement infilesize or the data_bytes counter if we need to align the file
-		 */
-		if(options.sector_align) {
-			if(options.is_last_file) {
-				*options.align_reservoir_samples = 0;
-			}
-			else {
-				*options.align_reservoir_samples = align_remainder;
-				if(options.format == FORMAT_RAW) {
-					FLAC__ASSERT(infilesize >= 0);
-					infilesize -= (FLAC__off_t)((*options.align_reservoir_samples) * encoder_session.info.bytes_per_wide_sample);
-					FLAC__ASSERT(infilesize >= 0);
-				}
-				else if(EncoderSession_format_is_iff(&encoder_session))
-					encoder_session.fmt.iff.data_bytes -= (*options.align_reservoir_samples) * encoder_session.info.bytes_per_wide_sample;
 			}
 		}
 
@@ -1419,53 +1357,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				return EncoderSession_finish_error(&encoder_session);
 		}
 
-		/*
-		 * now read unaligned samples into reservoir or pad with zeroes if necessary
-		 */
-		if(options.sector_align) {
-			if(options.is_last_file) {
-				uint32_t wide_samples = 588 - align_remainder;
-				if(wide_samples < 588) {
-					uint32_t channel;
-
-					info_align_zero = wide_samples;
-					for(channel = 0; channel < encoder_session.info.channels; channel++)
-						memset(input_[channel], 0, sizeof(input_[0][0]) * wide_samples);
-
-					if(!EncoderSession_process(&encoder_session, (const FLAC__int32 * const *)input_, wide_samples)) {
-						print_error_with_state(&encoder_session, "ERROR during encoding");
-						return EncoderSession_finish_error(&encoder_session);
-					}
-				}
-			}
-			else {
-				if(*options.align_reservoir_samples > 0) {
-					size_t bytes_read;
-					FLAC__ASSERT(CHUNK_OF_SAMPLES >= 588);
-					bytes_read = fread(ubuffer.u8, sizeof(uint8_t), (*options.align_reservoir_samples) * encoder_session.info.bytes_per_wide_sample, infile);
-					if(bytes_read == 0 && ferror(infile)) {
-						flac__utils_printf(stderr, 1, "%s: ERROR during read\n", encoder_session.inbasefilename);
-						return EncoderSession_finish_error(&encoder_session);
-					}
-					else if(bytes_read != (*options.align_reservoir_samples) * encoder_session.info.bytes_per_wide_sample) {
-						flac__utils_printf(stderr, 1, "%s: WARNING: unexpected EOF; read %" PRIu64 " bytes; expected %" PRIu64 " samples, got %" PRIu64 " samples\n", encoder_session.inbasefilename, bytes_read, encoder_session.total_samples_to_encode, encoder_session.samples_written);
-						if(encoder_session.treat_warnings_as_errors)
-							return EncoderSession_finish_error(&encoder_session);
-					}
-					else {
-						info_align_carry = *options.align_reservoir_samples;
-						if(!format_input(options.align_reservoir, *options.align_reservoir_samples, encoder_session.info.is_big_endian, encoder_session.info.is_unsigned_samples, encoder_session.info.channels, encoder_session.info.bits_per_sample, encoder_session.info.shift, channel_map))
-							return EncoderSession_finish_error(&encoder_session);
-					}
-				}
-			}
-		}
 	}
 
 	return EncoderSession_finish_ok(
 		&encoder_session,
-		info_align_carry,
-		info_align_zero,
 		EncoderSession_format_is_iff(&encoder_session)? options.format_options.iff.foreign_metadata : 0,
 		options.error_on_compression_fail
 	);
@@ -1594,7 +1489,7 @@ void EncoderSession_destroy(EncoderSession *e)
 	}
 }
 
-int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_align_zero, foreign_metadata_t *foreign_metadata, FLAC__bool error_on_compression_fail)
+int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_metadata, FLAC__bool error_on_compression_fail)
 {
 	FLAC__StreamEncoderState fse_state = FLAC__STREAM_ENCODER_OK;
 	int ret = 0;
@@ -1619,14 +1514,6 @@ int EncoderSession_finish_ok(EncoderSession *e, int info_align_carry, int info_a
 	if(verify_error) {
 		print_verify_error(e);
 		ret = 1;
-	}
-	else {
-		if(info_align_carry >= 0) {
-			flac__utils_printf(stderr, 1, "%s: INFO: sector alignment causing %d samples to be carried over\n", e->inbasefilename, info_align_carry);
-		}
-		if(info_align_zero >= 0) {
-			flac__utils_printf(stderr, 1, "%s: INFO: sector alignment causing %d zero samples to be appended\n", e->inbasefilename, info_align_zero);
-		}
 	}
 
 	/*@@@@@@ should this go here or somewhere else? */

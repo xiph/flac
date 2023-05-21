@@ -76,14 +76,10 @@ typedef struct {
 	FLAC__bool cued_seekpoints;
 	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
 
-	/* options related to --replay-gain and --sector-align */
 	FLAC__bool is_first_file;
 	FLAC__bool is_last_file;
-	FLAC__int32 **align_reservoir;
-	unsigned *align_reservoir_samples;
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
-	FLAC__bool sector_align;
 	FLAC__bool error_on_compression_fail;
 	FLAC__bool limit_min_bitrate;
 	FLAC__bool relaxed_foreign_metadata_handling;

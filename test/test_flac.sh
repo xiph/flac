@@ -1092,45 +1092,12 @@ cp shortnoise.raw file0.raw
 cp shortnoise.raw file1.raw
 cp shortnoise.raw file2.raw
 rm -f shortnoise.raw
-# create authoritative sector-aligned files for comparison
-file0_samples=$(( (short_noise_cdda_samples / 588) * 588))
-file0_remainder=$((short_noise_cdda_samples - file0_samples))
-file1_samples=$(( ( ( file0_remainder + short_noise_cdda_samples ) / 588 ) * 588))
-file1_remainder=$((file0_remainder + short_noise_cdda_samples - file1_samples))
-file1_samples=$((file1_samples - file0_remainder))
-file2_samples=$(( ( ( file1_remainder + short_noise_cdda_samples ) / 588 ) * 588))
-file2_remainder=$(( file1_remainder + short_noise_cdda_samples - file2_samples))
-file2_samples=$((file2_samples - file1_remainder))
-if [ $file2_remainder != '0' ] ; then
-	file2_samples=$((file2_samples + file2_remainder))
-	file2_remainder=$((588 - file2_remainder))
-fi
-
-dd if=file0.raw ibs=4 count=$file0_samples of=file0s.raw 2>/dev/null || $dddie
-dd if=file0.raw ibs=4 count=$file0_remainder of=file1s.raw skip=$file0_samples 2>/dev/null || $dddie
-dd if=file1.raw ibs=4 count=$file1_samples of=z.raw 2>/dev/null || $dddie
-cat z.raw >> file1s.raw || die "ERROR: cat-ing sector-aligned files"
-dd if=file1.raw ibs=4 count=$file1_remainder of=file2s.raw skip=$file1_samples 2>/dev/null || $dddie
-dd if=file2.raw ibs=4 count=$file2_samples of=z.raw 2>/dev/null || $dddie
-cat z.raw >> file2s.raw || die "ERROR: cat-ing sector-aligned files"
-dd if=/dev/zero ibs=4 count=$file2_remainder of=z.raw 2>/dev/null || $dddie
-cat z.raw >> file2s.raw || die "ERROR: cat-ing sector-aligned files"
-rm -f z.raw
-
-convert_to_wav file0s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
-convert_to_wav file1s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
-convert_to_wav file2s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned WAVE"
-
-convert_to_aiff file0s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
-convert_to_aiff file1s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
-convert_to_aiff file2s "$multifile_format_encode --force --force-raw-format" "$SILENT --force --decode" || die "ERROR creating authoritative sector-aligned AIFF"
 
 test_multifile ()
 {
 	input_type=$1
 	streamtype=$2
-	sector_align=$3
-	encode_options="$4"
+	encode_options="$3"
 
 	extra_encode_options=""
 	extra_decode_options=""
@@ -1150,10 +1117,6 @@ test_multifile ()
 		suffix=flac
 	fi
 
-	if [ $sector_align = sector_align ] ; then
-		encode_options="$encode_options --sector-align"
-	fi
-
 	if [ $input_type = flac ] || [ $input_type = ogg ] ; then
 		CMP=md5cmp
 	else
@@ -1165,15 +1128,9 @@ test_multifile ()
 	done
 	run_flac --force $encode_options $extra_encode_options file0x.$input_type file1x.$input_type file2x.$input_type || die "ERROR"
 	run_flac --force --decode $extra_decode_options file0x.$suffix file1x.$suffix file2x.$suffix || die "ERROR"
-	if [ $sector_align != sector_align ] ; then
-		for n in 0 1 2 ; do
-			$CMP file$n.$input_type file${n}x.$input_type || die "ERROR: file mismatch on file #$n"
-		done
-	else
-		for n in 0 1 2 ; do
-			$CMP file${n}s.$input_type file${n}x.$input_type || die "ERROR: file mismatch on file #$n"
-		done
-	fi
+	for n in 0 1 2 ; do
+		$CMP file$n.$input_type file${n}x.$input_type || die "ERROR: file mismatch on file #$n"
+	done
 	for n in 0 1 2 ; do
 		rm -f file${n}x.$suffix file${n}x.$input_type
 	done
@@ -1186,36 +1143,20 @@ input_types="raw wav aiff flac"
 #@@@fi
 for input_type in $input_types ; do
 	echo "Testing multiple $input_type files without verify..."
-	test_multifile $input_type flac no_sector_align ""
+	test_multifile $input_type flac ""
 
 	echo "Testing multiple $input_type files with verify..."
-	test_multifile $input_type flac no_sector_align "--verify"
-
-	if [ $input_type != flac ] && [ $input_type != ogg ] ; then # --sector-align not supported for FLAC input
-		echo "Testing multiple $input_type files with --sector-align, without verify..."
-		test_multifile $input_type flac sector_align ""
-
-		echo "Testing multiple $input_type files with --sector-align, with verify..."
-		test_multifile $input_type flac sector_align "--verify"
-	fi
+	test_multifile $input_type flac "--verify"
 
 	if [ $has_ogg = yes ] ; then
 		echo "Testing multiple $input_type files with --ogg, without verify..."
-		test_multifile $input_type ogg no_sector_align ""
+		test_multifile $input_type ogg ""
 
 		echo "Testing multiple $input_type files with --ogg, with verify..."
-		test_multifile $input_type ogg no_sector_align "--verify"
-
-		if [ $input_type != flac ] ; then # --sector-align not supported for FLAC input
-			echo "Testing multiple $input_type files with --ogg and --sector-align, without verify..."
-			test_multifile $input_type ogg sector_align ""
-
-			echo "Testing multiple $input_type files with --ogg and --sector-align, with verify..."
-			test_multifile $input_type ogg sector_align "--verify"
-		fi
+		test_multifile $input_type ogg "--verify"
 
 		echo "Testing multiple $input_type files with --ogg and --serial-number, with verify..."
-		test_multifile $input_type ogg no_sector_align "--serial-number=321 --verify"
+		test_multifile $input_type ogg "--serial-number=321 --verify"
 	fi
 done
 
