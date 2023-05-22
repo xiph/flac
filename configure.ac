@@ -176,10 +176,12 @@ os_is_windows=no
 case "$host" in
 	*mingw*)
 		os_is_windows=yes
+		AC_CHECK_TOOL(RC,[windres],[:])
 		;;
 esac
 
 AM_CONDITIONAL(OS_IS_WINDOWS, test "x$os_is_windows" = xyes)
+AM_CONDITIONAL(HAVE_WINDRES, test "x$RC" != "x:")
 
 case "$host" in
 	*-linux-*)
