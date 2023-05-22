@@ -62,7 +62,9 @@ static void usage_summary(FILE *out)
 	fprintf(out, "Options:\n");
 	fprintf(out, "--preserve-modtime    Preserve the original modification time in spite of edits\n");
 	fprintf(out, "--with-filename       Prefix each output line with the FLAC file name\n");
-	fprintf(out, "                      (the default if more than one FLAC file is specified)\n");
+	fprintf(out, "                      (the default if more than one FLAC file is specified).\n");
+	fprintf(out, "                      This option has no effect for options exporting to a\n");
+	fprintf(out, "                      file, like --export-tags-to.\n");
 	fprintf(out, "--no-filename         Do not prefix each output line with the FLAC file name\n");
 	fprintf(out, "                      (the default if only one FLAC file is specified)\n");
 	fprintf(out, "--no-utf8-convert     Do not convert tags from UTF-8 to local charset,\n");
