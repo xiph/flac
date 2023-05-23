@@ -137,7 +137,6 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 	 * apparently both the files have to be open at the same time for the comparison to work
 	 */
 	FLAC__bool same = false;
-	BY_HANDLE_FILE_INFORMATION info1, info2;
 	HANDLE h1, h2;
 	BOOL ok = 1;
 	h1 = CreateFile_utf8(f1, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, NULL);
@@ -145,6 +144,7 @@ FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
 	if(h1 == INVALID_HANDLE_VALUE || h2 == INVALID_HANDLE_VALUE)
 		ok = 0;
 #if WINAPI_FAMILY_PARTITION(WINAPI_PARTITION_DESKTOP)
+	BY_HANDLE_FILE_INFORMATION info1, info2;
 	ok &= GetFileInformationByHandle(h1, &info1);
 	ok &= GetFileInformationByHandle(h2, &info2);
 	if(ok)
