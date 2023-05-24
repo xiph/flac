@@ -12,7 +12,10 @@ add_executable(flacapp
     vorbiscomment.c
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
     $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>)
-set_property(TARGET flacapp PROPERTY RUNTIME_OUTPUT_NAME flac)
+if (NOT WINDOWS_STORE)
+  # The appxManifest uses the name of the executable, not the RUNTIME_OUTPUT_NAME
+  set_property(TARGET flacapp PROPERTY RUNTIME_OUTPUT_NAME flac)
+endif()
 set_property(TARGET flacapp PROPERTY PROJECT_LABEL "flac")
 target_link_libraries(flacapp
     FLAC
