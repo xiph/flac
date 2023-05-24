@@ -79,6 +79,11 @@ jobs:
             build-system: cmake
             configure-opts: '-DBUILD_SHARED_LIBS=ON'
 
+          - name: windows-latest-cmake-uwp
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DCMAKE_SYSTEM_NAME=WindowsStore -DCMAKE_SYSTEM_VERSION="10.0" -DCMAKE_C_FLAGS="-DWINAPI_FAMILY=WINAPI_FAMILY_APP" -DCMAKE_CXX_FLAGS="-DWINAPI_FAMILY=WINAPI_FAMILY_APP"'
+
           - name: ubuntu-latest-gcc-autotools-32-bit-words
             os: ubuntu-latest
             cc: gcc
