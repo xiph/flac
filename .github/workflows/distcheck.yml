@@ -36,9 +36,15 @@ jobs:
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v3
+        with:
+          name: flac-${{ github.sha }}-${{ github.run_id }}-compat
+          path: |
+            ./compat_reports
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v3
         if: failure()
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs
           path: |
             ./flac-**/**/*.log
-            ./compat_reports
