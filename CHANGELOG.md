@@ -2,6 +2,45 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
+## git as of 2023-05-28
+
+As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 13. The libFLAC++ version number stays at 10.
+
+* General
+	* All PowerPC-specific code has been removed, as it turned out those improvements didn't actually improve anything
+	* Large improvements in encoder speed for all presets. The largest change is for the fastest presets and for 24-bit and 32-bit inputs.
+	* Small improvement in decoder speed for BMI2-capable CPUs
+* flac
+	* A lot of small fixes for bugs found by fuzzing
+	* Various improvements to the --keep-foreign-metadata and --keep-foreign-metadata-if-present options on decoding
+		* The output format (WAV/AIFF/RF64 etc.) is now automatically selected based on what kind of foreign metadata is stored
+		* Decoded file is checked afterwards, to see whether stored foreign format data agrees with FLAC audio properties
+		* AIFF-C sowt data can now be restored
+	* Add --force-legacy-wave-format option, to decode to WAV with WAVEFORMATPCM where WAVE_FORMAT_EXTENSIBLE would be more appropriate
+	* Add --force-aiff-c-none-format and --force-aiff-c-sowt-format to decode to AIFF-C
+	* The storage of WAVEFORMATEXTENSIBLE_CHANNEL_MASK is no longer restricted to known channel orderings
+	* Throw an error when WAV or AIFF files are over 4GiB in length and the --ignore-chunk-sizes option is not set
+	* Warn on testing files when ID3v2 tags are found
+	* Warn when data trails the audio data of a WAV/AIFF/RF64/W64 file
+	* Fix output file not being deleted after error on Windows
+	* Fix compilation on UWP platform
+* metaflac
+	* A lot of small fixes for bugs found by fuzzing
+	* Added options --append and --data-format, which makes it possible to copy metadata blocks from one FLAC file to another
+	* Added option --remove-all-tags-except
+	* Added option --show-all-tags
+* libFLAC
+	* No longer write seektables to Ogg, even when specifically asked for. Seektables in Ogg are not defined
+	* Add functions FLAC__metadata_object_set_raw and FLAC__metadata_object_get_raw to convert between blob and FLAC__StreamMetadata
+* Build system
+	* Autoconf (configure)
+		* The option --enable-64-bit-words is now on by default
+	* CMake
+		* The option ENABLE_64_BIT_WORDS is now on by default
+* Testing/validation
+	* Fuzzers were added for the flac and metaflac command line tools
+	* Fuzzer coverage was improved
+
 ## FLAC 1.4.2 (22-Oct-2022)
 
 Once again, this release only has a few changes. A problem with FLAC playback in GStreamer (and possibly other libFLAC users) was the reason for the short time since the last release
