@@ -56,7 +56,6 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	flac__utils_verbosity_ = 0;
 	share__opterr = 0;
 	share__optind = 0;
-	align_reservoir_samples = 0;
 
 	if(size < 2)
 		return 0;

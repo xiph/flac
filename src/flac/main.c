@@ -151,7 +151,6 @@ static struct share__option long_options_[] = {
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
 	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
-	{ "sector-align"              , share__no_argument, 0, 0 }, /* DEPRECATED */
 	{ "seekpoint"                 , share__required_argument, 0, 'S' },
 	{ "padding"                   , share__required_argument, 0, 'P' },
 #if FLAC__HAS_OGG
@@ -194,7 +193,6 @@ static struct share__option long_options_[] = {
 	{ "no-keep-foreign-metadata"  , share__no_argument, 0, 0 },
 	{ "no-replay-gain"            , share__no_argument, 0, 0 },
 	{ "no-ignore-chunk-sizes"     , share__no_argument, 0, 0 },
-	{ "no-sector-align"           , share__no_argument, 0, 0 }, /* DEPRECATED */
 	{ "no-utf8-convert"           , share__no_argument, 0, 0 },
 	{ "no-lax"                    , share__no_argument, 0, 0 },
 #if FLAC__HAS_OGG
@@ -257,7 +255,6 @@ static struct {
 	FLAC__bool keep_foreign_metadata_if_present;
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
-	FLAC__bool sector_align;
 	FLAC__bool utf8_convert; /* true by default, to convert tag strings from locale to utf-8, false if --no-utf8-convert used */
 	const char *cmdline_forced_outfilename;
 	const char *output_prefix;
@@ -301,10 +298,6 @@ static struct {
 /*
  * miscellaneous globals
  */
-
-static FLAC__int32 align_reservoir_0[588], align_reservoir_1[588]; /* for carrying over samples from --sector-align */ /* DEPRECATED */
-static FLAC__int32 *align_reservoir[2] = { align_reservoir_0, align_reservoir_1 };
-static uint32_t align_reservoir_samples = 0; /* 0 .. 587 */
 
 
 #ifndef FUZZ_TOOL_FLAC
@@ -441,30 +434,12 @@ int do_it(void)
 		if(option_values.ignore_chunk_sizes) {
 			if(option_values.mode_decode)
 				return usage_error("ERROR: --ignore-chunk-sizes only allowed for encoding\n");
-			if(0 != option_values.sector_align)
-				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --sector-align\n");
 			if(0 != option_values.until_specification)
 				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --until\n");
 			if(0 != option_values.cue_specification)
 				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --cue\n");
 			if(0 != option_values.cuesheet_filename)
 				return usage_error("ERROR: --ignore-chunk-sizes not allowed with --cuesheet\n");
-		}
-		if(option_values.sector_align) {
-			if(option_values.mode_decode)
-				return usage_error("ERROR: --sector-align only allowed for encoding\n");
-			if(0 != option_values.skip_specification)
-				return usage_error("ERROR: --sector-align not allowed with --skip\n");
-			if(0 != option_values.until_specification)
-				return usage_error("ERROR: --sector-align not allowed with --until\n");
-			if(0 != option_values.cue_specification)
-				return usage_error("ERROR: --sector-align not allowed with --cue\n");
-			if(option_values.format_channels >= 0 && option_values.format_channels != 2)
-				return usage_error("ERROR: --sector-align can only be done with stereo input\n");
-			if(option_values.format_bps >= 0 && option_values.format_bps != 16)
-				return usage_error("ERROR: --sector-align can only be done with 16-bit samples\n");
-			if(option_values.format_sample_rate >= 0 && option_values.format_sample_rate != 44100)
-				return usage_error("ERROR: --sector-align can only be done with a sample rate of 44100\n");
 		}
 		if(option_values.replay_gain) {
 			if(option_values.force_to_stdout)
@@ -605,7 +580,6 @@ FLAC__bool init_options(void)
 	option_values.keep_foreign_metadata_if_present = false;
 	option_values.replay_gain = false;
 	option_values.ignore_chunk_sizes = false;
-	option_values.sector_align = false;
 	option_values.utf8_convert = true;
 	option_values.cmdline_forced_outfilename = 0;
 	option_values.output_prefix = 0;
@@ -824,11 +798,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "ignore-chunk-sizes")) {
 			option_values.ignore_chunk_sizes = true;
 		}
-		else if(0 == strcmp(long_option, "sector-align")) {
-			flac__utils_printf(stderr, 1, "WARNING: --sector-align is DEPRECATED and may not exist in future versions of flac.\n");
-			flac__utils_printf(stderr, 1, "         shntool provides similar functionality\n");
-			option_values.sector_align = true;
-		}
 #if FLAC__HAS_OGG
 		else if(0 == strcmp(long_option, "ogg")) {
 			option_values.use_ogg = true;
@@ -910,9 +879,6 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "no-ignore-chunk-sizes")) {
 			option_values.ignore_chunk_sizes = false;
-		}
-		else if(0 == strcmp(long_option, "no-sector-align")) {
-			option_values.sector_align = false;
 		}
 		else if(0 == strcmp(long_option, "no-utf8-convert")) {
 			option_values.utf8_convert = false;
@@ -1340,7 +1306,6 @@ void show_help(void)
 	printf("  -V, --verify                 Verify a correct encoding\n");
 	printf("      --lax                    Allow encoder to generate non-Subset files\n");
 	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files\n");
-	printf("      --sector-align (DEPRECATED) Align multiple files on sector boundaries\n");
 	printf("      --replay-gain            Calculate ReplayGain & store in FLAC tags\n");
 	printf("      --cuesheet=FILENAME      Import cuesheet and store in CUESHEET block\n");
 	printf("      --picture=SPECIFICATION  Import picture and store in PICTURE block\n");
@@ -1406,7 +1371,6 @@ void show_help(void)
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
 	printf("      --no-ignore-chunk-sizes\n");
-	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
 	printf("      --no-force\n");
@@ -1549,10 +1513,6 @@ void show_explain(void)
 	printf("      --ignore-chunk-sizes     Ignore data chunk sizes in WAVE/AIFF files;\n");
 	printf("                               useful when piping data from programs which\n");
 	printf("                               generate bogus data chunk sizes.\n");
-	printf("      --sector-align           Align encoding of multiple CD format WAVE files\n");
-	printf("                               on sector boundaries.  This option is DEPRECATED\n");
-	printf("                               and may not exist in future versions of flac.\n");
-	printf("                               shntool offers similar functionality.\n");
 	printf("      --replay-gain            Calculate ReplayGain values and store them as\n");
 	printf("                               FLAC tags.  Title gains/peaks will be computed\n");
 	printf("                               for each file, and an album gain/peak will be\n");
@@ -1773,7 +1733,6 @@ void show_explain(void)
 	printf("      --no-residual-gnuplot\n");
 	printf("      --no-residual-text\n");
 	printf("      --no-ignore-chunk-sizes\n");
-	printf("      --no-sector-align\n");
 	printf("      --no-seektable\n");
 	printf("      --no-silent\n");
 	printf("      --no-force\n");
@@ -1964,17 +1923,6 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 	}
 
-	if(option_values.sector_align && (input_format == FORMAT_FLAC || input_format == FORMAT_OGGFLAC)) {
-		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input file is FLAC or Ogg FLAC\n");
-		conditional_fclose(encode_infile);
-		return 1;
-	}
-	if(option_values.sector_align && input_format == FORMAT_RAW && infilesize < 0) {
-		flac__utils_printf(stderr, 1, "ERROR: can't use --sector-align when the input size is unknown\n");
-		conditional_fclose(encode_infile);
-		return 1;
-	}
-
 	if(input_format == FORMAT_RAW) {
 		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
 			conditional_fclose(encode_infile);
@@ -2036,11 +1984,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.channel_map_none = option_values.channel_map_none;
 	encode_options.is_first_file = is_first_file;
 	encode_options.is_last_file = is_last_file;
-	encode_options.align_reservoir = align_reservoir;
-	encode_options.align_reservoir_samples = &align_reservoir_samples;
 	encode_options.replay_gain = option_values.replay_gain;
 	encode_options.ignore_chunk_sizes = option_values.ignore_chunk_sizes;
-	encode_options.sector_align = option_values.sector_align;
 	encode_options.vorbis_comment = option_values.vorbis_comment;
 	FLAC__ASSERT(sizeof(encode_options.pictures) >= sizeof(option_values.pictures));
 	memcpy(encode_options.pictures, option_values.pictures, sizeof(option_values.pictures));

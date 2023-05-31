@@ -384,11 +384,6 @@ the HTML documentation.
 	FILENAME is just shorthand for "\|\|\|\|FILENAME". For the format of
 	SPECIFICATION, see the section **picture specification**.
 
-**\--sector-align**
-:	Align encoding of multiple CD format files on sector boundaries. See the
-	HTML documentation for more information. This option is DEPRECATED and
-	may not exist in future versions of flac.
-
 **\--ignore-chunk-sizes**
 :	When encoding to flac, ignore the file size headers in WAV and AIFF
 	files to attempt to work around problems with over-sized or malformed
@@ -587,7 +582,6 @@ the HTML documentation.
 **\--no-replay-gain**  
 **\--no-residual-gnuplot**  
 **\--no-residual-text**  
-**\--no-sector-align**  
 **\--no-seektable**  
 **\--no-silent**  
 **\--no-verify**  
