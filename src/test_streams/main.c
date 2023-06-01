@@ -418,7 +418,7 @@ static FLAC__bool generate_fsd32(const char *fn, const int pattern[], unsigned r
 
 	for(rep = 0; rep < reps; rep++) {
 		for(p = 0; pattern[p]; p++) {
-			FLAC__int32 x = pattern[p] > 0? 2147483647 : -2147483648;
+			FLAC__int32 x = pattern[p] > 0? 0x7FFFFFFF : 0x8000000;
 			if(!write_little_endian_int32(f, x))
 				goto foo;
 		}

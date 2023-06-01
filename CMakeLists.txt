@@ -168,6 +168,7 @@ endif()
 add_compile_options(
     $<$<BOOL:${MSVC}>:/wd4267>
     $<$<BOOL:${MSVC}>:/wd4996>
+    $<$<BOOL:${MSVC}>:/we4013>
     $<$<BOOL:${ENABLE_WERROR}>:-Werror>
     $<$<AND:$<COMPILE_LANGUAGE:CXX>,$<BOOL:${HAVE_WEFFCXX_FLAG}>>:-Weffc++>
     $<$<AND:$<COMPILE_LANGUAGE:C>,$<BOOL:${HAVE_DECL_AFTER_STMT_FLAG}>>:-Wdeclaration-after-statement>)
