@@ -2,7 +2,7 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## git as of 2023-05-28
+## git as of 2023-06-05
 
 As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 13. The libFLAC++ version number stays at 10.
 
@@ -10,6 +10,9 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* All PowerPC-specific code has been removed, as it turned out those improvements didn't actually improve anything
 	* Large improvements in encoder speed for all presets. The largest change is for the fastest presets and for 24-bit and 32-bit inputs.
 	* Small improvement in decoder speed for BMI2-capable CPUs
+	* Various documentation fixes and cleanups (Mark Grassi, Jake Schmidt)
+	* Various fixes (Ozkan Sezer, Zhipeng Xue, orbea, Sam James, Harish Mahendrakar)
+	* Fix building on Universal Windows Platform (Dmitry Kostjučenko)
 * flac
 	* A lot of small fixes for bugs found by fuzzing
 	* Various improvements to the --keep-foreign-metadata and --keep-foreign-metadata-if-present options on decoding
@@ -23,12 +26,12 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Warn on testing files when ID3v2 tags are found
 	* Warn when data trails the audio data of a WAV/AIFF/RF64/W64 file
 	* Fix output file not being deleted after error on Windows
-	* Fix compilation on UWP platform
+	* Removal of the --sector--align option
 * metaflac
 	* A lot of small fixes for bugs found by fuzzing
 	* Added options --append and --data-format, which makes it possible to copy metadata blocks from one FLAC file to another
 	* Added option --remove-all-tags-except
-	* Added option --show-all-tags
+	* Added option --show-all-tags (harridu, Martijn van Beurden)
 * libFLAC
 	* No longer write seektables to Ogg, even when specifically asked for. Seektables in Ogg are not defined
 	* Add functions FLAC__metadata_object_set_raw and FLAC__metadata_object_get_raw to convert between blob and FLAC__StreamMetadata
