@@ -1,6 +1,6 @@
 /* FLAC - Free Lossless Audio Codec
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2022  Xiph.Org Foundation
+ * Copyright (C) 2011-2023  Xiph.Org Foundation
  *
  * This file is part the FLAC project.  FLAC is comprised of several
  * components distributed under different licenses.  The codec libraries
@@ -27,6 +27,7 @@ https://gitlab.xiph.org/xiph/flac/commits
 
 Original author: Josh Coalson <jcoalson@users.sourceforge.net>
 Maintainer 2012-2020: Erik de Castro Lopo <erikd@mega-nerd.com>
+Maintainer from 2022: Martijn van Beurden <mvanb1@gmail.com>
 
 Website : https://www.xiph.org/flac/
 
@@ -57,8 +58,3 @@ Other major contributors and their contributions:
 
 "Matt Zimmerman" <mdz@debian.org>
 * Libtool/autoconf/automake make system, flac man page
-
-"Martijn van Beurden" <mvanb1@gmail.com>
-* Compression improvements
-* Fuzzer improvements and fixes for fuzz findings
-* Implementation of 32 bps encoder and decoder
