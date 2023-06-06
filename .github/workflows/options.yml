@@ -1,0 +1,50 @@
+name: GitHub Actions for specific options
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: 32-bit-words
+            cppflags: ''
+            configure-opts: --disable-64-bit-words
+
+          - name: integer-only-library
+            cppflags: '-DFLAC__INTEGER_ONLY_LIBRARY'
+            configure-opts: ''
+
+          - name: no-asm
+            cppflags: ''
+            configure-opts: --disable-asm-optimizations
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libtool-bin libogg-dev
+
+      - name: Build and run tests
+        env:
+          CPPFLAGS: ${{ matrix.cppflags }}
+        run: |
+          ./autogen.sh
+          ./configure --disable-thorough-tests ${{ matrix.configure-opts }}
+          make
+          make check
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          path: |
+            ./**/*.log
+            ./**/out*.meta
