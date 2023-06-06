@@ -1,4 +1,4 @@
-dnl Copyright (C) 2012-2022  Xiph.Org Foundation
+dnl Copyright (C) 2012-2023  Xiph.Org Foundation
 dnl
 dnl Redistribution and use in source and binary forms, with or without
 dnl modification, are permitted provided that the following conditions

@@ -1,6 +1,6 @@
 /* test_seeking - Seeking tester for libFLAC
  * Copyright (C) 2004-2009  Josh Coalson
- * Copyright (C) 2011-2022  Xiph.Org Foundation
+ * Copyright (C) 2011-2023  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
