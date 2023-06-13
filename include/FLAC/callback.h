@@ -90,7 +90,9 @@ typedef void* FLAC__IOHandle;
 
 /** Signature for the read callback.
  *  The signature and semantics match POSIX fread() implementations
- *  and can generally be used interchangeably.
+ *  and can generally be used interchangeably. Note that the global
+ *  variable errno from errno.h is read by some libFLAC functions to
+ *  detect read errors.
  *
  * \param  ptr      The address of the read buffer.
  * \param  size     The size of the records to be read.
@@ -166,6 +168,9 @@ typedef int (*FLAC__IOCallback_Close) (FLAC__IOHandle handle);
  *
  *  If the seek requirement for an interface is optional, you can signify that
  *  a data source is not seekable by setting the \a seek field to \c NULL.
+ *
+ *  See the detailed documentation for callbacks in the
+ *  \link flac_callbacks callbacks \endlink module.
  */
 typedef struct {
 	FLAC__IOCallback_Read read;   /**< See FLAC__IOCallbacks */
