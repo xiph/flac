@@ -1,0 +1,134 @@
+name: GitHub Actions
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - name: ubuntu-latest-clang-autotools
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: autotools
+            configure-opts: ''
+
+          - name: ubuntu-latest-gcc-cmake
+            os: ubuntu-latest
+            cc: gcc
+            cxx: g++
+            build-system: cmake
+            configure-opts: ''
+
+          - name: ubuntu-latest-clang-cmake
+            os: ubuntu-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            configure-opts: ''
+
+          - name: macos-latest-clang-autotools
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: autotools
+            configure-opts: ''
+
+          - name: macos-latest-clang-cmake
+            os: macos-latest
+            cc: clang
+            cxx: clang++
+            build-system: cmake
+            configure-opts: ''
+
+          - name: windows-latest-cmake
+            os: windows-latest
+            build-system: cmake
+            configure-opts: ''
+
+          - name: windows-latest-cmake-shared
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DBUILD_SHARED_LIBS=ON'
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - uses: actions/checkout@v3
+        if: startsWith(matrix.build-system,'cmake')
+        with:
+          repository: xiph/ogg
+          path: ./ogg
+
+      - name: Install MacOS dependencies
+        if: startsWith(matrix.os,'macos') && !startsWith(matrix.build-system,'cmake')
+        run: |
+          brew update
+          brew install automake pkg-config libogg
+
+      - name: Install Linux dependencies
+        if: startsWith(matrix.os,'ubuntu')
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libtool-bin libogg-dev
+
+      - name: Install Windows dependencies
+        if: startsWith(matrix.os,'windows')
+        run: |
+          choco install busybox
+
+      - name: Build with Autotools
+        if: startsWith(matrix.build-system,'autotools')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: |
+          ./autogen.sh
+          ./configure ${{ matrix.configure-opts }}
+          make
+          make check
+
+      - name: Prepare CMake build directory
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        run: mkdir cmake-build
+
+      - name: CMake generator
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: cmake .. -DCMAKE_BUILD_TYPE=Release -DINSTALL_MANPAGES=OFF -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON ${{ matrix.configure-opts }} -DCMAKE_FIND_FRAMEWORK=NEVER
+
+      - name: CMake build
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: cmake --build . --config Release
+
+      - name: CMake test
+        if: startsWith(matrix.build-system,'cmake')
+        env:
+          CC: ${{ matrix.cc }}
+          CXX: ${{ matrix.cxx }}
+        working-directory: cmake-build
+        run: ctest -V -C Release
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v2
+        if: failure()
+        with:
+          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          path: |
+            ./**/*.log
+            ./**/out*.meta
