@@ -40,7 +40,7 @@ jobs:
           abi-compliance-checker -l flac++ -old test/abi/abi-libFLAC++-1.4.0.dump -new test/abi/abi-descriptor-libFLAC++-1.4.0.xml
 
       - name: Check with flac test files
-        run: ./src/flac/flac -t test-files/subset/*.flac test-files/uncommon/0[15-9]*.flac
+        run: ./src/flac/flac -t test-files/subset/*.flac test-files/uncommon/0[15-9]*.flac test-files/uncommon/10*.flac
 
       - name: Upload ABI compliance reports
         uses: actions/upload-artifact@v3
