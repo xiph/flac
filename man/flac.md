@@ -206,7 +206,9 @@ the HTML documentation.
 :	Decode (the default behavior is to encode)
 
 **-t, \--test**
-:	Test a flac encoded file (same as -d except no decoded file is written)
+:	Test a flac encoded file. This works the same as -d except no
+	decoded file is written, with some additional checks like parsing
+	of all metadata blocks.
 
 **-a, \--analyze**
 :	Analyze a FLAC encoded file (same as -d except an analysis file is
