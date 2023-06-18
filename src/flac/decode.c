@@ -242,7 +242,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 	d->has_md5sum = false;
 	d->bps = 0;
 	d->channels = 0;
-	d->sample_rate = 0;
+	d->sample_rate = UINT32_MAX;
 	d->channel_mask = 0;
 
 	d->decode_position = 0;
@@ -1172,7 +1172,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	}
 
 	/* sanity-check the sample rate */
-	if(!decoder_session->got_stream_info) {
+	if(decoder_session->sample_rate < UINT32_MAX) {
 		if(frame->header.sample_rate != decoder_session->sample_rate) {
 			if(decoder_session->got_stream_info)
 				flac__utils_printf(stderr, 1, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
@@ -1183,6 +1183,8 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		}
 	}
 	else {
+		/* must not have gotten STREAMINFO, save the sample rate from the frame header */
+		FLAC__ASSERT(!decoder_session->got_stream_info);
 		decoder_session->sample_rate = frame->header.sample_rate;
 	}
 
