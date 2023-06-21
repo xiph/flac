@@ -57,7 +57,7 @@ endif
 endif
 
 # see 'http://www.gnu.org/software/libtool/manual/libtool.html#Libtool-versioning' for numbering convention
-libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 10:0:0 $(windows_resource_link)
+libFLAC___la_LDFLAGS = $(AM_LDFLAGS) -no-undefined -version-info 10:1:0 $(windows_resource_link)
 libFLAC___la_LIBADD = ../libFLAC/libFLAC.la
 libFLAC___la_SOURCES = $(libFLAC___sources)
 

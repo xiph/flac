@@ -11,7 +11,8 @@
 1. Update changelog
 1. Check copyright year and update if applicable
 1. Check libFLAC and libFLAC++ for interface changes and update 
-    version numbers in include/FLAC/export.h, include/FLAC++/export.h
+    version numbers in include/FLAC/export.h, include/FLAC++/export.h,
+    src/libFLAC/Makefile.am, src/libFLAC++/Makefile.am,
     src/libFLAC/CMakeLists.txt and src/libFLAC++/CMakeLists.txt
 1. Prepare and check release tarball by running 
     `git clean -ffxd && ./autogen.sh && ./configure && make distcheck`
