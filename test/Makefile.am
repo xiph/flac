@@ -49,8 +49,9 @@ endif
 	@echo "----------------"
 
 EXTRA_DIST = \
-    CMakeLists.txt \
+	CMakeLists.txt \
 	cuesheet.ok \
+	generate_streams.sh \
 	metaflac.flac.in \
 	metaflac.flac.ok \
 	picture.ok \
