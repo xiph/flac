@@ -2,7 +2,7 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## git as of 2023-06-05
+## FLAC 1.4.3 (23-Jun-2023)
 
 As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 13. The libFLAC++ version number stays at 10.
 
