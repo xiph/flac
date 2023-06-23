@@ -66,6 +66,7 @@ typedef struct {
 
 	FLAC__uint64 samples_processed;
 	uint32_t frame_counter;
+	FLAC__FrameHeader prev_frameheader; /* Header of previously decoded frame */
 	FLAC__bool abort_flag;
 	FLAC__bool aborting_due_to_until; /* true if we intentionally abort decoding prematurely because we hit the --until point */
 	FLAC__bool aborting_due_to_unparseable; /* true if we abort decoding because we hit an unparseable frame */
@@ -227,6 +228,7 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->samples_processed = 0;
 	d->frame_counter = 0;
+	memset(&(d->prev_frameheader), 0, sizeof(FLAC__FrameHeader));
 	d->abort_flag = false;
 	d->aborting_due_to_until = false;
 	d->aborting_due_to_unparseable = false;
@@ -1234,6 +1236,25 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		FLAC__stream_decoder_get_decode_position(decoder_session->decoder, &dpos);
 		frame_bytes = (dpos-decoder_session->decode_position);
 		decoder_session->decode_position = dpos;
+	}
+
+	/* warn in case frame/sample number is incorrect, but only when decoding
+	 * through errors is not enabled */
+	if(!decoder_session->continue_through_decode_errors) {
+		if(decoder_session->prev_frameheader.channels > 0) {
+			FLAC__ASSERT(decoder_session->prev_frameheader.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+			if(decoder_session->prev_frameheader.number.sample_number +
+			   decoder_session->prev_frameheader.blocksize !=
+			   frame->header.number.sample_number) {
+				flac__utils_printf(stderr, 1, "%s: WARNING: sample or frame number does not increase correctly, file might not be seekable\n", decoder_session->inbasefilename);
+				if(decoder_session->treat_warnings_as_errors) {
+					decoder_session->abort_flag = true;
+					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+				}
+			}
+		}
+		memcpy(&(decoder_session->prev_frameheader), &(frame->header), sizeof(FLAC__FrameHeader));
 	}
 
 	if(wide_samples > 0) {
