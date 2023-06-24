@@ -167,6 +167,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	uint32_t unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine to check when process_single() actually writes a frame */
 	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
+	FLAC__bool error_has_been_sent; /* To check whether a missing frame has been signalled yet */
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -985,6 +986,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	decoder->private_->unparseable_frame_count = 0;
 	decoder->private_->last_seen_framesync = 0;
 	decoder->private_->last_frame_is_set = false;
+	decoder->private_->error_has_been_sent = false;
 
 	return true;
 }
@@ -2152,7 +2154,12 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 		if(decoder->private_->last_frame.header.number.sample_number + decoder->private_->last_frame.header.blocksize < decoder->private_->frame.header.number.sample_number) {
 			uint32_t padding_samples_needed = decoder->private_->frame.header.number.sample_number - (decoder->private_->last_frame.header.number.sample_number + decoder->private_->last_frame.header.blocksize);
-
+			/* Send an error that we lost sync, but only in case no error
+			 * has been sent yet. This is the case if exactly one or more
+			 * frames are missing, and the frames before and after it
+			 * are complete */
+			if(!decoder->private_->error_has_been_sent)
+				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			/* Do some extra validation to assure last frame an current frame
 			 * header are both valid before adding silence inbetween
 			 * Technically both frames could be valid with differing sample_rates,
@@ -2213,6 +2220,8 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			}
 		}
 	}
+
+	decoder->private_->error_has_been_sent = false;
 
 	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC || decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM) {
 		/* Got corruption, rewind if possible. Return value of seek
@@ -3268,8 +3277,10 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 
 void send_error_to_client_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status)
 {
-	if(!decoder->private_->is_seeking)
+	if(!decoder->private_->is_seeking) {
+		decoder->private_->error_has_been_sent = true;
 		decoder->private_->error_callback(decoder, status, decoder->private_->client_data);
+	}
 	else if(status == FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM)
 		decoder->private_->unparseable_frame_count++;
 }
