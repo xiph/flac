@@ -43,6 +43,10 @@
 #include <windows.h> /* for GetFileType() */
 #include <io.h> /* for _get_osfhandle() */
 #endif
+#ifdef HAVE_PTHREAD
+#include <pthread.h>
+#include <semaphore.h>
+#endif
 #include "share/compat.h"
 #include "FLAC/assert.h"
 #include "FLAC/stream_decoder.h"
