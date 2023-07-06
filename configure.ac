@@ -53,7 +53,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h semaphore.h])
 
 if test "x$ac_cv_header_stdint_h" != xyes -o "x$ac_cv_header_stdbool_h" != xyes; then
 AC_MSG_ERROR("Header stdint.h and/or stdbool.h not found")
@@ -371,6 +371,29 @@ AC_ARG_ENABLE([version-from-git],
 	AS_HELP_STRING([--disable-version-from-git], [Do not use git tag, commit hash and commit date for version number]),
        [ enable_version_from_git=$enableval ], [ enable_version_from_git=yes ])
 
+dnl Build with multithreading?
+AC_ARG_ENABLE([multithreading],
+	AS_HELP_STRING([--disable-multithreading], [Disable multithreading in libFLAC]))
+
+HAVE_PTHREAD=no
+if test "x$enable_multithreading" != "xno" ; then
+	if test "x$ac_cv_header_semaphore_h" != "xyes"; then
+		AC_MSG_WARN("Header semaphore.h, needed for multithreading, is not found")
+	else
+		AX_PTHREAD([
+			HAVE_PTHREAD=yes
+			AC_DEFINE(HAVE_PTHREAD,1,[Define if pthread is enabled])
+			LIBS="$PTHREAD_LIBS $LIBS"
+			CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+			CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+			CC="$PTHREAD_CC"
+			CXX="$PTHREAD_CXX"
+			],[HAVE_PTHREAD=no])
+		if test "x${HAVE_PTHREAD}" == "xno"; then
+			AC_MSG_WARN("pthread support, needed for multithreading, is not found")
+		fi
+	fi
+fi
 
 dnl check for i18n(internationalization); these are from libiconv/gettext
 AM_ICONV
@@ -597,6 +620,7 @@ fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
+	echo "    Multithreading   : ........................ ${HAVE_PTHREAD}"
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
 	echo "    Fuzzing support (Clang only) : ............ ${have_oss_fuzzers}"
 echo
