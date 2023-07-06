@@ -137,6 +137,61 @@ static const  struct CompressionLevels {
 	/* here we use locale-independent 5e-1 instead of 0.5 or 0,5 */
 };
 
+/***********************************************************************
+ *
+ * Thread-private data
+ *
+ ***********************************************************************/
+
+
+typedef struct FLAC__StreamEncoderThread {
+	FLAC__int32 *integer_signal[FLAC__MAX_CHANNELS];  /* the integer version of the input signal */
+	FLAC__int32 *integer_signal_mid_side[2];          /* the integer version of the mid-side input signal (stereo only) */
+	FLAC__int64 *integer_signal_33bit_side;           /* 33-bit side for 32-bit stereo decorrelation */
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+	FLAC__real *windowed_signal;                      /* the integer_signal[] * current window[] */
+#endif
+	uint32_t subframe_bps[FLAC__MAX_CHANNELS];        /* the effective bits per sample of the input signal (stream bps - wasted bits) */
+	uint32_t subframe_bps_mid_side[2];                /* the effective bits per sample of the mid-side input signal (stream bps - wasted bits + 0/1) */
+	FLAC__int32 *residual_workspace[FLAC__MAX_CHANNELS][2]; /* each channel has a candidate and best workspace where the subframe residual signals will be stored */
+	FLAC__int32 *residual_workspace_mid_side[2][2];
+	FLAC__Subframe subframe_workspace[FLAC__MAX_CHANNELS][2];
+	FLAC__Subframe subframe_workspace_mid_side[2][2];
+	FLAC__Subframe *subframe_workspace_ptr[FLAC__MAX_CHANNELS][2];
+	FLAC__Subframe *subframe_workspace_ptr_mid_side[2][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_workspace[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_workspace_mid_side[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents_workspace_ptr[FLAC__MAX_CHANNELS][2];
+	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents_workspace_ptr_mid_side[FLAC__MAX_CHANNELS][2];
+	uint32_t best_subframe[FLAC__MAX_CHANNELS];       /* index (0 or 1) into 2nd dimension of the above workspaces */
+	uint32_t best_subframe_mid_side[2];
+	uint32_t best_subframe_bits[FLAC__MAX_CHANNELS];  /* size in bits of the best subframe for each channel */
+	uint32_t best_subframe_bits_mid_side[2];
+	FLAC__uint64 *abs_residual_partition_sums;        /* workspace where the sum of abs(candidate residual) for each partition is stored */
+	uint32_t *raw_bits_per_partition;                 /* workspace where the sum of silog2(candidate residual) for each partition is stored */
+	FLAC__BitWriter *frame;                           /* the current frame being worked on */
+	/* unaligned (original) pointers to allocated data */
+	FLAC__int32 *integer_signal_unaligned[FLAC__MAX_CHANNELS];
+	FLAC__int32 *integer_signal_mid_side_unaligned[2];
+	FLAC__int64 *integer_signal_33bit_side_unaligned;
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+	FLAC__real *windowed_signal_unaligned;
+#endif
+	FLAC__int32 *residual_workspace_unaligned[FLAC__MAX_CHANNELS][2];
+	FLAC__int32 *residual_workspace_mid_side_unaligned[2][2];
+	FLAC__uint64 *abs_residual_partition_sums_unaligned;
+	uint32_t *raw_bits_per_partition_unaligned;
+	/*
+	 * These fields have been moved here from private function local
+	 * declarations merely to save stack space during encoding.
+	 */
+#ifndef FLAC__INTEGER_ONLY_LIBRARY
+	FLAC__real lp_coeff[FLAC__MAX_LPC_ORDER][FLAC__MAX_LPC_ORDER]; /* from process_subframe_() */
+#endif
+	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_extra[2]; /* from find_best_partition_order_() */
+} FLAC__StreamEncoderThread;
+
+
 
 /***********************************************************************
  *
@@ -147,17 +202,18 @@ static const  struct CompressionLevels {
 static void set_defaults_(FLAC__StreamEncoder *encoder);
 static void free_(FLAC__StreamEncoder *encoder);
 static FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize);
-static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC__bool is_last_block);
+static FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderThread *threadctx, uint32_t samples, FLAC__bool is_last_block);
 static FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, FLAC__bool is_last_block);
 static void update_metadata_(const FLAC__StreamEncoder *encoder);
 #if FLAC__HAS_OGG
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
 #endif
 static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block);
-static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder);
+static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderThread *threadctx);
 
 static FLAC__bool process_subframe_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	uint32_t min_partition_order,
 	uint32_t max_partition_order,
 	const FLAC__FrameHeader *frame_header,
@@ -173,6 +229,7 @@ static FLAC__bool process_subframe_(
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 static FLAC__bool apply_apodization_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	apply_apodization_state_struct *apply_apodization_state,
 	uint32_t blocksize,
 	double *lpc_error,
@@ -201,6 +258,7 @@ static uint32_t evaluate_constant_subframe_(
 
 static uint32_t evaluate_fixed_subframe_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	const void *signal,
 	FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
@@ -220,6 +278,7 @@ static uint32_t evaluate_fixed_subframe_(
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 static uint32_t evaluate_lpc_subframe_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	const void *signal,
 	FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
@@ -249,6 +308,7 @@ static uint32_t evaluate_verbatim_subframe_(
 
 static uint32_t find_best_partition_order_(
 	struct FLAC__StreamEncoderPrivate *private_,
+	FLAC__StreamEncoderThread *threadctx,
 	const FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
 	uint32_t raw_bits_per_partition[],
@@ -335,55 +395,6 @@ static FILE *get_binary_stdout_(void);
  * Private class data
  *
  ***********************************************************************/
-
-typedef struct FLAC__StreamEncoderThread {
-	FLAC__int32 *integer_signal[FLAC__MAX_CHANNELS];  /* the integer version of the input signal */
-	FLAC__int32 *integer_signal_mid_side[2];          /* the integer version of the mid-side input signal (stereo only) */
-	FLAC__int64 *integer_signal_33bit_side;           /* 33-bit side for 32-bit stereo decorrelation */
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-	FLAC__real *windowed_signal;                      /* the integer_signal[] * current window[] */
-#endif
-	uint32_t subframe_bps[FLAC__MAX_CHANNELS];        /* the effective bits per sample of the input signal (stream bps - wasted bits) */
-	uint32_t subframe_bps_mid_side[2];                /* the effective bits per sample of the mid-side input signal (stream bps - wasted bits + 0/1) */
-	FLAC__int32 *residual_workspace[FLAC__MAX_CHANNELS][2]; /* each channel has a candidate and best workspace where the subframe residual signals will be stored */
-	FLAC__int32 *residual_workspace_mid_side[2][2];
-	FLAC__Subframe subframe_workspace[FLAC__MAX_CHANNELS][2];
-	FLAC__Subframe subframe_workspace_mid_side[2][2];
-	FLAC__Subframe *subframe_workspace_ptr[FLAC__MAX_CHANNELS][2];
-	FLAC__Subframe *subframe_workspace_ptr_mid_side[2][2];
-	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_workspace[FLAC__MAX_CHANNELS][2];
-	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_workspace_mid_side[FLAC__MAX_CHANNELS][2];
-	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents_workspace_ptr[FLAC__MAX_CHANNELS][2];
-	FLAC__EntropyCodingMethod_PartitionedRiceContents *partitioned_rice_contents_workspace_ptr_mid_side[FLAC__MAX_CHANNELS][2];
-	uint32_t best_subframe[FLAC__MAX_CHANNELS];       /* index (0 or 1) into 2nd dimension of the above workspaces */
-	uint32_t best_subframe_mid_side[2];
-	uint32_t best_subframe_bits[FLAC__MAX_CHANNELS];  /* size in bits of the best subframe for each channel */
-	uint32_t best_subframe_bits_mid_side[2];
-	FLAC__uint64 *abs_residual_partition_sums;        /* workspace where the sum of abs(candidate residual) for each partition is stored */
-	uint32_t *raw_bits_per_partition;                 /* workspace where the sum of silog2(candidate residual) for each partition is stored */
-	FLAC__BitWriter *frame;                           /* the current frame being worked on */
-	/* unaligned (original) pointers to allocated data */
-	FLAC__int32 *integer_signal_unaligned[FLAC__MAX_CHANNELS];
-	FLAC__int32 *integer_signal_mid_side_unaligned[2];
-	FLAC__int64 *integer_signal_33bit_side_unaligned;
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-	FLAC__real *windowed_signal_unaligned;
-#endif
-	FLAC__int32 *residual_workspace_unaligned[FLAC__MAX_CHANNELS][2];
-	FLAC__int32 *residual_workspace_mid_side_unaligned[2][2];
-	FLAC__uint64 *abs_residual_partition_sums_unaligned;
-	uint32_t *raw_bits_per_partition_unaligned;
-	/*
-	 * These fields have been moved here from private function local
-	 * declarations merely to save stack space during encoding.
-	 */
-#ifndef FLAC__INTEGER_ONLY_LIBRARY
-	FLAC__real lp_coeff[FLAC__MAX_LPC_ORDER][FLAC__MAX_LPC_ORDER]; /* from process_subframe_() */
-#endif
-	FLAC__EntropyCodingMethod_PartitionedRiceContents partitioned_rice_contents_extra[2]; /* from find_best_partition_order_() */
-} FLAC__StreamEncoderThread;
-
-/* ---------------- */
 
 typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__StreamEncoderThread * threads[FLAC__STREAM_ENCODER_MAX_THREADS];
@@ -1196,7 +1207,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
-	if(!write_bitbuffer_(encoder, 0, /*is_last_block=*/false)) {
+	if(!write_bitbuffer_(encoder, encoder->private_->threads[0], 0, /*is_last_block=*/false)) {
 		/* the above function sets the state for us in case of an error */
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
@@ -1224,7 +1235,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
-	if(!write_bitbuffer_(encoder, 0, /*is_last_block=*/false)) {
+	if(!write_bitbuffer_(encoder, encoder->private_->threads[0], 0, /*is_last_block=*/false)) {
 		/* the above function sets the state for us in case of an error */
 		return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 	}
@@ -1260,7 +1271,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
-		if(!write_bitbuffer_(encoder, 0, /*is_last_block=*/false)) {
+		if(!write_bitbuffer_(encoder, encoder->private_->threads[0], 0, /*is_last_block=*/false)) {
 			/* the above function sets the state for us in case of an error */
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
@@ -1275,7 +1286,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
-		if(!write_bitbuffer_(encoder, 0, /*is_last_block=*/false)) {
+		if(!write_bitbuffer_(encoder, encoder->private_->threads[0], 0, /*is_last_block=*/false)) {
 			/* the above function sets the state for us in case of an error */
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
@@ -2657,14 +2668,14 @@ FLAC__bool resize_buffers_(FLAC__StreamEncoder *encoder, uint32_t new_blocksize)
 	return true;
 }
 
-FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC__bool is_last_block)
+FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderThread *threadctx, uint32_t samples, FLAC__bool is_last_block)
 {
 	const FLAC__byte *buffer;
 	size_t bytes;
 
-	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(encoder->private_->threads[0]->frame));
+	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(threadctx->frame));
 
-	if(!FLAC__bitwriter_get_buffer(encoder->private_->threads[0]->frame, &buffer, &bytes)) {
+	if(!FLAC__bitwriter_get_buffer(threadctx->frame, &buffer, &bytes)) {
 		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 		return false;
 	}
@@ -2680,8 +2691,8 @@ FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC
 			    || (!is_last_block
 				    && (FLAC__stream_encoder_get_verify_decoder_state(encoder) == FLAC__STREAM_DECODER_END_OF_STREAM))
 			    || encoder->protected_->state == FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR /* Happens when error callback was used */) {
-				FLAC__bitwriter_release_buffer(encoder->private_->threads[0]->frame);
-				FLAC__bitwriter_clear(encoder->private_->threads[0]->frame);
+				FLAC__bitwriter_release_buffer(threadctx->frame);
+				FLAC__bitwriter_clear(threadctx->frame);
 				if(encoder->protected_->state != FLAC__STREAM_ENCODER_VERIFY_MISMATCH_IN_AUDIO_DATA)
 					encoder->protected_->state = FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR;
 				return false;
@@ -2690,14 +2701,14 @@ FLAC__bool write_bitbuffer_(FLAC__StreamEncoder *encoder, uint32_t samples, FLAC
 	}
 
 	if(write_frame_(encoder, buffer, bytes, samples, is_last_block) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK) {
-		FLAC__bitwriter_release_buffer(encoder->private_->threads[0]->frame);
-		FLAC__bitwriter_clear(encoder->private_->threads[0]->frame);
+		FLAC__bitwriter_release_buffer(threadctx->frame);
+		FLAC__bitwriter_clear(threadctx->frame);
 		encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 		return false;
 	}
 
-	FLAC__bitwriter_release_buffer(encoder->private_->threads[0]->frame);
-	FLAC__bitwriter_clear(encoder->private_->threads[0]->frame);
+	FLAC__bitwriter_release_buffer(threadctx->frame);
+	FLAC__bitwriter_clear(threadctx->frame);
 
 	if(samples > 0) {
 		encoder->private_->streaminfo.data.stream_info.min_framesize = flac_min(bytes, encoder->private_->streaminfo.data.stream_info.min_framesize);
@@ -3107,7 +3118,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 	/*
 	 * Process the frame header and subframes into the frame bitbuffer
 	 */
-	if(!process_subframes_(encoder)) {
+	if(!process_subframes_(encoder, encoder->private_->threads[0])) {
 		/* the above function sets the state for us in case of an error */
 		return false;
 	}
@@ -3135,7 +3146,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 	/*
 	 * Write it
 	 */
-	if(!write_bitbuffer_(encoder, encoder->protected_->blocksize, is_last_block)) {
+	if(!write_bitbuffer_(encoder, encoder->private_->threads[0], encoder->protected_->blocksize, is_last_block)) {
 		/* the above function sets the state for us in case of an error */
 		return false;
 	}
@@ -3150,7 +3161,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 	return true;
 }
 
-FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
+FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderThread * threadctx)
 {
 	FLAC__FrameHeader frame_header;
 	uint32_t channel, min_partition_order = encoder->protected_->min_residual_partition_order, max_partition_order;
@@ -3209,13 +3220,13 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 		FLAC__ASSERT(encoder->protected_->channels == 2);
 		if(encoder->protected_->bits_per_sample < 32)
 			for(i = 0; i < encoder->protected_->blocksize; i++) {
-				encoder->private_->threads[0]->integer_signal_mid_side[1][i] = encoder->private_->threads[0]->integer_signal[0][i] - encoder->private_->threads[0]->integer_signal[1][i];
-				encoder->private_->threads[0]->integer_signal_mid_side[0][i] = (encoder->private_->threads[0]->integer_signal[0][i] + encoder->private_->threads[0]->integer_signal[1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
+				threadctx->integer_signal_mid_side[1][i] = threadctx->integer_signal[0][i] - threadctx->integer_signal[1][i];
+				threadctx->integer_signal_mid_side[0][i] = (threadctx->integer_signal[0][i] + threadctx->integer_signal[1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
 			}
 		else
 			for(i = 0; i <= encoder->protected_->blocksize; i++) {
-				encoder->private_->threads[0]->integer_signal_33bit_side[i] = (FLAC__int64)encoder->private_->threads[0]->integer_signal[0][i] - (FLAC__int64)encoder->private_->threads[0]->integer_signal[1][i];
-				encoder->private_->threads[0]->integer_signal_mid_side[0][i] = ((FLAC__int64)encoder->private_->threads[0]->integer_signal[0][i] + (FLAC__int64)encoder->private_->threads[0]->integer_signal[1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
+				threadctx->integer_signal_33bit_side[i] = (FLAC__int64)threadctx->integer_signal[0][i] - (FLAC__int64)threadctx->integer_signal[1][i];
+				threadctx->integer_signal_mid_side[0][i] = ((FLAC__int64)threadctx->integer_signal[0][i] + (FLAC__int64)threadctx->integer_signal[1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
 			}
 	}
 
@@ -3225,12 +3236,12 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 	 */
 	if(do_independent) {
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
-			uint32_t w = get_wasted_bits_(encoder->private_->threads[0]->integer_signal[channel], encoder->protected_->blocksize);
+			uint32_t w = get_wasted_bits_(threadctx->integer_signal[channel], encoder->protected_->blocksize);
 			if (w > encoder->protected_->bits_per_sample) {
 				w = encoder->protected_->bits_per_sample;
 			}
-			encoder->private_->threads[0]->subframe_workspace[channel][0].wasted_bits = encoder->private_->threads[0]->subframe_workspace[channel][1].wasted_bits = w;
-			encoder->private_->threads[0]->subframe_bps[channel] = encoder->protected_->bits_per_sample - w;
+			threadctx->subframe_workspace[channel][0].wasted_bits = threadctx->subframe_workspace[channel][1].wasted_bits = w;
+			threadctx->subframe_bps[channel] = encoder->protected_->bits_per_sample - w;
 		}
 	}
 	if(do_mid_side) {
@@ -3238,15 +3249,15 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 		for(channel = 0; channel < 2; channel++) {
 			uint32_t w;
 			if(encoder->protected_->bits_per_sample < 32 || channel == 0)
-				w = get_wasted_bits_(encoder->private_->threads[0]->integer_signal_mid_side[channel], encoder->protected_->blocksize);
+				w = get_wasted_bits_(threadctx->integer_signal_mid_side[channel], encoder->protected_->blocksize);
 			else
-				w = get_wasted_bits_wide_(encoder->private_->threads[0]->integer_signal_33bit_side, encoder->private_->threads[0]->integer_signal_mid_side[channel], encoder->protected_->blocksize);
+				w = get_wasted_bits_wide_(threadctx->integer_signal_33bit_side, threadctx->integer_signal_mid_side[channel], encoder->protected_->blocksize);
 
 			if (w > encoder->protected_->bits_per_sample) {
 				w = encoder->protected_->bits_per_sample;
 			}
-			encoder->private_->threads[0]->subframe_workspace_mid_side[channel][0].wasted_bits = encoder->private_->threads[0]->subframe_workspace_mid_side[channel][1].wasted_bits = w;
-			encoder->private_->threads[0]->subframe_bps_mid_side[channel] = encoder->protected_->bits_per_sample - w + (channel==0? 0:1);
+			threadctx->subframe_workspace_mid_side[channel][0].wasted_bits = threadctx->subframe_workspace_mid_side[channel][1].wasted_bits = w;
+			threadctx->subframe_bps_mid_side[channel] = encoder->protected_->bits_per_sample - w + (channel==0? 0:1);
 		}
 	}
 
@@ -3264,20 +3275,21 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 			if(!
 				process_subframe_(
 					encoder,
+					threadctx,
 					min_partition_order,
 					max_partition_order,
 					&frame_header,
-					encoder->private_->threads[0]->subframe_bps[channel],
-					encoder->private_->threads[0]->integer_signal[channel],
-					encoder->private_->threads[0]->subframe_workspace_ptr[channel],
-					encoder->private_->threads[0]->partitioned_rice_contents_workspace_ptr[channel],
-					encoder->private_->threads[0]->residual_workspace[channel],
-					encoder->private_->threads[0]->best_subframe+channel,
-					encoder->private_->threads[0]->best_subframe_bits+channel
+					threadctx->subframe_bps[channel],
+					threadctx->integer_signal[channel],
+					threadctx->subframe_workspace_ptr[channel],
+					threadctx->partitioned_rice_contents_workspace_ptr[channel],
+					threadctx->residual_workspace[channel],
+					threadctx->best_subframe+channel,
+					threadctx->best_subframe_bits+channel
 				)
 			)
 				return false;
-			if(encoder->private_->threads[0]->subframe_workspace[channel][encoder->private_->threads[0]->best_subframe[channel]].type != FLAC__SUBFRAME_TYPE_CONSTANT)
+			if(threadctx->subframe_workspace[channel][threadctx->best_subframe[channel]].type != FLAC__SUBFRAME_TYPE_CONSTANT)
 				all_subframes_constant = false;
 		}
 	}
@@ -3290,23 +3302,24 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 
 		for(channel = 0; channel < 2; channel++) {
 			void *integer_signal_;
-			if(encoder->private_->threads[0]->subframe_bps_mid_side[channel] <= 32)
-				integer_signal_ = encoder->private_->threads[0]->integer_signal_mid_side[channel];
+			if(threadctx->subframe_bps_mid_side[channel] <= 32)
+				integer_signal_ = threadctx->integer_signal_mid_side[channel];
 			else
-				integer_signal_ = encoder->private_->threads[0]->integer_signal_33bit_side;
+				integer_signal_ = threadctx->integer_signal_33bit_side;
 			if(!
 				process_subframe_(
 					encoder,
+					threadctx,
 					min_partition_order,
 					max_partition_order,
 					&frame_header,
-					encoder->private_->threads[0]->subframe_bps_mid_side[channel],
+					threadctx->subframe_bps_mid_side[channel],
 					integer_signal_,
-					encoder->private_->threads[0]->subframe_workspace_ptr_mid_side[channel],
-					encoder->private_->threads[0]->partitioned_rice_contents_workspace_ptr_mid_side[channel],
-					encoder->private_->threads[0]->residual_workspace_mid_side[channel],
-					encoder->private_->threads[0]->best_subframe_mid_side+channel,
-					encoder->private_->threads[0]->best_subframe_bits_mid_side+channel
+					threadctx->subframe_workspace_ptr_mid_side[channel],
+					threadctx->partitioned_rice_contents_workspace_ptr_mid_side[channel],
+					threadctx->residual_workspace_mid_side[channel],
+					threadctx->best_subframe_mid_side+channel,
+					threadctx->best_subframe_bits_mid_side+channel
 				)
 			)
 				return false;
@@ -3338,10 +3351,10 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 			FLAC__ASSERT(do_independent && do_mid_side);
 
 			/* We have to figure out which channel assignent results in the smallest frame */
-			bits[FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT] = encoder->private_->threads[0]->best_subframe_bits         [0] + encoder->private_->threads[0]->best_subframe_bits         [1];
-			bits[FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE  ] = encoder->private_->threads[0]->best_subframe_bits         [0] + encoder->private_->threads[0]->best_subframe_bits_mid_side[1];
-			bits[FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE ] = encoder->private_->threads[0]->best_subframe_bits         [1] + encoder->private_->threads[0]->best_subframe_bits_mid_side[1];
-			bits[FLAC__CHANNEL_ASSIGNMENT_MID_SIDE   ] = encoder->private_->threads[0]->best_subframe_bits_mid_side[0] + encoder->private_->threads[0]->best_subframe_bits_mid_side[1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT] = threadctx->best_subframe_bits         [0] + threadctx->best_subframe_bits         [1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE  ] = threadctx->best_subframe_bits         [0] + threadctx->best_subframe_bits_mid_side[1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE ] = threadctx->best_subframe_bits         [1] + threadctx->best_subframe_bits_mid_side[1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_MID_SIDE   ] = threadctx->best_subframe_bits_mid_side[0] + threadctx->best_subframe_bits_mid_side[1];
 
 			channel_assignment = FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT;
 			min_bits = bits[channel_assignment];
@@ -3359,27 +3372,27 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 
 		frame_header.channel_assignment = channel_assignment;
 
-		if(!FLAC__frame_add_header(&frame_header, encoder->private_->threads[0]->frame)) {
+		if(!FLAC__frame_add_header(&frame_header, threadctx->frame)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return false;
 		}
 
 		switch(channel_assignment) {
 			case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
-				left_subframe  = &encoder->private_->threads[0]->subframe_workspace         [0][encoder->private_->threads[0]->best_subframe         [0]];
-				right_subframe = &encoder->private_->threads[0]->subframe_workspace         [1][encoder->private_->threads[0]->best_subframe         [1]];
+				left_subframe  = &threadctx->subframe_workspace         [0][threadctx->best_subframe         [0]];
+				right_subframe = &threadctx->subframe_workspace         [1][threadctx->best_subframe         [1]];
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-				left_subframe  = &encoder->private_->threads[0]->subframe_workspace         [0][encoder->private_->threads[0]->best_subframe         [0]];
-				right_subframe = &encoder->private_->threads[0]->subframe_workspace_mid_side[1][encoder->private_->threads[0]->best_subframe_mid_side[1]];
+				left_subframe  = &threadctx->subframe_workspace         [0][threadctx->best_subframe         [0]];
+				right_subframe = &threadctx->subframe_workspace_mid_side[1][threadctx->best_subframe_mid_side[1]];
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-				left_subframe  = &encoder->private_->threads[0]->subframe_workspace_mid_side[1][encoder->private_->threads[0]->best_subframe_mid_side[1]];
-				right_subframe = &encoder->private_->threads[0]->subframe_workspace         [1][encoder->private_->threads[0]->best_subframe         [1]];
+				left_subframe  = &threadctx->subframe_workspace_mid_side[1][threadctx->best_subframe_mid_side[1]];
+				right_subframe = &threadctx->subframe_workspace         [1][threadctx->best_subframe         [1]];
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-				left_subframe  = &encoder->private_->threads[0]->subframe_workspace_mid_side[0][encoder->private_->threads[0]->best_subframe_mid_side[0]];
-				right_subframe = &encoder->private_->threads[0]->subframe_workspace_mid_side[1][encoder->private_->threads[0]->best_subframe_mid_side[1]];
+				left_subframe  = &threadctx->subframe_workspace_mid_side[0][threadctx->best_subframe_mid_side[0]];
+				right_subframe = &threadctx->subframe_workspace_mid_side[1][threadctx->best_subframe_mid_side[1]];
 				break;
 			default:
 				FLAC__ASSERT(0);
@@ -3387,39 +3400,39 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 
 		switch(channel_assignment) {
 			case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
-				left_bps  = encoder->private_->threads[0]->subframe_bps         [0];
-				right_bps = encoder->private_->threads[0]->subframe_bps         [1];
+				left_bps  = threadctx->subframe_bps         [0];
+				right_bps = threadctx->subframe_bps         [1];
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-				left_bps  = encoder->private_->threads[0]->subframe_bps         [0];
-				right_bps = encoder->private_->threads[0]->subframe_bps_mid_side[1];
+				left_bps  = threadctx->subframe_bps         [0];
+				right_bps = threadctx->subframe_bps_mid_side[1];
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-				left_bps  = encoder->private_->threads[0]->subframe_bps_mid_side[1];
-				right_bps = encoder->private_->threads[0]->subframe_bps         [1];
+				left_bps  = threadctx->subframe_bps_mid_side[1];
+				right_bps = threadctx->subframe_bps         [1];
 				break;
 			case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-				left_bps  = encoder->private_->threads[0]->subframe_bps_mid_side[0];
-				right_bps = encoder->private_->threads[0]->subframe_bps_mid_side[1];
+				left_bps  = threadctx->subframe_bps_mid_side[0];
+				right_bps = threadctx->subframe_bps_mid_side[1];
 				break;
 			default:
 				FLAC__ASSERT(0);
 		}
 
 		/* note that encoder_add_subframe_ sets the state for us in case of an error */
-		if(!add_subframe_(encoder, frame_header.blocksize, left_bps , left_subframe , encoder->private_->threads[0]->frame))
+		if(!add_subframe_(encoder, frame_header.blocksize, left_bps , left_subframe , threadctx->frame))
 			return false;
-		if(!add_subframe_(encoder, frame_header.blocksize, right_bps, right_subframe, encoder->private_->threads[0]->frame))
+		if(!add_subframe_(encoder, frame_header.blocksize, right_bps, right_subframe, threadctx->frame))
 			return false;
 	}
 	else {
-		if(!FLAC__frame_add_header(&frame_header, encoder->private_->threads[0]->frame)) {
+		if(!FLAC__frame_add_header(&frame_header, threadctx->frame)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_FRAMING_ERROR;
 			return false;
 		}
 
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
-			if(!add_subframe_(encoder, frame_header.blocksize, encoder->private_->threads[0]->subframe_bps[channel], &encoder->private_->threads[0]->subframe_workspace[channel][encoder->private_->threads[0]->best_subframe[channel]], encoder->private_->threads[0]->frame)) {
+			if(!add_subframe_(encoder, frame_header.blocksize, threadctx->subframe_bps[channel], &threadctx->subframe_workspace[channel][threadctx->best_subframe[channel]], threadctx->frame)) {
 				/* the above function sets the state for us in case of an error */
 				return false;
 			}
@@ -3440,6 +3453,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder)
 
 FLAC__bool process_subframe_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	uint32_t min_partition_order,
 	uint32_t max_partition_order,
 	const FLAC__FrameHeader *frame_header,
@@ -3567,10 +3581,11 @@ FLAC__bool process_subframe_(
 					_candidate_bits =
 						evaluate_fixed_subframe_(
 							encoder,
+							threadctx,
 							integer_signal,
 							residual[!_best_subframe],
-							encoder->private_->threads[0]->abs_residual_partition_sums,
-							encoder->private_->threads[0]->raw_bits_per_partition,
+							threadctx->abs_residual_partition_sums,
+							threadctx->raw_bits_per_partition,
 							frame_header->blocksize,
 							subframe_bps,
 							fixed_order,
@@ -3603,7 +3618,7 @@ FLAC__bool process_subframe_(
 					while (apply_apodization_state.a < encoder->protected_->num_apodizations) {
 						uint32_t max_lpc_order_this_apodization = max_lpc_order;
 
-						if(!apply_apodization_(encoder, &apply_apodization_state,
+						if(!apply_apodization_(encoder, threadctx, &apply_apodization_state,
 						                       frame_header->blocksize, lpc_error,
 						                       &max_lpc_order_this_apodization,
 						                       subframe_bps, integer_signal,
@@ -3638,11 +3653,12 @@ FLAC__bool process_subframe_(
 								_candidate_bits =
 									evaluate_lpc_subframe_(
 										encoder,
+										threadctx,
 										integer_signal,
 										residual[!_best_subframe],
-										encoder->private_->threads[0]->abs_residual_partition_sums,
-										encoder->private_->threads[0]->raw_bits_per_partition,
-										encoder->private_->threads[0]->lp_coeff[lpc_order-1],
+										threadctx->abs_residual_partition_sums,
+										threadctx->raw_bits_per_partition,
+										threadctx->lp_coeff[lpc_order-1],
 										frame_header->blocksize,
 										subframe_bps,
 										lpc_order,
@@ -3709,6 +3725,7 @@ static inline void set_next_subdivide_tukey(FLAC__int32 parts, uint32_t * apodiz
 }
 
 FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
+                        FLAC__StreamEncoderThread *threadctx,
                         apply_apodization_state_struct *apply_apodization_state,
                         uint32_t blocksize,
                         double *lpc_error,
@@ -3722,10 +3739,10 @@ FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
 	if(apply_apodization_state->b == 1) {
 		/* window full subblock */
 		if(subframe_bps <= 32)
-			FLAC__lpc_window_data(integer_signal, encoder->private_->window[apply_apodization_state->a], encoder->private_->threads[0]->windowed_signal, blocksize);
+			FLAC__lpc_window_data(integer_signal, encoder->private_->window[apply_apodization_state->a], threadctx->windowed_signal, blocksize);
 		else
-			FLAC__lpc_window_data_wide(integer_signal, encoder->private_->window[apply_apodization_state->a], encoder->private_->threads[0]->windowed_signal, blocksize);
-		encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->threads[0]->windowed_signal, blocksize, (*max_lpc_order_this_apodization)+1, apply_apodization_state->autoc);
+			FLAC__lpc_window_data_wide(integer_signal, encoder->private_->window[apply_apodization_state->a], threadctx->windowed_signal, blocksize);
+		encoder->private_->local_lpc_compute_autocorrelation(threadctx->windowed_signal, blocksize, (*max_lpc_order_this_apodization)+1, apply_apodization_state->autoc);
 		if(apply_apodization_state->current_apodization->type == FLAC__APODIZATION_SUBDIVIDE_TUKEY){
 			uint32_t i;
 			for(i = 0; i < *max_lpc_order_this_apodization; i++)
@@ -3750,10 +3767,10 @@ FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
 		if(!(apply_apodization_state->c % 2)) {
 			/* on even c, evaluate the (c/2)th partial window of size blocksize/b  */
 			if(subframe_bps <= 32)
-				FLAC__lpc_window_data_partial(integer_signal, encoder->private_->window[apply_apodization_state->a], encoder->private_->threads[0]->windowed_signal, blocksize, blocksize/apply_apodization_state->b/2, (apply_apodization_state->c/2*blocksize)/apply_apodization_state->b);
+				FLAC__lpc_window_data_partial(integer_signal, encoder->private_->window[apply_apodization_state->a], threadctx->windowed_signal, blocksize, blocksize/apply_apodization_state->b/2, (apply_apodization_state->c/2*blocksize)/apply_apodization_state->b);
 			else
-				FLAC__lpc_window_data_partial_wide(integer_signal, encoder->private_->window[apply_apodization_state->a], encoder->private_->threads[0]->windowed_signal, blocksize, blocksize/apply_apodization_state->b/2, (apply_apodization_state->c/2*blocksize)/apply_apodization_state->b);
-			encoder->private_->local_lpc_compute_autocorrelation(encoder->private_->threads[0]->windowed_signal, blocksize/apply_apodization_state->b, (*max_lpc_order_this_apodization)+1, apply_apodization_state->autoc);
+				FLAC__lpc_window_data_partial_wide(integer_signal, encoder->private_->window[apply_apodization_state->a], threadctx->windowed_signal, blocksize, blocksize/apply_apodization_state->b/2, (apply_apodization_state->c/2*blocksize)/apply_apodization_state->b);
+			encoder->private_->local_lpc_compute_autocorrelation(threadctx->windowed_signal, blocksize/apply_apodization_state->b, (*max_lpc_order_this_apodization)+1, apply_apodization_state->autoc);
 		}
 		else {
 			/* on uneven c, evaluate the root window (over the whole block) minus the previous partial window
@@ -3768,7 +3785,7 @@ FLAC__bool apply_apodization_(FLAC__StreamEncoder *encoder,
 
 	if(apply_apodization_state->autoc[0] == 0.0) /* Signal seems to be constant, so we can't do lp. Constant detection is probably disabled */
 		return false;
-	FLAC__lpc_compute_lp_coefficients(apply_apodization_state->autoc, max_lpc_order_this_apodization, encoder->private_->threads[0]->lp_coeff, lpc_error);
+	FLAC__lpc_compute_lp_coefficients(apply_apodization_state->autoc, max_lpc_order_this_apodization, threadctx->lp_coeff, lpc_error);
 	*guess_lpc_order =
 	FLAC__lpc_compute_best_order(
 		lpc_error,
@@ -3880,6 +3897,7 @@ uint32_t evaluate_constant_subframe_(
 
 uint32_t evaluate_fixed_subframe_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	const void *signal,
 	FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
@@ -3915,6 +3933,7 @@ uint32_t evaluate_fixed_subframe_(
 	residual_bits =
 		find_best_partition_order_(
 			encoder->private_,
+			threadctx,
 			residual,
 			abs_residual_partition_sums,
 			raw_bits_per_partition,
@@ -3953,6 +3972,7 @@ uint32_t evaluate_fixed_subframe_(
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 uint32_t evaluate_lpc_subframe_(
 	FLAC__StreamEncoder *encoder,
+	FLAC__StreamEncoderThread *threadctx,
 	const void *signal,
 	FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
@@ -4014,6 +4034,7 @@ uint32_t evaluate_lpc_subframe_(
 	residual_bits =
 		find_best_partition_order_(
 			encoder->private_,
+			threadctx,
 			residual,
 			abs_residual_partition_sums,
 			raw_bits_per_partition,
@@ -4088,6 +4109,7 @@ uint32_t evaluate_verbatim_subframe_(
 
 uint32_t find_best_partition_order_(
 	FLAC__StreamEncoderPrivate *private_,
+	FLAC__StreamEncoderThread *threadctx,
 	const FLAC__int32 residual[],
 	FLAC__uint64 abs_residual_partition_sums[],
 	uint32_t raw_bits_per_partition[],
@@ -4133,7 +4155,7 @@ uint32_t find_best_partition_order_(
 					rice_parameter_search_dist,
 					(uint32_t)partition_order,
 					do_escape_coding,
-					&private_->threads[0]->partitioned_rice_contents_extra[!best_parameters_index],
+					&threadctx->partitioned_rice_contents_extra[!best_parameters_index],
 					&residual_bits
 				)
 			)
@@ -4161,9 +4183,9 @@ uint32_t find_best_partition_order_(
 		uint32_t partition;
 
 		/* save best parameters and raw_bits */
-		memcpy(prc->parameters, private_->threads[0]->partitioned_rice_contents_extra[best_parameters_index].parameters, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
+		memcpy(prc->parameters, threadctx->partitioned_rice_contents_extra[best_parameters_index].parameters, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
 		if(do_escape_coding)
-			memcpy(prc->raw_bits, private_->threads[0]->partitioned_rice_contents_extra[best_parameters_index].raw_bits, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
+			memcpy(prc->raw_bits, threadctx->partitioned_rice_contents_extra[best_parameters_index].raw_bits, (uint32_t)sizeof(uint32_t)*(1<<(best_partition_order)));
 		/*
 		 * Now need to check if the type should be changed to
 		 * FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 based on the
