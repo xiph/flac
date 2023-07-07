@@ -115,6 +115,7 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__bool limit_min_bitrate;
 	FLAC__StreamMetadata **metadata;
 	uint32_t num_metadata_blocks;
+	uint32_t num_threads;
 	FLAC__uint64 streaminfo_offset, seektable_offset, audio_offset;
 #if FLAC__HAS_OGG
 	FLAC__OggEncoderAspect ogg_encoder_aspect;

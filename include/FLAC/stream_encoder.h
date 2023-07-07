@@ -288,6 +288,11 @@ typedef enum {
 extern FLAC_API const char * const FLAC__StreamEncoderStateString[];
 
 
+#define FLAC__STREAM_ENCODER_SET_NUM_THREADS_OK 0
+#define FLAC__STREAM_ENCODER_SET_NUM_THREADS_NOT_COMPILED_WITH_MULTITHREADING_ENABLED 1
+#define FLAC__STREAM_ENCODER_SET_NUM_THREADS_ALREADY_INITIALIZED 2
+#define FLAC__STREAM_ENCODER_SET_NUM_THREADS_TOO_MANY_THREADS 3
+
 /** Possible return values for the FLAC__stream_encoder_init_*() functions.
  */
 typedef enum {
@@ -1102,6 +1107,8 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_min_residual_partition_order(FLAC__
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_max_residual_partition_order(FLAC__StreamEncoder *encoder, uint32_t value);
 
+FLAC_API uint32_t FLAC__stream_encoder_set_num_threads(FLAC__StreamEncoder *encoder, uint32_t value);
+
 /** Deprecated.  Setting this value has no effect.
  *
  * \default \c 0
@@ -1434,6 +1441,8 @@ FLAC_API uint32_t FLAC__stream_encoder_get_min_residual_partition_order(const FL
  *    See FLAC__stream_encoder_set_max_residual_partition_order().
  */
 FLAC_API uint32_t FLAC__stream_encoder_get_max_residual_partition_order(const FLAC__StreamEncoder *encoder);
+
+FLAC_API uint32_t FLAC__stream_encoder_get_num_threads(const FLAC__StreamEncoder *encoder);
 
 /** Get the Rice parameter search distance setting.
  *
