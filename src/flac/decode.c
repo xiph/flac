@@ -94,7 +94,8 @@ typedef struct {
 	foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */
 	FLAC__off_t fm_offset1, fm_offset2, fm_offset3;
 
-	clock_t old_clock_t;
+	clock_t old_clock;
+	FLAC__uint64 old_samples_processed;
 } DecoderSession;
 
 
@@ -253,7 +254,8 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	d->foreign_metadata = foreign_metadata;
 
-	d->old_clock_t = 0;
+	d->old_clock = 0;
+	d->old_samples_processed = 0;
 
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
 
@@ -1239,9 +1241,16 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		if(!(decoder_session->frame_counter & 0x1ff))
 			print_stats(decoder_session);
 #else
-		if((clock() - decoder_session->old_clock_t) > (CLOCKS_PER_SEC/4)) {
-			print_stats(decoder_session);
-			decoder_session->old_clock_t = clock();
+		if(decoder_session->samples_processed - decoder_session->old_samples_processed > 25000) {
+			/* We're assuming that even on old hardware libFLAC can easily process
+			 * 100.000 samples per second, even on old hardware. To limit the number
+			 * of (expensive) syscalls, we only check clock every 25.000 samples */
+			clock_t cur_clock = clock();
+			decoder_session->old_samples_processed = decoder_session->samples_processed;
+			if((cur_clock - decoder_session->old_clock) > (CLOCKS_PER_SEC/4)) {
+				print_stats(decoder_session);
+				decoder_session->old_clock = cur_clock;
+			}
 		}
 #endif
 

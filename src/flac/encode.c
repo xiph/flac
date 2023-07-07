@@ -94,7 +94,8 @@ typedef struct {
 	uint32_t stats_frames_interval;
 	uint32_t old_frames_written;
 #else
-	clock_t old_clock_t;
+	uint32_t old_samples_written;
+	clock_t old_clock;
 #endif
 
 	SampleInfo info;
@@ -1407,7 +1408,8 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 	e->stats_frames_interval = 0;
 	e->old_frames_written = 0;
 #else
-	e->old_clock_t = 0;
+	e->old_clock = 0;
+	e->old_samples_written = 0;
 #endif
 	e->compression_ratio = 0.0;
 
@@ -2422,9 +2424,16 @@ void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 
 		e->old_frames_written = frames_written;
 	}
 #else
-	if(e->total_samples_to_encode > 0 && (clock() - e->old_clock_t) > (CLOCKS_PER_SEC/4)) {
-		print_stats(e);
-		e->old_clock_t = clock();
+	if(e->total_samples_to_encode > 0 && samples_written - e->old_samples_written > 10000) {
+		/* We're assuming that except for extremely slow settings, libFLAC can easily
+		 * process 40.000 samples per second, even on old hardware. To limit the number
+		 * of (expensive) syscalls, we only check clock every 10.000 samples */
+		clock_t cur_clock = clock();
+		e->old_samples_written = samples_written;
+		if((cur_clock - e->old_clock) > (CLOCKS_PER_SEC/4)) {
+			print_stats(e);
+			e->old_clock = cur_clock;
+		}
 	}
 
 #endif
