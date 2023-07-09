@@ -120,6 +120,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	encoder_valid &= FLAC__stream_encoder_set_total_samples_estimate(encoder, samples_estimate);
 	encoder_valid &= FLAC__stream_encoder_disable_instruction_set(encoder, instruction_set_disable_mask);
 	encoder_valid &= FLAC__stream_encoder_set_limit_min_bitrate(encoder, data_bools[15]);
+	encoder_valid &= (FLAC__stream_encoder_set_num_threads(encoder,data[9]) == FLAC__STREAM_ENCODER_SET_NUM_THREADS_OK); /* reuse data[9] */
 
 	/* Set compression related parameters */
 	encoder_valid &= FLAC__stream_encoder_set_compression_level(encoder, compression_level);
