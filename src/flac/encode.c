@@ -2047,6 +2047,27 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 	}
 
+	{
+		uint32_t retval = FLAC__stream_encoder_set_num_threads(e->encoder, options.threads);
+		if(retval == FLAC__STREAM_ENCODER_SET_NUM_THREADS_NOT_COMPILED_WITH_MULTITHREADING_ENABLED) {
+			flac__utils_printf(stderr, 1, "%s: WARNING, cannot set number of threads: multithreading was not enabled during compilation of this binary\n", e->inbasefilename);
+	                if(e->treat_warnings_as_errors) {
+				static_metadata_clear(&static_metadata);
+				return false;
+	                }
+		}
+		if(retval == FLAC__STREAM_ENCODER_SET_NUM_THREADS_TOO_MANY_THREADS) {
+			flac__utils_printf(stderr, 1, "%s: WARNING, cannot set number of threads: too many\n", e->inbasefilename);
+	                if(e->treat_warnings_as_errors) {
+				static_metadata_clear(&static_metadata);
+				return false;
+	                }
+		}
+		if(retval == FLAC__STREAM_ENCODER_SET_NUM_THREADS_ALREADY_INITIALIZED) {
+			FLAC__ASSERT(0);
+		}
+	}
+
 #if FLAC__HAS_OGG
 	if(e->use_ogg) {
 		FLAC__stream_encoder_set_ogg_serial_number(e->encoder, options.serial_number);

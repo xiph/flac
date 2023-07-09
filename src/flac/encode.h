@@ -68,6 +68,7 @@ typedef struct {
 	int padding;
 	size_t num_compression_settings;
 	compression_setting_t compression_settings[64];
+	uint32_t threads;
 	char *requested_seek_points;
 	int num_requested_seek_points;
 	const char *cuesheet_filename;
