@@ -166,6 +166,7 @@ static struct share__option long_options_[] = {
 	{ "qlp-coeff-precision-search", share__no_argument, 0, 'p' },
 	{ "qlp-coeff-precision"       , share__required_argument, 0, 'q' },
 	{ "rice-partition-order"      , share__required_argument, 0, 'r' },
+	{ "threads"                   , share__required_argument, 0, 'j' },
 	{ "endian"                    , share__required_argument, 0, 0 },
 	{ "channels"                  , share__required_argument, 0, 0 },
 	{ "bps"                       , share__required_argument, 0, 0 },
@@ -262,6 +263,7 @@ static struct {
 	int padding; /* -1 => no -P options were given, 0 => -P- was given, else -P value */
 	size_t num_compression_settings;
 	compression_setting_t compression_settings[64]; /* bad MAGIC NUMBER but buffer overflow is checked */
+	uint32_t threads;
 	const char *skip_specification;
 	const char *until_specification;
 	const char *cue_specification;
@@ -586,6 +588,7 @@ FLAC__bool init_options(void)
 	option_values.aopts.do_residual_text = false;
 	option_values.aopts.do_residual_gnuplot = false;
 	option_values.padding = -1;
+	option_values.threads = 1;
 	option_values.num_compression_settings = 1;
 	option_values.compression_settings[0].type = CST_COMPRESSION_LEVEL;
 	option_values.compression_settings[0].value.t_unsigned = 5;
@@ -626,7 +629,7 @@ int parse_options(int argc, char *argv[])
 	int short_option;
 	int option_index = 1;
 	FLAC__bool had_error = false;
-	const char *short_opts = "0123456789aA:b:cdefFhHl:mMo:pP:q:r:sS:tT:vVw";
+	const char *short_opts = "0123456789aA:b:cdefFhHj:l:mMo:pP:q:r:sS:tT:vVw";
 
 	while ((short_option = share__getopt_long(argc, argv, short_opts, long_options_, &option_index)) != -1) {
 		switch (short_option) {
@@ -1111,6 +1114,11 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 					add_compression_setting_uint32_t(CST_RICE_PARAMETER_SEARCH_DIST, i);
 				}
 				break;
+			case 'j':
+				{
+					option_values.threads = atoi(option_argument);
+				}
+				break;
 			default:
 				FLAC__ASSERT(0);
 		}
@@ -1335,6 +1343,7 @@ void show_help(void)
 	printf("  -q, --qlp-coeff-precision=#        Specify precision in bits\n");
 	printf("  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order\n");
 	printf("      --limit-min-bitrate            Limit minimum bitrate (for streaming)\n");
+	printf("  -j, --threads=#                    Set number of encoding threads\n");
 	printf("format options:\n");
 	printf("      --force-raw-format             Treat input or output as raw samples\n");
 	printf("      --force-aiff-format            Decode to AIFF format\n");
@@ -1676,6 +1685,7 @@ void show_explain(void)
 	printf("                                     least 1 bit/sample, for example 48kbit/s\n");
 	printf("                                     for 48kHz input. This is mostly beneficial\n");
 	printf("                                     for internet streaming.\n");
+	printf(" -j, --threads=#                     Set the number of encoding threads.\n");
 	printf("format options:\n");
 	printf("      --force-raw-format       Force input (when encoding) or output (when\n");
 	printf("                               decoding) to be treated as raw samples\n");
@@ -1976,6 +1986,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.num_compression_settings = option_values.num_compression_settings;
 	FLAC__ASSERT(sizeof(encode_options.compression_settings) >= sizeof(option_values.compression_settings));
 	memcpy(encode_options.compression_settings, option_values.compression_settings, sizeof(option_values.compression_settings));
+	encode_options.threads = option_values.threads;
 	encode_options.requested_seek_points = option_values.requested_seek_points;
 	encode_options.num_requested_seek_points = option_values.num_requested_seek_points;
 	encode_options.cuesheet_filename = option_values.cuesheet_filename;
