@@ -1276,6 +1276,17 @@ fi
 echo OK
 
 ############################################################################
+# test threads
+############################################################################
+
+
+for J in 1 2 3 4 5 6 7 8 15 16; do
+	echo $ECHO_N "Testing --threads $J... " $ECHO_C
+	run_flac -f -o out.flac --threads $J "$testdatadir/input-VA.flac" || die "ERROR"
+	echo OK
+done
+
+############################################################################
 # test overflow of total samples field in STREAMINFO
 ############################################################################
 
