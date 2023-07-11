@@ -45,7 +45,17 @@
 #endif
 #ifdef HAVE_PTHREAD
 #include <pthread.h>
+#ifdef __APPLE__
+/* Mac does have sem_init, but it doesn't work */
+#include <dispatch/dispatch.h>
+typedef dispatch_semaphore_t sem_t;
+#define sem_init(sem,unused,value) ((*sem = dispatch_semaphore_create(value)) == NULL)
+#define sem_post(sem) dispatch_semaphore_signal(*sem)
+#define sem_wait(sem) dispatch_semaphore_wait(*sem, DISPATCH_TIME_FOREVER)
+#define sem_destroy(sem) dispatch_release(*sem)
+#else
 #include <semaphore.h>
+#endif
 #endif
 #include "share/compat.h"
 #include "FLAC/assert.h"
@@ -1627,6 +1637,9 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 			}
 			for(t = 1; t < encoder->private_->num_created_threads; t++) {
 				pthread_cancel(encoder->private_->threads[t]->thread);
+#ifdef __APPLE__
+				sem_post(&encoder->private_->threads[t]->sem_work_available);
+#endif
 				pthread_join(encoder->private_->threads[t]->thread, NULL);
 			}
 #else
@@ -3399,6 +3412,9 @@ void * process_frame_thread_(void * args) {
 
 	while(1) {
 		sem_wait(&threadctx->sem_work_available);
+#ifdef __APPLE__
+		pthread_testcancel();
+#endif
 		FLAC__ASSERT(ok);
 		/*
 		 * Process the frame header and subframes into the frame bitbuffer
