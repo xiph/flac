@@ -43,6 +43,7 @@
  */
 #define FLAC__MAX_EXTRA_RESIDUAL_BPS 4
 #define FLAC__STREAM_ENCODER_MAX_THREADS 16
+#define FLAC__STREAM_ENCODER_MAX_THREADTASKS 32
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/cpu.h"
