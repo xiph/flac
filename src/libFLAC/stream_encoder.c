@@ -224,7 +224,8 @@ static void update_metadata_(const FLAC__StreamEncoder *encoder);
 static void update_ogg_metadata_(FLAC__StreamEncoder *encoder);
 #endif
 static FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block);
-void * process_frame_thread_(void * threadtask);
+void * process_frame_thread_(void * encoder);
+FLAC__bool process_frame_thread_inner_(FLAC__StreamEncoder * encoder);
 static FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderThreadTask *threadtask);
 
 static FLAC__bool process_subframe_(
@@ -1150,7 +1151,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 
 	if(encoder->protected_->num_threads > 1) {
 #ifdef HAVE_PTHREAD
-		encoder->private_->num_threadtasks = encoder->protected_->num_threads * 2; /* First threadtask is reserved for main thread */
+		encoder->private_->num_threadtasks = encoder->protected_->num_threads * 2 + 2; /* First threadtask is reserved for main thread */
 		if(sem_init(&encoder->private_->sem_work_available, 0, 0)) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
@@ -1174,7 +1175,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
 		if(encoder->protected_->do_md5) {
-			encoder->private_->md5_fifo.size = (encoder->protected_->blocksize+OVERREAD_) * encoder->private_->num_threadtasks;
+			encoder->private_->md5_fifo.size = (encoder->protected_->blocksize+OVERREAD_) * (encoder->private_->num_threadtasks + 2);
 			for(i = 0; i < encoder->protected_->channels; i++) {
 				if(0 == (encoder->private_->md5_fifo.data[i] = safe_malloc_mul_2op_p(sizeof(FLAC__int32), /*times*/encoder->private_->md5_fifo.size))) {
 					sem_destroy(&encoder->private_->sem_work_available);
@@ -3429,8 +3430,18 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 			encoder->private_->num_created_threads++;
 		}
 		else if(encoder->private_->num_started_threadtasks == encoder->private_->num_threadtasks) {
+			/* If the first task in the queue is still running, there is probably plenty
+			 * of work left in the queue. When that is the case, do some work instead of
+			 * waiting */
+			while(sem_trywait(&encoder->private_->threadtask[encoder->private_->next_thread]->sem_work_done)) {
+				if(sem_trywait(&encoder->private_->sem_work_available) == 0)
+					process_frame_thread_inner_(encoder);
+				else {
+					sem_wait(&encoder->private_->threadtask[encoder->private_->next_thread]->sem_work_done);
+					break;
+				}
+			}
 			/* Wait for thread to finish, then write bitbuffer */
-			sem_wait(&encoder->private_->threadtask[encoder->private_->next_thread]->sem_work_done);
 			if(!encoder->private_->threadtask[encoder->private_->next_thread]->returnvalue)
 				return false;
 			if(!write_bitbuffer_(encoder, encoder->private_->threadtask[encoder->private_->next_thread], encoder->protected_->blocksize, is_last_block)) {
@@ -3481,12 +3492,9 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 #ifdef HAVE_PTHREAD
 void * process_frame_thread_(void * args) {
 	FLAC__StreamEncoder * encoder = args;
-	FLAC__StreamEncoderThreadTask * task;
-	FLAC__uint16 crc;
-	uint32_t t, channel;
+	uint32_t channel;
 
 	while(1) {
-		FLAC__bool ok = true;
 		/* First check whether non MD5 work is available. If it isn't, try to
 		 * check whether a thread is already waiting for MD5 work. If that isn't
 		 * the case either, wait for non-MD5 work */
@@ -3515,53 +3523,64 @@ void * process_frame_thread_(void * args) {
 #ifdef __APPLE__
 		pthread_testcancel();
 #endif
-
-		task = NULL;
-		for(t = 1; t < encoder->private_->num_threadtasks; t++) {
-			if(sem_trywait(&encoder->private_->threadtask[t]->sem_work_available) == 0) {
-				task = encoder->private_->threadtask[t];
-				break;
-			}
-		}
-		if(task == NULL) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-			FLAC__ASSERT(0);
+		if(!process_frame_thread_inner_(encoder)){
 			return NULL;
 		}
-
-		/*
-		 * Process the frame header and subframes into the frame bitbuffer
-		 */
-		if(ok && !process_subframes_(encoder, task)) {
-			/* the above function sets the state for us in case of an error */
-			ok = false;
-		}
-
-		/*
-		 * Zero-pad the frame to a byte_boundary
-		 */
-		if(ok && !FLAC__bitwriter_zero_pad_to_byte_boundary(task->frame)) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-			ok = false;
-		}
-
-		/*
-		 * CRC-16 the whole thing
-		 */
-		FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(task->frame));
-		if(
-			ok &&
-			(
-				!FLAC__bitwriter_get_write_crc16(task->frame, &crc) ||
-				!FLAC__bitwriter_write_raw_uint32(task->frame, crc, FLAC__FRAME_FOOTER_CRC_LEN)
-			)
-		) {
-			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-			ok = false;
-		}
-		task->returnvalue = ok;
-		sem_post(&task->sem_work_done);
 	}
+}
+
+FLAC__bool process_frame_thread_inner_(FLAC__StreamEncoder * encoder) {
+	FLAC__bool ok = true;
+	FLAC__StreamEncoderThreadTask * task;
+	FLAC__uint16 crc;
+	uint32_t t;
+
+	task = NULL;
+	for(t = 1; t < encoder->private_->num_threadtasks; t++) {
+		if(sem_trywait(&encoder->private_->threadtask[t]->sem_work_available) == 0) {
+			task = encoder->private_->threadtask[t];
+			break;
+		}
+	}
+	if(task == NULL) {
+		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+		FLAC__ASSERT(0);
+		return false;
+	}
+
+	/*
+	 * Process the frame header and subframes into the frame bitbuffer
+	 */
+	if(ok && !process_subframes_(encoder, task)) {
+		/* the above function sets the state for us in case of an error */
+		ok = false;
+	}
+
+	/*
+	 * Zero-pad the frame to a byte_boundary
+	 */
+	if(ok && !FLAC__bitwriter_zero_pad_to_byte_boundary(task->frame)) {
+		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+		ok = false;
+	}
+
+	/*
+	 * CRC-16 the whole thing
+	 */
+	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(task->frame));
+	if(
+		ok &&
+		(
+			!FLAC__bitwriter_get_write_crc16(task->frame, &crc) ||
+			!FLAC__bitwriter_write_raw_uint32(task->frame, crc, FLAC__FRAME_FOOTER_CRC_LEN)
+		)
+	) {
+		encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+		ok = false;
+	}
+	task->returnvalue = ok;
+	sem_post(&task->sem_work_done);
+	return true;
 }
 #endif
 
