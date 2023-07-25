@@ -501,12 +501,11 @@ typedef struct FLAC__StreamEncoderPrivate {
 	uint32_t num_running_threads;
 	uint32_t next_threadtask; /* Next threadtask that is available to work on */
 	pthread_mutex_t mutex_md5_fifo;
-	pthread_mutex_t mutex_md5_active;
 	pthread_mutex_t mutex_work_queue; /* To lock work related variables in this struct */
 	pthread_cond_t cond_md5_emptied; /* To signal to main thread that MD5 queue has been emptied */
 	pthread_cond_t cond_work_available; /* To signal to threads that work is available */
 	pthread_cond_t cond_wake_up_thread; /* To signal that one sleeping thread can wake up */
-	FLAC__bool md5_work_available; /* To signal to threads that work is available */
+	FLAC__bool md5_active;
 	FLAC__bool finish_work_threads;
 	int32_t overcommitted_indicator;
 	verify_input_fifo md5_fifo;
@@ -1165,27 +1164,19 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
-		if(pthread_mutex_init(&encoder->private_->mutex_md5_active, NULL)) {
-			pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
-		}
 		if(pthread_mutex_init(&encoder->private_->mutex_work_queue, NULL)) {
 			pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-			pthread_mutex_destroy(&encoder->private_->mutex_md5_active);
 			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
 		if(pthread_cond_init(&encoder->private_->cond_md5_emptied, NULL)) {
 			pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-			pthread_mutex_destroy(&encoder->private_->mutex_md5_active);
 			pthread_mutex_destroy(&encoder->private_->mutex_work_queue);
 			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 			return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 		}
 		if(pthread_cond_init(&encoder->private_->cond_work_available, NULL)) {
 			pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-			pthread_mutex_destroy(&encoder->private_->mutex_md5_active);
 			pthread_mutex_destroy(&encoder->private_->mutex_work_queue);
 			pthread_cond_destroy(&encoder->private_->cond_md5_emptied);
 			encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
@@ -1193,7 +1184,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		}
 		if(pthread_cond_init(&encoder->private_->cond_wake_up_thread, NULL)) {
 			pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-			pthread_mutex_destroy(&encoder->private_->mutex_md5_active);
 			pthread_mutex_destroy(&encoder->private_->mutex_work_queue);
 			pthread_cond_destroy(&encoder->private_->cond_md5_emptied);
 			pthread_cond_destroy(&encoder->private_->cond_work_available);
@@ -1205,7 +1195,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			for(i = 0; i < encoder->protected_->channels; i++) {
 				if(0 == (encoder->private_->md5_fifo.data[i] = safe_malloc_mul_2op_p(sizeof(FLAC__int32), /*times*/encoder->private_->md5_fifo.size))) {
 					pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-					pthread_mutex_destroy(&encoder->private_->mutex_md5_active);
 					pthread_mutex_destroy(&encoder->private_->mutex_work_queue);
 					pthread_cond_destroy(&encoder->private_->cond_md5_emptied);
 					pthread_cond_destroy(&encoder->private_->cond_work_available);
@@ -1707,7 +1696,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 					ok = false;
 			}
 			pthread_mutex_lock(&encoder->private_->mutex_work_queue);
-			while(encoder->private_->md5_work_available) {
+			while(encoder->private_->md5_active || encoder->private_->md5_fifo.tail > 0) {
 				pthread_cond_wait(&encoder->private_->cond_md5_emptied, &encoder->private_->mutex_work_queue);
 			}
 			pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
@@ -2685,7 +2674,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->private_->num_available_threadtasks = 0;
 	encoder->private_->overcommitted_indicator = 0;
 	encoder->private_->next_threadtask = 1;
-	encoder->private_->md5_work_available = false;
+	encoder->private_->md5_active = false;
 	encoder->private_->finish_work_threads = false;
 #endif
 
@@ -2789,7 +2778,6 @@ void free_(FLAC__StreamEncoder *encoder)
 #ifdef HAVE_PTHREAD
 	if(encoder->protected_->num_threads > 1) {
 		pthread_mutex_destroy(&encoder->private_->mutex_md5_fifo);
-		pthread_mutex_destroy(&encoder->private_->mutex_md5_active);
 		pthread_mutex_destroy(&encoder->private_->mutex_work_queue);
 		pthread_cond_destroy(&encoder->private_->cond_md5_emptied);
 		pthread_cond_destroy(&encoder->private_->cond_work_available);
@@ -3515,18 +3503,19 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 		}
 		/* Copy input data for MD5 calculation */
 		if(encoder->protected_->do_md5) {
-			pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
+			pthread_mutex_lock(&encoder->private_->mutex_work_queue);
 			while(encoder->private_->md5_fifo.tail + encoder->protected_->blocksize > encoder->private_->md5_fifo.size) {
-				pthread_cond_wait(&encoder->private_->cond_md5_emptied,&encoder->private_->mutex_md5_fifo);
+				pthread_cond_wait(&encoder->private_->cond_md5_emptied,&encoder->private_->mutex_work_queue);
 			}
+			pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
+			pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
 			for(i = 0; i < encoder->protected_->channels; i++)
 				memcpy(encoder->private_->md5_fifo.data[i]+encoder->private_->md5_fifo.tail, encoder->private_->threadtask[0]->integer_signal[i], encoder->protected_->blocksize * sizeof(encoder->private_->threadtask[0]->integer_signal[i][0]));
-			encoder->private_->md5_fifo.tail += encoder->protected_->blocksize;
-			pthread_mutex_unlock(&encoder->private_->mutex_md5_fifo);
 			pthread_mutex_lock(&encoder->private_->mutex_work_queue);
-			encoder->private_->md5_work_available = true;
+			encoder->private_->md5_fifo.tail += encoder->protected_->blocksize;
 			pthread_cond_signal(&encoder->private_->cond_work_available);
 			pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
+			pthread_mutex_unlock(&encoder->private_->mutex_md5_fifo);
 		}
 
 		/* Copy input data for frame creation */
@@ -3588,43 +3577,33 @@ void * process_frame_thread_(void * args) {
 			pthread_cond_wait(&encoder->private_->cond_wake_up_thread, &encoder->private_->mutex_work_queue);
 			encoder->private_->num_running_threads++;
 		}
-		while(encoder->private_->num_available_threadtasks == 0 && !encoder->private_->md5_work_available) {
+		while(encoder->private_->num_available_threadtasks == 0 && (encoder->private_->md5_active || encoder->private_->md5_fifo.tail == 0)) {
 			if(encoder->private_->finish_work_threads) {
 				pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
 				return NULL;
 			}
 			pthread_cond_wait(&encoder->private_->cond_work_available, &encoder->private_->mutex_work_queue);
 		}
-		if(encoder->private_->md5_work_available && pthread_mutex_trylock(&encoder->private_->mutex_md5_active) == 0) {
-			encoder->private_->md5_work_available = false;
-			if(encoder->protected_->do_md5) {
-				uint32_t length = 0;
-				pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
-				while(encoder->private_->md5_fifo.tail > 0) {
-					pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
-					length = encoder->private_->md5_fifo.tail;
-					pthread_mutex_unlock(&encoder->private_->mutex_md5_fifo);
-					if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->md5_fifo.data, encoder->protected_->channels, length, (encoder->protected_->bits_per_sample+7) / 8)) {
-						encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-						return false;
-					}
-					pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
-					encoder->private_->md5_fifo.tail -= length;
-					for(channel = 0; channel < encoder->protected_->channels; channel++)
-						memmove(&encoder->private_->md5_fifo.data[channel][0], &encoder->private_->md5_fifo.data[channel][length], encoder->private_->md5_fifo.tail * sizeof(encoder->private_->md5_fifo.data[0][0]));
-					pthread_mutex_lock(&encoder->private_->mutex_work_queue);
-					pthread_cond_signal(&encoder->private_->cond_md5_emptied);
-					encoder->private_->md5_work_available = false;
-				}
+		if(encoder->protected_->do_md5 && !encoder->private_->md5_active && encoder->private_->md5_fifo.tail > 0) {
+			uint32_t length = 0;
+			encoder->private_->md5_active = true;
+			while(encoder->private_->md5_fifo.tail > 0) {
+				length = encoder->private_->md5_fifo.tail;
 				pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
+				if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->md5_fifo.data, encoder->protected_->channels, length, (encoder->protected_->bits_per_sample+7) / 8)) {
+					encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+					return false;
+				}
+				pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
+				for(channel = 0; channel < encoder->protected_->channels; channel++)
+					memmove(&encoder->private_->md5_fifo.data[channel][0], &encoder->private_->md5_fifo.data[channel][length], (encoder->private_->md5_fifo.tail-length) * sizeof(encoder->private_->md5_fifo.data[0][0]));
+				pthread_mutex_lock(&encoder->private_->mutex_work_queue);
+				encoder->private_->md5_fifo.tail -= length;
+				pthread_cond_signal(&encoder->private_->cond_md5_emptied);
 				pthread_mutex_unlock(&encoder->private_->mutex_md5_fifo);
-				pthread_mutex_unlock(&encoder->private_->mutex_md5_active);
 			}
-			else {
-				FLAC__ASSERT(0);
-				return NULL;
-			}
-			continue;
+			encoder->private_->md5_active = false;
+			pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
 		}
 		else if(encoder->private_->num_available_threadtasks > 0) {
 			FLAC__StreamEncoderThreadTask * task = NULL;
