@@ -3557,6 +3557,7 @@ void * process_frame_thread_(void * args) {
 			pthread_cond_wait(&encoder->private_->cond_work_available, &encoder->private_->mutex_work_queue);
 		}
 		if(encoder->private_->md5_work_available && pthread_mutex_trylock(&encoder->private_->mutex_md5_active) == 0) {
+			encoder->private_->md5_work_available = false;
 			if(encoder->protected_->do_md5) {
 				uint32_t length = 0;
 				pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
@@ -3574,8 +3575,8 @@ void * process_frame_thread_(void * args) {
 						memmove(&encoder->private_->md5_fifo.data[channel][0], &encoder->private_->md5_fifo.data[channel][length], encoder->private_->md5_fifo.tail * sizeof(encoder->private_->md5_fifo.data[0][0]));
 					pthread_mutex_lock(&encoder->private_->mutex_work_queue);
 					pthread_cond_signal(&encoder->private_->cond_md5_emptied);
+					encoder->private_->md5_work_available = false;
 				}
-				encoder->private_->md5_work_available = false;
 				pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
 				pthread_mutex_unlock(&encoder->private_->mutex_md5_fifo);
 				pthread_mutex_unlock(&encoder->private_->mutex_md5_active);
