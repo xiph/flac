@@ -42,8 +42,13 @@
  * accumulator in the *precompute_partition_info_sums_* functions.
  */
 #define FLAC__MAX_EXTRA_RESIDUAL_BPS 4
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+#define FLAC__STREAM_ENCODER_MAX_THREADS 16
+#define FLAC__STREAM_ENCODER_MAX_THREADTASKS 34
+#else
 #define FLAC__STREAM_ENCODER_MAX_THREADS 64
 #define FLAC__STREAM_ENCODER_MAX_THREADTASKS 130
+#endif
 
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && defined FLAC__HAS_X86INTRIN
 #include "private/cpu.h"
