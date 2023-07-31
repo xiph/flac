@@ -355,6 +355,15 @@ the HTML documentation.
 	option in combination with custom encoding options meant for
 	archival.
 
+**-j** *\#***, \--threads=***\#*  
+:	Try to set a maximum number of threads to use for encoding. If
+	multithreading was not enabled on compilation or when setting a
+	number of threads that is too high, this fails with a warning. The
+	value of 0 is currently equal to 1 thread (i.e. no multithreading)
+	but may mean something else in the future. Currently the maximum
+	supported number of threads is 128. Using a value higher than the
+	number of available CPU threads harms performance.
+
 **\--replay-gain**
 :	Calculate ReplayGain values and store them as FLAC tags, similar to
 	vorbisgain. Title gains/peaks will be computed for each input file,
