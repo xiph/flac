@@ -142,6 +142,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             const bool res = encoder.set_sample_rate(ds.Get<uint32_t>());
             fuzzing::memory::memory_test(res);
         }
+        {
+            const bool res = encoder.set_num_threads(ds.Get<uint32_t>());
+            fuzzing::memory::memory_test(res);
+        }
 
         if ( size > 2 * 65535 * 4 ) {
             /* With large inputs and expensive options enabled, the fuzzer can get *really* slow.
@@ -197,6 +201,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             res = res || encoder.set_limit_min_bitrate(true);
             res = res || encoder.set_blocksize(3021);
             res = res || encoder.set_sample_rate(44100);
+            res = res || (encoder.set_num_threads(4) == FLAC__STREAM_ENCODER_SET_NUM_THREADS_OK);
             fuzzing::memory::memory_test(res);
             if(res)
                 abort();
@@ -224,6 +229,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             res = res != encoder.get_limit_min_bitrate();
             res = res != encoder.get_blocksize();
             res = res != encoder.get_sample_rate();
+            res = res != encoder.get_num_threads();
             fuzzing::memory::memory_test(res);
         }
 

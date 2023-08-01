@@ -148,6 +148,7 @@ namespace FLAC {
 			virtual bool set_metadata(::FLAC__StreamMetadata **metadata, uint32_t num_blocks);    ///< See FLAC__stream_encoder_set_metadata()
 			virtual bool set_metadata(FLAC::Metadata::Prototype **metadata, uint32_t num_blocks); ///< See FLAC__stream_encoder_set_metadata()
 			virtual bool set_limit_min_bitrate(bool value);                 ///< See FLAC__stream_encoder_set_limit_min_bitrate()
+			virtual uint32_t set_num_threads(uint32_t value);                       ///< See FLAC__stream_encoder_set_num_threads()
 
 			/* get_state() is not virtual since we want subclasses to be able to return their own state */
 			State get_state() const;                                   ///< See FLAC__stream_encoder_get_state()
@@ -171,6 +172,7 @@ namespace FLAC {
 			virtual uint32_t get_rice_parameter_search_dist() const;   ///< See FLAC__stream_encoder_get_rice_parameter_search_dist()
 			virtual FLAC__uint64 get_total_samples_estimate() const;   ///< See FLAC__stream_encoder_get_total_samples_estimate()
 			virtual bool     get_limit_min_bitrate() const;            ///< See FLAC__stream_encoder_get_limit_min_bitrate()
+			virtual uint32_t get_num_threads() const;                  ///< See FLAC__stream_encoder_get_num_threads()
 
 			virtual ::FLAC__StreamEncoderInitStatus init();            ///< See FLAC__stream_encoder_init_stream()
 			virtual ::FLAC__StreamEncoderInitStatus init_ogg();        ///< See FLAC__stream_encoder_init_ogg_stream()
