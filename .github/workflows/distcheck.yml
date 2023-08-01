@@ -56,3 +56,4 @@ jobs:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs
           path: |
             ./flac-**/**/*.log
+            ./compat_reports
