@@ -108,6 +108,10 @@ else()
     endif()
 endif()
 
+if(HAVE_PTHREAD)
+    target_link_libraries(FLAC PUBLIC Threads::Threads)
+endif()
+
 add_library(FLAC::FLAC ALIAS FLAC)
 
 install(TARGETS FLAC EXPORT targets
