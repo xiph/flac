@@ -1,0 +1,4 @@
+Dumps are created with for example
+abi-compliance-checker -lib flac++ -dump test/abi/abi-descriptor-libFLAC++-x.y.z.xml -dump-path test/abi/abi-libFLAC++-x.y.z.dump
+
+not with abi-dumper

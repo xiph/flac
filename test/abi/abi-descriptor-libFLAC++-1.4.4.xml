@@ -7,5 +7,5 @@
 </headers>
 
 <libs>
-    src/libFLAC++/.libs/libFLAC++.so.10.0.1
+    src/libFLAC++/.libs/libFLAC++.so.11.0.0
 </libs>
