@@ -1,0 +1,7 @@
+#include <riscv_vector.h>
+int main (void)
+{
+    size_t vl = __riscv_vsetvl_e64m2(8);
+    vfloat64m2_t a = __riscv_vfmv_v_f_f64m2(0.5, vl);
+    return 0;
+}

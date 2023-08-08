@@ -959,6 +959,19 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
 #endif /* defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN */
 
+#if defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN
+#ifdef FLAC__RISCV_VECTOR
+	if(encoder->protected_->max_lpc_order <= 16)
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation_intrin_riscv;
+	else
+		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
+
+	// encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_riscv;
+	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_riscv;
+	// encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_riscv;
+#endif /* FLAC__RISCV_VECTOR */
+#endif /* defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN */
+
 	if(encoder->private_->cpuinfo.use_asm) {
 #  ifdef FLAC__CPU_IA32
 		FLAC__ASSERT(encoder->private_->cpuinfo.type == FLAC__CPUINFO_TYPE_IA32);
