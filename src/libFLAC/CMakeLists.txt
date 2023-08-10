@@ -3,6 +3,7 @@ option(RISCV_VECTOR "Use RiscV Vector Optimization" OFF)
 
 check_include_file("cpuid.h" HAVE_CPUID_H)
 check_include_file("sys/param.h" HAVE_SYS_PARAM_H)
+check_include_file("sys/auxv.h" HAVE_SYS_AUXV_H)
 
 set(CMAKE_REQUIRED_LIBRARIES m)
 check_function_exists(lround HAVE_LROUND)

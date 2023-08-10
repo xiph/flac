@@ -41,7 +41,6 @@
 #include "FLAC/format.h"
 #include "private/macros.h"
 #include <riscv_vector.h>
-#include <assert.h>
 
 void FLAC__lpc_compute_autocorrelation_intrin_riscv(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
 {
