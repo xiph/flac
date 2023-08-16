@@ -238,7 +238,7 @@ x86_cpu_info (FLAC__CPUInfo *info)
 static void
 rv64_cpu_info(FLAC__CPUInfo *info)
 {
-#if defined(FLAC__CPU_RISCV64) && defined(FLAC__HAS_RISCVINTRIN) && defined(FLAC__HAS_RISCVINTRIN) && !defined(FLAC__NO_ASM) && defined(HAVE_SYS_AUXV_H)
+#if defined(FLAC__CPU_RISCV64) && defined(FLAC__HAS_RISCVINTRIN) && defined(FLAC__HAS_RISCVINTRIN) && !defined(FLAC__NO_ASM) && defined(HAVE_SYS_AUXV_H) && defined(FLAC__RISCV_VECTOR)
 #define ISA_V_HWCAP (1 << ('v' - 'a'))
 	// Check that the kernel and the hardware support RiscV Vector.
 	unsigned long hw_cap = getauxval(AT_HWCAP);
