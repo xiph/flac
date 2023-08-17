@@ -3,7 +3,7 @@ macro(CHECK_RV64VECTOR VARIABLE)
         message(STATUS "Check whether RV64 Vector can be used")
         configure_file(${PROJECT_SOURCE_DIR}/cmake/CheckRV64Vector.c.in ${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckRV64Vector.c @ONLY)
         try_compile(HAVE_${VARIABLE} "${PROJECT_BINARY_DIR}"
-            "${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckRV64Vector.c")
+            "${PROJECT_BINARY_DIR}/CMakeFiles/CMakeTmp/CheckRV64Vector.c" COMPILE_DEFINITIONS "-march=rv64gcv")
         if(HAVE_${VARIABLE})
             message(STATUS "Check whether RV64 Vector can be used - yes")
             set(${VARIABLE} 1 CACHE INTERNAL "Result of CHECK_RV64VECTOR" FORCE)

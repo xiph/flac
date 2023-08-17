@@ -959,7 +959,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
     encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
 #endif /* defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN */
 
-#if defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN
+#if defined FLAC__CPU_RISCV64 && defined FLAC__HAS_RISCVINTRIN && defined HAVE_RISCV_VECTOR_H
 #ifdef FLAC__RISCV_VECTOR
 	if(encoder->private_->cpuinfo.rv64.has_vector) {
 		if(encoder->protected_->max_lpc_order <= encoder->private_->cpuinfo.rv64.vlenb) {
@@ -968,7 +968,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_riscv;
 	}
 #endif /* FLAC__RISCV_VECTOR */
-#endif /* defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN */
+#endif /* defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN && HAVE_RISCV_VECTOR_H */
 
 	if(encoder->private_->cpuinfo.use_asm) {
 #  ifdef FLAC__CPU_IA32

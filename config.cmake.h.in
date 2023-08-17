@@ -121,6 +121,9 @@
 /* Define to 1 if you have the <termios.h> header file. */
 #cmakedefine HAVE_TERMIOS_H
 
+/* Define to 1 if you have the <riscv_vector.h> header file. */
+#cmakedefine HAVE_RISCV_VECTOR_H
+
 /* Define to 1 if typeof works with your compiler. */
 #cmakedefine HAVE_TYPEOF
 

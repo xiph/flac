@@ -35,6 +35,7 @@
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 #ifndef FLAC__NO_ASM
 #ifdef FLAC__RISCV_VECTOR
+#ifdef HAVE_RISCV_VECTOR_H
 #if defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN
 #include "private/lpc.h"
 #include "FLAC/assert.h"
@@ -627,6 +628,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_riscv(const FLAC__i
 }
 
 #endif /* FLAC__CPU_ARM64 && FLAC__HAS_ARCH64INTRIN */
+#endif /* HAVE_RISCV_VECTOR_H */
 #endif /* FLAC__RISCV_VECTOR */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */

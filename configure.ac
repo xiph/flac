@@ -53,7 +53,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h riscv_vector.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
 
 if test "x$ac_cv_header_stdint_h" != xyes -o "x$ac_cv_header_stdbool_h" != xyes; then
 AC_MSG_ERROR("Header stdint.h and/or stdbool.h not found")
@@ -89,6 +89,8 @@ fi
 AC_ARG_ENABLE(riscv-vector-optimizations, AS_HELP_STRING([--enable-riscv-vector-optimizations],[Enable RiscV Vector Optimization Routines]), riscv_vector_opt=yes, riscv_vector_opt=no)
 AM_CONDITIONAL(FLAC__RISCV_VECTOR, test "x$riscv_vector_opt" = xyes)
 if test "x$riscv_vector_opt" = xyes ; then
+CFLAGS="-march=rv64gcv $CFLAGS"
+AC_CHECK_HEADERS([riscv_vector.h])
 AC_DEFINE(FLAC__RISCV_VECTOR)
 AH_TEMPLATE(FLAC__RISCV_VECTOR, [define to enable use riscv vector extensions])
 fi
