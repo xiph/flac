@@ -715,7 +715,7 @@ yield sane results. If necessary, an overlap can be specified, as can be
 the taper parameter, for example partial_tukey(2/0.2) or
 partial_tukey(2/0.2/0.5). ov should be smaller than 1 and can be
 negative. The use of this is that different parts of a block are ignored
-as the might contain transients which are hard to predict anyway. The
+as they might contain transients which are hard to predict anyway. The
 encoder will try each different added apodization (each covering a
 different part of the block) to see which resulting predictor results in
 the smallest representation.
