@@ -2337,6 +2337,8 @@ FLAC_API const char *FLAC__stream_encoder_get_resolved_state_string(const FLAC__
 	FLAC__ASSERT(0 != encoder->protected_);
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_VERIFY_DECODER_ERROR)
 		return FLAC__StreamEncoderStateString[encoder->protected_->state];
+	else if(!encoder->private_->verify.decoder)
+		return FLAC__StreamEncoderStateString[FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR];
 	else
 		return FLAC__stream_decoder_get_resolved_state_string(encoder->private_->verify.decoder);
 }
