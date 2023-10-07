@@ -3592,7 +3592,7 @@ void * process_frame_thread_(void * args) {
 				pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
 				if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->md5_fifo.data, encoder->protected_->channels, length, (encoder->protected_->bits_per_sample+7) / 8)) {
 					encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
-					return false;
+					return NULL;
 				}
 				pthread_mutex_lock(&encoder->private_->mutex_md5_fifo);
 				for(channel = 0; channel < encoder->protected_->channels; channel++)
