@@ -811,7 +811,14 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
-	return decoder->protected_->state;
+#if FLAC__HAS_OGG 
+	if (decoder->private_->is_ogg && 
+		decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM && 
+		FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, false))
+		return FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
+	else
+#endif
+		return decoder->protected_->state;
 }
 
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder)
@@ -996,6 +1003,19 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 	FLAC__ASSERT(0 != decoder->protected_);
 
 	while(1) {
+#if FLAC__HAS_OGG
+		if(decoder->private_->is_ogg &&
+		   decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+		   FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true)) {
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
+			decoder->private_->has_stream_info = false;
+			decoder->private_->first_frame_offset = 0;
+			decoder->private_->unparseable_frame_count = 0;
+			decoder->private_->last_seen_framesync = 0;
+			decoder->private_->last_frame_is_set = false;
+		}
+#endif
+
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 				if(!find_metadata_(decoder))
