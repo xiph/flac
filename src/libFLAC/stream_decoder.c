@@ -112,6 +112,7 @@ static FLAC__StreamDecoderSeekStatus file_seek_callback_(const FLAC__StreamDecod
 static FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamDecoderLengthStatus file_length_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
 static FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_data);
+static void reset_decoder(FLAC__StreamDecoder* decoder);
 
 /***********************************************************************
  *
@@ -1006,16 +1007,9 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 #if FLAC__HAS_OGG
 		if(decoder->private_->is_ogg &&
 		   decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
-		   FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true)) {
-			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
-			decoder->private_->has_stream_info = false;
-			decoder->private_->first_frame_offset = 0;
-			decoder->private_->unparseable_frame_count = 0;
-			decoder->private_->last_seen_framesync = 0;
-			decoder->private_->last_frame_is_set = false;
-		}
+		   FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
+			reset_decoder(decoder);
 #endif
-
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 				if(!find_metadata_(decoder))
@@ -1078,6 +1072,12 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 	FLAC__ASSERT(0 != decoder->protected_);
 
 	while(1) {
+#if FLAC__HAS_OGG
+		if (decoder->private_->is_ogg &&
+			decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+			FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
+			reset_decoder(decoder);
+#endif
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 				if(!find_metadata_(decoder))
@@ -1111,6 +1111,12 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
 	FLAC__ASSERT(0 != decoder->protected_);
 
 	while(1) {
+#if FLAC__HAS_OGG
+		if (decoder->private_->is_ogg &&
+			decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+			FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
+			reset_decoder(decoder);
+#endif
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 			case FLAC__STREAM_DECODER_READ_METADATA:
@@ -3748,4 +3754,13 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 	(void)client_data;
 
 	return feof(decoder->private_->file)? true : false;
+}
+
+void reset_decoder(FLAC__StreamDecoder* decoder) {
+	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
+	decoder->private_->has_stream_info = false;
+	decoder->private_->first_frame_offset = 0;
+	decoder->private_->unparseable_frame_count = 0;
+	decoder->private_->last_seen_framesync = 0;
+	decoder->private_->last_frame_is_set = false;
 }

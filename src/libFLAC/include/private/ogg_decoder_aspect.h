@@ -61,6 +61,7 @@ void FLAC__ogg_decoder_aspect_set_defaults(FLAC__OggDecoderAspect *aspect);
 FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect);
 void FLAC__ogg_decoder_aspect_finish(FLAC__OggDecoderAspect *aspect);
 void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect);
+void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect* aspect);
 bool FLAC__ogg_decoder_aspect_page_eos(FLAC__OggDecoderAspect* aspect, bool reset);
 
 typedef enum {
