@@ -682,6 +682,21 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecod
 #endif
 }
 
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->protected_);
+	if (decoder->protected_->state != FLAC__STREAM_DECODER_UNINITIALIZED)
+		return false;
+#if FLAC__HAS_OGG
+	FLAC__ogg_decoder_aspect_set_chaining(&decoder->protected_->ogg_decoder_aspect, value);
+	return true;
+#else
+	(void)allow;
+	return false;
+#endif
+}
+
 FLAC_API FLAC__bool FLAC__stream_decoder_set_md5_checking(FLAC__StreamDecoder *decoder, FLAC__bool value)
 {
 	FLAC__ASSERT(0 != decoder);
@@ -825,6 +840,17 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder)
 {
 	return FLAC__StreamDecoderStateString[decoder->protected_->state];
+}
+
+FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDecoder* decoder)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->protected_);
+#if FLAC__HAS_OGG
+	return FLAC__ogg_decoder_aspect_get_chaining(&decoder->protected_->ogg_decoder_aspect);
+#else
+	return false;
+#endif
 }
 
 FLAC_API FLAC__bool FLAC__stream_decoder_get_md5_checking(const FLAC__StreamDecoder *decoder)
