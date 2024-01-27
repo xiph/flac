@@ -112,7 +112,9 @@ static FLAC__StreamDecoderSeekStatus file_seek_callback_(const FLAC__StreamDecod
 static FLAC__StreamDecoderTellStatus file_tell_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *absolute_byte_offset, void *client_data);
 static FLAC__StreamDecoderLengthStatus file_length_callback_(const FLAC__StreamDecoder *decoder, FLAC__uint64 *stream_length, void *client_data);
 static FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_data);
+#if FLAC__HAS_OGG
 static void reset_decoder(FLAC__StreamDecoder* decoder);
+#endif
 
 /***********************************************************************
  *
@@ -692,7 +694,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* d
 	FLAC__ogg_decoder_aspect_set_chaining(&decoder->protected_->ogg_decoder_aspect, value);
 	return true;
 #else
-	(void)allow;
+	(void)value;
 	return false;
 #endif
 }
@@ -849,6 +851,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDeco
 #if FLAC__HAS_OGG
 	return FLAC__ogg_decoder_aspect_get_chaining(&decoder->protected_->ogg_decoder_aspect);
 #else
+	(void)decoder;
 	return false;
 #endif
 }
@@ -3782,6 +3785,7 @@ FLAC__bool file_eof_callback_(const FLAC__StreamDecoder *decoder, void *client_d
 	return feof(decoder->private_->file)? true : false;
 }
 
+#if FLAC__HAS_OGG
 void reset_decoder(FLAC__StreamDecoder* decoder) {
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
 	decoder->private_->has_stream_info = false;
@@ -3790,3 +3794,4 @@ void reset_decoder(FLAC__StreamDecoder* decoder) {
 	decoder->private_->last_seen_framesync = 0;
 	decoder->private_->last_frame_is_set = false;
 }
+#endif
