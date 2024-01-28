@@ -1037,7 +1037,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 				else
 					return true;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
-				if(!frame_sync_(decoder))
+				if(!frame_sync_(decoder)) {
 #if FLAC__HAS_OGG
 					if (decoder->private_->is_ogg &&
 						decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
@@ -1046,6 +1046,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 					else
 #endif
 						return true; /* above function sets the status for us */
+				}
 				break;
 			case FLAC__STREAM_DECODER_READ_FRAME:
 				if(!read_frame_(decoder, &got_a_frame, /*do_full_decode=*/true))
@@ -1105,7 +1106,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 					return false; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
-				if(!frame_sync_(decoder))
+				if(!frame_sync_(decoder)) {
 #if FLAC__HAS_OGG
 					if (decoder->private_->is_ogg &&
 						decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
@@ -1114,6 +1115,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 					else
 #endif
 						return true; /* above function sets the status for us */
+				}
 				break;
 			case FLAC__STREAM_DECODER_READ_FRAME:
 				if(!read_frame_(decoder, &dummy, /*do_full_decode=*/true))
@@ -1140,7 +1142,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
 			case FLAC__STREAM_DECODER_READ_METADATA:
 				return false; /* above function sets the status for us */
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
-				if(!frame_sync_(decoder))
+				if(!frame_sync_(decoder)) {
 #if FLAC__HAS_OGG
 					if (decoder->private_->is_ogg &&
 						decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
@@ -1149,6 +1151,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
 					else
 #endif
 						return true; /* above function sets the status for us */
+				}
 				break;
 			case FLAC__STREAM_DECODER_READ_FRAME:
 				if(!read_frame_(decoder, &got_a_frame, /*do_full_decode=*/false))
