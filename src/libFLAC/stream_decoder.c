@@ -829,14 +829,7 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
-#if FLAC__HAS_OGG 
-	if (decoder->private_->is_ogg && 
-		decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM && 
-		FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, false))
-		return FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
-	else
-#endif
-		return decoder->protected_->state;
+	return decoder->protected_->state;
 }
 
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder)
@@ -1033,12 +1026,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 	FLAC__ASSERT(0 != decoder->protected_);
 
 	while(1) {
-#if FLAC__HAS_OGG
-		if(decoder->private_->is_ogg &&
-		   decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
-		   FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
-			reset_decoder(decoder);
-#endif
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 				if(!find_metadata_(decoder))
@@ -1051,7 +1038,14 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
 					return true;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
 				if(!frame_sync_(decoder))
-					return true; /* above function sets the status for us */
+#if FLAC__HAS_OGG
+					if (decoder->private_->is_ogg &&
+						decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+						FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
+						reset_decoder(decoder);
+					else
+#endif
+						return true; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_READ_FRAME:
 				if(!read_frame_(decoder, &got_a_frame, /*do_full_decode=*/true))
@@ -1101,12 +1095,6 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 	FLAC__ASSERT(0 != decoder->protected_);
 
 	while(1) {
-#if FLAC__HAS_OGG
-		if (decoder->private_->is_ogg &&
-			decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
-			FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
-			reset_decoder(decoder);
-#endif
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 				if(!find_metadata_(decoder))
@@ -1118,7 +1106,14 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 				break;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
 				if(!frame_sync_(decoder))
-					return true; /* above function sets the status for us */
+#if FLAC__HAS_OGG
+					if (decoder->private_->is_ogg &&
+						decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+						FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
+						reset_decoder(decoder);
+					else
+#endif
+						return true; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_READ_FRAME:
 				if(!read_frame_(decoder, &dummy, /*do_full_decode=*/true))
@@ -1140,19 +1135,20 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
 	FLAC__ASSERT(0 != decoder->protected_);
 
 	while(1) {
-#if FLAC__HAS_OGG
-		if (decoder->private_->is_ogg &&
-			decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
-			FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
-			reset_decoder(decoder);
-#endif
 		switch(decoder->protected_->state) {
 			case FLAC__STREAM_DECODER_SEARCH_FOR_METADATA:
 			case FLAC__STREAM_DECODER_READ_METADATA:
 				return false; /* above function sets the status for us */
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
 				if(!frame_sync_(decoder))
-					return true; /* above function sets the status for us */
+#if FLAC__HAS_OGG
+					if (decoder->private_->is_ogg &&
+						decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+						FLAC__ogg_decoder_aspect_page_eos(&decoder->protected_->ogg_decoder_aspect, true))
+						reset_decoder(decoder);
+					else
+#endif
+						return true; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_READ_FRAME:
 				if(!read_frame_(decoder, &got_a_frame, /*do_full_decode=*/false))
