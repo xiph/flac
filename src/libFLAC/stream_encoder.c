@@ -94,6 +94,15 @@ typedef dispatch_semaphore_t sem_t;
  * yielding compression within 0.1% of the optimal parameters.
  */
 #undef ENABLE_RICE_PARAMETER_SEARCH
+/* To enable or disable extra checks during threading. This is useful
+ * for debugging. Using it requires something like threadsanitizer
+ * to notice the result of the extra checks and output info
+ */
+#if defined(__has_feature)
+#  if __has_feature(thread_sanitizer)
+#    define ENABLE_EXTRA_THREADING_CHECKS
+#  endif
+#endif
 
 
 typedef struct {
@@ -206,6 +215,9 @@ typedef struct FLAC__StreamEncoderThreadTask {
 	sem_t sem_work_available; /* To signal to thread that work is available */
 	sem_t sem_work_done;      /* To signal from thread that work is done */
 	FLAC__bool returnvalue;
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+	pthread_mutex_t mutex_extra_check;
+#endif
 #endif
 } FLAC__StreamEncoderThreadTask;
 
@@ -1233,6 +1245,17 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 				encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 				return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
 			}
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+			if(pthread_mutex_init(&encoder->private_->threadtask[t]->mutex_extra_check, NULL)) {
+				sem_destroy(&encoder->private_->threadtask[t]->sem_work_available);
+				sem_destroy(&encoder->private_->threadtask[t]->sem_work_done);
+				FLAC__bitwriter_delete(encoder->private_->threadtask[t]->frame);
+				free(encoder->private_->threadtask[t]);
+				encoder->private_->threadtask[t] = 0;
+				encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
+				return FLAC__STREAM_ENCODER_INIT_STATUS_ENCODER_ERROR;
+			}
+#endif
 
 			for(i = 0; i < FLAC__MAX_CHANNELS; i++) {
 				encoder->private_->threadtask[t]->subframe_workspace_ptr[i][0] = &encoder->private_->threadtask[t]->subframe_workspace[i][0];
@@ -1706,10 +1729,19 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 				FLAC__ASSERT(twrap > 0);
 				t = (twrap - 1) % (encoder->private_->num_threadtasks - 1) + 1;
 				sem_wait(&encoder->private_->threadtask[t]->sem_work_done);
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+				if(pthread_mutex_trylock(&encoder->private_->threadtask[t]->mutex_extra_check) != 0) {
+					/* To trigger threadsanitizer to output a nice summary */
+					pthread_mutex_destroy(&encoder->private_->threadtask[t]->mutex_extra_check);
+				}
+#endif
 				if(!encoder->private_->threadtask[t]->returnvalue)
 					ok = false;
 				if(ok && !write_bitbuffer_(encoder, encoder->private_->threadtask[t], encoder->protected_->blocksize, 0))
 					ok = false;
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+				pthread_mutex_unlock(&encoder->private_->threadtask[t]->mutex_extra_check);
+#endif
 			}
 			/* Wait for MD5 calculation to finish */
 			pthread_mutex_lock(&encoder->private_->mutex_work_queue);
@@ -2785,6 +2817,9 @@ void free_(FLAC__StreamEncoder *encoder)
 			FLAC__bitwriter_delete(encoder->private_->threadtask[t]->frame);
 			sem_destroy(&encoder->private_->threadtask[t]->sem_work_available);
 			sem_destroy(&encoder->private_->threadtask[t]->sem_work_done);
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+			pthread_mutex_destroy(&encoder->private_->threadtask[t]->mutex_extra_check);
+#endif
 			free(encoder->private_->threadtask[t]);
 			encoder->private_->threadtask[t] = 0;
 #else
@@ -3529,6 +3564,12 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 					if(encoder->private_->num_available_threadtasks > (encoder->protected_->num_threads - 1)) {
 						FLAC__StreamEncoderThreadTask * task = NULL;
 						task = encoder->private_->threadtask[encoder->private_->next_threadtask];
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+						if(pthread_mutex_trylock(&task->mutex_extra_check) != 0) {
+							/* To trigger threadsanitizer to output a nice summary */
+							pthread_mutex_destroy(&task->mutex_extra_check);
+						}
+#endif
 						encoder->private_->num_available_threadtasks--;
 						encoder->private_->next_threadtask++;
 						if(encoder->private_->next_threadtask == encoder->private_->num_threadtasks)
@@ -3546,10 +3587,20 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 			/* Wait for thread to finish, then write bitbuffer */
 			if(!encoder->private_->threadtask[encoder->private_->next_thread]->returnvalue)
 				return false;
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+			if(pthread_mutex_trylock(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_extra_check) != 0) {
+				/* To trigger threadsanitizer to output a nice summary */
+				pthread_mutex_destroy(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_extra_check);
+
+			}
+#endif
 			if(!write_bitbuffer_(encoder, encoder->private_->threadtask[encoder->private_->next_thread], encoder->protected_->blocksize, is_last_block)) {
 				/* the above function sets the state for us in case of an error */
 				return false;
 			}
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+			pthread_mutex_unlock(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_extra_check);
+#endif
 		}
 		/* Copy input data for MD5 calculation */
 		if(encoder->protected_->do_md5) {
@@ -3658,6 +3709,13 @@ void * process_frame_thread_(void * args) {
 		else if(encoder->private_->num_available_threadtasks > 0) {
 			FLAC__StreamEncoderThreadTask * task = NULL;
 			task = encoder->private_->threadtask[encoder->private_->next_threadtask];
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+			if(pthread_mutex_trylock(&task->mutex_extra_check) != 0) {
+				/* To trigger threadsanitizer to output a nice summary */
+				pthread_mutex_destroy(&task->mutex_extra_check);
+			}
+#endif
+
 			encoder->private_->num_available_threadtasks--;
 			encoder->private_->next_threadtask++;
 			if(encoder->private_->next_threadtask == encoder->private_->num_threadtasks)
@@ -3707,6 +3765,9 @@ FLAC__bool process_frame_thread_inner_(FLAC__StreamEncoder * encoder, FLAC__Stre
 		ok = false;
 	}
 	task->returnvalue = ok;
+#ifdef ENABLE_EXTRA_THREADING_CHECKS
+	pthread_mutex_unlock(&task->mutex_extra_check);
+#endif
 	sem_post(&task->sem_work_done);
 	return true;
 }
