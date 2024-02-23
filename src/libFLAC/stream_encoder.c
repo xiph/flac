@@ -1677,6 +1677,22 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 		/* first finish threads */
 		if(encoder->protected_->num_threads > 1) {
 #ifdef HAVE_PTHREAD
+			/* This is quite complicated, so here is an explanation on what is supposed to happen
+			 *
+			 * Thread no.0 and threadtask no.0 are reserved for non-threaded operation, so counting
+			 * here starts at 1, which makes things slightly more complicated.
+			 *
+			 * If the file processed was very short compared to the requested number of threadtasks,
+			 * not all threadtasks have been populated yet. Handling that is easy: threadtask no.1 needs
+			 * to be processed first, monotonically increasing until the last populated threadtask is
+			 * processed. This number is stored in encoder->private_->num_started_threadtasks
+			 *
+			 * If the file is longer, the next due frame chronologically might not be in threadtasks
+			 * number 1, because the threadtasks work like a ringbuffer. To access this, the variable
+			 * twrap starts counting at the next due frame, and the modulo operator (%) is used to
+			 * "wrap" the number with the number of threadtasks. So, if the next due task is 3
+			 * and 4 tasks are started, twrap increases 3, 4, 5, 6, and t follows with values 3, 4, 1, 2.
+			 */
 			uint32_t start, end, t, twrap;
 			if(encoder->private_->num_started_threadtasks < encoder->private_->num_threadtasks) {
 				start = 1;
@@ -1695,6 +1711,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 				if(ok && !write_bitbuffer_(encoder, encoder->private_->threadtask[t], encoder->protected_->blocksize, 0))
 					ok = false;
 			}
+			/* Wait for MD5 calculation to finish */
 			pthread_mutex_lock(&encoder->private_->mutex_work_queue);
 			while(encoder->private_->md5_active || encoder->private_->md5_fifo.tail > 0) {
 				pthread_cond_wait(&encoder->private_->cond_md5_emptied, &encoder->private_->mutex_work_queue);
@@ -1717,6 +1734,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 
 	if(encoder->protected_->num_threads > 1) {
 #ifdef HAVE_PTHREAD
+		/* Properly finish all threads */
 		uint32_t t;
 		pthread_mutex_lock(&encoder->private_->mutex_work_queue);
 		for(t = 1; t < encoder->private_->num_created_threads; t++)
@@ -3461,6 +3479,38 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 	}
 	else {
 #ifdef HAVE_PTHREAD
+		/* This bit is quite complicated, so here are some pointers:
+		 *
+		 * When this bit of code is reached for the first time, new threads are spawned and
+		 * threadtasks are populated until the total number of threads equals the requested number
+		 * of threads. Next, threadtasks are populated until they there are no more available.
+		 * Next, this main thread checks whether the threadtask that is due chronologically is
+		 * done. If it is, the bitbuffer is written and the threadtask memory reused for the next
+		 * frame. If it is not done, the main thread checks whether there is enough work left in the
+		 * queue. If there is a lot of work left, the main thread starts on some of it too.
+		 * If not a lot of work is left, the main thread goes to sleep until the frame due first is
+		 * finished.
+		 *
+		 * - encoder->private_->next_thread is the number of the next thread to be created or, when
+		 *    the required number of threads is created, the next threadtask to be populated,
+		 *    or, when all threadtasks have been populated once, the next threadtask that needs
+		 *    to finish and thus reused.
+		 * - encoder->private_->next_threadtask is the number of the next threadtask that a thread
+		 *    can start work on.
+		 *
+		 * So, in effect, next_thread is (after startup) a pointer considering the chronological
+		 * order, so input/output isn't shuffled. next_threadtask is a pointer to the next task that
+		 * hasn't been picked up by a thread yet. This distinction enables threads to work on frames
+		 * in a non-chronological order
+		 *
+		 * encoder->protected_->num_threads is the max number of threads that can be spawned
+		 * encoder->private_->num_created_threads is the number of threads that has been spawned
+		 * encoder->private_->num_threadtasks keeps track of how many threadtasks are available
+		 * encoder->private_->num_started_threadtasks keeps track of how many threadtasks have been populated
+		 *
+		 * NOTE: thread no. 0 and threadtask no. 0 are reserved for non-threaded operations, so next_thread
+		 * and next_threadtask start at 1
+		 */
 		if(encoder->private_->num_created_threads < encoder->protected_->num_threads) {
 			/* Create a new thread */
 			pthread_create(&encoder->private_->thread[encoder->private_->next_thread],
