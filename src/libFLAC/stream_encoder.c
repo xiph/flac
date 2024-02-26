@@ -1694,6 +1694,7 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 			for(twrap = start; twrap < end; twrap++) {
 				FLAC__ASSERT(twrap > 0);
 				t = (twrap - 1) % (encoder->private_->num_threadtasks - 1) + 1;
+				/* Lock mutex, if task isn't done yet, wait for condition */
 				pthread_mutex_lock(&encoder->private_->threadtask[t]->mutex_this_task);
 				while(!encoder->private_->threadtask[t]->task_done)
 					pthread_cond_wait(&encoder->private_->threadtask[t]->cond_task_done,&encoder->private_->threadtask[t]->mutex_this_task);
@@ -3519,6 +3520,10 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 					pthread_cond_wait(&encoder->private_->threadtask[encoder->private_->next_thread]->cond_task_done, &encoder->private_->threadtask[encoder->private_->next_thread]->mutex_this_task);
 			}
 			else {
+				/* First, check whether the mutex for the next due task is locked or free. If it is free (and thus acquired now) and
+				 * the task is done, proceed to the next bit (writing the bitbuffer). If it is either currently locked or not yet
+				 * processed, choose between starting on some work (if there is enough work in the queue) or waiting for the task
+				 * to finish. Either way, release the mutex first, so it doesn't get interlocked with the work queue mutex  */
 				int mutex_result = pthread_mutex_trylock(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_this_task);
 				while(mutex_result || !encoder->private_->threadtask[encoder->private_->next_thread]->task_done) {
 					if(!mutex_result)
@@ -3546,7 +3551,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 					}
 				}
 			}
-			/* Wait for thread to finish, then write bitbuffer */
+			/* Task is finished, write bitbuffer */
 			if(!encoder->private_->threadtask[encoder->private_->next_thread]->returnvalue)
 				return false;
 			if(!write_bitbuffer_(encoder, encoder->private_->threadtask[encoder->private_->next_thread], encoder->protected_->blocksize, is_last_block)) {
@@ -3621,6 +3626,10 @@ void * process_frame_thread_(void * args) {
 			pthread_mutex_unlock(&encoder->private_->mutex_work_queue);
 			return NULL;
 		}
+		/* The code below pauses and restarts threads if it is noticed threads are often put too sleep
+		 * because of a lack of work. This reduces overhead when too many threads are active. The
+		 * overcommited indicator is increased when no tasks are available, decreased when more tasks
+		 * are available then threads are running, and reset when a thread is woken up or put to sleep */
 		if(encoder->private_->num_available_threadtasks == 0)
 			encoder->private_->overcommitted_indicator++;
 		else if(encoder->private_->num_available_threadtasks > encoder->private_->num_running_threads)
