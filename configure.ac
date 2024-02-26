@@ -53,7 +53,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h semaphore.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h termios.h x86intrin.h cpuid.h arm_neon.h])
 
 if test "x$ac_cv_header_stdint_h" != xyes -o "x$ac_cv_header_stdbool_h" != xyes; then
 AC_MSG_ERROR("Header stdint.h and/or stdbool.h not found")
@@ -377,21 +377,17 @@ AC_ARG_ENABLE([multithreading],
 
 HAVE_PTHREAD=no
 if test "x$enable_multithreading" != "xno" ; then
-	if test "x$ac_cv_header_semaphore_h" != "xyes"; then
-		AC_MSG_WARN("Header semaphore.h, needed for multithreading, is not found")
-	else
-		AX_PTHREAD([
-			HAVE_PTHREAD=yes
-			AC_DEFINE(HAVE_PTHREAD,1,[Define if pthread is enabled])
-			LIBS="$PTHREAD_LIBS $LIBS"
-			CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-			CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
-			CC="$PTHREAD_CC"
-			CXX="$PTHREAD_CXX"
-			],[HAVE_PTHREAD=no])
-		if test "x${HAVE_PTHREAD}" == "xno"; then
-			AC_MSG_WARN("pthread support, needed for multithreading, is not found")
-		fi
+	AX_PTHREAD([
+		HAVE_PTHREAD=yes
+		AC_DEFINE(HAVE_PTHREAD,1,[Define if pthread is enabled])
+		LIBS="$PTHREAD_LIBS $LIBS"
+		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+		CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+		CC="$PTHREAD_CC"
+		CXX="$PTHREAD_CXX"
+		],[HAVE_PTHREAD=no])
+	if test "x${HAVE_PTHREAD}" == "xno"; then
+		AC_MSG_WARN("pthread support, needed for multithreading, is not found")
 	fi
 fi
 
