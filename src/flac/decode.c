@@ -361,6 +361,9 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 			FLAC__stream_decoder_set_metadata_respond_application(decoder_session->decoder, (FLAC__byte *)FLAC__FOREIGN_METADATA_APPLICATION_ID[i]);
 	}
 
+	if(decoder_session->test_only)
+		FLAC__stream_decoder_set_metadata_respond_all(decoder_session->decoder);
+
 #if FLAC__HAS_OGG
 	if(decoder_session->is_ogg) {
 		if(!decoder_session->use_first_serial_number)
@@ -1521,7 +1524,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			return;
 		}
 	}
-	else if(metadata->type == FLAC__METADATA_TYPE_CUESHEET) {
+	else if(metadata->type == FLAC__METADATA_TYPE_CUESHEET && !decoder_session->test_only) {
 		/* remember, at this point, decoder_session->total_samples can be 0, meaning 'unknown' */
 		if(decoder_session->total_samples == 0) {
 			flac__utils_printf(stderr, 1, "%s: ERROR can't use --cue when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
@@ -1544,7 +1547,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 
 		decoder_session->total_samples = decoder_session->until_specification->value.samples - decoder_session->skip_specification->value.samples;
 	}
-	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT) {
+	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT && !decoder_session->test_only) {
 		if (decoder_session->replaygain.spec.apply) {
 			double reference, gain, peak;
 			if (!(decoder_session->replaygain.apply = grabbag__replaygain_load_from_vorbiscomment(metadata, decoder_session->replaygain.spec.use_album_gain, /*strict=*/false, &reference, &gain, &peak))) {
@@ -1574,7 +1577,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		}
 		(void)flac__utils_get_channel_mask_tag(metadata, &decoder_session->channel_mask);
 	}
-	else if(metadata->type == FLAC__METADATA_TYPE_APPLICATION && decoder_session->warn_user_about_foreign_metadata) {
+	else if(metadata->type == FLAC__METADATA_TYPE_APPLICATION && decoder_session->warn_user_about_foreign_metadata && !decoder_session->test_only) {
 		/* Foreign metadata signalling */
 		flac__utils_printf(stderr, 1, "%s: WARNING: found foreign metadata, use --keep-foreign-metadata to restore\n", decoder_session->inbasefilename);
 		decoder_session->warn_user_about_foreign_metadata = false;
