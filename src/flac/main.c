@@ -2205,10 +2205,14 @@ int decode_file(const char *infilename)
 		output_format = FORMAT_WAVE;
 
 	/* Now do subformats */
-	if(option_values.force_legacy_wave_format)
+	if(option_values.force_legacy_wave_format) {
+		output_format = FORMAT_WAVE;
 		output_subformat = SUBFORMAT_WAVE_PCM;
-	else if(option_values.force_extensible_wave_format)
+	}
+	else if(option_values.force_extensible_wave_format) {
+		output_format = FORMAT_WAVE;
 		output_subformat = SUBFORMAT_WAVE_EXTENSIBLE;
+	}
 	else if(option_values.force_aiff_c_none_format) {
 		output_format = FORMAT_AIFF_C;
 		output_subformat = SUBFORMAT_AIFF_C_NONE;
