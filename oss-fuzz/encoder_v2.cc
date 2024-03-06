@@ -54,6 +54,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	FLAC__bool encoder_valid = true;
 	FLAC__StreamEncoder *encoder = 0;
 	FLAC__StreamEncoderState state;
+	const char* state_string = "";
 	FLAC__StreamMetadata *metadata[16] = {NULL};
 	unsigned num_metadata = 0;
 	FLAC__StreamMetadata_VorbisComment_Entry VorbisCommentField;
@@ -320,6 +321,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	}
 
 	state = FLAC__stream_encoder_get_state(encoder);
+	state_string = FLAC__stream_encoder_get_resolved_state_string(encoder);
 	if(!(state == FLAC__STREAM_ENCODER_OK ||
 	     state == FLAC__STREAM_ENCODER_UNINITIALIZED ||
 	     state == FLAC__STREAM_ENCODER_CLIENT_ERROR ||
