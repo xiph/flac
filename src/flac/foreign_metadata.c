@@ -800,7 +800,7 @@ static FLAC__bool compare_with_iff_(foreign_metadata_t *fm, FILE *fin, FILE *fou
 foreign_metadata_t *flac__foreign_metadata_new(foreign_block_type_t type)
 {
 	/* calloc() to zero all the member variables */
-	foreign_metadata_t *x = calloc(sizeof(foreign_metadata_t), 1);
+	foreign_metadata_t *x = calloc(1, sizeof(foreign_metadata_t));
 	if(x) {
 		x->type = type;
 		x->is_rf64 = false;
