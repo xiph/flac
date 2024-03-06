@@ -80,7 +80,6 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	/* allocate the decoder */
 	if((decoder = FLAC__stream_decoder_new()) == NULL) {
-		fprintf(stderr, "ERROR: allocating decoder\n");
 		return 1;
 	}
 
