@@ -364,7 +364,7 @@ FLAC_API const char * const FLAC__Metadata_SimpleIteratorStatusString[] = {
 
 FLAC_API FLAC__Metadata_SimpleIterator *FLAC__metadata_simple_iterator_new(void)
 {
-	FLAC__Metadata_SimpleIterator *iterator = calloc(1, sizeof(FLAC__Metadata_SimpleIterator));
+	FLAC__Metadata_SimpleIterator *iterator = safe_calloc_(1, sizeof(FLAC__Metadata_SimpleIterator));
 
 	if(0 != iterator) {
 		iterator->file = 0;
@@ -961,7 +961,7 @@ FLAC_API const char * const FLAC__Metadata_ChainStatusString[] = {
 
 static FLAC__Metadata_Node *node_new_(void)
 {
-	return calloc(1, sizeof(FLAC__Metadata_Node));
+	return safe_calloc_(1, sizeof(FLAC__Metadata_Node));
 }
 
 static void node_delete_(FLAC__Metadata_Node *node)
@@ -1559,7 +1559,7 @@ static FLAC__bool chain_rewrite_file_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHa
 
 FLAC_API FLAC__Metadata_Chain *FLAC__metadata_chain_new(void)
 {
-	FLAC__Metadata_Chain *chain = calloc(1, sizeof(FLAC__Metadata_Chain));
+	FLAC__Metadata_Chain *chain = safe_calloc_(1, sizeof(FLAC__Metadata_Chain));
 
 	if(0 != chain)
 		chain_init_(chain);
@@ -1953,7 +1953,7 @@ FLAC_API void FLAC__metadata_chain_sort_padding(FLAC__Metadata_Chain *chain)
 
 FLAC_API FLAC__Metadata_Iterator *FLAC__metadata_iterator_new(void)
 {
-	FLAC__Metadata_Iterator *iterator = calloc(1, sizeof(FLAC__Metadata_Iterator));
+	FLAC__Metadata_Iterator *iterator = safe_calloc_(1, sizeof(FLAC__Metadata_Iterator));
 
 	/* calloc() implies:
 		iterator->current = 0;
@@ -2289,7 +2289,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_application_cb_(FLA
 		block->data = 0;
 	}
 	else {
-		if(0 == (block->data = malloc(block_length)))
+		if(0 == (block->data = safe_malloc_(block_length)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if(read_cb(block->data, 1, block_length, handle) != block_length)
@@ -2390,7 +2390,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_vorbis_comment_cb_(
 		status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
 		goto skip;
 	}
-	else if(0 == (block->comments = calloc(block->num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
+	else if(0 == (block->comments = safe_calloc_(block->num_comments, sizeof(FLAC__StreamMetadata_VorbisComment_Entry)))) {
 		block->num_comments = 0;
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 	}
@@ -2460,7 +2460,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_track_cb_(
 	if(track->num_indices == 0) {
 		track->indices = 0;
 	}
-	else if(0 == (track->indices = calloc(track->num_indices, sizeof(FLAC__StreamMetadata_CueSheet_Index))))
+	else if(0 == (track->indices = safe_calloc_(track->num_indices, sizeof(FLAC__StreamMetadata_CueSheet_Index))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < track->num_indices; i++) {
@@ -2520,7 +2520,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cuesheet_cb_(FLAC__
 	if(block->num_tracks == 0) {
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
 	}
-	else if(0 == (block->tracks = calloc(block->num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track))))
+	else if(0 == (block->tracks = safe_calloc_(block->num_tracks, sizeof(FLAC__StreamMetadata_CueSheet_Track))))
 		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 	for(i = 0; i < block->num_tracks; i++) {
@@ -2626,7 +2626,7 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_unknown_cb_(FLAC__I
 		block->data = 0;
 	}
 	else {
-		if(0 == (block->data = malloc(block_length)))
+		if(0 == (block->data = safe_malloc_(block_length)))
 			return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_MEMORY_ALLOCATION_ERROR;
 
 		if(read_cb(block->data, 1, block_length, handle) != block_length)
