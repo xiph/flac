@@ -157,7 +157,7 @@ elseif(NOT MSVC)
 endif()
 
 if(WITH_STACK_PROTECTOR)
-  if(NOT MSVC)
+  if(NOT MSVC AND NOT EMSCRIPTEN)
     check_c_compiler_flag("-fstack-protector-strong" HAVE_STACK_PROTECTOR_FLAG)
   endif()
 endif()
