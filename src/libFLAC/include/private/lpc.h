@@ -92,6 +92,9 @@ void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_8(const FLAC__real data[]
 void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_10(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 void FLAC__lpc_compute_autocorrelation_intrin_neon_lag_14(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
 #endif
+#if defined FLAC__CPU_RISCV64 && FLAC__HAS_RISCVINTRIN
+void FLAC__lpc_compute_autocorrelation_intrin_riscv(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[]);
+#endif
 #endif /* FLAC__NO_ASM */
 
 /*
@@ -161,6 +164,10 @@ FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_33bit
 void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 #   endif
+
+#ifdef FLAC__CPU_RISCV64
+void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_riscv(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
+#endif
 
 #  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
 #    ifdef FLAC__SSE2_SUPPORTED

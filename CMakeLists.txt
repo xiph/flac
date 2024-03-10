@@ -115,6 +115,13 @@ check_include_file("stdint.h" HAVE_STDINT_H)
 check_include_file("stdbool.h" HAVE_STDBOOL_H)
 check_include_file("arm_neon.h" FLAC__HAS_NEONINTRIN)
 
+# Toolchains won't allow riscv_vector.h to be included unless the
+# vector extensions are enabled.
+set(SAVED_CMAKE_REQUIRED_FLAGS "${CMAKE_REQUIRED_FLAGS}")
+set(CMAKE_REQUIRED_FLAGS "-march=rv64gcv")
+check_include_file("riscv_vector.h" HAVE_RISCV_VECTOR_H)
+set(CMAKE_REQUIRED_FLAGS "${SAVED_CMAKE_REQUIRED_FLAGS}")
+
 if(NOT HAVE_STDINT_H OR NOT HAVE_STDBOOL_H)
     message(SEND_ERROR "Header stdint.h and/or stdbool.h not found")
 endif()
