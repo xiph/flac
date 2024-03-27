@@ -63,6 +63,7 @@ FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect)
 
 	aspect->end_of_stream = false;
 	aspect->have_working_page = false;
+	aspect->page_eos = false;
 
 	return true;
 }
@@ -82,6 +83,7 @@ void FLAC__ogg_decoder_aspect_set_serial_number(FLAC__OggDecoderAspect *aspect, 
 void FLAC__ogg_decoder_aspect_set_defaults(FLAC__OggDecoderAspect *aspect)
 {
 	aspect->use_first_serial_number = true;
+	aspect->chaining = false;
 }
 
 void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect)
@@ -90,6 +92,7 @@ void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect)
 	(void)ogg_sync_reset(&aspect->sync_state);
 	aspect->end_of_stream = false;
 	aspect->have_working_page = false;
+	aspect->page_eos = false;
 }
 
 void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
@@ -98,6 +101,23 @@ void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
 
 	if(aspect->use_first_serial_number)
 		aspect->need_serial_number = true;
+}
+
+bool FLAC__ogg_decoder_aspect_page_eos(FLAC__OggDecoderAspect* aspect, bool reset) 
+{
+	bool page_eos = aspect->page_eos;
+	if (reset) aspect->page_eos = false;
+	return page_eos;
+}
+
+void FLAC__ogg_decoder_aspect_set_chaining(FLAC__OggDecoderAspect* aspect, FLAC__bool value)
+{
+	aspect->chaining = value;
+}
+
+FLAC__bool FLAC__ogg_decoder_aspect_get_chaining(FLAC__OggDecoderAspect* aspect)
+{
+	return aspect->chaining;
 }
 
 FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], size_t *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data)
@@ -191,18 +211,28 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 				}
 			}
 		}
+		else if (aspect->page_eos) {
+			/* we've now consumed all packets of the last page */
+			aspect->need_serial_number = true;
+			return *bytes ? FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK :
+							FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
+		}
 		else {
 			/* try and get another page */
 			const int ret = ogg_sync_pageout(&aspect->sync_state, &aspect->working_page);
 			if (ret > 0) {
 				/* got a page, grab the serial number if necessary */
 				if(aspect->need_serial_number) {
-					aspect->stream_state.serialno = aspect->serial_number = ogg_page_serialno(&aspect->working_page);
+					aspect->serial_number = ogg_page_serialno(&aspect->working_page);
+					ogg_stream_reset_serialno(&aspect->stream_state, aspect->serial_number);
 					aspect->need_serial_number = false;
 				}
 				if(ogg_stream_pagein(&aspect->stream_state, &aspect->working_page) == 0) {
 					aspect->have_working_page = true;
 					aspect->have_working_packet = false;
+				}
+				if(aspect->chaining && ogg_page_eos(&aspect->working_page) != 0) {
+					aspect->page_eos = true;
 				}
 				/* else do nothing, could be a page from another stream */
 			}

@@ -46,6 +46,7 @@ typedef struct {
 	FLAC__bool is_ogg;
 	FLAC__bool use_first_serial_number;
 	long serial_number;
+	FLAC__bool chaining;
 #endif
 	utils__SkipUntilSpecification skip_specification;
 	utils__SkipUntilSpecification until_specification;

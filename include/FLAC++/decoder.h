@@ -123,6 +123,7 @@ namespace FLAC {
 			//@}
 
 			virtual bool set_ogg_serial_number(long value);                        ///< See FLAC__stream_decoder_set_ogg_serial_number()
+			virtual bool set_ogg_chaining(bool value);                             ///< See FLAC__stream_decoder_set_ogg_chaining()
 			virtual bool set_md5_checking(bool value);                             ///< See FLAC__stream_decoder_set_md5_checking()
 			virtual bool set_metadata_respond(::FLAC__MetadataType type);          ///< See FLAC__stream_decoder_set_metadata_respond()
 			virtual bool set_metadata_respond_application(const FLAC__byte id[4]); ///< See FLAC__stream_decoder_set_metadata_respond_application()
@@ -133,6 +134,7 @@ namespace FLAC {
 
 			/* get_state() is not virtual since we want subclasses to be able to return their own state */
 			State get_state() const;                                          ///< See FLAC__stream_decoder_get_state()
+			virtual bool get_ogg_chaining() const;                            ///< See FLAC__stream_decoder_get_ogg_chaining()
 			virtual bool get_md5_checking() const;                            ///< See FLAC__stream_decoder_get_md5_checking()
 			virtual FLAC__uint64 get_total_samples() const;                   ///< See FLAC__stream_decoder_get_total_samples()
 			virtual uint32_t get_channels() const;                            ///< See FLAC__stream_decoder_get_channels()

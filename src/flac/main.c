@@ -155,6 +155,7 @@ static struct share__option long_options_[] = {
 	{ "padding"                   , share__required_argument, 0, 'P' },
 #if FLAC__HAS_OGG
 	{ "ogg"                       , share__no_argument, 0, 0 },
+	{ "chaining"                  , share__no_argument, 0, 0 },
 	{ "serial-number"             , share__required_argument, 0, 0 },
 #endif
 	{ "blocksize"                 , share__required_argument, 0, 'b' },
@@ -240,6 +241,7 @@ static struct {
 	FLAC__bool analyze;
 	FLAC__bool use_ogg;
 	FLAC__bool has_serial_number; /* true iff --serial-number was used */
+	FLAC__bool chaining;
 	long serial_number; /* this is the Ogg serial number and is unused for native FLAC */
 	FLAC__bool force_to_stdout;
 	FLAC__bool force_raw_format;
@@ -565,6 +567,7 @@ FLAC__bool init_options(void)
 	option_values.test_only = false;
 	option_values.analyze = false;
 	option_values.use_ogg = false;
+	option_values.chaining = false;
 	option_values.has_serial_number = false;
 	option_values.serial_number = 0;
 	option_values.force_to_stdout = false;
@@ -804,6 +807,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 #if FLAC__HAS_OGG
 		else if(0 == strcmp(long_option, "ogg")) {
 			option_values.use_ogg = true;
+		}
+		else if (0 == strcmp(long_option, "chaining")) {
+			option_values.chaining = true;
 		}
 		else if(0 == strcmp(long_option, "serial-number")) {
 			option_values.has_serial_number = true;
@@ -1303,6 +1309,7 @@ void show_help(void)
 	printf("      --until={#|[+|-]mm:ss.ss}  Stop at the given sample for each input file\n");
 #if FLAC__HAS_OGG
 	printf("      --ogg                    Use Ogg as transport layer\n");
+	printf("      --chaining               Allow Ogg stream chaining decoding\n");
 	printf("      --serial-number          Serial number to use for the FLAC stream\n");
 #endif
 	printf("analysis options:\n");
@@ -2319,6 +2326,7 @@ int decode_file(const char *infilename)
 	decode_options.force_subformat = output_subformat;
 #if FLAC__HAS_OGG
 	decode_options.is_ogg = treat_as_ogg;
+	decode_options.chaining = option_values.chaining;
 	decode_options.use_first_serial_number = !option_values.has_serial_number;
 	decode_options.serial_number = option_values.serial_number;
 #endif
