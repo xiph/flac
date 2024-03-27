@@ -3413,9 +3413,10 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 #ifdef HAVE_PTHREAD
 	uint32_t i;
 #endif
-	FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
-
 	if(encoder->protected_->num_threads < 2 || is_last_block) {
+
+		FLAC__ASSERT(encoder->protected_->state == FLAC__STREAM_ENCODER_OK);
+
 		/*
 		 * Accumulate raw signal to the MD5 signature
 		 */
@@ -3535,10 +3536,13 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 				}
 			}
 			/* Task is finished, write bitbuffer */
-			if(!encoder->private_->threadtask[encoder->private_->next_thread]->returnvalue)
+			if(!encoder->private_->threadtask[encoder->private_->next_thread]->returnvalue) {
+				pthread_mutex_unlock(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_this_task);
 				return false;
+			}
 			if(!write_bitbuffer_(encoder, encoder->private_->threadtask[encoder->private_->next_thread], encoder->protected_->blocksize, is_last_block)) {
 				/* the above function sets the state for us in case of an error */
+				pthread_mutex_unlock(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_this_task);
 				return false;
 			}
 			pthread_mutex_unlock(&encoder->private_->threadtask[encoder->private_->next_thread]->mutex_this_task);
@@ -3696,7 +3700,7 @@ FLAC__bool process_frame_thread_inner_(FLAC__StreamEncoder * encoder, FLAC__Stre
 	/*
 	 * CRC-16 the whole thing
 	 */
-	FLAC__ASSERT(FLAC__bitwriter_is_byte_aligned(task->frame));
+	FLAC__ASSERT(!ok || FLAC__bitwriter_is_byte_aligned(task->frame));
 	if(
 		ok &&
 		(
