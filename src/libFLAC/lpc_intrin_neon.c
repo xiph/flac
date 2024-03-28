@@ -1268,6 +1268,62 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
     return;
 }
 
+
+
+FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_neon(const FLAC__int32 *  data, uint32_t data_len, const FLAC__int32  qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[])
+{
+	uint32_t i, j, k, data_len_unroll;
+	const FLAC__int32 *pData;
+	FLAC__int32 ordered_qlp_coeff[FLAC__MAX_LPC_ORDER];
+	FLAC__int64 sum[4], residual_to_check[4];
+
+	FLAC__ASSERT(order > 0);
+	FLAC__ASSERT(order <= 32);
+
+	// To allow compiler's autovectorization of the multplications we inverse the order of the qlp coefficients -
+	//  their indices increase same as the corresponding data indices.
+	for(j = 0; j < order; j++) {
+		ordered_qlp_coeff[j] = qlp_coeff[order - 1 - j];
+	}
+
+	data_len_unroll = data_len & (-4);
+	for(i = 0; i < data_len_unroll; i += 4) {
+		pData = data + i + 0 - (int)order;
+		sum[0] = sum[1] = sum[2] = sum[3] = 0;
+
+		for(j = 0; j < order; j++) {
+			for(k = 0; k < 4; k++) {
+				sum[k] += ordered_qlp_coeff[j] * (FLAC__int64)pData[j + k];
+			}
+		}
+		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
+		for(k = 0; k < 4; k++) {
+			residual_to_check[k] = data[i + k] - (sum[k] >> lp_quantization);
+			if(residual_to_check[k] <= INT32_MIN || residual_to_check[k] > INT32_MAX)
+				return false;
+			residual[i + k] = residual_to_check[k];
+		}
+	}
+
+	// Leftover of the data_len
+	for( ; i < data_len; i++) {
+		pData = data + i + 0 - (int)order;
+		sum[0] = 0;
+
+		for(j = 0; j < order; j++) {
+			sum[0] += ordered_qlp_coeff[j] * (FLAC__int64)pData[j];
+		}
+		/* residual must not be INT32_MIN because abs(INT32_MIN) is undefined */
+		residual_to_check[0] = data[i] - (sum[0] >> lp_quantization);
+		if(residual_to_check[0] <= INT32_MIN || residual_to_check[0] > INT32_MAX)
+			return false;
+		residual[i] = residual_to_check[0];
+	}
+
+	return true;
+}
+
+
 #endif /* FLAC__CPU_ARM64 && FLAC__HAS_ARCH64INTRIN */
 #endif /* FLAC__NO_ASM */
 #endif /* FLAC__INTEGER_ONLY_LIBRARY */
