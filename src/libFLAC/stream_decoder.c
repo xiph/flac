@@ -684,7 +684,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecod
 #endif
 }
 
-FLAC_API FLAC__bool _FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value)
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
@@ -837,7 +837,7 @@ FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__
 	return FLAC__StreamDecoderStateString[decoder->protected_->state];
 }
 
-FLAC_API FLAC__bool _FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDecoder* decoder)
+FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDecoder* decoder)
 {
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
