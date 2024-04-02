@@ -799,7 +799,8 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecod
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value);
+#define FLAC__stream_decoder_set_ogg_chaining _FLAC__stream_decoder_set_ogg_chaining
+FLAC_API FLAC__bool _FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value);
 
 /** Set the "MD5 signature checking" flag.  If \c true, the decoder will
  *  compute the MD5 signature of the unencoded audio data while decoding
@@ -934,7 +935,8 @@ FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__
  * \retval FLAC__bool
  *    See above.
  */
-FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDecoder* decoder);
+#define FLAC__stream_decoder_get_ogg_chaining _FLAC__stream_decoder_get_ogg_chaining
+FLAC_API FLAC__bool _FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDecoder* decoder);
 
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
