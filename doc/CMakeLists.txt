@@ -22,5 +22,5 @@ add_custom_target(FLAC-doxygen ALL
         COMMENT "Generating API documentation with Doxygen"
         VERBATIM )
 
-install(DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/api/"
+install(DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/doxytmp/html/"
         DESTINATION "${CMAKE_INSTALL_DOCDIR}/api")
