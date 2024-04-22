@@ -125,7 +125,15 @@ else()
     check_include_file("x86intrin.h" FLAC__HAS_X86INTRIN)
 endif()
 
-check_function_exists(fseeko HAVE_FSEEKO)
+
+if(ANDROID AND CMAKE_SYSTEM_VERSION VERSION_LESS 24 AND (CMAKE_SYSTEM_PROCESSOR MATCHES "i686" OR CMAKE_SYSTEM_PROCESSOR MATCHES "armv7-a"))
+    # fseeko/ftello may link, but it's not usable before Android API 24 on 32-bit Android
+    # https://android.googlesource.com/platform/bionic/+/main/docs/32-bit-abi.md
+    message(STATUS "Disabling fseeko/ftello for 32-bit Android before API 24")
+    set(HAVE_FSEEKO 0 CACHE INTERNAL "")
+else()
+    check_function_exists(fseeko HAVE_FSEEKO)
+endif()
 
 check_c_source_compiles("int main() { return __builtin_bswap16 (0) ; }" HAVE_BSWAP16)
 check_c_source_compiles("int main() { return __builtin_bswap32 (0) ; }" HAVE_BSWAP32)
