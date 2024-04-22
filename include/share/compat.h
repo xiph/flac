@@ -63,8 +63,15 @@
 #endif
 #endif
 #else
+#ifndef HAVE_FSEEKO
+#define fseeko fseek
+#define ftello ftell
+#define FLAC__off_t long
+#define FLAC__OFF_T_MAX LONG_MAX
+#else
 #define FLAC__off_t off_t
 #define FLAC__OFF_T_MAX OFF_T_MAX
+#endif
 #endif
 
 
