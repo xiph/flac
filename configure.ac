@@ -79,7 +79,7 @@ AC_DEFINE_UNQUOTED(CPU_IS_LITTLE_ENDIAN, ${ac_cv_c_little_endian},
 AC_DEFINE_UNQUOTED(WORDS_BIGENDIAN, ${ac_cv_c_big_endian},
 					[Target processor is big endian.])
 
-AC_ARG_ENABLE(asm-optimizations, AS_HELP_STRING([--disable-asm-optimizations],[Do not use any CPU specific optimization routines]), asm_opt=no, asm_opt=yes)
+AC_ARG_ENABLE(asm-optimizations, AS_HELP_STRING([--disable-asm-optimizations],[Do not use any CPU specific optimization routines]), asm_opt=${enableval}, asm_opt=yes)
 AM_CONDITIONAL(FLaC__NO_ASM, test "x$asm_opt" = xno)
 if test "x$asm_opt" = xno ; then
 AC_DEFINE(FLAC__NO_ASM)
