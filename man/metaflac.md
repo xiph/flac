@@ -30,7 +30,7 @@ set of FLAC files to operate on. There are three kinds of "options":
 
 - Shorthand operations, which are convenient synonyms for major
   operations. For example, there is a shorthand operation
-  --show-sample-rate that shows just the sample rate field from the
+  \--show-sample-rate that shows just the sample rate field from the
   STREAMINFO metadata block.
 
 - Global options, which affect all the operations.
@@ -45,7 +45,7 @@ files:
 `metaflac --show-md5sum file1.flac file2.flac file3.flac`
 
 Another example; this removes all DESCRIPTION and COMMENT tags in a set
-of FLAC files, and uses the --preserve-modtime global option to keep the
+of FLAC files, and uses the \--preserve-modtime global option to keep the
 FLAC file modification times the same (usually when files are edited the
 modification time is set to the current time):
 
@@ -59,7 +59,7 @@ modification time is set to the current time):
 **\--with-filename**  
 :	Prefix each output line with the FLAC file name (the default if more
 	than one FLAC file is specified). This option has no effect for
-	options exporting to a file, like --export-tags-to.
+	options exporting to a file, like \--export-tags-to.
 
 **\--no-filename**  
 :	Do not prefix each output line with the FLAC file name (the default
@@ -111,7 +111,7 @@ modification time is set to the current time):
 :	Show all tags where the field name matches 'name'.
 
 **\--show-all-tags**  
-:	Show all tags. This is an alias for --export-tags-to=-.
+:	Show all tags. This is an alias for \--export-tags-to=-.
 
 **\--remove-tag=name**  
 :	Remove all tags whose field name is 'name'.
@@ -263,19 +263,19 @@ modification time is set to the current time):
 	\--application-data-format=hexdump.
 
 **\--data-format=binary\|binary-headerless\|text**  
-:	For use with --list. By default a human-readable text
+:	For use with \--list. By default a human-readable text
 	representation of the data is isplayed. You may specify
-	--data-format=binary to dump the raw binary form of each metadata
-	block. Specify --data-format=binary-headerless to omit output of
+	\--data-format=binary to dump the raw binary form of each metadata
+	block. Specify \--data-format=binary-headerless to omit output of
 	metadata block headers, including the id of APPLICATION metadata
 	blocks.
 
 **\--append**  
 :	Insert a metadata block from a file. This must be a binary block as
-	exported with --list --data-format=binary. The insertion point is
-	defined with --block-number=#.  The new block will be added after the
+	exported with \--list \--data-format=binary. The insertion point is
+	defined with \--block-number=#.  The new block will be added after the
 	given block number.  This prevents the illegal insertion of a block
-	before the first STREAMINFO block.  You may not --append another
+	before the first STREAMINFO block.  You may not \--append another
 	STREAMINFO block. It is possible to copy a metadata block from one
 	file to another with this option. For example use
 	`metaflac --list --data-format=binary --block-number=6 file.flac > block`
