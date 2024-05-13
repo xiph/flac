@@ -206,5 +206,6 @@ static inline uint32_t FLAC__bitmath_ilog2_wide(FLAC__uint64 v)
 }
 
 uint32_t FLAC__bitmath_silog2(FLAC__int64 v);
+uint32_t FLAC__bitmath_extra_mulbits_unsigned(FLAC__uint32 v);
 
 #endif
