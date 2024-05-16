@@ -961,7 +961,7 @@ uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const 
 
 uint32_t FLAC__lpc_max_residual_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order, int lp_quantization)
 {
-	FLAC__uint64 max_abs_sample_value = 1 << (subframe_bps - 1);
+	FLAC__uint64 max_abs_sample_value = (FLAC__uint64)(1) << (subframe_bps - 1);
 	FLAC__uint64 max_prediction_value_after_shift = -1 * ((-1 * (FLAC__int64)FLAC__lpc_max_prediction_value_before_shift(subframe_bps, qlp_coeff, order)) >> lp_quantization);
 	FLAC__uint64 max_residual_value = max_abs_sample_value + max_prediction_value_after_shift;
 	return FLAC__bitmath_silog2(max_residual_value);
