@@ -941,7 +941,7 @@ FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_33bit
 
 FLAC__uint64 FLAC__lpc_max_prediction_value_before_shift(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order)
 {
-	FLAC__uint64 max_abs_sample_value = 1 << (subframe_bps - 1);
+	FLAC__uint64 max_abs_sample_value = (FLAC__uint64)(1) << (subframe_bps - 1);
 	FLAC__uint32 abs_sum_of_qlp_coeff = 0;
 	uint32_t i;
 	for(i = 0; i < order; i++)
