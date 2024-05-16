@@ -939,27 +939,32 @@ FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_33bit
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
+FLAC__uint64 FLAC__lpc_max_prediction_value_before_shift(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order)
+{
+	FLAC__uint64 max_abs_sample_value = 1 << (subframe_bps - 1);
+	FLAC__uint32 abs_sum_of_qlp_coeff = 0;
+	uint32_t i;
+	for(i = 0; i < order; i++)
+		abs_sum_of_qlp_coeff += abs(qlp_coeff[i]);
+	return max_abs_sample_value * abs_sum_of_qlp_coeff;
+}
+
 uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order)
 {
 	/* This used to be subframe_bps + qlp_coeff_precision + FLAC__bitmath_ilog2(order)
 	 * but that treats both the samples as well as the predictor as unknown. The
 	 * predictor is known however, so taking the log2 of the sum of the absolute values
 	 * of all coefficients is a more accurate representation of the predictor */
-	FLAC__uint32 abs_sum_of_qlp_coeff = 0;
-	uint32_t i;
-	for(i = 0; i < order; i++)
-		abs_sum_of_qlp_coeff += abs(qlp_coeff[i]);
-	return subframe_bps + FLAC__bitmath_extra_mulbits_unsigned(abs_sum_of_qlp_coeff);
+	return FLAC__bitmath_silog2(FLAC__lpc_max_prediction_value_before_shift(subframe_bps, qlp_coeff, order));
 }
 
 
 uint32_t FLAC__lpc_max_residual_bps(uint32_t subframe_bps, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order, int lp_quantization)
 {
-	FLAC__int32 predictor_sum_bps = FLAC__lpc_max_prediction_before_shift_bps(subframe_bps, qlp_coeff, order) - lp_quantization;
-	if((int)subframe_bps > predictor_sum_bps)
-		return subframe_bps + 1;
-	else
-		return predictor_sum_bps + 1;
+	FLAC__uint64 max_abs_sample_value = 1 << (subframe_bps - 1);
+	FLAC__uint64 max_prediction_value_after_shift = -1 * ((-1 * (FLAC__int64)FLAC__lpc_max_prediction_value_before_shift(subframe_bps, qlp_coeff, order)) >> lp_quantization);
+	FLAC__uint64 max_residual_value = max_abs_sample_value + max_prediction_value_after_shift;
+	return FLAC__bitmath_silog2(max_residual_value);
 }
 
 #if defined(FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION) && !defined(FUZZING_BUILD_MODE_FLAC_SANITIZE_SIGNED_INTEGER_OVERFLOW)
