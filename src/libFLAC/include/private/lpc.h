@@ -181,6 +181,7 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2(const FLA
 
 #endif /* !defined FLAC__INTEGER_ONLY_LIBRARY */
 
+FLAC__uint64 FLAC__lpc_max_prediction_value_before_shift(uint32_t subframe_bps, const FLAC__int32 qlp_coeff[], uint32_t order);
 uint32_t FLAC__lpc_max_prediction_before_shift_bps(uint32_t subframe_bps, const FLAC__int32 qlp_coeff[], uint32_t order);
 uint32_t FLAC__lpc_max_residual_bps(uint32_t subframe_bps, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization);
 
