@@ -159,6 +159,9 @@ if(MINGW AND (WITH_FORTIFY_SOURCE OR WITH_STACK_PROTECTOR))
     message(WARNING "Could not find libssp in MinGW, stack protection and/or FORTIFY_SOURCE are unavailable")
   else()
     link_libraries("ssp.a")
+    # static libraries don't carry over other static libraries in mingw
+    # we need to export it in the pkg-config
+    set(FLAC_STATIC_LIBS "-lssp")
   endif()
 elseif(NOT MSVC)
   set(HAVE_LIBSSP 1)
