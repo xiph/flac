@@ -1154,11 +1154,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	else {
 		/* must not have gotten STREAMINFO, save the bps from the frame header */
 		FLAC__ASSERT(!decoder_session->got_stream_info);
+		decoder_session->bps = bps;
 		if(decoder_session->format == FORMAT_RAW && ((decoder_session->bps % 8) != 0  || decoder_session->bps < 4)) {
 			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24/32 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
 			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
-		decoder_session->bps = bps;
 	}
 
 	/* sanity-check the #channels */
