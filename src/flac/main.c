@@ -1362,7 +1362,8 @@ void show_help(void)
 	printf("      --force-aiff-c-none-format     Decode to AIFF-C NONE format\n");
 	printf("      --force-aiff-c-sowt-format     Decode to AIFF-C sowt format\n");
 	printf("      --force-raw-format             Treat input or output as raw samples\n");
-	printf("raw format options mandatory for encoding; --sign and --endian also for decoding\n");
+	printf("raw format options: (all options mandatory for encoding from raw input,\n");
+	printf("                   --sign and --endian are mandatory for decoding to raw output)\n");
 	printf("      --sign={signed|unsigned}       Sign of samples\n");
 	printf("      --endian={big|little}          Byte order for samples\n");
 	printf("      --channels=#                   Number of channels in raw input\n");
