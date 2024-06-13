@@ -1307,10 +1307,6 @@ void show_help(void)
 	printf("  -F, --decode-through-errors  Continue decoding through stream errors\n");
 	printf("      --cue=[#.#][-[#.#]]      Set the beginning and ending cuepoints to decode\n");
 	printf("\n");
-	printf("Analysis options:\n");
-	printf("      --residual-text          Include residual signal in text output\n");
-	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
-	printf("\n");
 	printf("Encoding options, defaulting to -5, -A \"tukey(5e-1)\" and one CPU thread:\n");
 	printf("  -V, --verify                       Verify a correct encoding\n");
 	printf("  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 3\n");
@@ -1370,6 +1366,10 @@ void show_help(void)
 	printf("      --bps=#                        Number of bits per sample in raw input\n");
 	printf("      --sample-rate=#                Sample rate in Hz in raw input\n");
 	printf("      --input-size=#                 Size of the raw input in bytes\n");
+	printf("\n");
+	printf("Analysis options:\n");
+	printf("      --residual-text          Include residual signal in text output\n");
+	printf("      --residual-gnuplot       Generate gnuplot files of residual distribution\n");
 	printf("\n");
 	printf("Negative options (rightmost applied takes precedence):\n");
 	printf("      --no-adaptive-mid-side\n");
