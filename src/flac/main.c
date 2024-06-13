@@ -1329,7 +1329,7 @@ void show_help(void)
 	printf("  -A, --apodization=\"function\"       Window audio data with given function(s)\n");
 	printf("  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)\n");
 	printf("  -q, --qlp-coeff-precision=#        Specify quantization precision in bits\n");
-	printf("                                     (default: let encoder decide)\n");	
+	printf("                                     (default: let encoder decide)\n");
 	printf("  -p, --qlp-coeff-precision-search   Exhaustively search LP coeff quantization\n");
 	printf("      --lax                          Allow encoder to generate non-Subset files\n");
 	printf("      --limit-min-bitrate            Limit minimum bitrate (for streaming)\n");
@@ -1347,8 +1347,8 @@ void show_help(void)
 	printf("             chunks found by --keep-foreign-metadata-if-present will override):\n");
 #if FLAC__HAS_OGG
 	printf("      --ogg                          Use Ogg transport layer, output .oga\n");
-	printf("      --serial-number                Ogg serial number to assign (encoding)\n);
-	printf("                                     or to select for decoding\n);
+	printf("      --serial-number                Ogg serial number to assign (encoding)\n");
+	printf("                                     or to select for decoding\n");
 #endif
 	printf("      --force-aiff-format            Decode to AIFF format\n");
 	printf("      --force-rf64-format            Decode to RF64 format\n");
