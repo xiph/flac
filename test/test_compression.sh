@@ -21,7 +21,7 @@
 
 PATH="$(pwd)/../src/flac:$PATH"
 
-printf "Using FLAC binary : %s\n" "$(which flac)"
+printf "Using FLAC binary : %s\n" "$(command -v flac)"
 
 date="$(date "+%Y%m%dT%H%M%S")"
 fname="comp${date}.flac"
