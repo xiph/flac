@@ -2047,7 +2047,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 		}
 	}
 
-	{
+	if(options.threads != 1) {
 		uint32_t retval = FLAC__stream_encoder_set_num_threads(e->encoder, options.threads);
 		if(retval == FLAC__STREAM_ENCODER_SET_NUM_THREADS_NOT_COMPILED_WITH_MULTITHREADING_ENABLED) {
 			flac__utils_printf(stderr, 1, "%s: WARNING, cannot set number of threads: multithreading was not enabled during compilation of this binary\n", e->inbasefilename);
