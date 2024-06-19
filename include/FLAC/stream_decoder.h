@@ -782,6 +782,25 @@ FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecoder *decoder, long serial_number);
 
+/** Set the "allow Ogg chaining" flag. If set, the Ogg decoder will
+ *  prepare to receive a new stream once the last Ogg page arrives for
+ *  the stream encapsulating the FLAC audio data. This can be used to
+ *  support chained Ogg FLAC streams; a new \c STREAMINFO signals the
+ *  beginning of a new stream.
+ *
+ * \note
+ * This function has no effect with native FLAC decoding.
+ *
+ * \default \c false
+ * \param  decoder          A decoder instance to set.
+ * \param  allow            Whether to allow chained streams.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_chaining(FLAC__StreamDecoder* decoder, FLAC__bool value);
+
 /** Set the "MD5 signature checking" flag.  If \c true, the decoder will
  *  compute the MD5 signature of the unencoded audio data while decoding
  *  and compare it to the signature from the STREAMINFO block, if it
@@ -905,6 +924,18 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
  *    The decoder state as a C string.  Do not modify the contents.
  */
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder);
+
+/** Get the "allow Ogg chaining" flag as described in
+ *  \code FLAC__stream_decoder_set_ogg_chaining \endcode.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
+#define FLAC__OGG_CHAINING
+FLAC_API FLAC__bool FLAC__stream_decoder_get_ogg_chaining(const FLAC__StreamDecoder* decoder);
 
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
