@@ -72,8 +72,10 @@ FLAC__bool do_operations(const CommandLineOptions *options)
 	FLAC__bool ok = true;
 
 #ifdef _WIN32
-	if(options->utf8_convert)
+	if(options->utf8_convert) {
 		_setmode(fileno(stdout),_O_U8TEXT);
+		SetConsoleOutputCP(CP_UTF8);
+	}
 #endif
 
 	if(options->show_long_help) {
