@@ -206,6 +206,12 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 					return false;
 				}
 				write_metadata_binary(block, block_raw, options->data_format_is_binary_headerless);
+#ifdef _WIN32
+				if(options->utf8_convert)
+					_setmode(fileno(stdout),_O_U8TEXT);
+				else
+					_setmode(fileno(stdin),_O_TEXT);
+#endif
 				free(block_raw);
 			}
 		}
@@ -826,9 +832,5 @@ void write_metadata_binary(FLAC__StreamMetadata *block, FLAC__byte *block_raw, F
 		local_fwrite(block_raw+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, block->length, stdout);
 #ifdef _WIN32
 	fflush(stdout);
-	if(options->utf8_convert)
-		_setmode(fileno(stdout),_O_U8TEXT);
-	else
-		_setmode(fileno(stdin),_O_TEXT);
 #endif
 }
