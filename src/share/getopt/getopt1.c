@@ -36,6 +36,8 @@
 #  include <config.h>
 #endif
 
+#include "share/compat.h"
+
 #if !defined __STDC__ || !__STDC__
 /* This is a separate conditional since some stdc systems
    reject `defined (const)'.  */
@@ -129,10 +131,10 @@ int main(int argc, char **argv)
       switch (c)
 	{
 	case 0:
-	  printf ("option %s", long_options[option_index].name);
+	  flac_printf ("option %s", long_options[option_index].name);
 	  if (share__optarg)
-	    printf (" with arg %s", share__optarg);
-	  printf ("\n");
+	    flac_printf (" with arg %s", share__optarg);
+	  flac_printf ("\n");
 	  break;
 
 	case '0':
@@ -146,41 +148,41 @@ int main(int argc, char **argv)
 	case '8':
 	case '9':
 	  if (digit_optind != 0 && digit_optind != this_option_optind)
-	    printf ("digits occur in two different argv-elements.\n");
+	    flac_printf ("digits occur in two different argv-elements.\n");
 	  digit_optind = this_option_optind;
-	  printf ("option %c\n", c);
+	  flac_printf ("option %c\n", c);
 	  break;
 
 	case 'a':
-	  printf ("option a\n");
+	  flac_printf ("option a\n");
 	  break;
 
 	case 'b':
-	  printf ("option b\n");
+	  flac_printf ("option b\n");
 	  break;
 
 	case 'c':
-	  printf ("option c with value `%s'\n", share__optarg);
+	  flac_printf ("option c with value `%s'\n", share__optarg);
 	  break;
 
 	case 'd':
-	  printf ("option d with value `%s'\n", share__optarg);
+	  flac_printf ("option d with value `%s'\n", share__optarg);
 	  break;
 
 	case '?':
 	  break;
 
 	default:
-	  printf ("?? getopt returned character code 0%o ??\n", c);
+	  flac_printf ("?? getopt returned character code 0%o ??\n", c);
 	}
     }
 
   if (share__optind < argc)
     {
-      printf ("non-option ARGV-elements: ");
+      flac_printf ("non-option ARGV-elements: ");
       while (share__optind < argc)
-	printf ("%s ", argv[share__optind++]);
-      printf ("\n");
+	flac_printf ("%s ", argv[share__optind++]);
+      flac_printf ("\n");
     }
 
   exit (0);

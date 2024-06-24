@@ -47,7 +47,7 @@
 
 #ifndef NDEBUG
 #include <stdio.h>
-#define dfprintf fprintf
+#define dfprintf flac_fprintf
 #else
 /* This is bad practice, it should be a static void empty function */
 #define dfprintf(file, format, ...)
