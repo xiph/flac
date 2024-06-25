@@ -727,9 +727,15 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			PPR; flac_printf("  total samples: %" PRIu64 "\n", block->data.stream_info.total_samples);
 			PPR; flac_printf("  MD5 signature: ");
 			for(i = 0; i < 16; i++) {
-				printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
+				if(raw)
+					printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
+				else
+					flac_printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
 			}
-			printf("\n");
+			if(raw)
+				printf("\n");
+			else
+				flac_printf("\n");
 			break;
 		case FLAC__METADATA_TYPE_PADDING:
 			/* nothing to print */
@@ -737,14 +743,24 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 		case FLAC__METADATA_TYPE_APPLICATION:
 			PPR; flac_printf("  application ID: ");
 			for(i = 0; i < 4; i++)
-				printf("%02x", block->data.application.id[i]);
-			printf("\n");
+				flac_printf("%02x", block->data.application.id[i]);
+			flac_printf("\n");
 			PPR; flac_printf("  data contents:\n");
 			if(0 != block->data.application.data) {
 				if(hexdump_application)
 					hexdump(filename, block->data.application.data, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, "    ");
 				else
-					(void) local_fwrite(block->data.application.data, 1, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
+					for(i = 0; i < block->length - FLAC__STREAM_METADATA_HEADER_LENGTH; i++)
+						if(raw)
+							(void) local_fwrite(block->data.application.data, 1, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
+						else {
+							if(block->data.application.data[i] > 32 && block->data.application.data[i] < 127)
+								flac_printf("%c",block->data.application.data[i]);
+							else {
+								char replacement[4] = {0xef, 0xbf, 0xbd, 0}; /* Unicode replacement character */
+								flac_printf(replacement);
+							}
+						}
 			}
 			break;
 		case FLAC__METADATA_TYPE_SEEKTABLE:

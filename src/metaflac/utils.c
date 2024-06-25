@@ -98,7 +98,7 @@ void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const 
 
 	for(i = 0; i < bytes; i += 16) {
 		flac_printf("%s%s", filename? filename:"", filename? ":":"");
-		printf("%s%08X: "
+		flac_printf("%s%08X: "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
