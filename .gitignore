@@ -38,7 +38,9 @@ m4/ltsugar.m4
 m4/ltversion.m4
 m4/lt~obsolete.m4
 man/flac.1
+man/flac.html
 man/metaflac.1
+man/metaflac.html
 missing
 objs/debug
 objs/release
