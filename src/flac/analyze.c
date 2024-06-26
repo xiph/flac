@@ -223,7 +223,7 @@ FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename)
 	outfile = flac_fopen(filename, "w");
 
 	if(0 == outfile) {
-		fprintf(stderr, "ERROR opening %s: %s\n", filename, strerror(errno));
+		flac_fprintf(stderr, "ERROR opening %s: %s\n", filename, strerror(errno));
 		return false;
 	}
 
