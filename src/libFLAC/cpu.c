@@ -57,6 +57,10 @@
 #include <sys/auxv.h>
 #endif
 
+#if defined(HAVE_RISCV_VECTOR_H) && defined(FLAC__RISCV_VECTOR) && defined(FLAC__HAS_RISCVINTRIN)
+#include <riscv_vector.h>
+#endif
+
 #if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN && !defined FLAC__NO_ASM
 
 /* these are flags in EDX of CPUID AX=00000001 */
@@ -231,6 +235,26 @@ x86_cpu_info (FLAC__CPUInfo *info)
 #endif
 }
 
+static void
+rv64_cpu_info(FLAC__CPUInfo *info)
+{
+#if defined(FLAC__CPU_RISCV64) && defined(FLAC__HAS_RISCVINTRIN) && !defined(FLAC__NO_ASM) && defined(HAVE_SYS_AUXV_H) && defined(FLAC__RISCV_VECTOR) && defined(HAVE_RISCV_VECTOR_H)
+#define ISA_V_HWCAP (1 << ('v' - 'a'))
+	// Check that the kernel and the hardware support RiscV Vector.
+	unsigned long hw_cap = getauxval(AT_HWCAP);
+	info->rv64.has_vector = (hw_cap & ISA_V_HWCAP) == ISA_V_HWCAP;
+	if(info->rv64.has_vector) {
+		info->rv64.vlenb = __riscv_vsetvlmax_e8m1();
+	}
+	else {
+		info->rv64.vlenb = 0;
+	}
+#else
+	info->rv64.has_vector = false;
+	info->rv64.vlenb = 0;
+#endif
+}
+
 void FLAC__cpu_info (FLAC__CPUInfo *info)
 {
 	memset(info, 0, sizeof(*info));
@@ -239,6 +263,8 @@ void FLAC__cpu_info (FLAC__CPUInfo *info)
 	info->type = FLAC__CPUINFO_TYPE_IA32;
 #elif defined FLAC__CPU_X86_64
 	info->type = FLAC__CPUINFO_TYPE_X86_64;
+#elif defined FLAC__CPU_RISCV64
+	info->type = FLAC__CPUINFO_TYPE_RISCV_64;
 #else
 	info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
 #endif
@@ -247,6 +273,9 @@ void FLAC__cpu_info (FLAC__CPUInfo *info)
 	case FLAC__CPUINFO_TYPE_IA32: /* fallthrough */
 	case FLAC__CPUINFO_TYPE_X86_64:
 		x86_cpu_info (info);
+		break;
+	case FLAC__CPUINFO_TYPE_RISCV_64:
+		rv64_cpu_info(info);
 		break;
 	default:
 		info->use_asm = false;
