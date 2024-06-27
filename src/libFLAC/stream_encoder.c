@@ -439,6 +439,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	void (*local_lpc_compute_residual_from_qlp_coefficients)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_64bit)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
+	FLAC__bool (*local_lpc_compute_residual_from_qlp_coefficients_limit_residual)(const FLAC__int32 * flac_restrict data, uint32_t data_len, const FLAC__int32 * flac_restrict qlp_coeff, uint32_t order, int lp_quantization, FLAC__int32 * flac_restrict residual);
 #endif
 	FLAC__bool disable_mmx;
 	FLAC__bool disable_sse2;
@@ -955,6 +956,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients;
+	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual;
 #endif
 	/* now override with asm where appropriate */
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
@@ -970,9 +972,10 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	else
 		encoder->private_->local_lpc_compute_autocorrelation = FLAC__lpc_compute_autocorrelation;
 #endif
-    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
-    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
-    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
+    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit 			= FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
+    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       			= FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon;
+    encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit 			= FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon;
+	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual	= FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_neon;
 #endif /* defined FLAC__CPU_ARM64 && FLAC__HAS_NEONINTRIN */
 
 	if(encoder->private_->cpuinfo.use_asm) {
@@ -4575,7 +4578,7 @@ uint32_t evaluate_lpc_subframe_(
 
 	if(FLAC__lpc_max_residual_bps(subframe_bps, qlp_coeff, order, quantization) > 32) {
 		if(subframe_bps <= 32){
-			if(!FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual(((FLAC__int32 *)signal)+order, residual_samples, qlp_coeff, order, quantization, residual))
+			if(!encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual(((FLAC__int32 *)signal)+order, residual_samples, qlp_coeff, order, quantization, residual))
 				return 0;
 		}
 		else
