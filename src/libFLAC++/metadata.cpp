@@ -152,7 +152,9 @@ namespace FLAC {
 		object_(copy? ::FLAC__metadata_object_clone(object) : object),
 		is_reference_(false)
 		{
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 			FLAC__ASSERT(0 != object);
+#endif
 		}
 
 		Prototype::~Prototype()
