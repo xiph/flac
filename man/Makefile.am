@@ -22,12 +22,12 @@ flac.1: flac.md
 
 metaflac.1: metaflac.md
 	pandoc --standalone --to man $? > $@
-	
+
 flac.html: flac.md
-	pandoc --standalone --to html --css style.css -B header.inc -A footer.inc --embed-resources $? > $@
+	pandoc --standalone --to html --css style.css -B header.inc -A footer.inc --embed-resources $? > $@ || pandoc --self-contained --to html --css style.css -B header.inc -A footer.inc $? > $@
 
 metaflac.html: metaflac.md
-	pandoc --standalone --to html --css style.css -B header.inc -A footer.inc --embed-resources $? > $@
+	pandoc --standalone --to html --css style.css -B header.inc -A footer.inc --embed-resources $? > $@ ||  pandoc --self-contained --to html --css style.css -B header.inc -A footer.inc $? > $@
 
 man_MANS = flac.1 metaflac.1
 doc_DATA = flac.html metaflac.html
