@@ -300,7 +300,15 @@ if(INSTALL_MANPAGES)
             OUTPUT man/metaflac.1
             COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.1
             )
-               add_custom_target(man ALL DEPENDS man/flac.1 man/metaflac.1)
+        add_custom_command(
+            OUTPUT man/flac.html
+            COMMAND pandoc --standalone --embed-resources --to html "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.html || pandoc --self-contained --to html "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.html
+            )
+        add_custom_command(
+            OUTPUT man/metaflac.html
+            COMMAND pandoc --standalone --embed-resources --to html "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.html || pandoc --self-contained --to html "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.html
+            )
+        add_custom_target(man ALL DEPENDS man/flac.1 man/metaflac.1 man/flac.html man/metaflac.html)
         install(FILES "${CMAKE_BINARY_DIR}/man/flac.1" "${CMAKE_BINARY_DIR}/man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
     else()
         if(EXISTS "${CMAKE_SOURCE_DIR}/man/flac.1" AND EXISTS "${CMAKE_SOURCE_DIR}/man/metaflac.1")
