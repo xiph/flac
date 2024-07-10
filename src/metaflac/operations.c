@@ -758,7 +758,7 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 								flac_printf("%c",block->data.application.data[i]);
 							else {
 								char replacement[4] = {0xef, 0xbf, 0xbd, 0}; /* Unicode replacement character */
-								flac_printf(replacement);
+								flac_printf("%s",replacement);
 							}
 						}
 			}
