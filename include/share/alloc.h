@@ -66,7 +66,7 @@
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 extern int alloc_check_threshold, alloc_check_counter;
 
-static inline int alloc_check() {
+static inline int alloc_check(void) {
 	if(alloc_check_threshold == INT32_MAX)
 		return 0;
 	else if(alloc_check_counter++ == alloc_check_threshold)
