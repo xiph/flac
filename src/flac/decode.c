@@ -302,10 +302,7 @@ void DecoderSession_destroy(DecoderSession *d, FLAC__bool error_occurred)
 #endif
 		fclose(d->fout);
 
-#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-	/* Always delete output file when fuzzing */
 		if(error_occurred)
-#endif
 			flac_unlink(d->outfilename);
 	}
 }
@@ -579,6 +576,11 @@ int DecoderSession_finish_ok(DecoderSession *d)
 			}
 		}
 	}
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	/* Delete output file when fuzzing */
+	if(0 != d->fout && d->fout != stdout)
+		flac_unlink(d->outfilename);
+#endif
 	return ok? 0 : 1;
 }
 
