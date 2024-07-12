@@ -392,7 +392,12 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 			if(error) *error = "invalid Wave64 file (004)";
 			return false;
 		}
-		size = unpack64le_(buffer+16);
+		size = unpack64le_(buffer);
+		if(size + 16 < size) {
+			if(error) *error = "cannot process Wave64 file: chunk too large";
+			return false;
+		}
+		size = size + 16;
 		/* check if pad bytes needed */
 		if(size & 7)
 			size = (size+7) & (~((FLAC__uint64)7));
