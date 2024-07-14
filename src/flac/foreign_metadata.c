@@ -396,6 +396,10 @@ static FLAC__bool read_from_wave64_(foreign_metadata_t *fm, FILE *f, const char 
 		/* check if pad bytes needed */
 		if(size & 7)
 			size = (size+7) & (~((FLAC__uint64)7));
+		if(size < 24) {
+			if(error) *error = "invalid Wave64 file: chunk length invalid";
+			return false;
+		}
 		/* fmt GUID 20746D66-ACF3-11D3-8CD1-00C04F8EDB8A */
 		if(!memcmp(buffer, "\x66\x6D\x74\x20\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 16)) {
 			if(fm->format_block) {
