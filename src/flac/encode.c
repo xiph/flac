@@ -97,6 +97,7 @@ typedef struct {
 	uint32_t old_samples_written;
 	clock_t old_clock;
 #endif
+	FLAC__byte md5sum_input[16];
 
 	SampleInfo info;
 
@@ -994,6 +995,11 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				return EncoderSession_finish_error(&encoder_session);
 		}
 
+		/* Get md5sum from FLAC */
+		if(options.format == FORMAT_FLAC || options.format == FORMAT_OGGFLAC) {
+			memcpy(encoder_session.md5sum_input,encoder_session.fmt.flac.client_data.metadata_blocks[0]->data.stream_info.md5sum,16);
+		}
+
 		/*
 		 * now that we know the sample rate, canonicalize the
 		 * --skip string to an absolute sample number:
@@ -1107,6 +1113,11 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 
 		if(options.format == FORMAT_FLAC || options.format == FORMAT_OGGFLAC)
 			encoder_session.fmt.flac.client_data.samples_left_to_process = encoder_session.total_samples_to_encode;
+
+		/* Input MD5sum is only usable when reencoding the whole file, to a file */
+		if(skip > 0 || until > 0 || encoder_session.is_stdout) {
+			memset(encoder_session.md5sum_input,0,16);
+		}
 
 		stats_new_file();
 		/* init the encoder */
@@ -1412,6 +1423,7 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 	e->old_samples_written = 0;
 #endif
 	e->compression_ratio = 0.0;
+	memset(e->md5sum_input,0,16);
 
 	memset(&e->info, 0, sizeof(e->info));
 
@@ -1495,6 +1507,7 @@ int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_meta
 {
 	FLAC__StreamEncoderState fse_state = FLAC__STREAM_ENCODER_OK;
 	int ret = 0;
+	FLAC__byte empty_md5sum[16] = {0};
 	FLAC__bool verify_error = false;
 
 	if(e->encoder) {
@@ -1518,6 +1531,17 @@ int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_meta
 		ret = 1;
 	}
 
+	if(memcmp(e->md5sum_input,&empty_md5sum,16) != 0) {
+		FLAC__StreamMetadata streaminfo;
+		if(!FLAC__metadata_get_streaminfo(e->outfilename, &streaminfo)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: could not read back MD5sum of output\n", e->inbasefilename);
+			ret = 1;
+		}
+		else if(memcmp(streaminfo.data.stream_info.md5sum,e->md5sum_input,16) != 0) {
+			flac__utils_printf(stderr, 1, "%s: ERROR: MD5sum of input is different from MD5sum of output\n", e->inbasefilename);
+			ret = 1;
+		}
+	}
 	/*@@@@@@ should this go here or somewhere else? */
 	if(ret == 0 && foreign_metadata) {
 		const char *error;
