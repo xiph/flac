@@ -1201,12 +1201,12 @@ int usage_error(const char *message, ...)
 		va_start(args, message);
 
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-		(void) vfprintf(stderr, message, args);
+		(void) flac_vfprintf(stderr, message, args);
 #endif
 
 		va_end(args);
 
-		printf("Type \"flac\" for a usage summary or \"flac --help\" for all options\n");
+		flac_printf("Type \"flac\" for a usage summary or \"flac --help\" for all options\n");
 	}
 
 	return 1;
