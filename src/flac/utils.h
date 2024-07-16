@@ -65,6 +65,7 @@ void stats_clear(void);
 void stats_print_name(int level, const char *name);
 void stats_print_info(int level, const char *format, ...);
 
+FLAC__bool flac__utils_check_empty_skip_until_specification(utils__SkipUntilSpecification *spec);
 FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__SkipUntilSpecification *spec);
 FLAC__bool flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, uint32_t sample_rate);
 

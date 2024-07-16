@@ -802,10 +802,10 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 	return true;
 }
 
-static FLAC__bool get_sample_info_flac(EncoderSession *e)
+static FLAC__bool get_sample_info_flac(EncoderSession *e, FLAC__bool do_check_md5)
 {
 	if (!(
-		FLAC__stream_decoder_set_md5_checking(e->fmt.flac.decoder, false) &&
+		FLAC__stream_decoder_set_md5_checking(e->fmt.flac.decoder, do_check_md5) &&
 		FLAC__stream_decoder_set_metadata_respond_all(e->fmt.flac.decoder)
 	)) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: setting up decoder for FLAC input\n", e->inbasefilename);
@@ -922,7 +922,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				flac__utils_printf(stderr, 1, "%s: ERROR: creating decoder for FLAC input\n", encoder_session.inbasefilename);
 				return EncoderSession_finish_error(&encoder_session);
 			}
-			if(!get_sample_info_flac(&encoder_session))
+			if(!get_sample_info_flac(&encoder_session, encoder_session.is_stdout && flac__utils_check_empty_skip_until_specification(&options.skip_specification) && flac__utils_check_empty_skip_until_specification(&options.until_specification)))
 				return EncoderSession_finish_error(&encoder_session);
 			break;
 		default:
@@ -1531,7 +1531,7 @@ int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_meta
 		ret = 1;
 	}
 
-	if(memcmp(e->md5sum_input,&empty_md5sum,16) != 0) {
+	if(ret == 0 && memcmp(e->md5sum_input,&empty_md5sum,16) != 0) {
 		FLAC__StreamMetadata streaminfo;
 		if(!FLAC__metadata_get_streaminfo(e->outfilename, &streaminfo)) {
 			flac__utils_printf(stderr, 1, "%s: ERROR: could not read back MD5sum of output\n", e->inbasefilename);
@@ -1542,7 +1542,14 @@ int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_meta
 			ret = 1;
 		}
 	}
-	/*@@@@@@ should this go here or somewhere else? */
+	
+	if(ret == 0 && (e->format == FORMAT_FLAC || e->format == FORMAT_OGGFLAC) && e->fmt.flac.decoder) {
+		if(!FLAC__stream_decoder_finish(e->fmt.flac.decoder)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR:  MD5sum of input FLAC file mismatched\n", e->inbasefilename);
+			ret = 1;
+		}
+	}
+
 	if(ret == 0 && foreign_metadata) {
 		const char *error;
 		if(!flac__foreign_metadata_write_to_flac(foreign_metadata, e->infilename, e->outfilename, &error)) {
