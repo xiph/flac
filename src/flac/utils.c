@@ -330,6 +330,23 @@ FLAC__bool flac__utils_parse_skip_until_specification(const char *s, utils__Skip
 	return true;
 }
 
+FLAC__bool flac__utils_check_empty_skip_until_specification(utils__SkipUntilSpecification *spec)
+{
+	FLAC__ASSERT(0 != spec);
+	if(spec->value_is_samples) {
+		if(spec->value.samples == 0)
+			return true;
+		else
+			return false;
+	}
+	else {
+		if(spec->value.seconds == 0.0)
+			return true;
+		else
+			return false;
+	}
+}
+
 FLAC__bool flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, uint32_t sample_rate)
 {
 	FLAC__ASSERT(0 != spec);
