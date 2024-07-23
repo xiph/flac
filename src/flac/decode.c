@@ -1590,6 +1590,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 					decoder_session->abort_flag = true;
 					return;
 				}
+				decoder_session->replaygain.apply = false;
 			}
 			else {
 				const char *ls[] = { "no", "peak", "hard" };
