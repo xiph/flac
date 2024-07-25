@@ -1154,6 +1154,10 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				flac__utils_printf(stderr, 1, "%s: ERROR, bits-per-sample is %u in this frame but %u in previous frames\n", decoder_session->inbasefilename, bps, decoder_session->bps);
 			if(!decoder_session->continue_through_decode_errors)
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			else if(decoder_session->replaygain.apply) {
+				flac__utils_printf(stderr, 1, "%s: ERROR, cannot decode through previous error with replaygain application turned on\n", decoder_session->inbasefilename, bps, decoder_session->bps);
+				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			}
 		}
 	}
 	else {
