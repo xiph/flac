@@ -162,6 +162,7 @@
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_X86_64,
+	FLAC__CPUINFO_TYPE_RISCV_64,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
@@ -184,9 +185,15 @@ typedef struct {
 } FLAC__CPUInfo_x86;
 
 typedef struct {
+	FLAC__bool has_vector;
+	FLAC__uint32 vlenb;     // Vector register length in bytes if CPU supports it.
+} FLAC__CPUInfo_RV64;
+
+typedef struct {
 	FLAC__bool use_asm;
 	FLAC__CPUInfo_Type type;
 	FLAC__CPUInfo_x86 x86;
+	FLAC__CPUInfo_RV64 rv64;
 } FLAC__CPUInfo;
 
 void FLAC__cpu_info(FLAC__CPUInfo *info);

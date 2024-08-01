@@ -43,6 +43,8 @@ EXTRA_DIST = \
 	flac-config.cmake.in \
 	cmake/CheckA64NEON.c.in \
 	cmake/CheckA64NEON.cmake \
+	cmake/CheckRV64Vector.c.in \
+	cmake/CheckRV64Vector.cmake \
 	cmake/CheckCPUArch.c.in \
 	cmake/CheckCPUArch.cmake \
 	cmake/FindOgg.cmake \

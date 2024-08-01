@@ -9,6 +9,9 @@
 /* Target processor ARM64 */
 #cmakedefine FLAC__CPU_ARM64
 
+/* Target processor RiscV64 */
+#cmakedefine FLAC__CPU_RISCV64
+
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 
@@ -30,6 +33,9 @@
 
 /* Set to 1 if <arm_neon.h> contains A64 intrinsics */
 #cmakedefine01 FLAC__HAS_A64NEONINTRIN
+
+/* Set to 1 if <riscv_vector.h> is available. */
+#cmakedefine01 FLAC__HAS_RISCVINTRIN
 
 /* define if building for Darwin / MacOS X */
 #cmakedefine FLAC__SYS_DARWIN
@@ -106,6 +112,9 @@
 /* Define to 1 if you have the <sys/param.h> header file. */
 #cmakedefine HAVE_SYS_PARAM_H
 
+/* Define to 1 if you have the <sys/param.h> header file. */
+#cmakedefine HAVE_SYS_AUXV_H
+
 /* Define to 1 if you have the <sys/stat.h> header file. */
 #cmakedefine HAVE_SYS_STAT_H
 
@@ -114,6 +123,9 @@
 
 /* Define to 1 if you have the <termios.h> header file. */
 #cmakedefine HAVE_TERMIOS_H
+
+/* Define to 1 if you have the <riscv_vector.h> header file. */
+#cmakedefine HAVE_RISCV_VECTOR_H
 
 /* Define to 1 if typeof works with your compiler. */
 #cmakedefine HAVE_TYPEOF

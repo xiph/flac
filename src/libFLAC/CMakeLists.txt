@@ -1,7 +1,9 @@
 option(WITH_ASM "Use any assembly optimization routines" ON)
+option(RISCV_VECTOR "Use RiscV Vector Optimization" OFF)
 
 check_include_file("cpuid.h" HAVE_CPUID_H)
 check_include_file("sys/param.h" HAVE_SYS_PARAM_H)
+check_include_file("sys/auxv.h" HAVE_SYS_AUXV_H)
 
 set(CMAKE_REQUIRED_LIBRARIES m)
 check_function_exists(lround HAVE_LROUND)
@@ -9,6 +11,7 @@ check_function_exists(lround HAVE_LROUND)
 include(CheckCSourceCompiles)
 include(CheckCPUArch)
 include(CheckA64NEON)
+include(CheckRV64Vector)
 
 check_cpu_arch_x64(FLAC__CPU_X86_64)
 if(NOT FLAC__CPU_X86_64)
@@ -26,10 +29,22 @@ else()
     if(FLAC__CPU_ARM64)
          check_a64neon(FLAC__HAS_A64NEONINTRIN)
     endif()
+
+    check_cpu_arch_riscv64(FLAC__CPU_RISCV64)
+    if(FLAC__CPU_RISCV64)
+         check_rv64vector(FLAC__HAS_RISCVINTRIN)
+         if (RISCV_VECTOR AND FLAC__HAS_RISCVINTRIN)
+            set_property(SOURCE lpc_intrin_riscv.c cpu.c APPEND_STRING PROPERTY COMPILE_FLAGS " -march=rv64gcv ")
+         endif()
+    endif()
 endif()
 
 if(NOT WITH_ASM)
     add_definitions(-DFLAC__NO_ASM)
+endif()
+
+if(RISCV_VECTOR)
+    add_definitions(-DFLAC__RISCV_VECTOR)
 endif()
 
 include_directories("include")
@@ -53,6 +68,7 @@ add_library(FLAC
     lpc_intrin_sse41.c
     lpc_intrin_avx2.c
     lpc_intrin_fma.c
+    lpc_intrin_riscv.c
     md5.c
     memory.c
     metadata_iterators.c
