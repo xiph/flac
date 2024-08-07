@@ -49,6 +49,7 @@ typedef struct FLAC__OggEncoderAspect {
 	FLAC__bool seen_magic; /* true if we've seen the fLaC magic in the write callback yet */
 	FLAC__bool is_first_packet;
 	FLAC__uint64 samples_written;
+	uint32_t samples_in_submit_buffer;
 } FLAC__OggEncoderAspect;
 
 void FLAC__ogg_encoder_aspect_set_serial_number(FLAC__OggEncoderAspect *aspect, long value);
