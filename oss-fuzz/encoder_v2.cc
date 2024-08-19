@@ -229,9 +229,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			if(!vorbiscomment_valid) {
 				FLAC__metadata_object_delete(metadata[num_metadata]);
 				metadata[num_metadata] = 0;
+				encoder_valid = false;
 			}
 			else
 				num_metadata++;
+		}
+		else {
+			encoder_valid = false;
 		}
 	}
 	if(encoder_valid && (metadata_mask & 32)){
@@ -239,11 +243,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			if(!FLAC__metadata_object_cuesheet_insert_blank_track(metadata[num_metadata],0)) {
 				FLAC__metadata_object_delete(metadata[num_metadata]);
 				metadata[num_metadata] = 0;
+				encoder_valid = false;
 			}
 			else {
 				if(!FLAC__metadata_object_cuesheet_track_insert_blank_index(metadata[num_metadata],0,0)) {
 					FLAC__metadata_object_delete(metadata[num_metadata]);
 					metadata[num_metadata] = 0;
+					encoder_valid = false;
 				}
 				else {
 					metadata[num_metadata]->data.cue_sheet.tracks[0].number = 1;
@@ -251,10 +257,16 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 				}
 			}
 		}
+		else {
+			encoder_valid = false;
+		}
 	}
 	if(encoder_valid && (metadata_mask & 64)){
 		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PICTURE)) != NULL) {
 			num_metadata++;
+		}
+		else {
+			encoder_valid = false;
 		}
 	}
 	if(encoder_valid && (metadata_mask & 128)){
@@ -263,10 +275,13 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			metadata[num_metadata]->data.unknown.data = (FLAC__byte *)calloc(24, 1);
 			num_metadata++;
 		}
+		else {
+			encoder_valid = false;
+		}
 	}
 
 	if(num_metadata && encoder_valid)
-			encoder_valid = FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
+		encoder_valid = FLAC__stream_encoder_set_metadata(encoder, metadata, num_metadata);
 
 	/* initialize encoder */
 	if(encoder_valid) {
