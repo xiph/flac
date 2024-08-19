@@ -30,7 +30,7 @@ BEGIN
             VALUE "ProductName", "Free Lossless Audio Codec"
             VALUE "ProductVersion", VERSIONSTRING
             VALUE "CompanyName", "Xiph.Org"
-            VALUE "LegalCopyright", "2000-2009 Josh Coalson, 2011-2023 Xiph.Org Foundation"
+            VALUE "LegalCopyright", "2000-2009 Josh Coalson, 2011-2024 Xiph.Org Foundation"
         END
     END
     BLOCK "VarFileInfo"

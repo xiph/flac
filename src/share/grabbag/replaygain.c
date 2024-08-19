@@ -1,6 +1,6 @@
 /* grabbag - Convenience lib for various routines common to several tools
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -139,8 +139,8 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 	FLAC__int32 block_peak = 0, s;
 	uint32_t i, j;
 
-	FLAC__ASSERT(bps >= FLAC__MIN_BITS_PER_SAMPLE && bps <= FLAC__MAX_BITS_PER_SAMPLE);
-	FLAC__ASSERT(FLAC__MIN_BITS_PER_SAMPLE == 4 && FLAC__MAX_BITS_PER_SAMPLE == 32);
+	FLAC__ASSERT(bps > 0 && bps <= FLAC__MAX_BITS_PER_SAMPLE);
+	FLAC__ASSERT(FLAC__MAX_BITS_PER_SAMPLE == 32);
 
 	if(bps == 16) {
 		if(is_stereo) {

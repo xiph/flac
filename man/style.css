@@ -1,0 +1,248 @@
+/*
+ * Copyright (c) 2000-2009  Josh Coalson, 2011-2024 Xiph.Org Foundation
+ * Permission is granted to copy, distribute and/or modify this document
+ * under the terms of the GNU Free Documentation License, Version 1.1
+ * or any later version published by the Free Software Foundation;
+ * with no invariant sections.
+ * A copy of the license can be found at http://www.gnu.org/copyleft/fdl.html
+ */
+
+html
+{
+	background-color: #B3D9B3;
+}
+
+body
+{
+	position: relative;
+	display: block;
+	background-color: #F2F2DE;
+	color: black;
+	margin: 0 auto;
+	padding: 0 0 10px 0;
+	max-width: 1200px;
+
+	font-family: lucida, verdana, helvetica, arial, sans-serif;
+	font-weight: normal;
+	font-size: 100%;
+}
+
+div.logo
+{
+	position: relative;
+	background-color: black;
+	padding: 1px;
+	text-align: center;
+}
+
+div.navbar {
+	font-weight: bold;
+}
+
+
+@media (min-width: 800px)
+{
+	div.navbar
+	{
+		display: flex;
+		gap: 5px;
+		flex-direction: row;
+		padding: 8px;
+		text-align: center;
+	}
+
+	div.navbar:before, div.navbar:after
+	{
+		content: "";
+		flex: 1 1;
+		border-bottom: 2px solid;
+		margin: 10px;
+	}
+
+	div.navbar div:first-child a::after, div.navbar div:last-child a:not(:last-child)::after {
+		content: " - ";
+	}
+
+	#navbarshow
+	{
+		display: none;
+	}
+}
+
+@media (max-width: 799px)
+{
+	div.navbar div
+	{
+		display: flex;
+		gap: 5px;
+		flex-direction: row;
+		padding: 8px;
+		text-align: center;
+	}
+
+	div.navbar div:before, div.navbar div:after
+	{
+		content: "";
+		flex: 1 1;
+		flex-grow: 3;
+		border-bottom: 2px solid;
+		margin: 10px;
+	}
+
+	div.navbar div a:not(:last-child)::after {
+		content: " - ";
+	}
+
+	#navbarshow
+	{
+		display: none;
+	}
+}
+
+div.navbar a
+{
+	color: #000;
+	text-decoration: none;
+
+}
+
+div.content
+{
+	padding: 0 25px;
+}
+
+div.box_footer
+{
+	border-width: 0px 0px 1px 0px;
+	border-style: solid;
+	border-color: black;
+	background-color: #EEEED4;
+	padding: 3px;
+}
+
+div.box_body
+{
+	background-color: #EEEED4;
+	padding: 0px 3px 0px 3px;
+	font-family: lucida, verdana, helvetica, arial, sans-serif;
+	font-weight: normal;
+	font-size: 100%;
+}
+
+#newsbox h3
+{
+	margin: 5px 0 0 0; 
+	font-size: 0.9em; 
+}
+
+#newsbox p
+{
+	margin: 0;
+}
+
+div.smallbox
+{
+	text-align: left;
+	margin: 0 0 0 8px;
+	background-color: #EEEED4;
+}
+
+div.smallbox_title
+{
+	text-align: center;
+	border-width: 1px 0px 0px 0px;
+	border-style: solid;
+	border-color: black;
+	background-color: #D3D4C5;
+	padding: 3px;
+	font-family: lucida, verdana, helvetica, arial, sans-serif;
+	font-weight: bold;
+	font-size: 100%;
+}
+
+div.smallbox_header
+{
+	border-width: 1px 0px 0px 0px;
+	border-style: solid;
+	border-color: black;
+	background-color: #EEEED4;
+	padding: 3px;
+}
+
+div.smallbox_footer
+{
+	border-width: 0px 0px 1px 0px;
+	border-style: solid;
+	border-color: black;
+	background-color: #EEEED4;
+	padding: 3px;
+}
+
+div.smallbox_body
+{
+	background-color: #EEEED4;
+	padding: 0px 3px 0px 3px;
+	font-family: lucida, verdana, helvetica, arial, sans-serif;
+	font-weight: normal;
+	font-size: 80%;
+}
+
+div.copyright
+{
+	text-align: left;
+	padding-bottom: 10px;
+}
+div.copyright hr {
+	margin: 20px 0;
+}
+
+span.commandname
+{
+	font-family: monospace;
+	font-weight: bold;
+}
+
+span.command
+{
+	font-family: monospace;
+	font-weight: bold;
+}
+
+span.argument
+{
+	font-family: monospace;
+}
+
+span.code
+{
+	font-family: monospace;
+}
+
+a:link, a:visited, a:active, a:hover
+{
+	color:#336699;
+	background-color:transparent;
+}
+
+div.imageflex
+{
+display: flex;
+flex-wrap: wrap;
+justify-content: center;
+padding: 0 20px
+}
+
+div.imageflex div
+{
+width: 200px;
+height: 125px;
+padding: 10px;
+text-align: center;
+}
+
+
+div.imageflex div span {
+display: block;
+text-align: center;
+}
+

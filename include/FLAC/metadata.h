@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -62,9 +62,9 @@
  *  This module provides functions for creating and manipulating FLAC
  *  metadata blocks in memory, and three progressively more powerful
  *  interfaces for traversing and editing metadata in native FLAC files.
- *  Note that currently only the Chain interface (level 2) supports Ogg
- *  FLAC files, and it is read-only i.e. no writing back changed
- *  metadata to file.
+ *  Note that currently only the Chain interface (level 2) and some
+ *  functions in level 0 supports Ogg FLAC files, and they are
+ *  read-only i.e. no writing back changed metadata to file.
  *
  *  There are three metadata interfaces of increasing complexity:
  *
@@ -144,10 +144,11 @@ extern "C" {
  * \{
  */
 
-/** Read the STREAMINFO metadata block of the given FLAC file.  This function
- *  will try to skip any ID3v2 tag at the head of the file.
+/** Read the STREAMINFO metadata block of the given FLAC or Ogg FLAC
+ *  file.  This function will try to skip any ID3v2 tag at the head
+ *  of the file.
  *
- * \param filename    The path to the FLAC file to read.
+ * \param filename    The path to the FLAC or Ogg FLAC file to read.
  * \param streaminfo  A pointer to space for the STREAMINFO block.  Since
  *                    FLAC__StreamMetadata is a simple structure with no
  *                    memory allocation involved, you pass the address of
@@ -163,10 +164,11 @@ extern "C" {
  */
 FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
 
-/** Read the VORBIS_COMMENT metadata block of the given FLAC file.  This
- *  function will try to skip any ID3v2 tag at the head of the file.
+/** Read the VORBIS_COMMENT metadata block of the given FLAC or Ogg FLAC
+ *  file.  This function will try to skip any ID3v2 tag at the head
+ *  of the file.
  *
- * \param filename    The path to the FLAC file to read.
+ * \param filename    The path to the FLAC or Ogg FLAC file to read.
  * \param tags        The address where the returned pointer will be
  *                    stored.  The \a tags object must be deleted by
  *                    the caller using FLAC__metadata_object_delete().
@@ -182,10 +184,11 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
  */
 FLAC_API FLAC__bool FLAC__metadata_get_tags(const char *filename, FLAC__StreamMetadata **tags);
 
-/** Read the CUESHEET metadata block of the given FLAC file.  This
- *  function will try to skip any ID3v2 tag at the head of the file.
+/** Read the CUESHEET metadata block of the given FLAC or Ogg FLAC
+ *  file.  This function will try to skip any ID3v2 tag at the head
+ *  of the file.
  *
- * \param filename    The path to the FLAC file to read.
+ * \param filename    The path to the FLAC or Ogg FLAC file to read.
  * \param cuesheet    The address where the returned pointer will be
  *                    stored.  The \a cuesheet object must be deleted by
  *                    the caller using FLAC__metadata_object_delete().
@@ -207,7 +210,8 @@ FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__Stre
  *  function takes a number of parameters that act as constraints to
  *  the search.  The PICTURE block with the largest area matching all
  *  the constraints will be returned, or \a *picture will be set to
- *  \c NULL if there was no such block.
+ *  \c NULL if there was no such block. This function does not
+ *  currently support reading from Ogg FLAC files.
  *
  * \param filename    The path to the FLAC file to read.
  * \param picture     The address where the returned pointer will be

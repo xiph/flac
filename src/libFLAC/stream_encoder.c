@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -4420,11 +4420,11 @@ static void spotcheck_subframe_estimate_(
 	FLAC__bool ret;
 	FLAC__BitWriter *frame = FLAC__bitwriter_new();
 	if(frame == 0) {
-		fprintf(stderr, "EST: can't allocate frame\n");
+		flac_fprintf(stderr, "EST: can't allocate frame\n");
 		return;
 	}
 	if(!FLAC__bitwriter_init(frame)) {
-		fprintf(stderr, "EST: can't init frame\n");
+		flac_fprintf(stderr, "EST: can't init frame\n");
 		return;
 	}
 	ret = add_subframe_(encoder, blocksize, subframe_bps, subframe, frame);
@@ -4432,7 +4432,7 @@ static void spotcheck_subframe_estimate_(
 	{
 		const uint32_t actual = FLAC__bitwriter_get_input_bits_unconsumed(frame);
 		if(estimate != actual)
-			fprintf(stderr, "EST: bad, frame#%u sub#%%d type=%8s est=%u, actual=%u, delta=%d\n", encoder->private_->current_frame_number, FLAC__SubframeTypeString[subframe->type], estimate, actual, (int)actual-(int)estimate);
+			flac_fprintf(stderr, "EST: bad, frame#%u sub#%%d type=%8s est=%u, actual=%u, delta=%d\n", encoder->private_->current_frame_number, FLAC__SubframeTypeString[subframe->type], estimate, actual, (int)actual-(int)estimate);
 	}
 	FLAC__bitwriter_delete(frame);
 }
@@ -4995,7 +4995,7 @@ FLAC__bool set_partitioned_rice_(
 
 		if(rice_parameter >= rice_parameter_limit) {
 #ifndef NDEBUG
-			fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
+			flac_fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
 #endif
 			rice_parameter = rice_parameter_limit - 1;
 		}
@@ -5010,7 +5010,7 @@ FLAC__bool set_partitioned_rice_(
 			max_rice_parameter = rice_parameter + rice_parameter_search_dist;
 			if(max_rice_parameter >= rice_parameter_limit) {
 #ifndef NDEBUG
-				fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, rice_parameter_limit - 1);
+				flac_fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, rice_parameter_limit - 1);
 #endif
 				max_rice_parameter = rice_parameter_limit - 1;
 			}

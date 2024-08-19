@@ -1,6 +1,6 @@
 /* test_libFLAC - Unit tester for libFLAC
  * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -693,7 +693,7 @@ static FLAC__bool remove_file_(const char *filename)
 	return true;
 }
 
-static FLAC__bool test_level_0_(void)
+static FLAC__bool test_level_0_(FLAC__bool is_ogg)
 {
 	FLAC__StreamMetadata streaminfo;
 	FLAC__StreamMetadata *tags = 0;
@@ -702,15 +702,15 @@ static FLAC__bool test_level_0_(void)
 
 	printf("\n\n++++++ testing level 0 interface\n");
 
-	if(!generate_file_(/*include_extras=*/true, /*is_ogg=*/false))
+	if(!generate_file_(/*include_extras=*/true, is_ogg))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, decoder_metadata_callback_null_))
+	if(!test_file_(is_ogg, decoder_metadata_callback_null_))
 		return false;
 
 	printf("testing FLAC__metadata_get_streaminfo()... ");
 
-	if(!FLAC__metadata_get_streaminfo(flacfilename(/*is_ogg=*/false), &streaminfo))
+	if(!FLAC__metadata_get_streaminfo(flacfilename(is_ogg), &streaminfo))
 		return die_("during FLAC__metadata_get_streaminfo()");
 
 	/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -729,7 +729,7 @@ static FLAC__bool test_level_0_(void)
 
 	printf("testing FLAC__metadata_get_tags()... ");
 
-	if(!FLAC__metadata_get_tags(flacfilename(/*is_ogg=*/false), &tags))
+	if(!FLAC__metadata_get_tags(flacfilename(is_ogg), &tags))
 		return die_("during FLAC__metadata_get_tags()");
 
 	/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -742,7 +742,7 @@ static FLAC__bool test_level_0_(void)
 
 	printf("testing FLAC__metadata_get_cuesheet()... ");
 
-	if(!FLAC__metadata_get_cuesheet(flacfilename(/*is_ogg=*/false), &cuesheet))
+	if(!FLAC__metadata_get_cuesheet(flacfilename(is_ogg), &cuesheet))
 		return die_("during FLAC__metadata_get_cuesheet()");
 
 	/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -752,21 +752,23 @@ static FLAC__bool test_level_0_(void)
 	printf("OK\n");
 
 	FLAC__metadata_object_delete(cuesheet);
+	if(!is_ogg) {
+		/* FLAC__metadata_get_picture uses layer 1, which isn't ogg-capable yet */
+		printf("testing FLAC__metadata_get_picture()... ");
 
-	printf("testing FLAC__metadata_get_picture()... ");
+		if(!FLAC__metadata_get_picture(flacfilename(is_ogg), &picture, /*type=*/(FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
+			return die_("during FLAC__metadata_get_picture()");
 
-	if(!FLAC__metadata_get_picture(flacfilename(/*is_ogg=*/false), &picture, /*type=*/(FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
-		return die_("during FLAC__metadata_get_picture()");
+		/* check to see if some basic data matches (c.f. generate_file_()) */
+		if(picture->data.picture.type != FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER)
+			return die_("mismatch in picture->data.picture.type");
 
-	/* check to see if some basic data matches (c.f. generate_file_()) */
-	if(picture->data.picture.type != FLAC__STREAM_METADATA_PICTURE_TYPE_FRONT_COVER)
-		return die_("mismatch in picture->data.picture.type");
+		printf("OK\n");
 
-	printf("OK\n");
+		FLAC__metadata_object_delete(picture);
+	}
 
-	FLAC__metadata_object_delete(picture);
-
-	if(!remove_file_(flacfilename(/*is_ogg=*/false)))
+	if(!remove_file_(flacfilename(is_ogg)))
 		return false;
 
 	return true;
@@ -2117,8 +2119,14 @@ FLAC__bool test_metadata_file_manipulation(void)
 
 	our_metadata_.num_blocks = 0;
 
-	if(!test_level_0_())
+
+	if(!test_level_0_(/*is_ogg=*/false))
 		return false;
+	if(FLAC_API_SUPPORTS_OGG_FLAC) {
+		if(!test_level_0_(/*is_ogg=*/true))
+			return false;
+	}
+
 
 	if(!test_level_1_())
 		return false;

@@ -1,6 +1,6 @@
 /* metaflac - Command-line FLAC metadata editor
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -70,6 +70,13 @@ extern FLAC__bool do_shorthand_operation__picture(const char *filename, FLAC__Me
 FLAC__bool do_operations(const CommandLineOptions *options)
 {
 	FLAC__bool ok = true;
+
+#ifdef _WIN32
+	if(options->utf8_convert) {
+		_setmode(fileno(stdout),_O_U8TEXT);
+		SetConsoleOutputCP(CP_UTF8);
+	}
+#endif
 
 	if(options->show_long_help) {
 		long_usage(0);
@@ -201,6 +208,12 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 					return false;
 				}
 				write_metadata_binary(block, block_raw, options->data_format_is_binary_headerless);
+#ifdef _WIN32
+				if(options->utf8_convert)
+					_setmode(fileno(stdout),_O_U8TEXT);
+				else
+					_setmode(fileno(stdin),_O_TEXT);
+#endif
 				free(block_raw);
 			}
 		}
@@ -323,7 +336,10 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 	}
 
 #ifdef _WIN32
-	_setmode(fileno(stdin),_O_TEXT);
+	if(options->utf8_convert)
+		_setmode(fileno(stdout),_O_U8TEXT);
+	else
+		_setmode(fileno(stdin),_O_TEXT);
 #endif
 
 	if(num_objects == 0)
@@ -694,109 +710,125 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 
 /*@@@ yuck, should do this with a varargs function or something: */
 #define PPR if(filename) { if(raw) printf("%s:",filename); else flac_printf("%s:",filename); }
-	PPR; printf("METADATA block #%u\n", block_number);
-	PPR; printf("  type: %u (%s)\n", (unsigned)block->type, block->type < FLAC__METADATA_TYPE_UNDEFINED? FLAC__MetadataTypeString[block->type] : "UNKNOWN");
-	PPR; printf("  is last: %s\n", block->is_last? "true":"false");
-	PPR; printf("  length: %u\n", block->length);
+	PPR; flac_printf("METADATA block #%u\n", block_number);
+	PPR; flac_printf("  type: %u (%s)\n", (unsigned)block->type, block->type < FLAC__METADATA_TYPE_UNDEFINED? FLAC__MetadataTypeString[block->type] : "UNKNOWN");
+	PPR; flac_printf("  is last: %s\n", block->is_last? "true":"false");
+	PPR; flac_printf("  length: %u\n", block->length);
 
 	switch(block->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
-			PPR; printf("  minimum blocksize: %u samples\n", block->data.stream_info.min_blocksize);
-			PPR; printf("  maximum blocksize: %u samples\n", block->data.stream_info.max_blocksize);
-			PPR; printf("  minimum framesize: %u bytes\n", block->data.stream_info.min_framesize);
-			PPR; printf("  maximum framesize: %u bytes\n", block->data.stream_info.max_framesize);
-			PPR; printf("  sample_rate: %u Hz\n", block->data.stream_info.sample_rate);
-			PPR; printf("  channels: %u\n", block->data.stream_info.channels);
-			PPR; printf("  bits-per-sample: %u\n", block->data.stream_info.bits_per_sample);
-			PPR; printf("  total samples: %" PRIu64 "\n", block->data.stream_info.total_samples);
-			PPR; printf("  MD5 signature: ");
+			PPR; flac_printf("  minimum blocksize: %u samples\n", block->data.stream_info.min_blocksize);
+			PPR; flac_printf("  maximum blocksize: %u samples\n", block->data.stream_info.max_blocksize);
+			PPR; flac_printf("  minimum framesize: %u bytes\n", block->data.stream_info.min_framesize);
+			PPR; flac_printf("  maximum framesize: %u bytes\n", block->data.stream_info.max_framesize);
+			PPR; flac_printf("  sample_rate: %u Hz\n", block->data.stream_info.sample_rate);
+			PPR; flac_printf("  channels: %u\n", block->data.stream_info.channels);
+			PPR; flac_printf("  bits-per-sample: %u\n", block->data.stream_info.bits_per_sample);
+			PPR; flac_printf("  total samples: %" PRIu64 "\n", block->data.stream_info.total_samples);
+			PPR; flac_printf("  MD5 signature: ");
 			for(i = 0; i < 16; i++) {
-				printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
+				if(raw)
+					printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
+				else
+					flac_printf("%02x", (unsigned)block->data.stream_info.md5sum[i]);
 			}
-			printf("\n");
+			if(raw)
+				printf("\n");
+			else
+				flac_printf("\n");
 			break;
 		case FLAC__METADATA_TYPE_PADDING:
 			/* nothing to print */
 			break;
 		case FLAC__METADATA_TYPE_APPLICATION:
-			PPR; printf("  application ID: ");
+			PPR; flac_printf("  application ID: ");
 			for(i = 0; i < 4; i++)
-				printf("%02x", block->data.application.id[i]);
-			printf("\n");
-			PPR; printf("  data contents:\n");
+				flac_printf("%02x", block->data.application.id[i]);
+			flac_printf("\n");
+			PPR; flac_printf("  data contents:\n");
 			if(0 != block->data.application.data) {
 				if(hexdump_application)
 					hexdump(filename, block->data.application.data, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, "    ");
 				else
-					(void) local_fwrite(block->data.application.data, 1, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
+					for(i = 0; i < block->length - FLAC__STREAM_METADATA_HEADER_LENGTH; i++)
+						if(raw)
+							(void) local_fwrite(block->data.application.data, 1, block->length - FLAC__STREAM_METADATA_HEADER_LENGTH, stdout);
+						else {
+							if(block->data.application.data[i] > 32 && block->data.application.data[i] < 127)
+								flac_printf("%c",block->data.application.data[i]);
+							else {
+								char replacement[4] = {0xef, 0xbf, 0xbd, 0}; /* Unicode replacement character */
+								flac_printf("%s",replacement);
+							}
+						}
 			}
 			break;
 		case FLAC__METADATA_TYPE_SEEKTABLE:
-			PPR; printf("  seek points: %u\n", block->data.seek_table.num_points);
+			PPR; flac_printf("  seek points: %u\n", block->data.seek_table.num_points);
 			for(i = 0; i < block->data.seek_table.num_points; i++) {
 				if(block->data.seek_table.points[i].sample_number != FLAC__STREAM_METADATA_SEEKPOINT_PLACEHOLDER) {
-					PPR; printf("    point %u: sample_number=%" PRIu64 ", stream_offset=%" PRIu64 ", frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
+					PPR; flac_printf("    point %u: sample_number=%" PRIu64 ", stream_offset=%" PRIu64 ", frame_samples=%u\n", i, block->data.seek_table.points[i].sample_number, block->data.seek_table.points[i].stream_offset, block->data.seek_table.points[i].frame_samples);
 				}
 				else {
-					PPR; printf("    point %u: PLACEHOLDER\n", i);
+					PPR; flac_printf("    point %u: PLACEHOLDER\n", i);
 				}
 			}
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
-			PPR; printf("  vendor string: ");
+			PPR; flac_printf("  vendor string: ");
 			write_vc_field(0, &block->data.vorbis_comment.vendor_string, raw, stdout);
-			PPR; printf("  comments: %u\n", block->data.vorbis_comment.num_comments);
+			PPR; flac_printf("  comments: %u\n", block->data.vorbis_comment.num_comments);
 			for(i = 0; i < block->data.vorbis_comment.num_comments; i++) {
-				PPR; printf("    comment[%u]: ", i);
+				PPR; flac_printf("    comment[%u]: ", i);
 				write_vc_field(0, &block->data.vorbis_comment.comments[i], raw, stdout);
 			}
 			break;
 		case FLAC__METADATA_TYPE_CUESHEET:
-			PPR; printf("  media catalog number: %s\n", block->data.cue_sheet.media_catalog_number);
-			PPR; printf("  lead-in: %" PRIu64 "\n", block->data.cue_sheet.lead_in);
-			PPR; printf("  is CD: %s\n", block->data.cue_sheet.is_cd? "true":"false");
-			PPR; printf("  number of tracks: %u\n", block->data.cue_sheet.num_tracks);
+			PPR; flac_printf("  media catalog number: %s\n", block->data.cue_sheet.media_catalog_number);
+			PPR; flac_printf("  lead-in: %" PRIu64 "\n", block->data.cue_sheet.lead_in);
+			PPR; flac_printf("  is CD: %s\n", block->data.cue_sheet.is_cd? "true":"false");
+			PPR; flac_printf("  number of tracks: %u\n", block->data.cue_sheet.num_tracks);
 			for(i = 0; i < block->data.cue_sheet.num_tracks; i++) {
 				const FLAC__StreamMetadata_CueSheet_Track *track = block->data.cue_sheet.tracks+i;
 				const FLAC__bool is_last = (i == block->data.cue_sheet.num_tracks-1);
 				const FLAC__bool is_leadout = is_last && track->num_indices == 0;
-				PPR; printf("    track[%u]\n", i);
-				PPR; printf("      offset: %" PRIu64 "\n", track->offset);
+				PPR; flac_printf("    track[%u]\n", i);
+				PPR; flac_printf("      offset: %" PRIu64 "\n", track->offset);
 				if(is_last) {
-					PPR; printf("      number: %u (%s)\n", (unsigned)track->number, is_leadout? "LEAD-OUT" : "INVALID");
+					PPR; flac_printf("      number: %u (%s)\n", (unsigned)track->number, is_leadout? "LEAD-OUT" : "INVALID");
 				}
 				else {
-					PPR; printf("      number: %u\n", (unsigned)track->number);
+					PPR; flac_printf("      number: %u\n", (unsigned)track->number);
 				}
 				if(!is_leadout) {
-					PPR; printf("      ISRC: %s\n", track->isrc);
-					PPR; printf("      type: %s\n", track->type == 1? "DATA" : "AUDIO");
-					PPR; printf("      pre-emphasis: %s\n", track->pre_emphasis? "true":"false");
-					PPR; printf("      number of index points: %u\n", track->num_indices);
+					PPR; flac_printf("      ISRC: %s\n", track->isrc);
+					PPR; flac_printf("      type: %s\n", track->type == 1? "DATA" : "AUDIO");
+					PPR; flac_printf("      pre-emphasis: %s\n", track->pre_emphasis? "true":"false");
+					PPR; flac_printf("      number of index points: %u\n", track->num_indices);
 					for(j = 0; j < track->num_indices; j++) {
 						const FLAC__StreamMetadata_CueSheet_Index *indx = track->indices+j;
-						PPR; printf("        index[%u]\n", j);
-						PPR; printf("          offset: %" PRIu64 "\n", indx->offset);
-						PPR; printf("          number: %u\n", (unsigned)indx->number);
+						PPR; flac_printf("        index[%u]\n", j);
+						PPR; flac_printf("          offset: %" PRIu64 "\n", indx->offset);
+						PPR; flac_printf("          number: %u\n", (unsigned)indx->number);
 					}
 				}
 			}
 			break;
 		case FLAC__METADATA_TYPE_PICTURE:
-			PPR; printf("  type: %u (%s)\n", block->data.picture.type, block->data.picture.type < FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED? FLAC__StreamMetadata_Picture_TypeString[block->data.picture.type] : "UNDEFINED");
-			PPR; printf("  MIME type: %s\n", block->data.picture.mime_type);
-			PPR; printf("  description: %s\n", block->data.picture.description);
-			PPR; printf("  width: %u\n", (unsigned)block->data.picture.width);
-			PPR; printf("  height: %u\n", (unsigned)block->data.picture.height);
-			PPR; printf("  depth: %u\n", (unsigned)block->data.picture.depth);
-			PPR; printf("  colors: %u%s\n", (unsigned)block->data.picture.colors, block->data.picture.colors? "" : " (unindexed)");
-			PPR; printf("  data length: %u\n", (unsigned)block->data.picture.data_length);
-			PPR; printf("  data:\n");
+			PPR; flac_printf("  type: %u (%s)\n", block->data.picture.type, block->data.picture.type < FLAC__STREAM_METADATA_PICTURE_TYPE_UNDEFINED? FLAC__StreamMetadata_Picture_TypeString[block->data.picture.type] : "UNDEFINED");
+			PPR; flac_printf("  MIME type: %s\n", block->data.picture.mime_type);
+			PPR; flac_printf("  description: %s\n", block->data.picture.description);
+			PPR; flac_printf("  width: %u\n", (unsigned)block->data.picture.width);
+			PPR; flac_printf("  height: %u\n", (unsigned)block->data.picture.height);
+			PPR; flac_printf("  depth: %u\n", (unsigned)block->data.picture.depth);
+			PPR; flac_printf("  colors: %u%s\n", (unsigned)block->data.picture.colors, block->data.picture.colors? "" : " (unindexed)");
+			PPR; flac_printf("  data length: %u\n", (unsigned)block->data.picture.data_length);
+			PPR; flac_printf("  data:\n");
 			if(0 != block->data.picture.data)
 				hexdump(filename, block->data.picture.data, block->data.picture.data_length, "    ");
 			break;
 		default:
-			PPR; printf("  data contents:\n");
+			PPR; flac_printf("  data contents:\n");
 			if(0 != block->data.unknown.data)
 				hexdump(filename, block->data.unknown.data, block->length, "    ");
 			break;
@@ -818,6 +850,5 @@ void write_metadata_binary(FLAC__StreamMetadata *block, FLAC__byte *block_raw, F
 		local_fwrite(block_raw+FLAC__STREAM_METADATA_HEADER_LENGTH, 1, block->length, stdout);
 #ifdef _WIN32
 	fflush(stdout);
-	_setmode(fileno(stdout),_O_TEXT);
 #endif
 }

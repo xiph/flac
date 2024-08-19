@@ -1,5 +1,5 @@
 /* fuzzer_encoder_v2
- * Copyright (C) 2022-2023  Xiph.Org Foundation
+ * Copyright (C) 2022-2024  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions

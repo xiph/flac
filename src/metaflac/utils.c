@@ -1,6 +1,6 @@
 /* metaflac - Command-line FLAC metadata editor
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -98,7 +98,7 @@ void hexdump(const char *filename, const FLAC__byte *buf, unsigned bytes, const 
 
 	for(i = 0; i < bytes; i += 16) {
 		flac_printf("%s%s", filename? filename:"", filename? ":":"");
-		printf("%s%08X: "
+		flac_printf("%s%08X: "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%02X %02X %02X %02X %02X %02X %02X %02X "
 			"%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c%c\n",
@@ -244,11 +244,9 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 			 * WATCHOUT: comments that contain an embedded null will
 			 * be truncated by utf_decode().
 			 */
-#ifdef _WIN32 /* if we are outputting to console, we need to use proper print functions to show unicode characters */
-			if (f == stdout || f == stderr) {
-				flac_fprintf(f, "%s", entry->entry);
-			} else {
-#endif
+#ifdef _WIN32
+			flac_fprintf(f, "%s", entry->entry);
+#else
 			char *converted;
 
 			if(utf8_decode((const char *)entry->entry, &converted) >= 0) {
@@ -258,16 +256,17 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 			else {
 				(void) local_fwrite(entry->entry, 1, entry->length, f);
 			}
-#ifdef _WIN32
-			}
 #endif
 		}
 		else {
 			(void) local_fwrite(entry->entry, 1, entry->length, f);
 		}
 	}
-
+#ifdef _WIN32
+	flac_fprintf(f,"\n");
+#else
 	putc('\n', f);
+#endif
 }
 
 void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f)

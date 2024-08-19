@@ -1,6 +1,6 @@
 /* metaflac - Command-line FLAC metadata editor
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -52,32 +52,32 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool p
 	switch(operation->type) {
 		case OP__SHOW_MD5SUM:
 			for(i = 0; i < 16; i++)
-				printf("%02x", block->data.stream_info.md5sum[i]);
-			printf("\n");
+				flac_printf("%02x", block->data.stream_info.md5sum[i]);
+			flac_printf("\n");
 			break;
 		case OP__SHOW_MIN_BLOCKSIZE:
-			printf("%u\n", block->data.stream_info.min_blocksize);
+			flac_printf("%u\n", block->data.stream_info.min_blocksize);
 			break;
 		case OP__SHOW_MAX_BLOCKSIZE:
-			printf("%u\n", block->data.stream_info.max_blocksize);
+			flac_printf("%u\n", block->data.stream_info.max_blocksize);
 			break;
 		case OP__SHOW_MIN_FRAMESIZE:
-			printf("%u\n", block->data.stream_info.min_framesize);
+			flac_printf("%u\n", block->data.stream_info.min_framesize);
 			break;
 		case OP__SHOW_MAX_FRAMESIZE:
-			printf("%u\n", block->data.stream_info.max_framesize);
+			flac_printf("%u\n", block->data.stream_info.max_framesize);
 			break;
 		case OP__SHOW_SAMPLE_RATE:
-			printf("%u\n", block->data.stream_info.sample_rate);
+			flac_printf("%u\n", block->data.stream_info.sample_rate);
 			break;
 		case OP__SHOW_CHANNELS:
-			printf("%u\n", block->data.stream_info.channels);
+			flac_printf("%u\n", block->data.stream_info.channels);
 			break;
 		case OP__SHOW_BPS:
-			printf("%u\n", block->data.stream_info.bits_per_sample);
+			flac_printf("%u\n", block->data.stream_info.bits_per_sample);
 			break;
 		case OP__SHOW_TOTAL_SAMPLES:
-			printf("%" PRIu64 "\n", block->data.stream_info.total_samples);
+			flac_printf("%" PRIu64 "\n", block->data.stream_info.total_samples);
 			break;
 		case OP__SET_MD5SUM:
 			memcpy(block->data.stream_info.md5sum, operation->argument.streaminfo_md5.value, 16);

@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -47,7 +47,7 @@
 
 #ifndef NDEBUG
 #include <stdio.h>
-#define dfprintf fprintf
+#define dfprintf flac_fprintf
 #else
 /* This is bad practice, it should be a static void empty function */
 #define dfprintf(file, format, ...)

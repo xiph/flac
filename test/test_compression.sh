@@ -1,7 +1,7 @@
 #!/bin/sh -e
 
 #  FLAC - Free Lossless Audio Codec
-#  Copyright (C) 2012-2023  Xiph.Org Foundation
+#  Copyright (C) 2012-2024  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -21,7 +21,7 @@
 
 PATH="$(pwd)/../src/flac:$PATH"
 
-printf "Using FLAC binary : %s\n" "$(which flac)"
+printf "Using FLAC binary : %s\n" "$(command -v flac)"
 
 date="$(date "+%Y%m%dT%H%M%S")"
 fname="comp${date}.flac"

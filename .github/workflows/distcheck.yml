@@ -9,7 +9,7 @@ on:
 
 jobs:
   distcheck:
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
 
@@ -41,6 +41,13 @@ jobs:
 
       - name: Check with flac test files
         run: ./src/flac/flac -t test-files/subset/*.flac test-files/uncommon/0[5-9]*.flac test-files/uncommon/10*.flac
+
+      - name: Upload build
+        uses: actions/upload-artifact@v4
+        with:
+          name: dist-tarball
+          path: |
+            ./flac-*.tar.xz
 
       - name: Upload ABI compliance reports
         uses: actions/upload-artifact@v4

@@ -8,5 +8,5 @@ Description: Free Lossless Audio Codec Library
 Version: @VERSION@
 Requires.private: @OGG_PACKAGE@
 Libs: -L${libdir} -lFLAC
-Libs.private: -lm
+Libs.private: -lm @FLAC_STATIC_LIBS@
 Cflags: -I${includedir}

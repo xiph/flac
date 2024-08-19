@@ -1,6 +1,6 @@
 #  flac - Command-line FLAC encoder/decoder
 #  Copyright (C) 2000-2009  Josh Coalson
-#  Copyright (C) 2011-2023  Xiph.Org Foundation
+#  Copyright (C) 2011-2024  Xiph.Org Foundation
 #
 #  This program is free software; you can redistribute it and/or
 #  modify it under the terms of the GNU General Public License
@@ -23,7 +23,14 @@ flac.1: flac.md
 metaflac.1: metaflac.md
 	pandoc --standalone --to man $? > $@
 
+flac.html: flac.md
+	pandoc --standalone --to html --css style.css -B header.inc -A footer.inc --embed-resources $? > $@ || pandoc --self-contained --to html --css style.css -B header.inc -A footer.inc $? > $@
+
+metaflac.html: metaflac.md
+	pandoc --standalone --to html --css style.css -B header.inc -A footer.inc --embed-resources $? > $@ ||  pandoc --self-contained --to html --css style.css -B header.inc -A footer.inc $? > $@
+
 man_MANS = flac.1 metaflac.1
+doc_DATA = flac.html metaflac.html
 
 else
 if FLaC__HAS_PREBUILT_MANPAGES
@@ -31,4 +38,4 @@ man_MANS = flac.1 metaflac.1
 endif
 endif
 
-EXTRA_DIST = flac.1 metaflac.1 flac.md metaflac.md
+EXTRA_DIST = flac.1 metaflac.1 flac.md metaflac.md flac.html metaflac.html

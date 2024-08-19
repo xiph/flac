@@ -1,6 +1,6 @@
 #  FLAC - Free Lossless Audio Codec
 #  Copyright (C) 2001-2009  Josh Coalson
-#  Copyright (C) 2011-2023  Xiph.Org Foundation
+#  Copyright (C) 2011-2024  Xiph.Org Foundation
 #
 #  This file is part the FLAC project.  FLAC is comprised of several
 #  components distributed under different licenses.  The codec libraries
@@ -532,6 +532,7 @@ AC_SUBST(GIT_COMMIT_VERSION_HASH)
 AX_CHECK_COMPILE_FLAG([-fassociative-math -fno-signed-zeros -fno-trapping-math -freciprocal-math],HAVE_ASSOC_MATH=yes)
 AM_CONDITIONAL(ASSOC_MATH_AVAILABLE, test "x$HAVE_ASSOC_MATH" = "xyes")
 
+AC_SUBST(FLAC_STATIC_LIBS) dnl unused here
 
 AC_CONFIG_FILES([ \
 	Makefile \

@@ -1,6 +1,6 @@
 /* libFLAC - Free Lossless Audio Codec library
  * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2023  Xiph.Org Foundation
+ * Copyright (C) 2011-2024  Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -2228,14 +2228,14 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		* isn't checked, if the seek fails the decoder will continue anyway */
 		if(!FLAC__bitreader_rewind_to_after_last_seen_framesync(decoder->private_->input)){
 #ifndef NDEBUG
-			fprintf(stderr, "Rewinding, seeking necessary\n");
+			flac_fprintf(stderr, "Rewinding, seeking necessary\n");
 #endif
 			if(decoder->private_->seek_callback && decoder->private_->last_seen_framesync){
 				/* Last framesync isn't in bitreader anymore, rewind with seek if possible */
 #ifndef NDEBUG
 				FLAC__uint64 current_decode_position;
 				if(FLAC__stream_decoder_get_decode_position(decoder, &current_decode_position))
-					fprintf(stderr, "Bitreader was %" PRIu64 " bytes short\n", current_decode_position-decoder->private_->last_seen_framesync);
+					flac_fprintf(stderr, "Bitreader was %" PRIu64 " bytes short\n", current_decode_position-decoder->private_->last_seen_framesync);
 #endif
 				if(decoder->private_->seek_callback(decoder, decoder->private_->last_seen_framesync, decoder->private_->client_data) == FLAC__STREAM_DECODER_SEEK_STATUS_ERROR) {
 					decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
@@ -2249,7 +2249,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		}
 #ifndef NDEBUG
 		else{
-			fprintf(stderr, "Rewinding, seeking not necessary\n");
+			flac_fprintf(stderr, "Rewinding, seeking not necessary\n");
 		}
 #endif
 	}

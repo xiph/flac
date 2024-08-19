@@ -159,6 +159,9 @@ if(MINGW AND (WITH_FORTIFY_SOURCE OR WITH_STACK_PROTECTOR))
     message(WARNING "Could not find libssp in MinGW, stack protection and/or FORTIFY_SOURCE are unavailable")
   else()
     link_libraries("ssp.a")
+    # static libraries don't carry over other static libraries in mingw
+    # we need to export it in the pkg-config
+    set(FLAC_STATIC_LIBS "-lssp")
   endif()
 elseif(NOT MSVC)
   set(HAVE_LIBSSP 1)
@@ -297,7 +300,15 @@ if(INSTALL_MANPAGES)
             OUTPUT man/metaflac.1
             COMMAND pandoc --standalone --to man "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.1
             )
-               add_custom_target(man ALL DEPENDS man/flac.1 man/metaflac.1)
+        add_custom_command(
+            OUTPUT man/flac.html
+            COMMAND pandoc --standalone --embed-resources --to html "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.html || pandoc --self-contained --to html "${CMAKE_SOURCE_DIR}/man/flac.md" > man/flac.html
+            )
+        add_custom_command(
+            OUTPUT man/metaflac.html
+            COMMAND pandoc --standalone --embed-resources --to html "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.html || pandoc --self-contained --to html "${CMAKE_SOURCE_DIR}/man/metaflac.md" > man/metaflac.html
+            )
+        add_custom_target(man ALL DEPENDS man/flac.1 man/metaflac.1 man/flac.html man/metaflac.html)
         install(FILES "${CMAKE_BINARY_DIR}/man/flac.1" "${CMAKE_BINARY_DIR}/man/metaflac.1" DESTINATION "${CMAKE_INSTALL_MANDIR}/man1")
     else()
         if(EXISTS "${CMAKE_SOURCE_DIR}/man/flac.1" AND EXISTS "${CMAKE_SOURCE_DIR}/man/metaflac.1")
