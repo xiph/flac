@@ -153,6 +153,7 @@ static struct share__option long_options_[] = {
 	{ "padding"                   , share__required_argument, 0, 'P' },
 #if FLAC__HAS_OGG
 	{ "ogg"                       , share__no_argument, 0, 0 },
+	{ "decode-chained-stream"     , share__no_argument, 0, 0 },
 	{ "serial-number"             , share__required_argument, 0, 0 },
 #endif
 	{ "blocksize"                 , share__required_argument, 0, 'b' },
@@ -237,6 +238,7 @@ static struct {
 	FLAC__bool analyze;
 	FLAC__bool use_ogg;
 	FLAC__bool has_serial_number; /* true iff --serial-number was used */
+	FLAC__bool decode_chained_stream;
 	long serial_number; /* this is the Ogg serial number and is unused for native FLAC */
 	FLAC__bool force_to_stdout;
 	FLAC__bool force_raw_format;
@@ -559,6 +561,7 @@ FLAC__bool init_options(void)
 	option_values.test_only = false;
 	option_values.analyze = false;
 	option_values.use_ogg = false;
+	option_values.decode_chained_stream = false;
 	option_values.has_serial_number = false;
 	option_values.serial_number = 0;
 	option_values.force_to_stdout = false;
@@ -798,6 +801,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 #if FLAC__HAS_OGG
 		else if(0 == strcmp(long_option, "ogg")) {
 			option_values.use_ogg = true;
+		}
+		else if (0 == strcmp(long_option, "decode-chained-stream")) {
+			option_values.decode_chained_stream = true;
 		}
 		else if(0 == strcmp(long_option, "serial-number")) {
 			option_values.has_serial_number = true;
@@ -1297,6 +1303,11 @@ void show_help(void)
 	printf("Decoding options:\n");
 	printf("  -F, --decode-through-errors  Continue decoding through stream errors\n");
 	printf("      --cue=[#.#][-[#.#]]      Set the beginning and ending cuepoints to decode\n");
+#if FLAC__HAS_OGG
+	printf("      --decode-chained-stream  Decode all links in a chained Ogg stream, not\n");
+	printf("                               just the first one\n");
+
+#endif
 	printf("\n");
 	printf("Encoding options, defaulting to -5, -A \"tukey(5e-1)\" and one CPU thread:\n");
 	printf("  -V, --verify                       Verify a correct encoding\n");
@@ -1956,6 +1967,7 @@ int decode_file(const char *infilename)
 	decode_options.force_subformat = output_subformat;
 #if FLAC__HAS_OGG
 	decode_options.is_ogg = treat_as_ogg;
+	decode_options.decode_chained_stream = option_values.decode_chained_stream;
 	decode_options.use_first_serial_number = !option_values.has_serial_number;
 	decode_options.serial_number = option_values.serial_number;
 #endif
