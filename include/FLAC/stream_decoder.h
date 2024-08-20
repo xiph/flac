@@ -782,6 +782,29 @@ FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecoder *decoder, long serial_number);
 
+/** Set the "decode chained Ogg stream" flag. If set to \c false, the
+ *  decoder will stop decoding when it encounters the end-of-stream
+ *  of the first link in the chaing. If set to \c true, decoding will
+ *  continue: at the start of each link, FLAC__stream_decoder_get_state
+ *  will return FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
+ *
+ *  Note that seeking is not yet supported when this flag is set to
+ *  true. Also, when this flag is set to true, the serial number set
+ *  with FLAC__stream_decoder_set_ogg_serial_number is ignored.
+ *
+ * \note
+ * This function has no effect with native FLAC decoding.
+ *
+ * \default \c false
+ * \param  decoder          A decoder instance to set.
+ * \param  allow            Whether to allow chained streams.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the decoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_set_decode_chained_ogg_stream(FLAC__StreamDecoder* decoder, FLAC__bool value);
+
 /** Set the "MD5 signature checking" flag.  If \c true, the decoder will
  *  compute the MD5 signature of the unencoded audio data while decoding
  *  and compare it to the signature from the STREAMINFO block, if it
@@ -905,6 +928,17 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
  *    The decoder state as a C string.  Do not modify the contents.
  */
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder);
+
+/** Get the "decode chained Ogg stream" flag as described in
+ *  \code FLAC__stream_decoder_set_decode_chained_ogg_stream \endcode.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    See above.
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_chained_ogg_stream(const FLAC__StreamDecoder* decoder);
 
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
