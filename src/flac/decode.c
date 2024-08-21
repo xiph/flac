@@ -1148,10 +1148,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	/* sanity-check the bits-per-sample */
 	if(decoder_session->bps) {
 		if(bps != decoder_session->bps) {
+			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			if(decoder_session->got_stream_info)
-				flac__utils_printf(stderr, 1, "%s: ERROR, bits-per-sample is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, bps, decoder_session->bps);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR, bits-per-sample is %u in frame starting at sample %" PRIu64 " but %u in STREAMINFO\n", decoder_session->inbasefilename, bps, frame->header.number.sample_number, decoder_session->bps);
 			else
-				flac__utils_printf(stderr, 1, "%s: ERROR, bits-per-sample is %u in this frame but %u in previous frames\n", decoder_session->inbasefilename, bps, decoder_session->bps);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR, bits-per-sample is %u in frame starting at sample %" PRIu64 " but %u in previous frames\n", decoder_session->inbasefilename, bps, frame->header.number.sample_number, decoder_session->bps);
 			if(!decoder_session->continue_through_decode_errors)
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 			else if(decoder_session->replaygain.apply) {
@@ -1165,7 +1166,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		FLAC__ASSERT(!decoder_session->got_stream_info);
 		decoder_session->bps = bps;
 		if(decoder_session->format == FORMAT_RAW && ((decoder_session->bps % 8) != 0  || decoder_session->bps < 4)) {
-			flac__utils_printf(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24/32 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
+			flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR: bits per sample is %u, must be 8/16/24/32 for raw format output\n", decoder_session->inbasefilename, decoder_session->bps);
 			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
 	}
@@ -1173,10 +1174,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	/* sanity-check the #channels */
 	if(decoder_session->channels) {
 		if(channels != decoder_session->channels) {
+			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			if(decoder_session->got_stream_info)
-				flac__utils_printf(stderr, 1, "%s: ERROR, channels is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, channels, decoder_session->channels);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR, channels is %u in frame starting at sample %" PRIu64 " but %u in STREAMINFO\n", decoder_session->inbasefilename, channels, frame->header.number.sample_number, decoder_session->channels);
 			else
-				flac__utils_printf(stderr, 1, "%s: ERROR, channels is %u in this frame but %u in previous frames\n", decoder_session->inbasefilename, channels, decoder_session->channels);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR, channels is %u in frame starting at sample %" PRIu64 " but %u in previous frames\n", decoder_session->inbasefilename, channels, frame->header.number.sample_number, decoder_session->channels);
 			if(!decoder_session->continue_through_decode_errors)
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
@@ -1190,10 +1192,11 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	/* sanity-check the sample rate */
 	if(decoder_session->sample_rate < UINT32_MAX) {
 		if(frame->header.sample_rate != decoder_session->sample_rate) {
+			FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 			if(decoder_session->got_stream_info)
-				flac__utils_printf(stderr, 1, "%s: ERROR, sample rate is %u in frame but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR, sample rate is %u in frame starting at sample %" PRIu64 " but %u in STREAMINFO\n", decoder_session->inbasefilename, frame->header.sample_rate, frame->header.number.sample_number, decoder_session->sample_rate);
 			else
-				flac__utils_printf(stderr, 1, "%s: ERROR, sample rate is %u in this frame but %u in previous frames\n", decoder_session->inbasefilename, frame->header.sample_rate, decoder_session->sample_rate);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR, sample rate is %u in frame starting at sample %" PRIu64 " but %u in previous frames\n", decoder_session->inbasefilename, frame->header.sample_rate, frame->header.number.sample_number, decoder_session->sample_rate);
 			if(!decoder_session->continue_through_decode_errors)
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
@@ -1257,7 +1260,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			if(decoder_session->prev_frameheader.number.sample_number +
 			   decoder_session->prev_frameheader.blocksize !=
 			   frame->header.number.sample_number) {
-				flac__utils_printf(stderr, 1, "%s: WARNING: sample or frame number does not increase correctly, file might not be seekable\n", decoder_session->inbasefilename);
+				flac__utils_printf_clear_stats(stderr, 1, "%s: WARNING: sample or frame number does not increase correctly (%" PRIu64 " samples have been decoded), file might not be seekable\n", decoder_session->inbasefilename, decoder_session->samples_processed);
 				if(decoder_session->treat_warnings_as_errors) {
 					decoder_session->abort_flag = true;
 					return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
@@ -1629,8 +1632,7 @@ void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderError
 	DecoderSession *decoder_session = (DecoderSession*)client_data;
 	(void)decoder;
 	if(!decoder_session->error_callback_suppress_messages) {
-		stats_print_name(1, decoder_session->inbasefilename);
-		flac__utils_printf(stderr, 1, "*** Got error code %d:%s\n", status, FLAC__StreamDecoderErrorStatusString[status]);
+		flac__utils_printf_clear_stats(stderr, 1, "%s: *** Got error code %d:%s after processing %" PRIu64 " samples\n", decoder_session->inbasefilename, status, FLAC__StreamDecoderErrorStatusString[status], decoder_session->samples_processed);
 	}
 	if(!decoder_session->continue_through_decode_errors) {
 		/* if we got a sync error while looking for metadata, either it's not a FLAC file (more likely) or the file is corrupted */

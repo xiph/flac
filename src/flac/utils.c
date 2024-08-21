@@ -230,6 +230,7 @@ size_t strlen_console(const char *text)
 void stats_new_file(void)
 {
 	is_name_printed = false;
+	stats_char_count = 0;
 }
 
 void stats_clear(void)
@@ -273,6 +274,32 @@ void stats_print_info(int level, const char *format, ...)
 		}
 		stats_char_count = flac_fprintf(stderr, "%s", tmp);
 		fflush(stderr);
+	}
+}
+
+void flac__utils_printf_clear_stats(FILE *stream, int level, const char *format, ...)
+{
+	if(flac__utils_verbosity_ >= level) {
+		va_list args;
+
+		FLAC__ASSERT(0 != format);
+
+		if(is_name_printed || stats_char_count > 0) {
+			flac_fprintf(stderr,"\r");
+			stats_char_count = 0;
+			is_name_printed = false;
+		}
+
+		va_start(args, format);
+
+		(void) flac_vfprintf(stream, format, args);
+
+		va_end(args);
+
+#ifdef _MSC_VER
+		if(stream == stderr)
+			fflush(stream); /* for some reason stderr is buffered in at least some if not all MSC libs */
+#endif
 	}
 }
 
