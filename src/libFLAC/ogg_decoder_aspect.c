@@ -163,6 +163,8 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 					*bytes += n;
 					buffer += n;
 					aspect->have_working_packet = false;
+					if(!aspect->decode_chained_stream && aspect->working_packet.e_o_s)
+						aspect->end_of_stream = true;
 				}
 				else {
 					/* only n bytes of the packet will fit in the buffer */
