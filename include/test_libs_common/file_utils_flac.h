@@ -29,8 +29,9 @@
 #include <sys/types.h> /* for off_t */
 #include "share/compat.h"
 
-extern const long file_utils__ogg_serial_number;
+extern long file_utils__ogg_serial_number;
 
 FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_filename, FLAC__off_t *output_filesize, uint32_t length, const FLAC__StreamMetadata *streaminfo, FLAC__StreamMetadata **metadata, uint32_t num_metadata);
+FLAC__bool file_utils__append_file(const char *output_filename,  const char *input_filename);
 
 #endif

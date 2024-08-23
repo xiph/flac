@@ -34,7 +34,7 @@
 #endif
 #define min(a,b) ((a)<(b)?(a):(b))
 
-const long file_utils__ogg_serial_number = 12345;
+long file_utils__ogg_serial_number = 12345;
 
 #ifdef FLAC__VALGRIND_TESTING
 static size_t local__fwrite(const void *ptr, size_t size, size_t nmemb, FILE *stream)
@@ -151,5 +151,24 @@ FLAC__bool file_utils__generate_flacfile(FLAC__bool is_ogg, const char *output_f
 			*output_filesize = filestats.st_size;
 	}
 
+	return true;
+}
+
+FLAC__bool file_utils__append_file(const char *output_filename,  const char *input_filename)
+{
+	FILE *output, *input;
+	int c;
+	if(0 == (output = flac_fopen(output_filename, "ab")))
+		return false;
+	if(0 == (input = flac_fopen(input_filename, "rb")))
+		return false;
+
+	fseek(output, 0, SEEK_END);
+
+	while ((c = fgetc(input)) != EOF) {
+		fputc(c, output);
+	}
+	fclose(input);
+	fclose(output);
 	return true;
 }

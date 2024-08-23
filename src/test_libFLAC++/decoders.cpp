@@ -60,8 +60,9 @@ static ::FLAC__StreamMetadata *expected_metadata_sequence_[9];
 static uint32_t num_expected_;
 static FLAC__off_t flacfilesize_;
 
-static const char *flacfilename(bool is_ogg)
+static const char *flacfilename(bool is_ogg, bool is_chained_ogg)
 {
+	if(is_chained_ogg) return "metadata_chained.oga";
 	return is_ogg? "metadata.oga" : "metadata.flac";
 }
 
@@ -95,9 +96,17 @@ static void free_metadata_blocks_()
 	mutils__free_metadata_blocks(&streaminfo_, &padding_, &seektable_, &application1_, &application2_, &vorbiscomment_, &cuesheet_, &picture_, &unknown_);
 }
 
-static bool generate_file_(FLAC__bool is_ogg)
+static FLAC__bool generate_file_(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 {
-	printf("\n\ngenerating %sFLAC file for decoder tests...\n", is_ogg? "Ogg ":"");
+	printf("\n\ngenerating %sFLAC file for decoder tests...\n", is_chained_ogg? "chained Ogg " : is_ogg? "Ogg " : "");
+
+	if(is_chained_ogg) {
+		/* Create a different file as the first link */
+		expected_metadata_sequence_[0] = &picture_;
+		if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,true), &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, 1))
+			return die_("creating the encoded file");
+		file_utils__ogg_serial_number++;
+	}
 
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &padding_;
@@ -110,8 +119,12 @@ static bool generate_file_(FLAC__bool is_ogg)
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 	/* WATCHOUT: for Ogg FLAC the encoder should move the VORBIS_COMMENT block to the front, right after STREAMINFO */
 
-	if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg), &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
+	if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,false), &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
+
+	if(is_chained_ogg) {
+		file_utils__append_file(flacfilename(is_ogg, true), flacfilename(is_ogg, false));
+	}
 
 	return true;
 }
@@ -123,8 +136,9 @@ public:
 	uint32_t current_metadata_number_;
 	bool ignore_errors_;
 	bool error_occurred_;
+	bool mute_test_;
 
-	DecoderCommon(Layer layer): layer_(layer), current_metadata_number_(0), ignore_errors_(false), error_occurred_(false) { }
+	DecoderCommon(Layer layer): layer_(layer), current_metadata_number_(0), ignore_errors_(false), error_occurred_(false), mute_test_(false) { }
 	virtual ~DecoderCommon(void) { }
 	::FLAC__StreamDecoderWriteStatus common_write_callback_(const ::FLAC__Frame *frame);
 	void common_metadata_callback_(const ::FLAC__StreamMetadata *metadata);
@@ -155,17 +169,19 @@ void DecoderCommon::common_metadata_callback_(const ::FLAC__StreamMetadata *meta
 	printf("%u... ", current_metadata_number_);
 	fflush(stdout);
 
-	if(current_metadata_number_ >= num_expected_) {
-		(void)die_("got more metadata blocks than expected");
-		error_occurred_ = true;
-	}
-	else {
-		if(!::FLAC__metadata_object_is_equal(expected_metadata_sequence_[current_metadata_number_], metadata)) {
-			(void)die_("metadata block mismatch");
+	if(!mute_test_) {
+		if(current_metadata_number_ >= num_expected_) {
+			(void)die_("got more metadata blocks than expected");
 			error_occurred_ = true;
 		}
+		else {
+			if(!::FLAC__metadata_object_is_equal(expected_metadata_sequence_[current_metadata_number_], metadata)) {
+				(void)die_("metadata block mismatch");
+				error_occurred_ = true;
+			}
+		}
+		current_metadata_number_++;
 	}
-	current_metadata_number_++;
 }
 
 void DecoderCommon::common_error_callback_(::FLAC__StreamDecoderErrorStatus status)
@@ -193,7 +209,7 @@ public:
 	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 	void error_callback(::FLAC__StreamDecoderErrorStatus status);
 
-	bool test_respond(bool is_ogg);
+	bool test_respond(bool is_ogg, bool is_chained_ogg);
 private:
 	StreamDecoder(const StreamDecoder&);
 	StreamDecoder&operator=(const StreamDecoder&);
@@ -301,13 +317,20 @@ void StreamDecoder::error_callback(::FLAC__StreamDecoderErrorStatus status)
 	common_error_callback_(status);
 }
 
-bool StreamDecoder::test_respond(bool is_ogg)
+bool StreamDecoder::test_respond(bool is_ogg, bool is_chained_ogg)
 {
 	::FLAC__StreamDecoderInitStatus init_status;
 
 	if(!set_md5_checking(true)) {
 		printf("FAILED at set_md5_checking(), returned false\n");
 		return false;
+	}
+
+	if(is_chained_ogg) {
+		printf("testing set_decode_chained_stream()... ");
+		if(!set_decode_chained_stream(true))
+			return die_s_("returned false", this);
+		printf("OK\n");
 	}
 
 	printf("testing init%s()... ", is_ogg? "_ogg":"");
@@ -321,6 +344,20 @@ bool StreamDecoder::test_respond(bool is_ogg)
 	if(fseeko(file_, 0, SEEK_SET) < 0) {
 		printf("FAILED rewinding input, errno = %d\n", errno);
 		return false;
+	}
+
+	if(is_chained_ogg) {
+		mute_test_ = true;
+		printf("skip first chain link with process_until_end_of_link()... ");
+		if(!process_until_end_of_link())
+			return die_s_("returned false", this);
+		printf("OK\n");
+		mute_test_ = false;
+
+		printf("progress to next chain link with finish_link()... ");
+		if(!finish_link())
+			return die_s_("returned false", this);
+		printf("OK\n");
 	}
 
 	printf("testing process_until_end_of_stream()... ");
@@ -352,7 +389,7 @@ public:
 	void metadata_callback(const ::FLAC__StreamMetadata *metadata);
 	void error_callback(::FLAC__StreamDecoderErrorStatus status);
 
-	bool test_respond(bool is_ogg);
+	bool test_respond(bool is_ogg, bool is_chained_ogg);
 };
 
 ::FLAC__StreamDecoderWriteStatus FileDecoder::write_callback(const ::FLAC__Frame *frame, const FLAC__int32 * const buffer[])
@@ -371,7 +408,7 @@ void FileDecoder::error_callback(::FLAC__StreamDecoderErrorStatus status)
 	common_error_callback_(status);
 }
 
-bool FileDecoder::test_respond(bool is_ogg)
+bool FileDecoder::test_respond(bool is_ogg, bool is_chained_ogg)
 {
 	::FLAC__StreamDecoderInitStatus init_status;
 
@@ -380,11 +417,18 @@ bool FileDecoder::test_respond(bool is_ogg)
 		return false;
 	}
 
+	if(is_chained_ogg) {
+		printf("testing set_decode_chained_stream()... ");
+		if(!set_decode_chained_stream(true))
+			return die_s_("returned false", this);
+		printf("OK\n");
+	}
+
 	switch(layer_) {
 		case LAYER_FILE:
 			{
 				printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
-				FILE *file = ::flac_fopen(flacfilename(is_ogg), "rb");
+				FILE *file = ::flac_fopen(flacfilename(is_ogg, is_chained_ogg), "rb");
 				if(0 == file) {
 					printf("ERROR (%s)\n", strerror(errno));
 					return false;
@@ -397,7 +441,7 @@ bool FileDecoder::test_respond(bool is_ogg)
 			break;
 		case LAYER_FILENAME:
 			printf("testing init%s()... ", is_ogg? "_ogg":"");
-			init_status = is_ogg? init_ogg(flacfilename(is_ogg)) : init(flacfilename(is_ogg));
+			init_status = is_ogg? init_ogg(flacfilename(is_ogg, is_chained_ogg)) : init(flacfilename(is_ogg, is_chained_ogg));
 			break;
 		default:
 			die_("internal error 001");
@@ -408,6 +452,20 @@ bool FileDecoder::test_respond(bool is_ogg)
 	printf("OK\n");
 
 	current_metadata_number_ = 0;
+
+	if(is_chained_ogg) {
+		mute_test_ = true;
+		printf("skip first chain link with process_until_end_of_link()... ");
+		if(!process_until_end_of_link())
+			return die_s_("returned false", this);
+		printf("OK\n");
+		mute_test_ = false;
+
+		printf("progress to next chain link with finish_link()... ");
+		if(!finish_link())
+			return die_s_("returned false", this);
+		printf("OK\n");
+	}
 
 	printf("testing process_until_end_of_stream()... ");
 	if(!process_until_end_of_stream()) {
@@ -437,13 +495,13 @@ static FLAC::Decoder::Stream *new_by_layer(Layer layer)
 		return new FileDecoder(layer);
 }
 
-static bool test_stream_decoder(Layer layer, bool is_ogg)
+static bool test_stream_decoder(Layer layer, bool is_ogg, bool is_chained_ogg)
 {
 	FLAC::Decoder::Stream *decoder;
 	::FLAC__StreamDecoderInitStatus init_status;
 	bool expect;
 
-	printf("\n+++ libFLAC++ unit test: FLAC::Decoder::%s (layer: %s, format: %s)\n\n", layer<LAYER_FILE? "Stream":"File", LayerString[layer], is_ogg? "Ogg FLAC" : "FLAC");
+	printf("\n+++ libFLAC++ unit test: FLAC::Decoder::%s (layer: %s, format: %s)\n\n", layer<LAYER_FILE? "Stream":"File", LayerString[layer], is_chained_ogg? "chained Ogg FLAC" : is_ogg? "Ogg FLAC" : "FLAC");
 
 	//
 	// test new -> delete
@@ -501,8 +559,8 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 			break;
 		case LAYER_FILENAME:
 			init_status = is_ogg?
-				dynamic_cast<FLAC::Decoder::File*>(decoder)->init_ogg(flacfilename(is_ogg)) :
-				dynamic_cast<FLAC::Decoder::File*>(decoder)->init(flacfilename(is_ogg));
+				dynamic_cast<FLAC::Decoder::File*>(decoder)->init_ogg(flacfilename(is_ogg, is_chained_ogg)) :
+				dynamic_cast<FLAC::Decoder::File*>(decoder)->init(flacfilename(is_ogg, is_chained_ogg));
 			break;
 		default:
 			die_("internal error 006");
@@ -551,11 +609,18 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		return false;
 	}
 
+	if(is_chained_ogg) {
+		printf("testing set_decode_chained_stream()... ");
+		if(!decoder->set_decode_chained_stream(true))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+	}
+
 	switch(layer) {
 		case LAYER_STREAM:
 		case LAYER_SEEKABLE_STREAM:
 			printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
-			dynamic_cast<StreamDecoder*>(decoder)->file_ = ::flac_fopen(flacfilename(is_ogg), "rb");
+			dynamic_cast<StreamDecoder*>(decoder)->file_ = ::flac_fopen(flacfilename(is_ogg, is_chained_ogg), "rb");
 			if(0 == dynamic_cast<StreamDecoder*>(decoder)->file_) {
 				printf("ERROR (%s)\n", strerror(errno));
 				return false;
@@ -568,7 +633,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		case LAYER_FILE:
 			{
 				printf("opening FLAC file... ");
-				FILE *file = ::flac_fopen(flacfilename(is_ogg), "rb");
+				FILE *file = ::flac_fopen(flacfilename(is_ogg, is_chained_ogg), "rb");
 				if(0 == file) {
 					printf("ERROR (%s)\n", strerror(errno));
 					return false;
@@ -584,8 +649,8 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		case LAYER_FILENAME:
 			printf("testing init%s()... ", is_ogg? "_ogg":"");
 			init_status = is_ogg?
-				dynamic_cast<FLAC::Decoder::File*>(decoder)->init_ogg(flacfilename(is_ogg)) :
-				dynamic_cast<FLAC::Decoder::File*>(decoder)->init(flacfilename(is_ogg));
+				dynamic_cast<FLAC::Decoder::File*>(decoder)->init_ogg(flacfilename(is_ogg, is_chained_ogg)) :
+				dynamic_cast<FLAC::Decoder::File*>(decoder)->init(flacfilename(is_ogg, is_chained_ogg));
 			break;
 		default:
 			die_("internal error 009");
@@ -595,13 +660,31 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		return die_s_(0, decoder);
 	printf("OK\n");
 
-	printf("testing get_state()... ");
-	FLAC::Decoder::Stream::State state = decoder->get_state();
-	printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
-
 	dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
 	dynamic_cast<DecoderCommon*>(decoder)->ignore_errors_ = false;
 	dynamic_cast<DecoderCommon*>(decoder)->error_occurred_ = false;
+
+	if(is_chained_ogg) {
+		dynamic_cast<DecoderCommon*>(decoder)->mute_test_ = true;
+		printf("skip first chain link with process_until_end_of_link()... ");
+		if(!decoder->process_until_end_of_link())
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+		dynamic_cast<DecoderCommon*>(decoder)->mute_test_ = false;
+
+		printf("testing get_state()... ");
+		FLAC::Decoder::Stream::State state = decoder->get_state();
+		printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
+
+		printf("progress to next chain link with finish_link()... ");
+		if(!decoder->finish_link())
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+	}
+
+	printf("testing get_state()... ");
+	FLAC::Decoder::Stream::State state = decoder->get_state();
+	printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 
 	printf("testing get_md5_checking()... ");
 	if(!decoder->get_md5_checking()) {
@@ -719,6 +802,20 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 		dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
 
+		if(is_chained_ogg) {
+			dynamic_cast<DecoderCommon*>(decoder)->mute_test_ = true;
+			printf("skip first chain link with process_until_end_of_link()... ");
+			if(!decoder->process_until_end_of_link())
+				return die_s_("returned false", decoder);
+			printf("OK\n");
+			dynamic_cast<DecoderCommon*>(decoder)->mute_test_ = false;
+
+			printf("progress to next chain link with finish_link()... ");
+			if(!decoder->finish_link())
+				return die_s_("returned false", decoder);
+			printf("OK\n");
+		}
+
 		printf("testing process_until_end_of_stream()... ");
 		if(!decoder->process_until_end_of_stream())
 			return die_s_("returned false", decoder);
@@ -767,7 +864,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
 	}
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -783,7 +880,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 
 	num_expected_ = 0;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -815,7 +912,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	expected_metadata_sequence_[num_expected_++] = &picture_;
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -855,7 +952,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
 	}
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -897,7 +994,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
 	}
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -944,7 +1041,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
 	}
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -968,7 +1065,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &vorbiscomment_;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -993,7 +1090,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -1017,7 +1114,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -1049,7 +1146,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	expected_metadata_sequence_[num_expected_++] = &application1_;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -1098,7 +1195,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 		expected_metadata_sequence_[num_expected_++] = &unknown_;
 	}
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	/*
@@ -1129,7 +1226,7 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 	num_expected_ = 0;
 	expected_metadata_sequence_[num_expected_++] = &application2_;
 
-	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg)))
+	if(!(layer < LAYER_FILE? dynamic_cast<StreamDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg) : dynamic_cast<FileDecoder*>(decoder)->test_respond(is_ogg, is_chained_ogg)))
 		return false;
 
 	if(layer < LAYER_FILE) /* for LAYER_FILE, FLAC__stream_decoder_finish() closes the file */
@@ -1147,31 +1244,34 @@ static bool test_stream_decoder(Layer layer, bool is_ogg)
 bool test_decoders()
 {
 	FLAC__bool is_ogg = false;
+	FLAC__bool is_chained_ogg = false;
 
 	while(1) {
 		init_metadata_blocks_();
 
-		if(!generate_file_(is_ogg))
+		if(!generate_file_(is_ogg, is_chained_ogg))
 			return false;
 
-		if(!test_stream_decoder(LAYER_STREAM, is_ogg))
+		if(!test_stream_decoder(LAYER_STREAM, is_ogg, is_chained_ogg))
 			return false;
 
-		if(!test_stream_decoder(LAYER_SEEKABLE_STREAM, is_ogg))
+		if(!test_stream_decoder(LAYER_SEEKABLE_STREAM, is_ogg, is_chained_ogg))
 			return false;
 
-		if(!test_stream_decoder(LAYER_FILE, is_ogg))
+		if(!test_stream_decoder(LAYER_FILE, is_ogg, is_chained_ogg))
 			return false;
 
-		if(!test_stream_decoder(LAYER_FILENAME, is_ogg))
+		if(!test_stream_decoder(LAYER_FILENAME, is_ogg, is_chained_ogg))
 			return false;
 
-		(void) grabbag__file_remove_file(flacfilename(is_ogg));
+		(void) grabbag__file_remove_file(flacfilename(is_ogg, is_chained_ogg));
 
 		free_metadata_blocks_();
 
-		if(!FLAC_API_SUPPORTS_OGG_FLAC || is_ogg)
+		if(!FLAC_API_SUPPORTS_OGG_FLAC || is_chained_ogg)
 			break;
+		if(is_ogg)
+			is_chained_ogg = true;
 		is_ogg = true;
 	}
 
