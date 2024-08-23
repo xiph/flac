@@ -206,7 +206,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size) {
             use_ogg = false;
         }
 
-        decoder.set_decode_chained_ogg_stream(true);
+        decoder.set_decode_chained_stream(true);
 
         if ( ds.Get<bool>() ) {
 #ifdef FUZZER_DEBUG

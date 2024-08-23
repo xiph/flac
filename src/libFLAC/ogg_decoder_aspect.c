@@ -59,11 +59,11 @@ FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect)
 	aspect->version_major = ~(0u);
 	aspect->version_minor = ~(0u);
 
-	aspect->need_serial_number = aspect->use_first_serial_number;
+	aspect->need_serial_number = aspect->use_first_serial_number || aspect->decode_chained_stream;
 
 	aspect->end_of_stream = false;
 	aspect->have_working_page = false;
-	aspect->page_eos = false;
+	aspect->end_of_link = false;
 
 	return true;
 }
@@ -92,22 +92,20 @@ void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect)
 	(void)ogg_sync_reset(&aspect->sync_state);
 	aspect->end_of_stream = false;
 	aspect->have_working_page = false;
-	aspect->page_eos = false;
+	aspect->end_of_link = false;
 }
 
 void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
 {
 	FLAC__ogg_decoder_aspect_flush(aspect);
 
-	if(aspect->use_first_serial_number)
+	if(aspect->use_first_serial_number || aspect->decode_chained_stream)
 		aspect->need_serial_number = true;
 }
 
-FLAC__bool FLAC__ogg_decoder_aspect_page_eos(FLAC__OggDecoderAspect* aspect, bool reset)
+void FLAC__ogg_decoder_aspect_next_link(FLAC__OggDecoderAspect* aspect)
 {
-	bool page_eos = aspect->page_eos;
-	if (reset) aspect->page_eos = false;
-	return page_eos;
+	aspect->end_of_link = false;
 }
 
 void FLAC__ogg_decoder_aspect_set_decode_chained_stream(FLAC__OggDecoderAspect* aspect, FLAC__bool value)
@@ -153,7 +151,14 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 	 */
 	*bytes = 0;
 	while (*bytes < bytes_requested && !aspect->end_of_stream) {
-		if (aspect->have_working_page) {
+		if (aspect->end_of_link && aspect->have_working_page) {
+			/* we've now consumed all packets of this link and have checked that a new page follows it */
+			if(*bytes > 0)
+				return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
+			else
+				return FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_LINK;
+		}
+		else if (aspect->have_working_page) {
 			if (aspect->have_working_packet) {
 				size_t n = bytes_requested - *bytes;
 				if ((size_t)aspect->working_packet.bytes <= n) {
@@ -163,8 +168,15 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 					*bytes += n;
 					buffer += n;
 					aspect->have_working_packet = false;
-					if(!aspect->decode_chained_stream && aspect->working_packet.e_o_s)
-						aspect->end_of_stream = true;
+					if(aspect->working_packet.e_o_s) {
+						if(!aspect->decode_chained_stream)
+							aspect->end_of_stream = true;
+						else {
+							aspect->end_of_link = true;
+							aspect->need_serial_number = true;
+							aspect->have_working_page = false; /* e-o-s packet ends page */
+						}
+					}
 				}
 				else {
 					/* only n bytes of the packet will fit in the buffer */
@@ -213,12 +225,6 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 				}
 			}
 		}
-		else if (aspect->page_eos) {
-			/* we've now consumed all packets of the last page */
-			aspect->need_serial_number = true;
-			return *bytes ? FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK :
-							FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
-		}
 		else {
 			/* try and get another page */
 			const int ret = ogg_sync_pageout(&aspect->sync_state, &aspect->working_page);
@@ -232,9 +238,6 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 				if(ogg_stream_pagein(&aspect->stream_state, &aspect->working_page) == 0) {
 					aspect->have_working_page = true;
 					aspect->have_working_packet = false;
-				}
-				if(aspect->decode_chained_stream && ogg_page_eos(&aspect->working_page) != 0) {
-					aspect->page_eos = true;
 				}
 				/* else do nothing, could be a page from another stream */
 			}
