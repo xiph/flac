@@ -227,7 +227,7 @@ size_t strlen_console(const char *text)
 #endif
 }
 
-void stats_new_file(void)
+void stats_new_line(void)
 {
 	is_name_printed = false;
 	stats_char_count = 0;
@@ -241,6 +241,11 @@ void stats_clear(void)
 
 void stats_print_name(int level, const char *name)
 {
+	stats_print_name_and_stream_number(level, name, -1);
+}
+
+void stats_print_name_and_stream_number(int level, const char *name, int stream_number)
+{
 	int len;
 
 	if (flac__utils_verbosity_ >= level) {
@@ -249,8 +254,13 @@ void stats_print_name(int level, const char *name)
 
 		console_width = get_console_width();
 		len = strlen_console(name)+2;
+		if(stream_number >= 0)
+			len += 10 + floor(log10(stream_number));
 		console_chars_left = console_width  - (len % console_width);
-		flac_fprintf(stderr, "%s: ", name);
+		if(stream_number < 0)
+			flac_fprintf(stderr, "%s: ", name);
+		else
+			flac_fprintf(stderr, "%s, stream %d: ", name, stream_number);
 		is_name_printed = true;
 	}
 }

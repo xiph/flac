@@ -375,7 +375,9 @@ int do_it(void)
 		 */
 		if(!option_values.mode_decode) {
 			if(0 != option_values.cue_specification)
-				return usage_error("ERROR: --cue is not allowed in test mode\n");
+				return usage_error("ERROR: --cue must be used together with -d\n");
+			if(0 != option_values.decode_chained_stream)
+				return usage_error("ERROR: --decode-chained-streams must be used together with -d, -t or -a\n");
 		}
 		else {
 			if(option_values.test_only) {
@@ -475,6 +477,18 @@ int do_it(void)
 				return usage_error("ERROR: --keep-foreign-metadata is not allowed in analyis mode\n");
 			flac__utils_printf(stderr, 1, "NOTE: --keep-foreign-metadata is a new feature; make sure to test the output file before deleting the original.\n");
 		}
+		if(0 != option_values.decode_chained_stream) {
+			if(0 != option_values.skip_specification)
+				return usage_error("ERROR: --skip is not supported when decoding chained streams\n");
+			if(0 != option_values.until_specification)
+				return usage_error("ERROR: --until is not supported when decoding chained streams\n");
+			if(0 != option_values.cue_specification)
+				return usage_error("ERROR: --cue is not supported when decoding chained streams\n");
+			if(option_values.continue_through_decode_errors)
+				return usage_error("ERROR: decoding through errors is not supported when decoding chained streams\n");
+
+		}
+
 	}
 
 	flac__utils_printf(stderr, 2, "\n");

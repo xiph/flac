@@ -1119,7 +1119,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			memset(encoder_session.md5sum_input,0,16);
 		}
 
-		stats_new_file();
+		stats_new_line();
 		/* init the encoder */
 		if(!EncoderSession_init_encoder(&encoder_session, options))
 			return EncoderSession_finish_error(&encoder_session);

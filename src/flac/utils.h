@@ -60,9 +60,10 @@ void flac__utils_printf(FILE *stream, int level, const char *format, ...);
 
 int get_console_width(void);
 size_t strlen_console(const char *text);
-void stats_new_file(void);
+void stats_new_line(void);
 void stats_clear(void);
 void stats_print_name(int level, const char *name);
+void stats_print_name_and_stream_number(int level, const char *name, int stream_number);
 void stats_print_info(int level, const char *format, ...);
 void flac__utils_printf_clear_stats(FILE *stream, int level, const char *format, ...);
 
