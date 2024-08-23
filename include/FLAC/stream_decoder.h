@@ -235,10 +235,18 @@ typedef enum {
 	 * state and can no longer be used.
 	 */
 
-	FLAC__STREAM_DECODER_UNINITIALIZED
+	FLAC__STREAM_DECODER_UNINITIALIZED,
 	/**< The decoder is in the uninitialized state; one of the
 	 * FLAC__stream_decoder_init_*() functions must be called before samples
 	 * can be processed.
+	 */
+
+	FLAC__STREAM_DECODER_END_OF_LINK
+	/**< The decoder has reached the end of an Ogg FLAC chain link and a new
+	 * link follows; FLAC__stream_decoder_finish_link() has to be called to
+	 * progress. This state is only returned when decoding of chained
+	 * streams is enabled with
+	 * FLAC__stream_decoder_set_decode_chained_stream()
 	 */
 
 } FLAC__StreamDecoderState;
@@ -307,8 +315,13 @@ typedef enum {
 	 * of \c 0.
 	 */
 
-	FLAC__STREAM_DECODER_READ_STATUS_ABORT
+	FLAC__STREAM_DECODER_READ_STATUS_ABORT,
 	/**< An unrecoverable error occurred.  The decoder will return from the process call. */
+
+	FLAC__STREAM_DECODER_READ_STATUS_END_OF_LINK
+	/**< The read was attempted while at the end of the link.  The semantics
+	 * are the same as for FLAC__STREAM_DECODER_READ_STATUS_END_OF_STREAM.
+	 */
 
 } FLAC__StreamDecoderReadStatus;
 
@@ -782,15 +795,21 @@ FLAC_API void FLAC__stream_decoder_delete(FLAC__StreamDecoder *decoder);
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecoder *decoder, long serial_number);
 
-/** Set the "decode chained Ogg stream" flag. If set to \c false, the
+/** Set the "decode chained stream" flag. If set to \c false, the
  *  decoder will stop decoding when it encounters the end-of-stream
- *  of the first link in the chaing. If set to \c true, decoding will
+ *  of the first link in the chain. If set to \c true, decoding will
  *  continue: at the start of each link, FLAC__stream_decoder_get_state
  *  will return FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
  *
+ *  This function was made to decode chained Ogg streams, but it should
+ *  be possible to chain regular FLAC files through the read callback
+ *  by using FLAC__STREAM_DECODER_READ_STATUS_END_OF_LINK
+ *  appropriately.
+ *
  *  Note that seeking is not yet supported when this flag is set to
  *  true. Also, when this flag is set to true, the serial number set
- *  with FLAC__stream_decoder_set_ogg_serial_number is ignored.
+ *  with FLAC__stream_decoder_set_ogg_serial_number is ignored when
+ *  decoding chained ogg streams.
  *
  * \note
  * This function has no effect with native FLAC decoding.
@@ -803,7 +822,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecod
  * \retval FLAC__bool
  *    \c false if the decoder is already initialized, else \c true.
  */
-FLAC_API FLAC__bool FLAC__stream_decoder_set_decode_chained_ogg_stream(FLAC__StreamDecoder* decoder, FLAC__bool value);
+FLAC_API FLAC__bool FLAC__stream_decoder_set_decode_chained_stream(FLAC__StreamDecoder* decoder, FLAC__bool value);
 
 /** Set the "MD5 signature checking" flag.  If \c true, the decoder will
  *  compute the MD5 signature of the unencoded audio data while decoding
@@ -929,8 +948,8 @@ FLAC_API FLAC__StreamDecoderState FLAC__stream_decoder_get_state(const FLAC__Str
  */
 FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__StreamDecoder *decoder);
 
-/** Get the "decode chained Ogg stream" flag as described in
- *  \code FLAC__stream_decoder_set_decode_chained_ogg_stream \endcode.
+/** Get the "decode chained stream" flag as described in
+ *  \code FLAC__stream_decoder_set_decode_chained_stream \endcode.
  *
  * \param  decoder  A decoder instance to query.
  * \assert
@@ -938,7 +957,7 @@ FLAC_API const char *FLAC__stream_decoder_get_resolved_state_string(const FLAC__
  * \retval FLAC__bool
  *    See above.
  */
-FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_chained_ogg_stream(const FLAC__StreamDecoder* decoder);
+FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_chained_stream(const FLAC__StreamDecoder* decoder);
 
 /** Get the "MD5 signature checking" flag.
  *  This is the value of the setting, not whether or not the decoder is
@@ -1428,6 +1447,23 @@ FLAC_API FLAC__StreamDecoderInitStatus FLAC__stream_decoder_init_ogg_file(
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder);
 
+/** Finish the decoding process of the current link.
+ *  Checks MD5 for current link and start processing of the next link. This
+ *  function should only be used when the decoder state is
+ *  FLAC__STREAM_DECODER_END_OF_LINK. After calling this function, the state
+ *  is set to FLAC__STREAM_DECODER_SEARCH_FOR_METADATA.
+ *
+ * \param  decoder  An uninitialized decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if MD5 checking is on AND a STREAMINFO block was available
+ *    AND the MD5 signature in the STREAMINFO block was non-zero AND the
+ *    signature does not match the one computed by the decoder; else
+ *    \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_finish_link(FLAC__StreamDecoder *decoder);
+
 /** Flush the stream input.
  *  The decoder's input buffer will be cleared and the state set to
  *  \c FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC.  This will also turn
@@ -1528,6 +1564,31 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_single(FLAC__StreamDecoder *dec
  *    FLAC__stream_decoder_get_state().
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_metadata(FLAC__StreamDecoder *decoder);
+
+/** Decode until the end of the Ogg chain link.
+ *  This version instructs the decoder to decode from the current
+ *  position and continue until the end of link or until the
+ *  callbacks return a fatal error. This function should not be
+ *  used without enabling decoding of chained streams with
+ *  FLAC__stream_decoder_set_decode_chained_stream()
+ *
+ *  To start processing the next link after calling this function,
+ *  call FLAC__stream_decoder_finish_link()
+ *
+ *  As the decoder needs more input it will call the read callback.
+ *  As each metadata block and frame is decoded, the metadata or write
+ *  callback will be called with the decoded metadata or frame.
+ *
+ * \param  decoder  An initialized decoder instance.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if any fatal read, write, or memory allocation error
+ *    occurred (meaning decoding must stop), else \c true; for more
+ *    information about the decoder, check the decoder state with
+ *    FLAC__stream_decoder_get_state().
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_link(FLAC__StreamDecoder *decoder);
 
 /** Decode until the end of the stream.
  *  This version instructs the decoder to decode from the current position

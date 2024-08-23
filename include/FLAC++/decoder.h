@@ -123,7 +123,7 @@ namespace FLAC {
 			//@}
 
 			virtual bool set_ogg_serial_number(long value);                        ///< See FLAC__stream_decoder_set_ogg_serial_number()
-			virtual bool set_decode_chained_ogg_stream(bool value);                ///< See FLAC__stream_decoder_set_decode_chained_ogg_stream()
+			virtual bool set_decode_chained_stream(bool value);                    ///< See FLAC__stream_decoder_set_decode_chained_stream()
 			virtual bool set_md5_checking(bool value);                             ///< See FLAC__stream_decoder_set_md5_checking()
 			virtual bool set_metadata_respond(::FLAC__MetadataType type);          ///< See FLAC__stream_decoder_set_metadata_respond()
 			virtual bool set_metadata_respond_application(const FLAC__byte id[4]); ///< See FLAC__stream_decoder_set_metadata_respond_application()
@@ -134,7 +134,7 @@ namespace FLAC {
 
 			/* get_state() is not virtual since we want subclasses to be able to return their own state */
 			State get_state() const;                                          ///< See FLAC__stream_decoder_get_state()
-			virtual bool get_decode_chained_ogg_stream() const;               ///< See FLAC__stream_decoder_get_decode_chained_ogg_stream()
+			virtual bool get_decode_chained_stream() const;                   ///< See FLAC__stream_decoder_get_decode_chained_stream()
 			virtual bool get_md5_checking() const;                            ///< See FLAC__stream_decoder_get_md5_checking()
 			virtual FLAC__uint64 get_total_samples() const;                   ///< See FLAC__stream_decoder_get_total_samples()
 			virtual uint32_t get_channels() const;                            ///< See FLAC__stream_decoder_get_channels()
@@ -148,12 +148,14 @@ namespace FLAC {
 			virtual ::FLAC__StreamDecoderInitStatus init_ogg();  ///< Seek FLAC__stream_decoder_init_ogg_stream()
 
 			virtual bool finish(); ///< See FLAC__stream_decoder_finish()
+			virtual bool finish_link(); ///< See FLAC__stream_decoder_finish_link()
 
 			virtual bool flush(); ///< See FLAC__stream_decoder_flush()
 			virtual bool reset(); ///< See FLAC__stream_decoder_reset()
 
 			virtual bool process_single();                ///< See FLAC__stream_decoder_process_single()
 			virtual bool process_until_end_of_metadata(); ///< See FLAC__stream_decoder_process_until_end_of_metadata()
+			virtual bool process_until_end_of_link();   ///< See FLAC__stream_decoder_process_until_end_of_link()
 			virtual bool process_until_end_of_stream();   ///< See FLAC__stream_decoder_process_until_end_of_stream()
 			virtual bool skip_single_frame();             ///< See FLAC__stream_decoder_skip_single_frame()
 
