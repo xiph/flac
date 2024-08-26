@@ -1941,12 +1941,18 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 		if(e->seek_table_template->data.seek_table.num_points > 0) {
 			e->seek_table_template->is_last = false; /* the encoder will set this for us */
-			if(!static_metadata_append(&static_metadata, e->seek_table_template, /*needs_delete=*/false))
+			if(!static_metadata_append(&static_metadata, e->seek_table_template, /*needs_delete=*/false)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for SEEKTABLE block\n", e->inbasefilename);
+				static_metadata_clear(&static_metadata);
 				return false;
+				}
 		}
 		if(0 != static_metadata.cuesheet)
-			if(!static_metadata_append(&static_metadata, static_metadata.cuesheet, /*needs_delete=*/false))
+			if(!static_metadata_append(&static_metadata, static_metadata.cuesheet, /*needs_delete=*/false)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for CUESHEET block\n", e->inbasefilename);
+				static_metadata_clear(&static_metadata);
 				return false;
+			}
 		if(e->info.channel_mask) {
 			options.vorbis_comment_with_channel_mask_tag = FLAC__metadata_object_clone(options.vorbis_comment);
 			if(!flac__utils_set_channel_mask_tag(options.vorbis_comment_with_channel_mask_tag, e->info.channel_mask)) {
@@ -1954,15 +1960,24 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				static_metadata_clear(&static_metadata);
 				return false;
 			}
-			if(!static_metadata_append(&static_metadata, options.vorbis_comment_with_channel_mask_tag, /*needs_delete=*/true))
+			if(!static_metadata_append(&static_metadata, options.vorbis_comment_with_channel_mask_tag, /*needs_delete=*/true)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for VORBIS_COMMENT block\n", e->inbasefilename);
+				static_metadata_clear(&static_metadata);
 				return false;
+			}
 		}
 		else
-			if(!static_metadata_append(&static_metadata, options.vorbis_comment, /*needs_delete=*/false))
+			if(!static_metadata_append(&static_metadata, options.vorbis_comment, /*needs_delete=*/false)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for VORBIS_COMMENT block\n", e->inbasefilename);
+				static_metadata_clear(&static_metadata);
 				return false;
+			}
 		for(i = 0; i < options.num_pictures; i++)
-			if(!static_metadata_append(&static_metadata, options.pictures[i], /*needs_delete=*/false))
+			if(!static_metadata_append(&static_metadata, options.pictures[i], /*needs_delete=*/false)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PICTURE block\n", e->inbasefilename);
+				static_metadata_clear(&static_metadata);
 				return false;
+			}
 		if(foreign_metadata) {
 			for(i = 0; i < foreign_metadata->num_blocks; i++) {
 				FLAC__StreamMetadata *p = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
@@ -1971,8 +1986,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
-				if(!static_metadata_append(&static_metadata, p, /*needs_delete=*/true))
+				if(!static_metadata_append(&static_metadata, p, /*needs_delete=*/true)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for foreign metadata block\n", e->inbasefilename);
+					static_metadata_clear(&static_metadata);
 					return false;
+				}
 				static_metadata.metadata[static_metadata.num_metadata-1]->length = FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8 + foreign_metadata->blocks[i].size;
 			}
 		}
@@ -1984,8 +2002,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			else
 				padding.length = (uint32_t)(options.padding>0? options.padding : (e->total_samples_to_encode / sample_rate < 20*60? FLAC_ENCODE__DEFAULT_PADDING : FLAC_ENCODE__DEFAULT_PADDING*8)) + (e->replay_gain ? GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED : 0);
 			padding.length = min(padding.length, (1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1);
-			if(!static_metadata_append(&static_metadata, &padding, /*needs_delete=*/false))
+			if(!static_metadata_append(&static_metadata, &padding, /*needs_delete=*/false)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PADDING block\n", e->inbasefilename);
+				static_metadata_clear(&static_metadata);
 				return false;
+			}
 		}
 		metadata = static_metadata.metadata;
 		num_metadata = static_metadata.num_metadata;
