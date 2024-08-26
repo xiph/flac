@@ -665,12 +665,17 @@ static bool test_stream_decoder(Layer layer, bool is_ogg, bool is_chained_ogg)
 	dynamic_cast<DecoderCommon*>(decoder)->error_occurred_ = false;
 
 	if(is_chained_ogg) {
-		dynamic_cast<DecoderCommon*>(decoder)->mute_test_ = true;
 		printf("skip first chain link with process_until_end_of_link()... ");
 		if(!decoder->process_until_end_of_link())
 			return die_s_("returned false", decoder);
 		printf("OK\n");
-		dynamic_cast<DecoderCommon*>(decoder)->mute_test_ = false;
+
+                printf("checking whether metadata was returned by previous call... ");
+                if(dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ != 1) {
+                        return die_s_("no metadata blocks returned", decoder);
+                }
+                printf("OK\n");
+		dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
 
 		printf("testing get_state()... ");
 		FLAC::Decoder::Stream::State state = decoder->get_state();
@@ -722,11 +727,41 @@ static bool test_stream_decoder(Layer layer, bool is_ogg, bool is_chained_ogg)
 		dynamic_cast<DecoderCommon*>(decoder)->ignore_errors_ = false;
 	}
 
+	if(is_chained_ogg) {
+		dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
+	}
+
 	expect = (layer != LAYER_STREAM);
 	printf("testing seek_absolute()... ");
 	if(decoder->seek_absolute(0) != expect)
 		return die_s_(expect? "returned false" : "returned true", decoder);
 	printf("OK\n");
+
+        if(is_chained_ogg) {
+		if(layer != LAYER_STREAM) {
+			printf("checking whether metadata was returned by previous call... ");
+				if(dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ != 1) {
+				return die_s_("no metadata blocks returned", decoder);
+			}
+			printf("OK\n");
+			dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
+		}
+
+                printf("testing seek_absolute(), seeking to second link... ");
+                if(decoder->seek_absolute(512 * 1024) != expect)
+                        return die_s_(expect? "returned false" : "returned true", decoder);
+                printf("OK\n");
+
+		if(layer != LAYER_STREAM) {
+			printf("checking whether metadata was returned by previous call... ");
+				if(dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ != 1) {
+				return die_s_("no metadata blocks returned", decoder);
+			}
+			printf("OK\n");
+			dynamic_cast<DecoderCommon*>(decoder)->current_metadata_number_ = 0;
+		}
+        }
+
 
 	printf("testing process_until_end_of_stream()... ");
 	if(!decoder->process_until_end_of_stream())

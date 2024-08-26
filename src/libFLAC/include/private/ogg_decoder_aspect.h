@@ -37,6 +37,22 @@
 
 #include "FLAC/ordinals.h"
 #include "FLAC/stream_decoder.h" /* for FLAC__StreamDecoderReadStatus */
+#include "share/compat.h"
+
+typedef struct FLAC__OggDecoderAspect_LinkDetails {
+	long serial_number;
+	FLAC__off_t size;
+	uint64_t samples;
+} FLAC__OggDecoderAspect_LinkDetails;
+
+typedef struct FLAC__OggDecoderAspect_TargetLink {
+	long serial_number;
+	FLAC__off_t start_byte;
+	FLAC__off_t end_byte;
+	uint64_t samples_in_preceding_links;
+	uint64_t samples_this_link;
+	uint32_t linknumber;
+} FLAC__OggDecoderAspect_TargetLink;
 
 typedef struct FLAC__OggDecoderAspect {
 	/* these are storage for values that can be set through the API */
@@ -55,6 +71,12 @@ typedef struct FLAC__OggDecoderAspect {
 	ogg_page working_page;
 	FLAC__bool have_working_packet; /* only if true will the following vars be valid */
 	ogg_packet working_packet; /* as we work through the packet we will move working_packet.packet forward and working_packet.bytes down */
+	FLAC__OggDecoderAspect_LinkDetails *linkdetails;
+	FLAC__OggDecoderAspect_TargetLink target_link; /* to pass data to the seek routine */
+	uint32_t number_of_links_detected;
+	uint32_t number_of_links_indexed;
+	uint32_t current_linknumber;
+	FLAC__bool is_seeking;
 } FLAC__OggDecoderAspect;
 
 void FLAC__ogg_decoder_aspect_set_serial_number(FLAC__OggDecoderAspect *aspect, long value);
@@ -64,8 +86,10 @@ void FLAC__ogg_decoder_aspect_finish(FLAC__OggDecoderAspect *aspect);
 void FLAC__ogg_decoder_aspect_flush(FLAC__OggDecoderAspect *aspect);
 void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect* aspect);
 void FLAC__ogg_decoder_aspect_next_link(FLAC__OggDecoderAspect* aspect);
+FLAC__OggDecoderAspect_TargetLink * FLAC__ogg_decoder_aspect_get_target_link(FLAC__OggDecoderAspect* aspect, FLAC__uint64 target_sample);
 void FLAC__ogg_decoder_aspect_set_decode_chained_stream(FLAC__OggDecoderAspect* aspect, FLAC__bool value);
 FLAC__bool FLAC__ogg_decoder_aspect_get_decode_chained_stream(FLAC__OggDecoderAspect* aspect);
+void FLAC__ogg_decoder_aspect_set_seek_parameters(FLAC__OggDecoderAspect *aspect, FLAC__OggDecoderAspect_TargetLink *target_link);
 
 typedef enum {
 	FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK = 0,

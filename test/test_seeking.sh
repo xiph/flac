@@ -136,6 +136,20 @@ if [ $has_ogg = "yes" ] ; then
 		die "ERROR: during test_seeking"
 	fi
 
+	echo "generating chained Ogg FLAC files for seeking:"
+	# need to generate a second set with a different serial number
+	tail -c 750000 noise.raw > noise-secondhalf.raw
+	run_flac --verify --force --silent --force-raw-format --endian=big --sign=signed --sample-rate=44100 --bps=16 --channels=2 --blocksize=576 --output-name=small2.oga --ogg noise-secondhalf.raw || die "ERROR generating Ogg FLAC file"
+
+	cat small.oga small2.oga > chained.oga
+	cat noise.raw noise-secondhalf.raw > chained.raw
+
+	echo "testing chained.oga:"
+	chained_samples=$(($small_samples+187500))
+	if run_test_seeking chained.oga $small_seek_count $chained_samples chained.raw ; then : ; else
+		die "ERROR: during test_seeking"
+	fi
+
 fi
 
 rm -f tiny.flac tiny.oga small.flac small.oga tiny-s.flac small-s.flac
