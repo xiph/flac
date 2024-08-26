@@ -806,10 +806,8 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_ogg_serial_number(FLAC__StreamDecod
  *  by using FLAC__STREAM_DECODER_READ_STATUS_END_OF_LINK
  *  appropriately.
  *
- *  Note that seeking is not yet supported when this flag is set to
- *  true. Also, when this flag is set to true, the serial number set
- *  with FLAC__stream_decoder_set_ogg_serial_number is ignored when
- *  decoding chained ogg streams.
+ *  Note that when this flag is set to true, the serial number set
+ *  with FLAC__stream_decoder_set_ogg_serial_number is ignored.
  *
  * \note
  * This function has no effect with native FLAC decoding.
@@ -856,7 +854,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_md5_checking(FLAC__StreamDecoder *d
  *    \code decoder != NULL \endcode
  *    \a type is valid
  * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
+ *    \c false if type is invalid, else \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecoder *decoder, FLAC__MetadataType type);
 
@@ -871,7 +869,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond(FLAC__StreamDecode
  *    \code decoder != NULL \endcode
  *    \code id != NULL \endcode
  * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
+ *    \c false when memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
 
@@ -883,7 +881,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond_application(FLAC__
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
+ *    \c always \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(FLAC__StreamDecoder *decoder);
 
@@ -897,7 +895,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_respond_all(FLAC__StreamDe
  *    \code decoder != NULL \endcode
  *    \a type is valid
  * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
+ *    \c false if type is invalid, else \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder *decoder, FLAC__MetadataType type);
 
@@ -912,7 +910,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore(FLAC__StreamDecoder
  *    \code decoder != NULL \endcode
  *    \code id != NULL \endcode
  * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
+ *    \c false if memory allocation fails, else \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__StreamDecoder *decoder, const FLAC__byte id[4]);
 
@@ -924,7 +922,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_application(FLAC__S
  * \assert
  *    \code decoder != NULL \endcode
  * \retval FLAC__bool
- *    \c false if the decoder is already initialized, else \c true.
+ *    \c always \c true.
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_set_metadata_ignore_all(FLAC__StreamDecoder *decoder);
 
@@ -1660,6 +1658,14 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *
  *  \c FLAC__STREAM_DECODER_SEEK_ERROR, then the decoder must be flushed
  *  with FLAC__stream_decoder_flush() or reset with
  *  FLAC__stream_decoder_reset() before decoding can continue.
+ *
+ *  When seeking in a chained stream with decoding of such streams
+ *  enabled with FLAC__stream_decoder_set_decode_chained_stream(),
+ *  this function seeks in the whole stream, over all links. When
+ *  a seek to another link is performed, the decoder will also
+ *  return metadata blocks of that link. If this is not desired,
+ *  use FLAC__stream_decoder_set_metadata_ignore_all() before
+ *  seeking.
  *
  * \param  decoder  A decoder instance.
  * \param  sample   The target sample number to seek to.
