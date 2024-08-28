@@ -21,6 +21,10 @@ jobs:
             cppflags: ''
             configure-opts: --disable-asm-optimizations
 
+          - name: no-ogg
+            cppflags: ''
+            configure-opts: --disable-ogg
+
     runs-on: ubuntu-latest
 
     steps:
