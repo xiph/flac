@@ -97,7 +97,7 @@
  */
 #define FLAC_API_VERSION_CURRENT 14
 #define FLAC_API_VERSION_REVISION 0 /**< see above */
-#define FLAC_API_VERSION_AGE 2 /**< see above */
+#define FLAC_API_VERSION_AGE 0 /**< see above */
 
 #ifdef __cplusplus
 extern "C" {

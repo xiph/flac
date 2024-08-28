@@ -34,10 +34,10 @@ jobs:
       - name: Check binary compatibility
         run: |
           make
-          unxz --keep test/abi/abi-libFLAC-1.4.0.dump.xz
-          unxz --keep test/abi/abi-libFLAC++-1.4.4.dump.xz
-          abi-compliance-checker -l flac -old test/abi/abi-libFLAC-1.4.0.dump -new test/abi/abi-descriptor-libFLAC-1.4.4.xml
-          abi-compliance-checker -l flac++ -old test/abi/abi-libFLAC++-1.4.4.dump -new test/abi/abi-descriptor-libFLAC++-1.4.4.xml
+          unxz --keep test/abi/abi-libFLAC-1.5.0.dump.xz
+          unxz --keep test/abi/abi-libFLAC++-1.5.0.dump.xz
+          abi-compliance-checker -l flac -old test/abi/abi-libFLAC-1.5.0.dump -new test/abi/abi-descriptor-libFLAC-1.5.0.xml
+          abi-compliance-checker -l flac++ -old test/abi/abi-libFLAC++-1.5.0.dump -new test/abi/abi-descriptor-libFLAC++-1.5.0.xml
 
       - name: Check with flac test files
         run: ./src/flac/flac -t test-files/subset/*.flac test-files/uncommon/0[5-9]*.flac test-files/uncommon/10*.flac
