@@ -1129,7 +1129,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 			switch(options.format) {
 				case FORMAT_RAW:
 					{
-						uint32_t skip_bytes = encoder_session.info.bytes_per_wide_sample * (uint32_t)skip;
+						uint64_t skip_bytes = encoder_session.info.bytes_per_wide_sample * skip;
 						if(skip_bytes > lookahead_length) {
 							skip_bytes -= lookahead_length;
 							lookahead_length = 0;
