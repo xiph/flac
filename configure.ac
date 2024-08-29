@@ -587,7 +587,6 @@ AC_CONFIG_FILES([ \
 	test/flac-to-flac-metadata-test-files/Makefile \
 	test/metaflac-test-files/Makefile \
 	test/pictures/Makefile \
-	microbench/Makefile \
 	oss-fuzz/Makefile
 ])
 AC_OUTPUT

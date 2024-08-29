@@ -74,7 +74,6 @@ test/metaflac.flac
 test/picture.diff
 test/picture.log
 .dirstamp
-microbench/benchmark_residual
 /ogg/
 oss-fuzz/fuzzer_decoder
 oss-fuzz/fuzzer_seek
