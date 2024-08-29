@@ -1,4 +1,5 @@
 check_include_file("sys/ioctl.h" HAVE_SYS_IOCTL_H)
+check_include_file("sys/time.h" HAVE_SYS_TIME_H)
 check_include_file("termios.h" HAVE_TERMIOS_H)
 
 add_executable(flacapp
