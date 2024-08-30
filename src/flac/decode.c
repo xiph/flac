@@ -339,6 +339,11 @@ FLAC__bool DecoderSession_init_decoder(DecoderSession *decoder_session, const ch
 				return false;
 			}
 		}
+		fseek(f, -128, SEEK_END); /* Do not check for errors, because it could be that file is less than 128 bytes long */
+		fread(buffer, 1, 3, f);
+		if(memcmp(buffer, "TAG", 3) == 0){
+			flac__utils_printf(stderr, 1, "%s: NOTE, found something that looks like an ID3v1 tag. If decoding returns an error, this ID3v1 tag is probably the cause.\n", decoder_session->inbasefilename);
+		}
 		fclose(f);
 	}
 
