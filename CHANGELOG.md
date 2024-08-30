@@ -2,6 +2,33 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
+## git as of 29-8-2024
+
+As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 14. The libFLAC++ version number is incremented to 11.
+
+* General
+	* Multithreaded encoding is now possible in libFLAC and through the flac command line tool
+	* The GFDL license file is updated to version 1.3
+	* The markdown tool documentation is now also converted to HTML, for bundling with systems that do not read manpages (e.g. Windows)
+* flac
+	* Testing mode (flac -t) now parses all metadata blocks
+	* A warning is displayed when frame numbers do not increase correctly throughout a file
+	* The explain option (-H or --explain) is now removed, use the manpage or html tool documentation instead
+	* Built-in help is improved (H2Swine)
+	* When re-encoding a FLAC file from an existing FLAC file, a check is added that the MD5 sums of both files are the same
+* libFLAC and libFLAC++
+	* The library interfaces have been extended. See the porting guide ***TODO TODO TODO***
+	* An error is sent when a frame is missing
+	* The algorithm of the 'loose mid side' option has changed. Instead of checking every few frames which option is best and keeping that for the next few frames, a fast heuristic is now used. This was necessary to enable multithreading
+	* Most level 0 metadata interface functions now also work with Ogg FLAC files
+	* When encoding Ogg FLAC files, the callback now returns a number of samples instead of always 0
+* Build system
+	* Fix building on Android with API version < 24 (Steve Lhomme)
+* Testing/validation
+	* Improve fuzzing of allocation failures
+* Documentation
+	* The foreign metadata storage format used by the flac command line tool is now properly documented
+
 ## FLAC 1.4.3 (23-Jun-2023)
 
 As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 13. The libFLAC++ version number stays at 10.
