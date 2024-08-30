@@ -31,7 +31,7 @@
 
 ACLOCAL_AMFLAGS = -I m4
 
-SUBDIRS = doc include m4 man src test microbench oss-fuzz
+SUBDIRS = doc include m4 man src test oss-fuzz
 
 if EXAMPLES
 SUBDIRS += examples

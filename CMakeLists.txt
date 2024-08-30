@@ -220,7 +220,6 @@ if(ENABLE_MULTITHREADING)
 endif()
 
 add_subdirectory("src")
-add_subdirectory("microbench")
 if(BUILD_DOCS)
     add_subdirectory("doc")
 endif()
