@@ -170,8 +170,12 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 		if(options->use_padding)
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
-		if(!ok)
+		if(!ok) {
+			FLAC__Metadata_ChainStatus status = FLAC__metadata_chain_status(chain);
 			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
+			if(status == FLAC__METADATA_CHAIN_STATUS_RENAME_ERROR)
+				flac_fprintf(stderr, "NOTE: rename errors often occur when working with symlinks pointing to a different filesystem\n");
+		}
 	}
 
 	FLAC__metadata_chain_delete(chain);
@@ -466,8 +470,12 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 		if(use_padding)
 			FLAC__metadata_chain_sort_padding(chain);
 		ok = FLAC__metadata_chain_write(chain, use_padding, options->preserve_modtime);
-		if(!ok)
+		if(!ok) {
+			FLAC__Metadata_ChainStatus status = FLAC__metadata_chain_status(chain);
 			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
+			if(status == FLAC__METADATA_CHAIN_STATUS_RENAME_ERROR)
+				flac_fprintf(stderr, "NOTE: rename errors often occur when working with symlinks pointing to a different filesystem\n");
+		}
 	}
 
   cleanup :
