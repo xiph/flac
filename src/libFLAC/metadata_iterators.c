@@ -1525,8 +1525,10 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 
 	/* move the tempfile on top of the original */
 	(void)fclose(f);
-	if(!transport_tempfile_(chain->filename, &tempfile, &tempfilename, &status))
+	if(!transport_tempfile_(chain->filename, &tempfile, &tempfilename, &status)) {
+		chain->status = get_equivalent_status_(status);
 		return false;
+	}
 
 	return true;
 
@@ -3474,6 +3476,41 @@ FLAC__bool transport_tempfile_(const char *filename, FILE **tempfile, char **tem
 		return false;
 	}
 #endif
+
+#ifndef _WIN32
+	/* Need to check whether filename refers to a symlink or not */
+	{
+		struct stat filestat;
+		if(lstat(filename, &filestat) != 0) {
+			cleanup_tempfile_(tempfile, tempfilename);
+			*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_RENAME_ERROR;
+			return false;
+		}
+		if(S_ISLNK(filestat.st_mode)) {
+			/* file is symlink, find out name of symlinked file */
+			char linked_name[1024];
+			ssize_t len = readlink(filename, linked_name, sizeof(linked_name) - 1);
+			if (len == sizeof(linked_name) - 1) {
+				/* name too long */
+				cleanup_tempfile_(tempfile, tempfilename);
+				*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_RENAME_ERROR;
+				return false;
+			}
+			linked_name[len] = '\0';
+
+			if(0 != flac_rename(*tempfilename, linked_name)) {
+				cleanup_tempfile_(tempfile, tempfilename);
+				*status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_RENAME_ERROR;
+				return false;
+			}
+			return true;
+		}
+		/* else, continue with normale code */
+	}
+
+#endif
+
+
 
 	/*@@@ to fully support the tempfile_path_prefix we need to update this piece to actually copy across filesystems instead of just flac_rename(): */
 	if(0 != flac_rename(*tempfilename, filename)) {
