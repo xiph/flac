@@ -176,6 +176,13 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 	static const size_t OGG_BYTES_CHUNK = 8192;
 	const size_t bytes_requested = *bytes;
 
+	const uint32_t header_length =
+		FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH +
+		FLAC__OGG_MAPPING_MAGIC_LENGTH +
+		FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH +
+		FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH +
+		FLAC__OGG_MAPPING_NUM_HEADERS_LENGTH;
+
 	/*
 	 * The FLAC decoding API uses pull-based reads, whereas Ogg decoding
 	 * is push-based.  In libFLAC, when you ask to decode a frame, the
@@ -254,12 +261,6 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 					/* if it is the first header packet, check for magic and a supported Ogg FLAC mapping version */
 					if (aspect->working_packet.bytes > 0 && aspect->working_packet.packet[0] == FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE) {
 						const FLAC__byte *b = aspect->working_packet.packet;
-						const uint32_t header_length =
-							FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH +
-							FLAC__OGG_MAPPING_MAGIC_LENGTH +
-							FLAC__OGG_MAPPING_VERSION_MAJOR_LENGTH +
-							FLAC__OGG_MAPPING_VERSION_MINOR_LENGTH +
-							FLAC__OGG_MAPPING_NUM_HEADERS_LENGTH;
 						if (aspect->working_packet.bytes < (long)header_length)
 							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_NOT_FLAC;
 						b += FLAC__OGG_MAPPING_PACKET_TYPE_LENGTH;
@@ -290,27 +291,32 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 			if (ret > 0) {
 				/* got a page, grab the serial number if necessary */
 				if(aspect->need_serial_number) {
-					aspect->serial_number = ogg_page_serialno(&aspect->working_page);
-					ogg_stream_reset_serialno(&aspect->stream_state, aspect->serial_number);
-					aspect->need_serial_number = false;
+					/* Check whether not FLAC. The next if is somewhat confusing: check
+					 * whether the length of the next page body agrees with the length
+					 * of a FLAC 'header' possibly contained in that page */
+					if(aspect->working_page.body_len > 1 + FLAC__OGG_MAPPING_MAGIC_LENGTH &&
+					   aspect->working_page.body[0] == FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE &&
+					   memcmp((&aspect->working_page.body) + 1, FLAC__OGG_MAPPING_MAGIC, FLAC__OGG_MAPPING_MAGIC_LENGTH)) {
+						aspect->serial_number = ogg_page_serialno(&aspect->working_page);
+						ogg_stream_reset_serialno(&aspect->stream_state, aspect->serial_number);
+						aspect->need_serial_number = false;
 
-					/* current_linknumber lags a bit: it is only increased after processing
-					 * of the whole links is done, while this code does advance processing */
-					if(aspect->current_linknumber >= aspect->number_of_links_detected) {
-						FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
-						aspect->number_of_links_detected = aspect->current_linknumber + 1;
+						/* current_linknumber lags a bit: it is only increased after processing
+						 * of the whole links is done, while this code does advance processing */
+						if(aspect->current_linknumber >= aspect->number_of_links_detected) {
+							FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
+							aspect->number_of_links_detected = aspect->current_linknumber + 1;
 
-						/* reallocate in chunks of 4 */
-						if((aspect->current_linknumber + 1) % 4 == 0) {
-							if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,5+aspect->current_linknumber,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
-								return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
+							/* reallocate in chunks of 4 */
+							if((aspect->current_linknumber + 1) % 4 == 0) {
+								if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,5+aspect->current_linknumber,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
+									return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
+								}
+								aspect->linkdetails = tmpptr;
 							}
-							aspect->linkdetails = tmpptr;
+							memset(&aspect->linkdetails[aspect->current_linknumber], 0, sizeof(FLAC__OggDecoderAspect_LinkDetails));
 						}
-						memset(&aspect->linkdetails[aspect->current_linknumber], 0, sizeof(FLAC__OggDecoderAspect_LinkDetails));
 					}
-
-
 				}
 				if(ogg_stream_pagein(&aspect->stream_state, &aspect->working_page) == 0) {
 					aspect->have_working_page = true;
