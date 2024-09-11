@@ -41,7 +41,8 @@
 
 typedef struct FLAC__OggDecoderAspect_LinkDetails {
 	long serial_number;
-	FLAC__off_t size;
+	FLAC__off_t start_byte;
+	FLAC__off_t end_byte;
 	uint64_t samples;
 } FLAC__OggDecoderAspect_LinkDetails;
 
@@ -105,6 +106,6 @@ typedef enum {
 
 typedef FLAC__OggDecoderAspectReadStatus (*FLAC__OggDecoderAspectReadCallbackProxy)(const void *decoder, FLAC__byte buffer[], size_t *bytes, void *client_data);
 
-FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], size_t *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, const FLAC__StreamDecoder *decoder, void *client_data);
+FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(FLAC__OggDecoderAspect *aspect, FLAC__byte buffer[], size_t *bytes, FLAC__OggDecoderAspectReadCallbackProxy read_callback, FLAC__StreamDecoderTellCallback tell_callback, const FLAC__StreamDecoder *decoder, void *client_data);
 
 #endif

@@ -150,6 +150,24 @@ if [ $has_ogg = "yes" ] ; then
 		die "ERROR: during test_seeking"
 	fi
 
+	if command -v oggz > /dev/null ; then
+		if command -v oggenc > /dev/null ; then
+			oggenc -Q --skeleton -o small-vorbis.oga small.flac
+			oggenc -Q --skeleton -o small2-vorbis.oga small.flac
+			oggz merge -o small-merged.oga small-vorbis.oga small.oga
+			oggz merge -o small2-merged.oga small2-vorbis.oga small2.oga
+			cat small2-merged.oga small-merged.oga > chained-merged.oga
+			cat noise-secondhalf.raw noise.raw > chained.raw
+
+			echo "testing chained-merged.oga:"
+			echo run_test_seeking chained-merged.oga $small_seek_count $chained_samples chained.raw
+			if run_test_seeking chained-merged.oga $small_seek_count $chained_samples chained.raw ; then : ; else
+				die "ERROR: during test_seeking"
+			fi
+
+		fi
+	fi
+
 fi
 
 rm -f tiny.flac tiny.oga small.flac small.oga tiny-s.flac small-s.flac
