@@ -3286,7 +3286,7 @@ void undo_channel_coding(FLAC__StreamDecoder *decoder) {
 #if FLAC__HAS_OGG
 FLAC__StreamDecoderReadStatus read_callback_ogg_aspect_(const FLAC__StreamDecoder *decoder, FLAC__byte buffer[], size_t *bytes)
 {
-	switch(FLAC__ogg_decoder_aspect_read_callback_wrapper(&decoder->protected_->ogg_decoder_aspect, buffer, bytes, read_callback_proxy_, decoder, decoder->private_->client_data)) {
+	switch(FLAC__ogg_decoder_aspect_read_callback_wrapper(&decoder->protected_->ogg_decoder_aspect, buffer, bytes, read_callback_proxy_, decoder->private_->tell_callback, decoder, decoder->private_->client_data)) {
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK:
 			return FLAC__STREAM_DECODER_READ_STATUS_CONTINUE;
 		/* we don't really have a way to handle lost sync via read

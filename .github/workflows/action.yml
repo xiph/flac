@@ -69,13 +69,13 @@ jobs:
         if: startsWith(matrix.os,'macos') && !startsWith(matrix.build-system,'cmake')
         run: |
           brew update
-          brew install automake pkg-config libogg libtool
+          brew install automake pkg-config libogg libtool vorbis-tools oggz
 
       - name: Install Linux dependencies
         if: startsWith(matrix.os,'ubuntu')
         run: |
           sudo apt-get update
-          sudo apt-get install -y libtool-bin libogg-dev
+          sudo apt-get install -y libtool-bin libogg-dev vorbis-tools oggz-tools
 
       - name: Install Windows dependencies
         if: startsWith(matrix.os,'windows')
