@@ -4994,9 +4994,6 @@ FLAC__bool set_partitioned_rice_(
 			rice_parameter = FLAC__bitmath_ilog2_wide(((mean - 1)*partition_samples_fixed_point_divisor)>>18) + 1;
 
 		if(rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-			flac_fprintf(stderr, "clipping rice_parameter (%u -> %u) @6\n", rice_parameter, rice_parameter_limit - 1);
-#endif
 			rice_parameter = rice_parameter_limit - 1;
 		}
 
@@ -5009,9 +5006,6 @@ FLAC__bool set_partitioned_rice_(
 				min_rice_parameter = rice_parameter - rice_parameter_search_dist;
 			max_rice_parameter = rice_parameter + rice_parameter_search_dist;
 			if(max_rice_parameter >= rice_parameter_limit) {
-#ifndef NDEBUG
-				flac_fprintf(stderr, "clipping rice_parameter (%u -> %u) @7\n", max_rice_parameter, rice_parameter_limit - 1);
-#endif
 				max_rice_parameter = rice_parameter_limit - 1;
 			}
 		}
