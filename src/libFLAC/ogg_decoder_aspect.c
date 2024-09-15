@@ -240,6 +240,16 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 										aspect->linkdetails[aspect->current_linknumber].end_byte = tell_offset - aspect->sync_state.fill + aspect->sync_state.returned;
 								}
 								aspect->number_of_links_indexed++;
+
+								/* reallocate in chunks of 4 */
+								if((aspect->current_linknumber + 1) % 4 == 0) {
+									FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
+									if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,5+aspect->current_linknumber,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
+										return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
+									}
+									aspect->linkdetails = tmpptr;
+								}
+								memset(&aspect->linkdetails[aspect->current_linknumber+1], 0, sizeof(FLAC__OggDecoderAspect_LinkDetails));
 							}
 							if(!aspect->is_seeking)
 								aspect->need_serial_number = true;
@@ -307,18 +317,8 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 						/* current_linknumber lags a bit: it is only increased after processing
 						 * of the whole links is done, while this code does advance processing */
 						if(aspect->current_linknumber >= aspect->number_of_links_detected) {
-							FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
 							FLAC__uint64 tell_offset;
 							aspect->number_of_links_detected = aspect->current_linknumber + 1;
-
-							/* reallocate in chunks of 4 */
-							if((aspect->current_linknumber + 1) % 4 == 0) {
-								if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,5+aspect->current_linknumber,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
-									return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
-								}
-								aspect->linkdetails = tmpptr;
-							}
-							memset(&aspect->linkdetails[aspect->current_linknumber], 0, sizeof(FLAC__OggDecoderAspect_LinkDetails));
 							if(tell_callback != 0) {
 								if(tell_callback(decoder, &tell_offset, client_data) == FLAC__STREAM_DECODER_TELL_STATUS_OK)
 									aspect->linkdetails[aspect->current_linknumber].start_byte = tell_offset - aspect->sync_state.fill + aspect->sync_state.returned
