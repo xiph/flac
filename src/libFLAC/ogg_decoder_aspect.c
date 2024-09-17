@@ -78,9 +78,15 @@ FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect)
 
 void FLAC__ogg_decoder_aspect_finish(FLAC__OggDecoderAspect *aspect)
 {
+	uint32_t i;
 	(void)ogg_sync_clear(&aspect->sync_state);
 	(void)ogg_stream_clear(&aspect->stream_state);
-	free(aspect->linkdetails);
+	if(NULL != aspect->linkdetails) {
+		for(i = 0; i <= aspect->number_of_links_indexed; i++)
+			free(aspect->linkdetails[i].other_serial_numbers);
+		free(aspect->linkdetails);
+	}
+	aspect->linkdetails = NULL;
 }
 
 void FLAC__ogg_decoder_aspect_set_serial_number(FLAC__OggDecoderAspect *aspect, long value)
@@ -111,12 +117,15 @@ void FLAC__ogg_decoder_aspect_reset(FLAC__OggDecoderAspect *aspect)
 
 	if(aspect->use_first_serial_number || aspect->decode_chained_stream)
 		aspect->need_serial_number = true;
+
+	aspect->beginning_of_link = true;
 }
 
 void FLAC__ogg_decoder_aspect_next_link(FLAC__OggDecoderAspect* aspect)
 {
 	aspect->end_of_link = false;
 	aspect->current_linknumber++;
+	aspect->beginning_of_link = true;
 }
 
 void FLAC__ogg_decoder_aspect_set_decode_chained_stream(FLAC__OggDecoderAspect* aspect, FLAC__bool value)
@@ -233,6 +242,7 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 							aspect->end_of_link = true;
 							if(aspect->current_linknumber >= aspect->number_of_links_indexed) {
 								FLAC__uint64 tell_offset;
+								FLAC__ASSERT(aspect->current_linknumber == aspect->number_of_links_indexed);
 								aspect->linkdetails[aspect->current_linknumber].samples = aspect->working_packet.granulepos;
 								aspect->linkdetails[aspect->current_linknumber].serial_number = aspect->serial_number;
 								if(tell_callback != 0) {
@@ -330,6 +340,30 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 				if(ogg_stream_pagein(&aspect->stream_state, &aspect->working_page) == 0) {
 					aspect->have_working_page = true;
 					aspect->have_working_packet = false;
+				}
+				else if(aspect->beginning_of_link) {
+					/* At the beginning of a link, store the serial numbers of all other streams, to make
+					 * finding the end of a link through seeking possible */
+					if(!ogg_page_bos(&aspect->working_page)) {
+						/* Page does not have BOS flag, which means we're done scanning for other serial numbers */
+						aspect->beginning_of_link = false;
+					}
+					else {
+						if(aspect->current_linknumber >= aspect->number_of_links_indexed) {
+							FLAC__OggDecoderAspect_LinkDetails * current_link = &aspect->linkdetails[aspect->current_linknumber];
+							/* Reallocate in chunks of 4 */
+							if((current_link->number_of_other_streams) % 4 == 0) {
+								long * tmpptr = NULL;
+								if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(current_link->other_serial_numbers, 4+current_link->number_of_other_streams, sizeof(long)))) {
+									return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
+								}
+								current_link->other_serial_numbers = tmpptr;
+							}
+							current_link->other_serial_numbers[current_link->number_of_other_streams] = ogg_page_serialno(&aspect->working_page);
+							current_link->number_of_other_streams++;
+						}
+					}
+
 				}
 				/* else do nothing, could be a page from another stream */
 			}
