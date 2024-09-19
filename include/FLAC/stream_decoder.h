@@ -1650,6 +1650,34 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
  */
 FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_frame(FLAC__StreamDecoder *decoder);
 
+/** Skip one  Ogg chain link.
+ *  This version instructs the decoder to 'skip' the current ogg chain
+ *  link. This function should not be  used without enabling decoding
+ *  of chained streams with
+ *  FLAC__stream_decoder_set_decode_chained_stream()
+ *
+ *  When the location ot the next link is already known (for example,
+ *  because there has already been a seek in the stream) this function
+ *  will seek to the end of the link and start processing, but when it
+ *  is not, it will do various seeks (when possible) to find the end
+ *  of the link. If seeking is not possible (or the tell and length
+ *  callback do not work) it will simply read forward instead of
+ *  seeking, much like a muted (but faster) version of
+ *  FLAC__stream_decoder_process_until_end_of_link().
+ *
+ * \param  decoder  An initialized decoder instance not in a metadata
+ *                  state.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if any fatal read, write, or memory allocation error
+ *    occurred (meaning decoding must stop), or when decoding a format
+ *    that does not support chaining, else \c true; for more
+ *    information about the decoder, check the decoder state with
+ *    FLAC__stream_decoder_get_state().
+ */
+FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_link(FLAC__StreamDecoder *decoder);
+
 /** Flush the input and seek to an absolute sample.
  *  Decoding will resume at the given sample.  Note that because of
  *  this, the next write callback may contain a partial block.  The

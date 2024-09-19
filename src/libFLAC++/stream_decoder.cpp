@@ -248,6 +248,12 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_decoder_skip_single_frame(decoder_));
 		}
 
+		bool Stream::skip_single_link()
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_decoder_skip_single_link(decoder_));
+		}
+
 		bool Stream::seek_absolute(FLAC__uint64 sample)
 		{
 			FLAC__ASSERT(is_valid());

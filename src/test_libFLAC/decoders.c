@@ -53,6 +53,7 @@ typedef struct {
 	FILE *file;
 	char filename[512];
 	uint32_t current_metadata_number;
+	FLAC__bool got_audio;
 	FLAC__bool ignore_errors;
 	FLAC__bool error_occurred;
 	FLAC__bool other_chain;
@@ -109,6 +110,7 @@ static void free_metadata_blocks_(void)
 
 static FLAC__bool generate_file_(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 {
+	FLAC__off_t filesize;
 	printf("\n\ngenerating %sFLAC file for decoder tests...\n", is_chained_ogg? "chained Ogg " : is_ogg? "Ogg " : "");
 
 	if(is_chained_ogg) {
@@ -119,7 +121,7 @@ static FLAC__bool generate_file_(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 		if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,true), &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_other_chain_+1, 2))
 			return die_("creating the encoded file");
 		file_utils__ogg_serial_number++;
-
+		filesize=flacfilesize_;
 	}
 
 	num_expected_ = 0;
@@ -138,6 +140,7 @@ static FLAC__bool generate_file_(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 
 	if(is_chained_ogg) {
 		file_utils__append_file(flacfilename(is_ogg, true), flacfilename(is_ogg, false));
+		flacfilesize_+=filesize;
 	}
 
 	return true;
@@ -274,6 +277,8 @@ static FLAC__StreamDecoderWriteStatus stream_decoder_write_callback_(const FLAC_
 
 	if(dcd->error_occurred)
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+
+	dcd->got_audio = true;
 
 	if(
 		(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER && frame->header.number.frame_number == 0) ||
@@ -613,7 +618,61 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 	decoder_client_data.error_occurred = false;
 
 	if(is_chained_ogg) {
-		printf("skip first chain link with FLAC__stream_decoder_process_until_end_of_link()... ");
+		printf("testing FLAC__stream_decoder_process_until_end_of_metadata()... ");
+		if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+
+		printf("checking whether metadata was returned by previous call... ");
+		if(decoder_client_data.current_metadata_number != 1) {
+			return die_s_("no metadata returned", decoder);
+		}
+		printf("OK\n");
+
+		decoder_client_data.current_metadata_number = 0;
+
+		printf("skip first chain link with FLAC__stream_decoder_skip_single_link()... ");
+		if(!FLAC__stream_decoder_skip_single_link(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+
+		printf("skip second chain link with FLAC__stream_decoder_skip_single_link()... ");
+		if(!FLAC__stream_decoder_skip_single_link(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+
+		printf("checking whether no metadata was returned by previous call... ");
+		if(decoder_client_data.current_metadata_number != 0) {
+			return die_s_("metadata returned", decoder);
+		}
+		printf("OK\n");
+
+		printf("testing FLAC__stream_decoder_get_state()... ");
+		state = FLAC__stream_decoder_get_state(decoder);
+		if(state != FLAC__STREAM_DECODER_END_OF_STREAM) {
+			return die_s_("wrong state", decoder);
+		}
+		printf("returned state = %u (%s)... OK\n", state, FLAC__StreamDecoderStateString[state]);
+
+		printf("testing FLAC__stream_decoder_reset()... ");
+		if(!FLAC__stream_decoder_reset(decoder)) {
+			state = FLAC__stream_decoder_get_state(decoder);
+			printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
+			return false;
+		}
+		printf("OK\n");
+
+		if(layer == LAYER_STREAM) {
+			/* after a reset() we have to rewind the input ourselves */
+			printf("rewinding input... ");
+			if(fseeko(decoder_client_data.file, 0, SEEK_SET) < 0) {
+				printf("FAILED, errno = %d\n", errno);
+				return false;
+			}
+			printf("OK\n");
+		}
+
+		printf("process first chain link with FLAC__stream_decoder_process_until_end_of_link()... ");
 		if(!FLAC__stream_decoder_process_until_end_of_link(decoder))
 			return die_s_("returned false", decoder);
 		printf("OK\n");
@@ -628,6 +687,9 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 
 		printf("testing FLAC__stream_decoder_get_state()... ");
 		state = FLAC__stream_decoder_get_state(decoder);
+		if(state != FLAC__STREAM_DECODER_END_OF_LINK) {
+			return die_s_("wrong state", decoder);
+		}
 		printf("returned state = %u (%s)... OK\n", state, FLAC__StreamDecoderStateString[state]);
 
 		printf("progress to next chain link with FLAC__stream_decoder_finish_link()... ");
@@ -653,9 +715,23 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 		return die_s_("returned false", decoder);
 	printf("OK\n");
 
+	printf("checking whether metadata was returned by previous call... ");
+	if(decoder_client_data.current_metadata_number != 1) {
+		return die_s_("no metadata returned", decoder);
+	}
+	printf("OK\n");
+
+	decoder_client_data.got_audio = false;
+
 	printf("testing FLAC__stream_decoder_process_single()... ");
 	if(!FLAC__stream_decoder_process_single(decoder))
 		return die_s_("returned false", decoder);
+	printf("OK\n");
+
+	printf("checking whether processing returned audio... ");
+	if(!decoder_client_data.got_audio) {
+		return die_s_("no audio returned", decoder);
+	}
 	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_skip_single_frame()... ");
@@ -711,9 +787,17 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 		}
 	}
 
+	decoder_client_data.got_audio = false;
+
 	printf("testing FLAC__stream_decoder_process_until_end_of_stream()... ");
 	if(!FLAC__stream_decoder_process_until_end_of_stream(decoder))
 		return die_s_("returned false", decoder);
+	printf("OK\n");
+
+	printf("checking whether processing returned audio... ");
+	if(!decoder_client_data.got_audio) {
+		return die_s_("no audio returned", decoder);
+	}
 	printf("OK\n");
 
 	expect = (layer != LAYER_STREAM);
@@ -767,7 +851,49 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 		printf("returned %u (%s)... OK\n", (uint32_t)ca, FLAC__ChannelAssignmentString[ca]);
 	}
 
-	if(layer < LAYER_FILE) {
+	printf("testing FLAC__stream_decoder_reset()... ");
+	if(!FLAC__stream_decoder_reset(decoder)) {
+		state = FLAC__stream_decoder_get_state(decoder);
+		printf("FAILED, returned false, state = %u (%s)\n", state, FLAC__StreamDecoderStateString[state]);
+		return false;
+	}
+	printf("OK\n");
+
+	if(layer == LAYER_STREAM) {
+		/* after a reset() we have to rewind the input ourselves */
+		printf("rewinding input... ");
+		if(fseeko(decoder_client_data.file, 0, SEEK_SET) < 0) {
+			printf("FAILED, errno = %d\n", errno);
+			return false;
+		}
+		printf("OK\n");
+	}
+	decoder_client_data.current_metadata_number = 0;
+
+	if(is_chained_ogg) {
+		printf("skip first chain link with FLAC__stream_decoder_skip_single_link()... ");
+		if(!FLAC__stream_decoder_skip_single_link(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+
+		printf("skip second chain link with FLAC__stream_decoder_skip_single_link()... ");
+		if(!FLAC__stream_decoder_skip_single_link(decoder))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+
+		printf("checking whether skipping link returns no metadata... ");
+		if(decoder_client_data.current_metadata_number != 0) {
+			return die_s_("metadata returned", decoder);
+		}
+		printf("OK\n");
+
+		printf("testing FLAC__stream_decoder_get_state()... ");
+		state = FLAC__stream_decoder_get_state(decoder);
+		if(state != FLAC__STREAM_DECODER_END_OF_STREAM) {
+			return die_s_("wrong state", decoder);
+		}
+		printf("returned state = %u (%s)... OK\n", state, FLAC__StreamDecoderStateString[state]);
+
 		printf("testing FLAC__stream_decoder_reset()... ");
 		if(!FLAC__stream_decoder_reset(decoder)) {
 			state = FLAC__stream_decoder_get_state(decoder);
@@ -786,36 +912,24 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 			printf("OK\n");
 		}
 
-		decoder_client_data.current_metadata_number = 0;
-
-		if(is_chained_ogg) {
-			printf("skip first chain link with FLAC__stream_decoder_process_until_end_of_link()... ");
-			if(!FLAC__stream_decoder_process_until_end_of_link(decoder))
-				return die_s_("returned false", decoder);
-			printf("OK\n");
-
-			printf("checking whether seeking to different link returns metadata... ");
-			if(decoder_client_data.current_metadata_number != 1) {
-				return die_s_("no metadata returned", decoder);
-			}
-			printf("OK\n");
-			decoder_client_data.current_metadata_number = 0;
-
-			printf("testing FLAC__stream_decoder_get_state()... ");
-			state = FLAC__stream_decoder_get_state(decoder);
-			printf("returned state = %u (%s)... OK\n", state, FLAC__StreamDecoderStateString[state]);
-
-			printf("progress to next chain link with FLAC__stream_decoder_finish_link()... ");
-			if(!FLAC__stream_decoder_finish_link(decoder))
-				return die_s_("returned false", decoder);
-			printf("OK\n");
-		}
-
-		printf("testing FLAC__stream_decoder_process_until_end_of_stream()... ");
-		if(!FLAC__stream_decoder_process_until_end_of_stream(decoder))
+		printf("skip first chain link with FLAC__stream_decoder_skip_single_link()... ");
+		if(!FLAC__stream_decoder_skip_single_link(decoder))
 			return die_s_("returned false", decoder);
 		printf("OK\n");
 	}
+
+	decoder_client_data.got_audio = false;
+
+	printf("testing FLAC__stream_decoder_process_until_end_of_stream()... ");
+	if(!FLAC__stream_decoder_process_until_end_of_stream(decoder))
+		return die_s_("returned false", decoder);
+	printf("OK\n");
+
+	printf("checking whether processing returned audio... ");
+	if(!decoder_client_data.got_audio) {
+		return die_s_("no audio returned", decoder);
+	}
+	printf("OK\n");
 
 	printf("testing FLAC__stream_decoder_finish()... ");
 	if(!FLAC__stream_decoder_finish(decoder))
