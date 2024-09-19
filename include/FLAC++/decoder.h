@@ -155,9 +155,10 @@ namespace FLAC {
 
 			virtual bool process_single();                ///< See FLAC__stream_decoder_process_single()
 			virtual bool process_until_end_of_metadata(); ///< See FLAC__stream_decoder_process_until_end_of_metadata()
-			virtual bool process_until_end_of_link();   ///< See FLAC__stream_decoder_process_until_end_of_link()
+			virtual bool process_until_end_of_link();     ///< See FLAC__stream_decoder_process_until_end_of_link()
 			virtual bool process_until_end_of_stream();   ///< See FLAC__stream_decoder_process_until_end_of_stream()
 			virtual bool skip_single_frame();             ///< See FLAC__stream_decoder_skip_single_frame()
+			virtual bool skip_single_link();              ///< See FLAC__stream_decoder_skip_single_link()
 
 			virtual bool seek_absolute(FLAC__uint64 sample); ///< See FLAC__stream_decoder_seek_absolute()
 		protected:
