@@ -200,23 +200,37 @@ FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(F
 		if(is_metadata) {
 			while(ogg_stream_flush(&aspect->stream_state, &aspect->page) != 0) {
 				FLAC__int64 page_granule_pos = ogg_page_granulepos(&aspect->page);
-				uint32_t frames_in_this_page = (uint32_t)(page_granule_pos - aspect->last_page_granule_pos);
+				uint32_t samples_on_this_page;
+				if(page_granule_pos == -1) {
+					/* a granule position of -1 means no packets finish on this page */
+					samples_on_this_page = 0;
+				}
+				else {
+					samples_on_this_page = (uint32_t)(page_granule_pos - aspect->last_page_granule_pos);
+					aspect->last_page_granule_pos = page_granule_pos;
+				}
 				if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 					return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-				if(write_callback(encoder, aspect->page.body, aspect->page.body_len, frames_in_this_page, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+				if(write_callback(encoder, aspect->page.body, aspect->page.body_len, samples_on_this_page, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 					return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-				aspect->last_page_granule_pos = page_granule_pos;
 			}
 		}
 		else {
 			while(ogg_stream_pageout(&aspect->stream_state, &aspect->page) != 0) {
 				FLAC__int64 page_granule_pos = ogg_page_granulepos(&aspect->page);
-				uint32_t frames_in_this_page = (uint32_t)(page_granule_pos - aspect->last_page_granule_pos);
+				uint32_t samples_on_this_page;
+				if(page_granule_pos == -1) {
+					/* a granule position of -1 means no packets finish on this page */
+					samples_on_this_page = 0;
+				}
+				else {
+					samples_on_this_page = (uint32_t)(page_granule_pos - aspect->last_page_granule_pos);
+					aspect->last_page_granule_pos = page_granule_pos;
+				}
 				if(write_callback(encoder, aspect->page.header, aspect->page.header_len, 0, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 					return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-				if(write_callback(encoder, aspect->page.body, aspect->page.body_len, frames_in_this_page, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
+				if(write_callback(encoder, aspect->page.body, aspect->page.body_len, samples_on_this_page, current_frame, client_data) != FLAC__STREAM_ENCODER_WRITE_STATUS_OK)
 					return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
-				aspect->last_page_granule_pos = page_granule_pos;
 			}
 		}
 	}
