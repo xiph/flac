@@ -3517,8 +3517,10 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		}
 	}
 
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	FLAC__ASSERT(upper_bound_sample >= lower_bound_sample);
-	/* there are 2 insidious ways that the following equality occurs, which
+#endif
+	/* there are 3 insidious ways that the following equality occurs, which
 	 * we need to fix:
 	 *  1) total_samples is 0 (unknown) and target_sample is 0
 	 *  2) total_samples is 0 (unknown) and target_sample happens to be
@@ -3526,9 +3528,16 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 	 *     means there is no seek point above it, and upper_bound_samples
 	 *     remains equal to the estimate (of target_samples) we made above
 	 * in either case it does not hurt to move upper_bound_sample up by 1
+	 *  3) the file is corrupt
 	 */
-	if(upper_bound_sample == lower_bound_sample)
-		upper_bound_sample++;
+	if(upper_bound_sample == lower_bound_sample) {
+		if(total_samples == 0)
+			upper_bound_sample++;
+		else {
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+			return false;
+		}
+	}
 
 	decoder->private_->target_sample = target_sample;
 	while(1) {
