@@ -544,10 +544,11 @@ typedef FLAC__StreamEncoderReadStatus (*FLAC__StreamEncoderReadCallback)(const F
  * pair of calls several times in a batch with the same value of
  * \a current_frame.  When writing the page header, as well as in all but the
  * first page body write of the batch, the \a samples argument to the write
- * callback will be \c 0. The full number of samples of the batch will be
- * passed in the first page body write. Furthermore, it is possible that a few
- * of these samples are retained in an internal Ogg encoding buffer and not
- * actually encoded until the next batch.
+ * callback will be \c 0. For the write callback call containing the first
+ * page body, the \a samples argument is the number of samples contained in
+ * all newly added complete packets (not pages). This means that in case a
+ * packet is split over two pages, they are counted in the samples argument
+ * of the page on which the packet is completed.
  *
  * \note In general, FLAC__StreamEncoder functions which change the
  * state should not be called on the \a encoder while in the callback.
