@@ -568,8 +568,7 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 			}
 
 			/* Get a page, resynchronize if necessary */
-			while((ret = ogg_sync_pageseek(&aspect->sync_state, &aspect->working_page)) <= 0
-			      && !aspect->end_of_stream && ogg_sync_check(&aspect->sync_state) == 0) {
+			while((ret = ogg_sync_pageseek(&aspect->sync_state, &aspect->working_page)) <= 0 && !aspect->end_of_stream) {
 				if(ret < 0)
 					current_pos -= ret;
 				else {
