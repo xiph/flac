@@ -455,8 +455,20 @@ typedef enum {
 	FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM,
 	/**< The decoder encountered reserved fields in use in the stream. */
 
-	FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA
+	FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA,
 	/**< The decoder encountered a corrupted metadata block. */
+
+	FLAC__STREAM_DECODER_ERROR_STATUS_OUT_OF_BOUNDS,
+	/**< The decoder encountered a otherwise valid frame in which
+	 *   the decoded samples exceeded the range offered by the stated
+	 *   bit depth. */
+
+	FLAC__STREAM_DECODER_ERROR_STATUS_MISSING_FRAME
+	/**< Two adjacent frames had frame numbers increasing by more than
+	 *   1 or sample numbers increasing by more than the blocksize,
+	 *   indicating that one or more frame/frames was missing between
+	 *   them. The decoder will sent out one or more ´fake' constant
+	 *   subframes to fill up the gap.  */
 
 } FLAC__StreamDecoderErrorStatus;
 

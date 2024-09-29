@@ -236,7 +236,9 @@ FLAC_API const char * const FLAC__StreamDecoderErrorStatusString[] = {
 	"FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH",
 	"FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM",
-	"FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA"
+	"FLAC__STREAM_DECODER_ERROR_STATUS_BAD_METADATA",
+	"FLAC__STREAM_DECODER_ERROR_STATUS_OUT_OF_BOUNDS",
+	"FLAC__STREAM_DECODER_ERROR_STATUS_MISSING_FRAME"
 };
 
 /***********************************************************************
@@ -2282,7 +2284,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 					if((decoder->private_->output[channel][i] < (INT32_MIN >> shift_bits)) ||
 					   (decoder->private_->output[channel][i] > (INT32_MAX >> shift_bits))) {
 						/* Bad frame, emit error */
-						send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_FRAME_CRC_MISMATCH);
+						send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_OUT_OF_BOUNDS);
 						decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 						break;
 					}
@@ -2309,7 +2311,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			 * frames are missing, and the frames before and after it
 			 * are complete */
 			if(!decoder->private_->error_has_been_sent)
-				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
+				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_MISSING_FRAME);
 			/* Do some extra validation to assure last frame an current frame
 			 * header are both valid before adding silence inbetween
 			 * Technically both frames could be valid with differing sample_rates,
