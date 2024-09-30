@@ -3597,7 +3597,8 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		/* check if the bounds are still ok */
 		if (lower_bound_sample >= upper_bound_sample ||
 		    lower_bound > upper_bound ||
-		    upper_bound >= INT64_MAX) {
+		    upper_bound >= INT64_MAX ||
+		    target_sample > upper_bound_sample) {
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 			return false;
 		}
