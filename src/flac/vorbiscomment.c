@@ -162,6 +162,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 		}
 		free(converted);
 		if(!FLAC__metadata_object_vorbiscomment_append_comment(block, entry, /*copy=*/false)) {
+			free(entry.entry);
 			*violation = "memory allocation failure";
 			return false;
 		}
