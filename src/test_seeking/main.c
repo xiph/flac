@@ -266,8 +266,9 @@ static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDeco
 
 /* read mode:
  * 0 - no read after seek
- * 1 - read 2 frames
- * 2 - read until end
+ * 1 - read 2 frames after seek
+ * 2 - read until end after seek
+ * 3 - don't process whole stream first - read 2 frames after seek
  */
 static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__off_t filesize, uint32_t count, FLAC__int64 total_samples, uint32_t read_mode, FLAC__int32 **pcm)
 {
@@ -302,7 +303,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__of
 	if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder))
 		return die_s_("FLAC__stream_decoder_process_until_end_of_metadata() FAILED", decoder);
 
-	if(!is_ogg) { /* not necessary to do this for Ogg because of its seeking method */
+	if(!is_ogg && read_mode < 3) { /* not necessary to do this for Ogg because of its seeking method */
 	/* process until end of stream to make sure we can still seek in that state */
 		decoder_client_data.quiet = true;
 		decoder_client_data.last_seek_target = 0;
@@ -310,10 +311,11 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__of
 			return die_s_("FLAC__stream_decoder_process_until_end_of_stream() FAILED", decoder);
 		decoder_client_data.quiet = false;
 
-		printf("stream decoder state is %s\n", FLAC__stream_decoder_get_resolved_state_string(decoder));
 		if(FLAC__stream_decoder_get_state(decoder) != FLAC__STREAM_DECODER_END_OF_STREAM)
 			return die_s_("expected FLAC__STREAM_DECODER_END_OF_STREAM", decoder);
 	}
+
+	printf("stream decoder state is %s\n", FLAC__stream_decoder_get_resolved_state_string(decoder));
 
 	n = (long int)decoder_client_data.total_samples;
 
@@ -456,12 +458,14 @@ int main(int argc, char *argv[])
 
 	(void) signal(SIGINT, our_sigint_handler_);
 
-	for (read_mode = 0; ok && read_mode <= 2; read_mode++) {
+	for (read_mode = 0; ok && read_mode <= 3; read_mode++) {
 		/* no need to do "decode all" read_mode if PCM checking is available */
-		if (rawfilename && read_mode > 1)
+		if (rawfilename && read_mode == 2)
 			continue;
 		if (strlen(flacfilename) > 4 && (0 == strcmp(flacfilename+strlen(flacfilename)-4, ".oga") || 0 == strcmp(flacfilename+strlen(flacfilename)-4, ".ogg"))) {
 #if FLAC__HAS_OGG
+			if(read_mode == 3)
+				continue;
 			ok = seek_barrage(/*is_ogg=*/true, flacfilename, flacfilesize, count, samples, read_mode, rawfilename? pcm : 0);
 #else
 			fprintf(stderr, "ERROR: Ogg FLAC not supported\n");
