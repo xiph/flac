@@ -133,8 +133,6 @@ static FLAC__OggDecoderAspectReadStatus process_page_(FLAC__OggDecoderAspect *as
 						return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
 					}
 					current_link->other_serial_numbers = tmpptr;
-					if(aspect->number_of_links_allocated < aspect->current_linknumber_advance_read)
-						aspect->number_of_links_allocated = aspect->current_linknumber_advance_read;
 				}
 				current_link->other_serial_numbers[current_link->number_of_other_streams] = ogg_page_serialno(&aspect->working_page);
 				current_link->number_of_other_streams++;
@@ -144,6 +142,21 @@ static FLAC__OggDecoderAspectReadStatus process_page_(FLAC__OggDecoderAspect *as
 	}
 	/* else do nothing, could be a page from another stream */
 	return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
+}
+
+static FLAC__bool check_size_of_link_allocation_(FLAC__OggDecoderAspect *aspect)
+{
+	/* reallocate in chunks of 4 */
+	if(aspect->current_linknumber >= aspect->number_of_links_allocated || aspect->current_linknumber_advance_read >= aspect->number_of_links_allocated) {
+		FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
+		if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,4+aspect->number_of_links_allocated,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
+			return false;
+		}
+		aspect->linkdetails = tmpptr;
+		memset(aspect->linkdetails + aspect->number_of_links_allocated, 0, 4 * sizeof(FLAC__OggDecoderAspect_LinkDetails));
+		aspect->number_of_links_allocated += 4;
+	}
+	return true;
 }
 
 FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect)
@@ -174,6 +187,8 @@ FLAC__bool FLAC__ogg_decoder_aspect_init(FLAC__OggDecoderAspect *aspect)
 		return false;
 	memset(aspect->linkdetails, 0, 4 * sizeof(FLAC__OggDecoderAspect_LinkDetails));
 
+	aspect->number_of_links_allocated = 4;
+
 	return true;
 }
 
@@ -183,7 +198,7 @@ void FLAC__ogg_decoder_aspect_finish(FLAC__OggDecoderAspect *aspect)
 	(void)ogg_sync_clear(&aspect->sync_state);
 	(void)ogg_stream_clear(&aspect->stream_state);
 	if(NULL != aspect->linkdetails) {
-		for(i = 0; i <= aspect->number_of_links_allocated; i++)
+		for(i = 0; i < aspect->number_of_links_allocated; i++)
 			free(aspect->linkdetails[i].other_serial_numbers);
 		free(aspect->linkdetails);
 	}
@@ -345,6 +360,8 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 						else {
 							aspect->end_of_link = true;
 							aspect->current_linknumber_advance_read = aspect->current_linknumber + 1;
+							if(!check_size_of_link_allocation_(aspect))
+								return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
 							if(aspect->current_linknumber >= aspect->number_of_links_indexed) {
 								FLAC__uint64 tell_offset;
 								FLAC__ASSERT(aspect->current_linknumber == aspect->number_of_links_indexed);
@@ -355,16 +372,6 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 								}
 								aspect->number_of_links_indexed++;
 								aspect->need_serial_number = true;
-
-								/* reallocate in chunks of 4 */
-								if((aspect->current_linknumber + 1) % 4 == 0) {
-									FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
-									if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,5+aspect->current_linknumber,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
-										return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
-									}
-									aspect->linkdetails = tmpptr;
-								}
-								memset(&aspect->linkdetails[aspect->current_linknumber+1], 0, sizeof(FLAC__OggDecoderAspect_LinkDetails));
 							}
 							if(!aspect->is_seeking)
 								aspect->need_serial_number = true;
@@ -482,6 +489,8 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 			aspect->bos_flag_seen = false;
 			aspect->current_linknumber++;
 			aspect->current_linknumber_advance_read = aspect->current_linknumber;
+			if(!check_size_of_link_allocation_(aspect))
+				return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
 			aspect->have_working_page = false;
 			return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
 		}
@@ -606,17 +615,10 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 
 						aspect->number_of_links_indexed++;
 						aspect->current_linknumber_advance_read = aspect->current_linknumber + 1;
-						aspect->need_serial_number = true;
+						if(!check_size_of_link_allocation_(aspect))
+							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
 
-						/* reallocate in chunks of 4 */
-						if((aspect->current_linknumber + 1) % 4 == 0) {
-							FLAC__OggDecoderAspect_LinkDetails * tmpptr = NULL;
-							if(NULL == (tmpptr = safe_realloc_nofree_mul_2op_(aspect->linkdetails,5+aspect->current_linknumber,sizeof(FLAC__OggDecoderAspect_LinkDetails)))) {
-								return FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR;
-							}
-							aspect->linkdetails = tmpptr;
-						}
-						memset(&aspect->linkdetails[aspect->current_linknumber+1], 0, sizeof(FLAC__OggDecoderAspect_LinkDetails));
+						aspect->need_serial_number = true;
 
 						/* Now, continue loop to check whether we are at end of stream or another link follows */
 						FLAC__ogg_decoder_aspect_next_link(aspect);
