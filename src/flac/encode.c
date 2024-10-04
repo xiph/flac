@@ -1635,12 +1635,6 @@ static void static_metadata_clear(static_metadata_t *m)
 static FLAC__bool static_metadata_append(static_metadata_t *m, FLAC__StreamMetadata *d, FLAC__bool needs_delete)
 {
 	void *x;
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-#ifdef __i386__
-/* Work around i386 ASAN bug */
-	if(0 == d) return true;
-#endif
-#endif
 	if(0 == (x = safe_realloc_nofree_muladd2_(m->metadata, sizeof(*m->metadata), /*times (*/m->num_metadata, /*+*/1/*)*/)))
 		return false;
 	m->metadata = (FLAC__StreamMetadata**)x;
@@ -2919,13 +2913,6 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 {
 	static uint8_t dump[8192];
 	struct flac_stat_s stb;
-
-#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
-#ifdef __i386__
-/* Work around i386 ASAN bug */
-	if(offset > (FLAC__uint64)(INT32_MAX)) return false;
-#endif
-#endif
 
 	if(flac_fstat(fileno(f), &stb) == 0 && (stb.st_mode & S_IFMT) == S_IFREG)
 	{
