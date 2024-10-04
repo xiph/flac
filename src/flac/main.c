@@ -658,15 +658,15 @@ FLAC__bool init_options(void)
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
-
-	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
-		return false;
 	option_values.num_pictures = 0;
 
 	option_values.debug.disable_constant_subframes = false;
 	option_values.debug.disable_fixed_subframes = false;
 	option_values.debug.disable_verbatim_subframes = false;
 	option_values.debug.do_md5 = true;
+
+	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
+		return false;
 
 	return true;
 }
