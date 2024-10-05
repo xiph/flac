@@ -100,6 +100,7 @@ libFLAC_sources = \
 	lpc_intrin_avx2.c \
 	lpc_intrin_fma.c \
 	lpc_intrin_neon.c \
+	lpc_intrin_riscv.c \
 	md5.c \
 	memory.c \
 	metadata_iterators.c \
