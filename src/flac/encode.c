@@ -1982,6 +1982,7 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				}
 				if(!static_metadata_append(&static_metadata, p, /*needs_delete=*/true)) {
 					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for foreign metadata block\n", e->inbasefilename);
+					FLAC__metadata_object_delete(p);
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
