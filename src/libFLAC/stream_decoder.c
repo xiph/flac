@@ -2278,11 +2278,13 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			undo_channel_coding(decoder);
 			/* Check whether decoded data actually fits bps */
 			for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
+				int shift_bits = 32 - decoder->private_->frame.header.bits_per_sample;
+				int lower_limit = INT32_MIN >> shift_bits;
+				int upper_limit = INT32_MAX >> shift_bits;
 				for(i = 0; i < decoder->private_->frame.header.blocksize; i++) {
-					int shift_bits = 32 - decoder->private_->frame.header.bits_per_sample;
 					/* Check whether shift_bits MSBs are 'empty' by shifting up and down */
-					if((decoder->private_->output[channel][i] < (INT32_MIN >> shift_bits)) ||
-					   (decoder->private_->output[channel][i] > (INT32_MAX >> shift_bits))) {
+					if((decoder->private_->output[channel][i] < lower_limit) ||
+					   (decoder->private_->output[channel][i] > upper_limit)) {
 						/* Bad frame, emit error */
 						send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_OUT_OF_BOUNDS);
 						decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
