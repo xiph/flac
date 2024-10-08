@@ -1682,7 +1682,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			option_values.serial_number = rand();
 		option_values.has_serial_number = true;
 	}
-	encode_options.serial_number = option_values.serial_number++;
+	encode_options.serial_number = option_values.serial_number;
+	option_values.serial_number = (uint32_t)option_values.serial_number + 1;
 #endif
 	encode_options.lax = option_values.lax;
 	encode_options.padding = option_values.padding;
