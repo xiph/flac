@@ -1230,7 +1230,10 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_link(FLAC__StreamDecoder *d
 	FLAC__ASSERT(0 != decoder);
 	FLAC__ASSERT(0 != decoder->protected_);
 
-	if(!decoder->private_->is_ogg)
+	if(!decoder->private_->is_ogg ||
+	   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED ||
+	   decoder->protected_->state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR ||
+	   decoder->protected_->state == FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
 
 	FLAC__ASSERT_DECLARATION(linknumber_start = decoder->protected_->ogg_decoder_aspect.current_linknumber);
