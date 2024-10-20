@@ -601,7 +601,7 @@ namespace FLAC {
 
 		VorbisComment::Entry &VorbisComment::Entry::operator=(const Entry &entry)
 		{
-			FLAC__ASSERT(entry.is_valid());
+			FLAC__ASSERT_IF_NOT_FUZZING(entry.is_valid());
 			clear();
 			construct(reinterpret_cast<const char *>(entry.entry_.entry), entry.entry_.length);
 			return *this;
