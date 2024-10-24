@@ -1475,7 +1475,7 @@ static FLAC__bool chain_rewrite_metadata_in_place_(FLAC__Metadata_Chain *chain)
 	return ret;
 }
 
-static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *tempfile_path_prefix)
+static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *tempfile_path_prefix, const char *filename)
 {
 	FILE *f, *tempfile = NULL;
 	char *tempfilename;
@@ -1491,9 +1491,19 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 		chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
 		return false;
 	}
-	if(!open_tempfile_(chain->filename, tempfile_path_prefix, &tempfile, &tempfilename, &status)) {
-		chain->status = get_equivalent_status_(status);
-		goto err;
+	if(filename == NULL) {
+		if(!open_tempfile_(chain->filename, tempfile_path_prefix, &tempfile, &tempfilename, &status)) {
+			chain->status = get_equivalent_status_(status);
+			goto err;
+		}
+	}
+	else {
+		if(0 == (tempfile = flac_fopen(filename, "wb"))) {
+			(void)fclose(f);
+			chain->status = FLAC__METADATA_CHAIN_STATUS_ERROR_OPENING_FILE;
+			return false;
+		}
+
 	}
 	if(!copy_n_bytes_from_file_(f, tempfile, chain->first_offset, &status)) {
 		chain->status = get_equivalent_status_(status);
@@ -1525,16 +1535,23 @@ static FLAC__bool chain_rewrite_file_(FLAC__Metadata_Chain *chain, const char *t
 
 	/* move the tempfile on top of the original */
 	(void)fclose(f);
-	if(!transport_tempfile_(chain->filename, &tempfile, &tempfilename, &status)) {
-		chain->status = get_equivalent_status_(status);
-		return false;
+	if(filename == NULL) {
+		if(!transport_tempfile_(chain->filename, &tempfile, &tempfilename, &status)) {
+			chain->status = get_equivalent_status_(status);
+			return false;
+		}
 	}
+	else
+		(void)fclose(tempfile);
 
 	return true;
 
 err:
 	(void)fclose(f);
-	cleanup_tempfile_(&tempfile, &tempfilename);
+	if(filename == NULL)
+		cleanup_tempfile_(&tempfile, &tempfilename);
+	else
+		(void)fclose(tempfile);
 	return false;
 }
 
@@ -1820,7 +1837,7 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC
 			return false;
 	}
 	else {
-		if(!chain_rewrite_file_(chain, tempfile_path_prefix))
+		if(!chain_rewrite_file_(chain, tempfile_path_prefix, NULL))
 			return false;
 
 		/* recompute lengths and offsets */
@@ -1835,6 +1852,48 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC
 
 	if(preserve_file_stats)
 		set_file_stats_(chain->filename, &stats);
+
+	return true;
+}
+
+FLAC_API FLAC__bool FLAC__metadata_chain_write_new_file(FLAC__Metadata_Chain *chain, const char *filename, FLAC__bool use_padding)
+{
+	FLAC__off_t current_length;
+
+	FLAC__ASSERT(0 != chain);
+
+	if (chain->is_ogg) { /* cannot write back to Ogg FLAC yet */
+		chain->status = FLAC__METADATA_CHAIN_STATUS_INTERNAL_ERROR;
+		return false;
+	}
+
+	if (0 == chain->filename) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH;
+		return false;
+	}
+
+	if (0 == filename) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_ILLEGAL_INPUT;
+		return false;
+	}
+
+	current_length = chain_prepare_for_write_(chain, use_padding);
+
+	/* a return value of 0 means there was an error; chain->status is already set */
+	if (0 == current_length)
+		return false;
+
+	if(!chain_rewrite_file_(chain, NULL, filename))
+		return false;
+
+	/* recompute lengths and offsets */
+	{
+		const FLAC__Metadata_Node *node;
+		chain->initial_length = current_length;
+		chain->last_offset = chain->first_offset;
+		for(node = chain->head; node; node = node->next)
+			chain->last_offset += (FLAC__STREAM_METADATA_HEADER_LENGTH + node->data->length);
+	}
 
 	return true;
 }
@@ -1901,18 +1960,11 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks_and_tempfile(FLAC_
 		return false;
 	}
 
-	if (!FLAC__metadata_chain_check_if_tempfile_needed(chain, use_padding)) {
-		chain->status = FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL;
-		return false;
-	}
-
 	current_length = chain_prepare_for_write_(chain, use_padding);
 
 	/* a return value of 0 means there was an error; chain->status is already set */
 	if (0 == current_length)
 		return false;
-
-	FLAC__ASSERT(current_length != chain->initial_length);
 
 	/* rewind */
 	if(0 != callbacks.seek(handle, 0, SEEK_SET)) {

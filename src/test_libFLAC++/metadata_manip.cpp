@@ -77,9 +77,12 @@ static OurMetadata our_metadata_;
 /* the current block number that corresponds to the position of the iterator we are testing */
 static uint32_t mc_our_block_number_ = 0;
 
-static const char *flacfilename(bool is_ogg)
+static const char *flacfilename(bool is_ogg, bool to_different_file)
 {
-	return is_ogg? "metadata.oga" : "metadata.flac";
+	if(to_different_file)
+		return is_ogg? "metadata_secondary.oga" : "metadata_secondary.flac";
+	else
+		return is_ogg? "metadata.oga" : "metadata.flac";
 }
 
 static bool die_(const char *msg)
@@ -317,10 +320,13 @@ static int chain_eof_cb_(::FLAC__IOHandle handle)
 	return feof((FILE*)handle);
 }
 
-static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool preserve_file_stats, bool filename_based, const char *filename)
+static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool preserve_file_stats, bool filename_based, const char *filename, FLAC__bool to_different_file)
 {
 	if(filename_based)
-		return chain.write(use_padding, preserve_file_stats);
+		if(!to_different_file)
+			return chain.write(use_padding, preserve_file_stats);
+		else
+			return chain.write(flacfilename(false, true), use_padding);
 	else {
 		::FLAC__IOCallbacks callbacks;
 
@@ -334,7 +340,7 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 		callbacks.seek = chain_seek_cb_;
 		callbacks.eof = chain_eof_cb_;
 
-		if(chain.check_if_tempfile_needed(use_padding)) {
+		if(to_different_file || chain.check_if_tempfile_needed(use_padding)) {
 			struct flac_stat_s stats;
 			FILE *file, *tempfile;
 			char *tempfilename;
@@ -344,10 +350,18 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 			}
 			if(0 == (file = flac_fopen(filename, "rb")))
 				return false; /*@@@@ chain status still says OK though */
-			if(!open_tempfile_(filename, &tempfile, &tempfilename)) {
-				fclose(file);
-				cleanup_tempfile_(&tempfile, &tempfilename);
-				return false; /*@@@@ chain status still says OK though */
+			if(!to_different_file) {
+				if(!open_tempfile_(filename, &tempfile, &tempfilename)) {
+					fclose(file);
+					cleanup_tempfile_(&tempfile, &tempfilename);
+					return false; /*@@@@ chain status still says OK though */
+				}
+			}
+			else {
+				if(0 == (tempfile = flac_fopen(flacfilename(false, true), "wb"))) {
+					fclose(file);
+					return false; /*@@@@ chain status still says OK though */
+				}
 			}
 			if(!chain.write(use_padding, (::FLAC__IOHandle)file, callbacks, (::FLAC__IOHandle)tempfile, callbacks)) {
 				fclose(file);
@@ -357,10 +371,16 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 			fclose(file);
 			fclose(tempfile);
 			file = tempfile = 0;
-			if(!transport_tempfile_(filename, &tempfile, &tempfilename))
-				return false;
-			if(preserve_file_stats)
-				set_file_stats_(filename, &stats);
+			if(!to_different_file) {
+				if(!transport_tempfile_(filename, &tempfile, &tempfilename))
+					return false;
+				if(preserve_file_stats)
+					set_file_stats_(filename, &stats);
+			}
+			else {
+				if(preserve_file_stats)
+					set_file_stats_(flacfilename(false, true), &stats);
+			}
 		}
 		else {
 			FILE *file = flac_fopen(filename, "r+b");
@@ -604,7 +624,7 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 	)
 		return die_("priming our metadata");
 
-	if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg), 0, 512 * 1024, &streaminfo, metadata, n))
+	if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg, false), 0, 512 * 1024, &streaminfo, metadata, n))
 		return die_("creating the encoded file");
 
 	free(vorbiscomment.data.vorbis_comment.vendor_string.entry);
@@ -615,10 +635,14 @@ static bool generate_file_(bool include_extras, bool is_ogg)
 	return true;
 }
 
-static bool test_file_(bool is_ogg, bool ignore_metadata)
+static bool test_file_(bool is_ogg, bool ignore_metadata, bool to_different_file)
 {
-	const char *filename = flacfilename(is_ogg);
+	const char *filename = flacfilename(is_ogg, false);
 	OurFileDecoder decoder(ignore_metadata);
+
+	if(to_different_file)
+		if(flac_unlink(filename) || flac_rename(flacfilename(is_ogg, true), filename))
+			return die_("renaming file");
 
 	mc_our_block_number_ = 0;
 	decoder.error_occurred_ = false;
@@ -680,12 +704,12 @@ static bool test_level_0_()
 	if(!generate_file_(/*include_extras=*/true, /*is_ogg=*/false))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/true))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/true, false))
 		return false;
 
 	printf("testing FLAC::Metadata::get_streaminfo()... ");
 
-	if(!FLAC::Metadata::get_streaminfo(flacfilename(/*is_ogg=*/false), streaminfo))
+	if(!FLAC::Metadata::get_streaminfo(flacfilename(/*is_ogg=*/false, false), streaminfo))
 		return die_("during FLAC::Metadata::get_streaminfo()");
 
 	/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -707,7 +731,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::VorbisComment *tags = 0;
 
-		if(!FLAC::Metadata::get_tags(flacfilename(/*is_ogg=*/false), tags))
+		if(!FLAC::Metadata::get_tags(flacfilename(/*is_ogg=*/false, false), tags))
 			return die_("during FLAC::Metadata::get_tags()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -724,7 +748,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::VorbisComment tags;
 
-		if(!FLAC::Metadata::get_tags(flacfilename(/*is_ogg=*/false), tags))
+		if(!FLAC::Metadata::get_tags(flacfilename(/*is_ogg=*/false, false), tags))
 			return die_("during FLAC::Metadata::get_tags()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -739,7 +763,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::CueSheet *cuesheet = 0;
 
-		if(!FLAC::Metadata::get_cuesheet(flacfilename(/*is_ogg=*/false), cuesheet))
+		if(!FLAC::Metadata::get_cuesheet(flacfilename(/*is_ogg=*/false, false), cuesheet))
 			return die_("during FLAC::Metadata::get_cuesheet()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -756,7 +780,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::CueSheet cuesheet;
 
-		if(!FLAC::Metadata::get_cuesheet(flacfilename(/*is_ogg=*/false), cuesheet))
+		if(!FLAC::Metadata::get_cuesheet(flacfilename(/*is_ogg=*/false, false), cuesheet))
 			return die_("during FLAC::Metadata::get_cuesheet()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -771,7 +795,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::Picture *picture = 0;
 
-		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false), picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
+		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false, false), picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
 			return die_("during FLAC::Metadata::get_picture()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -788,7 +812,7 @@ static bool test_level_0_()
 
 		FLAC::Metadata::Picture picture;
 
-		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false), picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
+		if(!FLAC::Metadata::get_picture(flacfilename(/*is_ogg=*/false, false), picture, /*type=*/(::FLAC__StreamMetadata_Picture_Type)(-1), /*mime_type=*/0, /*description=*/0, /*max_width=*/(uint32_t)(-1), /*max_height=*/(uint32_t)(-1), /*max_depth=*/(uint32_t)(-1), /*max_colors=*/(uint32_t)(-1)))
 			return die_("during FLAC::Metadata::get_picture()");
 
 		/* check to see if some basic data matches (c.f. generate_file_()) */
@@ -798,7 +822,7 @@ static bool test_level_0_()
 		printf("OK\n");
 	}
 
-	if(!remove_file_(flacfilename(/*is_ogg=*/false)))
+	if(!remove_file_(flacfilename(/*is_ogg=*/false, false)))
 		return false;
 
 	return true;
@@ -825,10 +849,10 @@ static bool test_level_1_()
 	if(!generate_file_(/*include_extras=*/false, /*is_ogg=*/false))
 		return false;
 
-	if(!change_stats_(flacfilename(/*is_ogg=*/false), /*read_only=*/true))
+	if(!change_stats_(flacfilename(/*is_ogg=*/false, false), /*read_only=*/true))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/true))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/true, false))
 		return false;
 
 	FLAC::Metadata::SimpleIterator iterator;
@@ -836,7 +860,7 @@ static bool test_level_1_()
 	if(!iterator.is_valid())
 		return die_("iterator.is_valid() returned false");
 
-	if(!iterator.init(flacfilename(/*is_ogg=*/false), /*read_only=*/false, /*preserve_file_stats=*/false))
+	if(!iterator.init(flacfilename(/*is_ogg=*/false, false), /*read_only=*/false, /*preserve_file_stats=*/false))
 		return die_("iterator.init() returned false");
 
 	printf("is writable = %u\n", (uint32_t)iterator.is_writable());
@@ -915,7 +939,7 @@ static bool test_level_1_()
 	{
 	printf("simple iterator on writable file\n");
 
-	if(!change_stats_(flacfilename(/*is_ogg=*/false), /*read-only=*/false))
+	if(!change_stats_(flacfilename(/*is_ogg=*/false, false), /*read-only=*/false))
 		return false;
 
 	printf("creating APPLICATION block\n");
@@ -940,7 +964,7 @@ static bool test_level_1_()
 		return die_("iterator.is_valid() returned false");
 	}
 
-	if(!iterator.init(flacfilename(/*is_ogg=*/false), /*read_only=*/false, /*preserve_file_stats=*/false)) {
+	if(!iterator.init(flacfilename(/*is_ogg=*/false, false), /*read_only=*/false, /*preserve_file_stats=*/false)) {
 		delete app;
 		delete padding;
 		return die_("iterator.init() returned false");
@@ -1001,7 +1025,7 @@ static bool test_level_1_()
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[P]PP\tprev\n");
@@ -1021,7 +1045,7 @@ static bool test_level_1_()
         if(iterator.status() != FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT)
                 return die_("iterator.status() should have been FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT");
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("[S]VPPP\tnext\n");
@@ -1049,7 +1073,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("S[V]PP\tnext\n");
@@ -1067,7 +1091,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	our_current_position--;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[P]P\tnext\n");
@@ -1080,7 +1104,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[P]\tprev\n");
@@ -1105,7 +1129,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.set_block(block, false)", iterator);
 	delete block;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("[S]VP\tnext\n");
@@ -1121,7 +1145,7 @@ static bool test_level_1_()
 		return false;
 	add_to_padding_length_(our_current_position+1, -((int)(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + (int)app->get_length()));
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]P\tnext\n");
@@ -1137,7 +1161,7 @@ static bool test_level_1_()
 		return false;
 	add_to_padding_length_(our_current_position+1, -((int)(FLAC__STREAM_METADATA_APPLICATION_ID_LEN/8) + (int)app->get_length()));
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (grow), don't expand into padding\n");
@@ -1149,7 +1173,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, false))
 		return die_ss_("iterator.set_block(app, false)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (shrink), don't fill in with padding\n");
@@ -1161,7 +1185,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, false))
 		return die_ss_("iterator.set_block(app, false)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (grow), expand into padding of exceeding size\n");
@@ -1174,7 +1198,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVA[A]P\tset APPLICATION (shrink), fill in with padding\n");
@@ -1189,7 +1213,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVA[A]PP\tnext\n");
@@ -1209,7 +1233,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(padding, false))
 		return die_ss_("iterator.set_block(padding, false)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVAAP[P]\tset APPLICATION (grow)\n");
@@ -1219,7 +1243,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, false))
 		return die_ss_("iterator.set_block(app, false)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVAAP[A]\tset PADDING (equal)\n");
@@ -1229,7 +1253,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(padding, false))
 		return die_ss_("iterator.set_block(padding, false)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVAAP[P]\tprev\n");
@@ -1242,7 +1266,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVA[A]P\tdelete (middle block), don't replace with padding\n");
@@ -1250,7 +1274,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]P\tnext\n");
@@ -1265,7 +1289,7 @@ static bool test_level_1_()
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVAP[P]\tprev\n");
@@ -1286,7 +1310,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PP\tset APPLICATION (grow), try to expand into padding which is 'close' but still too small\n");
@@ -1297,7 +1321,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PP\tset APPLICATION (grow), expand into padding which will leave 0-length pad\n");
@@ -1309,7 +1333,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PP\tset APPLICATION (grow), expand into padding which is exactly consumed\n");
@@ -1321,7 +1345,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]P\tset APPLICATION (grow), expand into padding which is exactly consumed\n");
@@ -1334,7 +1358,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(app, true))
 		return die_ss_("iterator.set_block(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]\tset PADDING (equal size)\n");
@@ -1344,7 +1368,7 @@ static bool test_level_1_()
 	if(!iterator.set_block(padding, true))
 		return die_ss_("iterator.set_block(padding, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[P]\tinsert PADDING after\n");
@@ -1353,7 +1377,7 @@ static bool test_level_1_()
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVP[P]\tinsert PADDING after\n");
@@ -1363,7 +1387,7 @@ static bool test_level_1_()
 	if(!insert_to_our_metadata_(padding, ++our_current_position, /*copy=*/true))
 		return false;
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SVPP[P]\tprev\n");
@@ -1389,7 +1413,7 @@ static bool test_level_1_()
 	if(!iterator.insert_block_after(app, true))
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PPP\tdelete (middle block), don't replace with padding\n");
@@ -1397,7 +1421,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("S[V]PPP\tinsert APPLICATION after, try to expand into padding which is 'close' but still too small\n");
@@ -1408,7 +1432,7 @@ static bool test_level_1_()
 	if(!iterator.insert_block_after(app, true))
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PPP\tdelete (middle block), don't replace with padding\n");
@@ -1416,7 +1440,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("S[V]PPP\tinsert APPLICATION after, expand into padding which is exactly consumed\n");
@@ -1428,7 +1452,7 @@ static bool test_level_1_()
 	if(!iterator.insert_block_after(app, true))
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PP\tdelete (middle block), don't replace with padding\n");
@@ -1436,7 +1460,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("S[V]PP\tinsert APPLICATION after, expand into padding which will leave 0-length pad\n");
@@ -1448,7 +1472,7 @@ static bool test_level_1_()
 	if(!iterator.insert_block_after(app, true))
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("SV[A]PP\tdelete (middle block), don't replace with padding\n");
@@ -1456,7 +1480,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("S[V]PP\tnext\n");
@@ -1469,7 +1493,7 @@ static bool test_level_1_()
 		return die_ss_("iterator.delete_block(false)", iterator);
 	delete_from_our_metadata_(our_current_position--);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 
 	printf("S[V]P\tinsert APPLICATION after, expand into padding which is exactly consumed\n");
@@ -1481,20 +1505,20 @@ static bool test_level_1_()
 	if(!iterator.insert_block_after(app, true))
 		return die_ss_("iterator.insert_block_after(app, true)", iterator);
 
-	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false))
+	if(!test_file_(/*is_ogg=*/false, /*ignore_metadata=*/false, false))
 		return false;
 	}
 
 	delete app;
 	delete padding;
 
-	if(!remove_file_(flacfilename(/*is_ogg=*/false)))
+	if(!remove_file_(flacfilename(/*is_ogg=*/false, false)))
 		return false;
 
 	return true;
 }
 
-static bool test_level_2_(bool filename_based, bool is_ogg)
+static bool test_level_2_(bool filename_based, bool is_ogg, bool to_different_file)
 {
 	FLAC::Metadata::Prototype *block;
 	FLAC::Metadata::StreamInfo *streaminfo;
@@ -1506,14 +1530,14 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	// initialize 'data' to avoid Valgrind errors
 	memset(data, 0, sizeof(data));
 
-	printf("\n\n++++++ testing level 2 interface (%s-based, %s FLAC)\n", filename_based? "filename":"callback", is_ogg? "Ogg":"native");
+	printf("\n\n++++++ testing level 2 interface (%s-based, %s FLAC, %s)\n", filename_based? "filename":"callback", is_ogg? "Ogg":"native", to_different_file? "Different file":"Same file");
 
 	printf("generate read-only file\n");
 
 	if(!generate_file_(/*include_extras=*/false, is_ogg))
 		return false;
 
-	if(!change_stats_(flacfilename(is_ogg), /*read_only=*/true))
+	if(!change_stats_(flacfilename(is_ogg, false), /*read_only=*/true))
 		return false;
 
 	printf("create chain\n");
@@ -1523,14 +1547,14 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 
 	printf("read chain\n");
 
-	if(!read_chain_(chain, flacfilename(is_ogg), filename_based, is_ogg))
+	if(!read_chain_(chain, flacfilename(is_ogg, false), filename_based, is_ogg))
 		return die_c_("reading chain", chain.status());
 
 	printf("[S]VP\ttest initial metadata\n");
 
 	if(!compare_chain_(chain, 0, 0))
 		return false;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, false))
 		return false;
 
 	if(is_ogg)
@@ -1538,7 +1562,7 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 
 	printf("switch file to read-write\n");
 
-	if(!change_stats_(flacfilename(is_ogg), /*read-only=*/false))
+	if(!change_stats_(flacfilename(is_ogg, false), /*read-only=*/false))
 		return false;
 
 	printf("create iterator\n");
@@ -1565,13 +1589,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 		return die_("copying object");
 	delete block;
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/true, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/true, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, true)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("[S]VP\tnext\n");
@@ -1598,13 +1622,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]\tshrink APPLICATION, don't use padding\n");
@@ -1617,13 +1641,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]\tgrow APPLICATION, don't use padding\n");
@@ -1636,13 +1660,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]\tgrow APPLICATION, use padding, but last block is not padding\n");
@@ -1655,13 +1679,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]\tshrink APPLICATION, use padding, last block is not padding, but delta is too small for new PADDING block\n");
@@ -1674,13 +1698,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]\tshrink APPLICATION, use padding, last block is not padding, delta is enough for new PADDING block\n");
@@ -1698,13 +1722,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]P\tshrink APPLICATION, use padding, last block is padding\n");
@@ -1718,13 +1742,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]P\tgrow APPLICATION, use padding, last block is padding, but delta is too small\n");
@@ -1737,13 +1761,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]P\tgrow APPLICATION, use padding, last block is padding of exceeding size\n");
@@ -1757,13 +1781,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]P\tgrow APPLICATION, use padding, last block is padding of exact size\n");
@@ -1777,13 +1801,13 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	if(!iterator.set_block(app))
 		return die_c_("iterator.set_block(app)", chain.status());
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	block = iterator.get_block();
 	if(!compare_chain_(chain, our_current_position, block))
 		return false;
 	delete block;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV[A]\tprev\n");
@@ -1904,11 +1928,11 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	delete_from_our_metadata_(4);
 	delete_from_our_metadata_(3);
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	if(!compare_chain_(chain, 0, 0))
 		return false;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SVPAP\tsort padding\n");
@@ -1916,11 +1940,11 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	add_to_padding_length_(4, FLAC__STREAM_METADATA_HEADER_LENGTH + our_metadata_.blocks[2]->get_length());
 	delete_from_our_metadata_(2);
 
-	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/true, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(true, false)", chain.status());
 	if(!compare_chain_(chain, 0, 0))
 		return false;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("create iterator\n");
@@ -2026,25 +2050,25 @@ static bool test_level_2_(bool filename_based, bool is_ogg)
 	printf("SV\tmerge padding\n");
 	chain.merge_padding();
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, false)", chain.status());
 	if(!compare_chain_(chain, 0, 0))
 		return false;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 	printf("SV\tsort padding\n");
 	chain.sort_padding();
 
-	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg)))
+	if(!write_chain_(chain, /*use_padding=*/false, /*preserve_file_stats=*/false, filename_based, flacfilename(is_ogg, false), to_different_file))
 		return die_c_("during chain.write(false, false)", chain.status());
 	if(!compare_chain_(chain, 0, 0))
 		return false;
-	if(!test_file_(is_ogg, /*ignore_metadata=*/false))
+	if(!test_file_(is_ogg, /*ignore_metadata=*/false, to_different_file))
 		return false;
 
 end:
-	if(!remove_file_(flacfilename(is_ogg)))
+	if(!remove_file_(flacfilename(is_ogg, false)))
 		return false;
 
 	return true;
@@ -2079,7 +2103,7 @@ static bool test_level_2_misc_(bool is_ogg)
 
 	printf("read chain (filename-based)\n");
 
-	if(!chain.read(flacfilename(is_ogg)))
+	if(!chain.read(flacfilename(is_ogg, false)))
 		return die_c_("reading chain", chain.status());
 
 	printf("write chain with wrong method Chain::write(with callbacks)\n");
@@ -2093,7 +2117,7 @@ static bool test_level_2_misc_(bool is_ogg)
 
 	printf("read chain (filename-based)\n");
 
-	if(!chain.read(flacfilename(is_ogg)))
+	if(!chain.read(flacfilename(is_ogg, false)))
 		return die_c_("reading chain", chain.status());
 
 	printf("write chain with wrong method Chain::write(with callbacks and tempfile)\n");
@@ -2107,7 +2131,7 @@ static bool test_level_2_misc_(bool is_ogg)
 
 	printf("read chain (callback-based)\n");
 	{
-		FILE *file = flac_fopen(flacfilename(is_ogg), "rb");
+		FILE *file = flac_fopen(flacfilename(is_ogg, false), "rb");
 		if(0 == file)
 			return die_("opening file");
 		if(!chain.read((::FLAC__IOHandle)file, callbacks)) {
@@ -2126,9 +2150,31 @@ static bool test_level_2_misc_(bool is_ogg)
 		printf("  OK: write() returned false,FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH like it should\n");
 	}
 
+
 	printf("read chain (callback-based)\n");
 	{
-		FILE *file = flac_fopen(flacfilename(is_ogg), "rb");
+		FILE *file = flac_fopen(flacfilename(is_ogg, false), "rb");
+		if(0 == file)
+			return die_("opening file");
+		if(!chain.read((::FLAC__IOHandle)file, callbacks)) {
+			fclose(file);
+			return die_c_("reading chain", chain.status());
+		}
+		fclose(file);
+	}
+
+	printf("write chain with wrong method write()\n");
+	{
+		if(chain.write(flacfilename(is_ogg, true),/*use_padding=*/false))
+			return die_c_("mismatched write should have failed", chain.status());
+		if(chain.status() != ::FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH)
+			return die_c_("expected FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH", chain.status());
+		printf("  OK: write() returned false,FLAC__METADATA_CHAIN_STATUS_READ_WRITE_MISMATCH like it should\n");
+	}
+
+	printf("read chain (callback-based)\n");
+	{
+		FILE *file = flac_fopen(flacfilename(is_ogg, false), "rb");
 		if(0 == file)
 			return die_("opening file");
 		if(!chain.read((::FLAC__IOHandle)file, callbacks)) {
@@ -2145,18 +2191,9 @@ static bool test_level_2_misc_(bool is_ogg)
 	else
 		return die_("Chain::check_if_tempfile_needed() returned true but shouldn't have");
 
-	printf("write chain with wrong method Chain::write(with callbacks and tempfile)\n");
-	{
-		if(chain.write(/*use_padding=*/false, 0, callbacks, 0, callbacks))
-			return die_c_("mismatched write should have failed", chain.status());
-		if(chain.status() != ::FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL)
-			return die_c_("expected FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL", chain.status());
-		printf("  OK: Chain::write(with callbacks and tempfile) returned false,FLAC__METADATA_CHAIN_STATUS_WRONG_WRITE_CALL like it should\n");
-	}
-
 	printf("read chain (callback-based)\n");
 	{
-		FILE *file = flac_fopen(flacfilename(is_ogg), "rb");
+		FILE *file = flac_fopen(flacfilename(is_ogg, false), "rb");
 		if(0 == file)
 			return die_("opening file");
 		if(!chain.read((::FLAC__IOHandle)file, callbacks)) {
@@ -2200,7 +2237,7 @@ static bool test_level_2_misc_(bool is_ogg)
 
 	} // delete iterator
 
-	if(!remove_file_(flacfilename(is_ogg)))
+	if(!remove_file_(flacfilename(is_ogg, false)))
 		return false;
 
 	return true;
@@ -2218,17 +2255,21 @@ bool test_metadata_file_manipulation()
 	if(!test_level_1_())
 		return false;
 
-	if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/false)) /* filename-based */
+	if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/false, /*to_different_file=*/false)) /* filename-based */
 		return false;
-	if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/false)) /* callback-based */
+	if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/false, /*to_different_file=*/false)) /* callback-based */
+		return false;
+	if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/false, /*to_different_file=*/true)) /* filename-based */
+		return false;
+	if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/false, /*to_different_file=*/true)) /* callback-based */
 		return false;
 	if(!test_level_2_misc_(/*is_ogg=*/false))
 		return false;
 
 	if(FLAC_API_SUPPORTS_OGG_FLAC) {
-		if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/true)) /* filename-based */
+		if(!test_level_2_(/*filename_based=*/true, /*is_ogg=*/true, /*to_different_file=*/false)) /* filename-based */
 			return false;
-		if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/true)) /* callback-based */
+		if(!test_level_2_(/*filename_based=*/false, /*is_ogg=*/true, /*to_different_file=*/false)) /* callback-based */
 			return false;
 #if 0
 		/* when ogg flac write is supported, will have to add this: */
