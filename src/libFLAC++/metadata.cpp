@@ -1619,6 +1619,12 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__metadata_chain_write(chain_, use_padding, preserve_file_stats));
 		}
 
+		bool Chain::write(const char* filename, bool use_padding)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__metadata_chain_write_new_file(chain_, filename, use_padding));
+		}
+
 		bool Chain::write(bool use_padding, ::FLAC__IOHandle handle, ::FLAC__IOCallbacks callbacks)
 		{
 			FLAC__ASSERT(is_valid());

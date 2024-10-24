@@ -788,9 +788,6 @@ typedef enum {
 	/**< FLAC__metadata_chain_write_with_callbacks() was called when the
 	 *   chain write requires a tempfile; use
 	 *   FLAC__metadata_chain_write_with_callbacks_and_tempfile() instead.
-	 *   Or, FLAC__metadata_chain_write_with_callbacks_and_tempfile() was
-	 *   called when the chain write does not require a tempfile; use
-	 *   FLAC__metadata_chain_write_with_callbacks() instead.
 	 *   Always check FLAC__metadata_chain_check_if_tempfile_needed()
 	 *   before writing via callbacks. */
 
@@ -927,11 +924,11 @@ FLAC_API FLAC__bool FLAC__metadata_chain_read_ogg_with_callbacks(FLAC__Metadata_
  *  edited metadata back to the FLAC file does not require rewriting the
  *  entire file.  If rewriting is required, then a temporary workfile is
  *  required.  When writing metadata using callbacks, you must check
- *  this function to know whether to call
- *  FLAC__metadata_chain_write_with_callbacks() or
- *  FLAC__metadata_chain_write_with_callbacks_and_tempfile().  When
- *  writing with FLAC__metadata_chain_write(), the temporary file is
- *  handled internally.
+ *  this function to know whether
+ *  FLAC__metadata_chain_write_with_callbacks() can be used or
+ *  FLAC__metadata_chain_write_with_callbacks_and_tempfile() is
+ *  necessary.  When  writing with FLAC__metadata_chain_write(), the
+ *  temporary file is handled internally.
  *
  * \param chain    A pointer to an existing chain.
  * \param use_padding
@@ -994,6 +991,28 @@ FLAC_API FLAC__bool FLAC__metadata_chain_check_if_tempfile_needed(FLAC__Metadata
  */
 FLAC_API FLAC__bool FLAC__metadata_chain_write(FLAC__Metadata_Chain *chain, FLAC__bool use_padding, FLAC__bool preserve_file_stats);
 
+/** Write all metadata out to a new FLAC file.
+ *
+ *  This function works similar to FLAC__metadata_chain_write(), but is
+ *  useful if writing to a new file is desired. This is more efficient
+ *  than copying the file before changing it.
+ *
+ *  For this write function to be used, the chain must have been read with
+ *  FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg(), not
+ *  FLAC__metadata_chain_read_with_callbacks()/FLAC__metadata_chain_read_ogg_with_callbacks().
+ *  See also FLAC__metadata_chain_write_with_callbacks_and_tempfile()
+ *
+ * \param chain               A pointer to an existing chain.
+ * \param use_padding         See FLAC__metadata_chain_write()
+ * \param filename            The filename of the new file.
+ * \assert
+ *    \code chain != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if the write succeeded, else \c false.  On failure,
+ *    check the status with FLAC__metadata_chain_status().
+ */
+FLAC_API FLAC__bool FLAC__metadata_chain_write_new_file(FLAC__Metadata_Chain *chain, const char *filename, FLAC__bool use_padding);
+
 /** Write all metadata out to a FLAC stream via callbacks.
  *
  *  (See FLAC__metadata_chain_write() for the details on how padding is
@@ -1035,7 +1054,8 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Cha
  *  FLAC file to edit, and a temporary handle to which the new FLAC
  *  file will be written.  It is the caller's job to move this temporary
  *  FLAC file on top of the original FLAC file to complete the metadata
- *  edit.
+ *  edit. This version of the write-with-callbacks function can also be
+ *  used if writing to a new file is desired anyway.
  *
  *  The \a handle must be open for reading and be seekable.  The
  *  equivalent minimum stdio fopen() file mode is \c "r" (or \c "rb"
@@ -1050,8 +1070,6 @@ FLAC_API FLAC__bool FLAC__metadata_chain_write_with_callbacks(FLAC__Metadata_Cha
  *  For this write function to be used, the chain must have been read with
  *  FLAC__metadata_chain_read_with_callbacks()/FLAC__metadata_chain_read_ogg_with_callbacks(),
  *  not FLAC__metadata_chain_read()/FLAC__metadata_chain_read_ogg().
- *  Also, FLAC__metadata_chain_check_if_tempfile_needed() must have returned
- *  \c true.
  *
  * \param chain        A pointer to an existing chain.
  * \param use_padding  See FLAC__metadata_chain_write()
