@@ -135,7 +135,7 @@ typedef struct {
 } Argument_DataFormat;
 
 typedef struct {
-	char *file_name;
+	const char *file_name;
 } Argument_FromFile;
 
 typedef struct {
@@ -212,6 +212,7 @@ typedef struct {
 	} args;
 	unsigned num_files;
 	char **filenames;
+	const char *output_name;
 } CommandLineOptions;
 
 void init_options(CommandLineOptions *options);

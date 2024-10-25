@@ -53,8 +53,13 @@ modification time is set to the current time):
 
 # OPTIONS
 
+**-o** *filename***, \--output-name=***filename*  
+:	Output to a new file instead of changing or rewriting the input
+	file.
+
 **\--preserve-modtime**  
-:	Preserve the original modification time in spite of edits.
+:	Preserve the original modification time in spite of edits. This does
+	nothing when -o or --output-name are specified.
 
 **\--with-filename**  
 :	Prefix each output line with the FLAC file name (the default if more

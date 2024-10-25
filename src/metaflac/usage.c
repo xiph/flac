@@ -60,7 +60,10 @@ static void usage_summary(FILE *out)
 	flac_fprintf(out, "You may perform one major operation, or many shorthand operations at a time.\n");
 	flac_fprintf(out, "\n");
 	flac_fprintf(out, "Options:\n");
+	flac_fprintf(out, "-o, --output-name=FILENAME   Write changes to a new file, instead of doing all\n");
+	flac_fprintf(out, "                             operations on the input files\n");
 	flac_fprintf(out, "--preserve-modtime    Preserve the original modification time in spite of edits\n");
+	flac_fprintf(out, "                      This option does nothing when combined with --output-name\n");
 	flac_fprintf(out, "--with-filename       Prefix each output line with the FLAC file name\n");
 	flac_fprintf(out, "                      (the default if more than one FLAC file is specified).\n");
 	flac_fprintf(out, "                      This option has no effect for options exporting to a\n");
