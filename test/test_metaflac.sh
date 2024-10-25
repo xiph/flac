@@ -31,6 +31,7 @@ fi
 
 testdir="metaflac-test-files"
 flacfile="metaflac1.flac"
+flacfile_secondary="metaflac2.flac"
 
 flac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find flac executable"
 metaflac${EXE} --help 1>/dev/null 2>/dev/null || die "ERROR can't find metaflac executable"
@@ -166,9 +167,18 @@ check_flac
 metaflac_test case02 "--add-padding" "--list"
 
 # some flavors of /bin/sh (e.g. Darwin's) won't even handle quoted spaces, so we underscore:
+run_metaflac -o $flacfile_secondary --set-tag="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile
+check_flac
+metaflac_test case02 "whether -o does not change input file" "--list"
+
 run_metaflac --set-tag="ARTIST=The_artist_formerly_known_as_the_artist..." $flacfile
 check_flac
 metaflac_test case03 "--set-tag=ARTIST" "--list"
+
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test case03 "-o --set-tag=ARTIST" "--list"
 
 run_metaflac --set-tag="ARTIST=Chuck_Woolery" $flacfile
 check_flac
@@ -215,9 +225,18 @@ run_metaflac --add-padding=0 $flacfile
 check_flac
 metaflac_test case18 "--add-padding=0" "--list"
 
+run_metaflac -o $flacfile_secondary --sort-padding $flacfile
+check_flac
+metaflac_test case18 "whether -o does not change input file" "--list"
+
 run_metaflac --sort-padding $flacfile
 check_flac
 metaflac_test case19 "--sort-padding" "--list"
+
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test case19 "-o --sort-padding" "--list"
 
 run_metaflac --add-padding=0 $flacfile
 check_flac
@@ -227,21 +246,57 @@ run_metaflac --remove-all-tags $flacfile
 check_flac
 metaflac_test case21 "--remove-all-tags" "--list"
 
+run_metaflac -o $flacfile_secondary --remove --block-number=1,99 --dont-use-padding $flacfile
+check_flac
+metaflac_test case21 "whether -o does not change input file" "--list"
+
 run_metaflac --remove --block-number=1,99 --dont-use-padding $flacfile
 check_flac
 metaflac_test case22 "--remove --block-number=1,99 --dont-use-padding" "--list"
+
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test case22 "-o --remove --block-number=1,99 --dont-use-padding" "--list"
+
+run_metaflac -o $flacfile_secondary --remove --block-number=99 --dont-use-padding $flacfile
+check_flac
+metaflac_test case22 "whether -o does not change input file" "--list"
 
 run_metaflac --remove --block-number=99 --dont-use-padding $flacfile
 check_flac
 metaflac_test case23 "--remove --block-number=99 --dont-use-padding" "--list"
 
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test case23 "-o --remove --block-number=99 --dont-use-padding" "--list"
+
+run_metaflac -o $flacfile_secondary --remove --block-type=PADDING $flacfile
+check_flac
+metaflac_test case23 "whether -o does not change input file" "--list"
+
 run_metaflac --remove --block-type=PADDING $flacfile
 check_flac
 metaflac_test case24 "--remove --block-type=PADDING" "--list"
 
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test case24 "-o --remove --block-type=PADDING" "--list"
+
+run_metaflac -o $flacfile_secondary --remove --block-type=PADDING --dont-use-padding $flacfile
+check_flac
+metaflac_test case24 "whether -o does not change input file" "--list"
+
 run_metaflac --remove --block-type=PADDING --dont-use-padding $flacfile
 check_flac
 metaflac_test case25 "--remove --block-type=PADDING --dont-use-padding" "--list"
+
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test case25 "-o --remove --block-type=PADDING --dont-use-padding" "--list"
 
 run_metaflac --add-padding=0 $flacfile $flacfile
 check_flac
@@ -462,17 +517,30 @@ fi
 if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO,SEEKTABLE,VORBIS_COMMENT $flacfile2" "--append $flacfile" ; then
 		:
 else
-        die "ERROR, couldn't add vorbis comment metadata block"
+        die "ERROR, couldn't append metadata block"
 fi
 
 metaflac_test_nofilter case66 "--append" "--list"
 
+if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO,SEEKTABLE,VORBIS_COMMENT $flacfile2" "-o $flacfile_secondary --append --block-number=0 $flacfile" ; then
+		:
+else
+        die "ERROR, couldn't insert metadata block"
+fi
+check_flac
+metaflac_test_nofilter case66 "whether -o does not change input file" "--list"
+
 if run_metaflac_to_metaflac_silent "--list --data-format=binary --except-block-type=STREAMINFO,SEEKTABLE,VORBIS_COMMENT $flacfile2" "--append --block-number=0 $flacfile" ; then
 		:
 else
-        die "ERROR, couldn't add vorbis comment metadata block"
+        die "ERROR, couldn't insert metadata block"
 fi
 
 metaflac_test_nofilter case67 "--append --block-number=0" "--list"
+
+rm $flacfile
+mv $flacfile_secondary $flacfile
+check_flac
+metaflac_test_nofilter case67 "-o --append --block-number=0" "--list"
 
 rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta

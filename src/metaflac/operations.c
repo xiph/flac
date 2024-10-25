@@ -169,7 +169,10 @@ FLAC__bool do_major_operation_on_file(const char *filename, const CommandLineOpt
 	if(ok && needs_write) {
 		if(options->use_padding)
 			FLAC__metadata_chain_sort_padding(chain);
-		ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
+		if(options->output_name == 0)
+			ok = FLAC__metadata_chain_write(chain, options->use_padding, options->preserve_modtime);
+		else
+			ok = FLAC__metadata_chain_write_new_file(chain, options->output_name, options->use_padding);
 		if(!ok) {
 			FLAC__Metadata_ChainStatus status = FLAC__metadata_chain_status(chain);
 			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
@@ -469,7 +472,10 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	if(ok && needs_write) {
 		if(use_padding)
 			FLAC__metadata_chain_sort_padding(chain);
-		ok = FLAC__metadata_chain_write(chain, use_padding, options->preserve_modtime);
+		if(options->output_name == 0)
+			ok = FLAC__metadata_chain_write(chain, use_padding, options->preserve_modtime);
+		else
+			ok = FLAC__metadata_chain_write_new_file(chain, options->output_name, use_padding);
 		if(!ok) {
 			FLAC__Metadata_ChainStatus status = FLAC__metadata_chain_status(chain);
 			print_error_with_chain_status(chain, "%s: ERROR: writing FLAC file", filename);
