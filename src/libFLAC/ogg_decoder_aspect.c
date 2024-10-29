@@ -654,7 +654,7 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
 						aspect->current_linknumber--;
 						aspect->linkdetails[aspect->current_linknumber].is_last = true;
-						return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
+						return FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
 					}
 					else {
 						/* We can end up here for three reasons:
