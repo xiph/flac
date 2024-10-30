@@ -1,0 +1,54 @@
+name: Build on MSYS2
+
+on: [ push, pull_request ]
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v4
+      - uses: msys2/setup-msys2@v2
+        with:
+          msystem: mingw64
+          install: autotools mingw-w64-x86_64-gcc mingw-w64-x86_64-libogg
+
+      - name: Install pandoc
+        run: |
+          choco install pandoc
+
+      - name: Build, run tests and prepare package
+        shell: msys2 {0}
+        run: |
+          PATH=$PATH:/c/ProgramData/chocolatey/bin/
+          ./autogen.sh
+          ./configure --enable-static --disable-shared # This is because the libtool helper script doesn't handle UTF-8 filenames correctly
+          make LDFLAGS='-all-static' # Otherwise ogg isn't linked statically
+          make check
+          mkdir flac
+          cp src/flac/flac.exe flac/flac.exe
+          cp src/metaflac/metaflac.exe flac/metaflac.exe
+          strip flac/*.exe
+          cp COPYING.* flac
+          cp AUTHORS flac
+          cp README* flac
+          cp man/*.html flac
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          path: |
+            ./**/*.log
+            ./**/out*.meta
+
+      - name: Package build
+        uses: actions/upload-artifact@v4
+        with:
+          name: flac-win64-static-${{ github.sha}}
+          path: flac

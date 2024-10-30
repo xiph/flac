@@ -1,4 +1,4 @@
-name: GitHub Actions for specific options
+name: Building with specific options
 
 on:
   push:
