@@ -213,6 +213,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 				}
 				break;
 		}
+		if(!decoder_valid) {
+			/* Try again if possible */
+			FLAC__StreamDecoderState state = FLAC__stream_decoder_get_state(decoder);
+			if(state != FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR && state != FLAC__STREAM_DECODER_ABORTED) {
+				FPRINTF_DEBUG_ONLY(stderr,"reset invalid\n");
+				decoder_valid = FLAC__stream_decoder_reset(decoder);
+			}
+		}
 	}
 
 	FLAC__stream_decoder_finish(decoder);
