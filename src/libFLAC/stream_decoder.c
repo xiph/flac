@@ -167,7 +167,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__uint64 last_seen_framesync; /* if tell callback works, the location of the last seen frame sync code, to rewind to if needed */
 	FLAC__uint64 target_sample;
 	uint32_t unparseable_frame_count; /* used to tell whether we're decoding a future version of FLAC or just got a bad sync */
-	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine to check when process_single() actually writes a frame */
+	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine and find_total_samples to check when process_single() actually writes a frame */
 	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
 	FLAC__bool error_has_been_sent; /* To check whether a missing frame has been signalled yet */
 } FLAC__StreamDecoderPrivate;
@@ -1336,6 +1336,129 @@ FLAC_API FLAC__bool FLAC__stream_decoder_seek_absolute(FLAC__StreamDecoder *deco
 		decoder->private_->is_seeking = false;
 		return ok;
 	}
+}
+
+FLAC_API FLAC__uint64 FLAC__stream_decoder_find_total_samples(FLAC__StreamDecoder *decoder)
+{
+	if(
+		decoder->protected_->state != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA &&
+		decoder->protected_->state != FLAC__STREAM_DECODER_READ_METADATA &&
+		decoder->protected_->state != FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC &&
+		decoder->protected_->state != FLAC__STREAM_DECODER_READ_FRAME &&
+		decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_STREAM
+	)
+		return 0;
+
+	if(
+		decoder->private_->length_callback == NULL ||
+		decoder->private_->seek_callback == NULL ||
+		decoder->private_->tell_callback == NULL
+	)
+		return 0;
+
+#if FLAC__HAS_OGG
+	if(decoder->private_->is_ogg && FLAC__ogg_decoder_aspect_get_decode_chained_stream(&decoder->protected_->ogg_decoder_aspect)) {
+		/* Keep moving forward until reaching end-of-stream */
+		uint32_t i;
+		FLAC__uint64 total_samples = 0;
+		decoder->private_->is_indexing = true;
+		while(1) {
+			FLAC__OggDecoderAspectReadStatus status;
+			if(decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM ||
+			   decoder->protected_->state == FLAC__STREAM_DECODER_OGG_ERROR ||
+			   decoder->protected_->state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR ||
+			   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
+				decoder->private_->is_indexing = false;
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+				return 0;
+			}
+			status = FLAC__ogg_decoder_aspect_skip_link(&decoder->protected_->ogg_decoder_aspect, read_callback_proxy_, decoder->private_->seek_callback, decoder->private_->tell_callback, decoder->private_->length_callback, decoder, decoder->private_->client_data);
+			if(status == FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM)
+				break;
+			else if(status != FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK) {
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+				return 0;
+			}
+		}
+		decoder->private_->is_indexing = false;
+		for(i = 0; i < decoder->protected_->ogg_decoder_aspect.number_of_links_indexed; i++) {
+			total_samples += decoder->protected_->ogg_decoder_aspect.linkdetails[i].samples;
+		}
+		return total_samples;
+	}
+	else
+#endif /* FLAC__HAS_OGG */
+	{ /* not decoding chained ogg */
+		FLAC__uint64 length;
+		FLAC__uint64 pos;
+		uint32_t eof_distance = 1024; /* Some number, needs tuning */
+		decoder->private_->is_seeking = true;
+		decoder->private_->target_sample = UINT64_MAX;
+		/* get the file length */
+		if(decoder->private_->length_callback(decoder, &length, decoder->private_->client_data) != FLAC__STREAM_DECODER_LENGTH_STATUS_OK) {
+			decoder->private_->is_indexing = false;
+			return 0;
+		}
+		pos = length;
+		for( ; ; eof_distance *= 2) {
+			if(eof_distance > (1u << FLAC__STREAM_METADATA_LENGTH_LEN)) {
+				/* Could not find a frame within a reasonable distance of EOF */
+				return 0;
+			}
+			else if(pos == 0) {
+				/* Did not find a frame while reading from the start of the file */
+				return 0;
+			}
+			else if(eof_distance > length) {
+				pos = 0;
+			}
+			else {
+				pos = length - eof_distance;
+			}
+
+			if(decoder->private_->seek_callback(decoder, pos, decoder->private_->client_data) != FLAC__STREAM_DECODER_SEEK_STATUS_OK) {
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+				return 0;
+			}
+			if(!FLAC__stream_decoder_flush(decoder)) {
+				/* above call sets the state for us */
+				return 0;
+			}
+
+			decoder->private_->got_a_frame = false;
+			if(!FLAC__stream_decoder_process_single(decoder) ||
+			   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+				return 0;
+			}
+			if(decoder->private_->got_a_frame) {
+				/* Found a frame, but we need the last frame and the frame before that, unless the last frame is
+				 * also the first frame */
+				if(decoder->private_->frame.header.number.sample_number > 0) {
+					/* For now, assume this is not the last frame, set blocksize, and continue.
+					 * If it turns out this is not the last frame, we'll start over anyway */
+					decoder->private_->fixed_block_size = decoder->private_->last_frame.header.blocksize;
+					if(!FLAC__stream_decoder_process_single(decoder) ||
+					   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
+						 decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+						return 0;
+					}
+					if(decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM) {
+						/* Found last frame, but need to find frame before that too */
+						continue;
+					}
+				}
+				if(!FLAC__stream_decoder_process_until_end_of_stream(decoder))
+					return 0;
+				FLAC__ASSERT(decoder->private_->is_seeking);
+				FLAC__ASSERT(decoder->private_->last_frame_is_set);
+				decoder->private_->is_seeking = false;
+				return (FLAC__uint64)decoder->private_->last_frame.header.number.sample_number + (FLAC__uint64)decoder->private_->last_frame.header.blocksize;
+
+			}
+		}
+	}
+	return 0;
 }
 
 /***********************************************************************
@@ -3395,9 +3518,8 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 
 		FLAC__ASSERT(frame->header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 
-#if FLAC__HAS_OGG
 		decoder->private_->got_a_frame = true;
-#endif
+
 		if(this_frame_sample <= target_sample && target_sample < next_frame_sample) { /* we hit our target frame */
 			uint32_t delta = (uint32_t)(target_sample - this_frame_sample);
 			/* kick out of seek mode */
@@ -3748,11 +3870,6 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
-/*
-			FLAC__stream_decoder_process_until_end_of_link(decoder);
-			if(decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_LINK)
-				FLAC__stream_decoder_finish_link(decoder);
-*/
 			status = FLAC__ogg_decoder_aspect_skip_link(&decoder->protected_->ogg_decoder_aspect, read_callback_proxy_, decoder->private_->seek_callback, decoder->private_->tell_callback, decoder->private_->length_callback, decoder, decoder->private_->client_data);
 			if(status == FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM)
 				decoder->protected_->state = FLAC__STREAM_DECODER_END_OF_STREAM;

@@ -995,6 +995,32 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_md5_checking(const FLAC__StreamDeco
  */
 FLAC_API FLAC__uint64 FLAC__stream_decoder_get_total_samples(const FLAC__StreamDecoder *decoder);
 
+/** Seek to the end of the file being decoded to find the total number
+ *  of samples. This will return a number of samples even if
+ *  FLAC__stream_decoder_get_total_samples() returns 0. It can also
+ *  be used to find the total number of samples of a chained stream,
+ *  as it returns the total number of samples in all chain links
+ *  combined. See FLAC__stream_decoder_set_decode_chained_stream()
+ *
+ *  For this function to work, the stream must be seekable. Also, as
+ *  seeking can fail, this function returns 0 when it was unable to
+ *  find the total number of samples. Use
+ *  FLAC__stream_decoder_get_state() in that case to find out whether
+ *  the decoder is still valid.
+ *
+ *  The state in which the decoder is left after calling this function
+ *  is undefined and might change in the future. Use
+ *  FLAC__stream_decoder_reset() to return the decoder to a defined
+ *  state.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval uint32_t
+ *    See above.
+ */
+FLAC_API FLAC__uint64 FLAC__stream_decoder_find_total_samples(FLAC__StreamDecoder *decoder);
+
 /** Get the current number of channels in the stream being decoded.
  *  Will only be valid after decoding has started and will contain the
  *  value from the most recently decoded frame header.

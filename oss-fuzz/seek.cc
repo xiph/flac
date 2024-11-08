@@ -195,9 +195,23 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 				FPRINTF_DEBUG_ONLY(stderr,"finish_link\n");
 				if(FLAC__stream_decoder_get_state(decoder) == FLAC__STREAM_DECODER_END_OF_LINK)
 					FLAC__stream_decoder_finish_link(decoder);
+				break;
 			case 11:
 				FPRINTF_DEBUG_ONLY(stderr,"skip_single_link\n");
 				decoder_valid = FLAC__stream_decoder_skip_single_link(decoder);
+				break;
+			case 12:
+				FPRINTF_DEBUG_ONLY(stderr,"find_total_samples\n");
+				if(FLAC__stream_decoder_find_total_samples(decoder) == 0) {
+					FLAC__StreamDecoderState state = FLAC__stream_decoder_get_state(decoder);
+					if(state == FLAC__STREAM_DECODER_OGG_ERROR ||
+					state == FLAC__STREAM_DECODER_SEEK_ERROR ||
+					state == FLAC__STREAM_DECODER_ABORTED ||
+					state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR ||
+					state == FLAC__STREAM_DECODER_UNINITIALIZED)
+						decoder_valid = false;
+				}
+				break;
 		}
 	}
 
