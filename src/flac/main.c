@@ -1410,14 +1410,13 @@ void show_help(void)
 	printf("      --force-aiff-c-none-format     Decode to AIFF-C NONE format\n");
 	printf("      --force-aiff-c-sowt-format     Decode to AIFF-C sowt format\n");
 	printf("      --force-raw-format             Treat input or output as raw samples\n");
-	printf("raw format options: (all options mandatory for encoding from raw input,\n");
-	printf("                   --sign and --endian are mandatory for decoding to raw output)\n");
-	printf("      --sign={signed|unsigned}       Sign of samples\n");
-	printf("      --endian={big|little}          Byte order for samples\n");
+	printf("raw format options:\n");
+	printf("      --sign={signed|unsigned}       Sign of samples (input/output) \n");
+	printf("      --endian={big|little}          Byte order for samples (input/output)\n");
 	printf("      --channels=#                   Number of channels in raw input\n");
 	printf("      --bps=#                        Number of bits per sample in raw input\n");
 	printf("      --sample-rate=#                Sample rate in Hz in raw input\n");
-	printf("      --input-size=#                 Size of the raw input in bytes\n");
+	printf("      --input-size=#                 Size in bytes of raw input from stdin\n");
 	printf("\n");
 	printf("Analysis options:\n");
 	printf("      --residual-text          Include residual signal in text output\n");
