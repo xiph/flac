@@ -65,6 +65,7 @@ static FLAC__StreamMetadata *expected_metadata_sequence_other_chain_[3];
 static uint32_t num_expected_;
 static uint32_t num_expected_other_chain_;
 static FLAC__off_t flacfilesize_;
+static uint32_t samples_;
 
 static const char *flacfilename(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 {
@@ -118,7 +119,7 @@ static FLAC__bool generate_file_(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 		expected_metadata_sequence_other_chain_[0] = &streaminfo_;
 		expected_metadata_sequence_other_chain_[1] = &vorbiscomment_;
 		expected_metadata_sequence_other_chain_[2] = &unknown_;
-		if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,true), &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_other_chain_+1, 2))
+		if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,true), &flacfilesize_, samples_, &streaminfo_, expected_metadata_sequence_other_chain_+1, 2))
 			return die_("creating the encoded file");
 		file_utils__ogg_serial_number++;
 		filesize=flacfilesize_;
@@ -135,7 +136,7 @@ static FLAC__bool generate_file_(FLAC__bool is_ogg, FLAC__bool is_chained_ogg)
 	expected_metadata_sequence_[num_expected_++] = &unknown_;
 	/* WATCHOUT: for Ogg FLAC the encoder should move the VORBIS_COMMENT block to the front, right after STREAMINFO */
 
-	if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,false), &flacfilesize_, 512 * 1024, &streaminfo_, expected_metadata_sequence_, num_expected_))
+	if(!file_utils__generate_flacfile(is_ogg, flacfilename(is_ogg,false), &flacfilesize_, samples_, &streaminfo_, expected_metadata_sequence_, num_expected_))
 		return die_("creating the encoded file");
 
 	if(is_chained_ogg) {
@@ -482,6 +483,7 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 	FLAC__StreamDecoderState state;
 	StreamDecoderClientData decoder_client_data;
 	FLAC__bool expect;
+	FLAC__uint64 total_samples;
 
 	decoder_client_data.layer = layer;
 	decoder_client_data.other_chain = false;
@@ -506,6 +508,72 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 		printf("FAILED, returned NULL\n");
 		return false;
 	}
+	printf("OK\n");
+
+	if(layer < LAYER_FILENAME) {
+		printf("opening %sFLAC file... ", is_ogg? "Ogg ":"");
+		open_test_file(&decoder_client_data, is_ogg, is_chained_ogg, "rb");
+		if(0 == decoder_client_data.file) {
+			printf("ERROR (%s)\n", strerror(errno));
+			return false;
+		}
+		printf("OK\n");
+	}
+
+	if(is_chained_ogg) {
+		printf("testing FLAC__stream_decoder_set_decode_chained_stream()... ");
+		if(!FLAC__stream_decoder_set_decode_chained_stream(decoder, true))
+			return die_s_("returned false", decoder);
+		printf("OK\n");
+	}
+
+	switch(layer) {
+		case LAYER_STREAM:
+			printf("testing FLAC__stream_decoder_init_%sstream()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_decoder_init_ogg_stream(decoder, stream_decoder_read_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*length_callback=*/0, /*eof_callback=*/0, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) :
+				FLAC__stream_decoder_init_stream(decoder, stream_decoder_read_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*length_callback=*/0, /*eof_callback=*/0, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data);
+			break;
+		case LAYER_SEEKABLE_STREAM:
+			printf("testing FLAC__stream_decoder_init_%sstream()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_decoder_init_ogg_stream(decoder, stream_decoder_read_callback_, stream_decoder_seek_callback_, stream_decoder_tell_callback_, stream_decoder_length_callback_, stream_decoder_eof_callback_, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) :
+				FLAC__stream_decoder_init_stream(decoder, stream_decoder_read_callback_, stream_decoder_seek_callback_, stream_decoder_tell_callback_, stream_decoder_length_callback_, stream_decoder_eof_callback_, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data);
+			break;
+		case LAYER_FILE:
+			printf("testing FLAC__stream_decoder_init_%sFILE()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_decoder_init_ogg_FILE(decoder, decoder_client_data.file, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) :
+				FLAC__stream_decoder_init_FILE(decoder, decoder_client_data.file, stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data);
+			break;
+		case LAYER_FILENAME:
+			printf("testing FLAC__stream_decoder_init_%sfile()... ", is_ogg? "ogg_":"");
+			init_status = is_ogg?
+				FLAC__stream_decoder_init_ogg_file(decoder, flacfilename(is_ogg,is_chained_ogg), stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data) :
+				FLAC__stream_decoder_init_file(decoder, flacfilename(is_ogg,is_chained_ogg), stream_decoder_write_callback_, stream_decoder_metadata_callback_, stream_decoder_error_callback_, &decoder_client_data);
+			break;
+		default:
+			die_("internal error 009");
+			return false;
+	}
+	if(init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK)
+		return die_s_(0, decoder);
+	printf("OK\n");
+
+	printf("testing FLAC__stream_decoder_find_total_samples... ");
+	total_samples = FLAC__stream_decoder_find_total_samples(decoder);
+	printf("Number of samples returned is %" PRIu64 "... ",total_samples);
+	if((layer == LAYER_STREAM && total_samples != 0) ||
+	   (layer != LAYER_STREAM && is_chained_ogg && total_samples != (samples_ * 2)) ||
+	   (layer != LAYER_STREAM && !is_chained_ogg && total_samples != samples_))
+		return die_s_("returned wrong number of samples", decoder);
+	printf("OK\n");
+
+	if(layer < LAYER_FILE) /* for LAYER_FILE, FLAC__stream_decoder_finish() closes the file */
+		fclose(decoder_client_data.file);
+
+	printf("testing FLAC__stream_decoder_finish()... ");
+	FLAC__stream_decoder_finish(decoder);
 	printf("OK\n");
 
 	switch(layer) {
@@ -1327,6 +1395,7 @@ FLAC__bool test_decoders(void)
 {
 	FLAC__bool is_ogg = false;
 	FLAC__bool is_chained_ogg = false;
+	samples_ = 1024 * 512;
 
 	while(1) {
 		init_metadata_blocks_();
