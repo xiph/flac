@@ -3,7 +3,7 @@ metadata.
 
 - For WAVE and RF64 files, ID "riff" (0x72696666) is used.
 - For AIFF and AIFF-C files, ID "aiff" (0x61696666) is used.
-- For Wave64 files, ID "w64 " (0x773634C0) is used.
+- For Wave64 files, ID "w64 " (0x77363420) is used.
 
 When converting one of the aforementioned filetypes to FLAC and storage
 of the foreign metadata is desired, all chunks are copied into metadata
