@@ -2,7 +2,7 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## git as of 5-10-2024
+## git as of 15-11-2024
 
 As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 14. The libFLAC++ version number is incremented to 11.
 
@@ -12,6 +12,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* The markdown tool documentation is now also converted to HTML, for bundling with systems that do not read manpages (e.g. Windows)
 	* Decoding of chained Ogg FLAC files is now possible (philippe44, Martijn van Beurden)
 	* Various fixes (Sam James, Miroslav Lichvar, Cristian Rodríguez, manxorist, kgroeneveld, Lee Carré, Jevin Sweval)
+	* Is is now possible in libFLAC, libFLAC++ and metaflac to write to a new file when changing metadata, instead of needing to overwrite an existing file
 * flac
 	* Testing mode (flac -t) now parses all metadata blocks and warns the user when ID3v1 metadata is detected
 	* A warning is displayed when frame numbers do not increase correctly throughout a file
@@ -25,6 +26,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Most level 0 metadata interface functions now also work with Ogg FLAC files
 	* When encoding Ogg FLAC files, the callback now returns a number of samples instead of always 0 (Jesper Larsson, ziplantil)
 	* When changing metadata, libFLAC now detects when an input file is a symlink, and will refuse to write data to it when an in-place rewrite of the metadata cannot happen
+   	* When encoding using seektable templates, unused seekpoints (with a sample number higher than the total number of samples) are converted to placeholders
 * Build system
 	* Fix building on Android with API version < 24 (Steve Lhomme)
 	* The microbench utility has been removed
