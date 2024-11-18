@@ -10,7 +10,8 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Multithreaded encoding is now possible in libFLAC and through the flac command line tool
 	* The GFDL license file is updated to version 1.3
 	* The markdown tool documentation is now also converted to HTML, for bundling with systems that do not read manpages (e.g. Windows)
-	* Decoding of chained Ogg FLAC files is now possible
+	* Decoding of chained Ogg FLAC files is now possible (philippe44, Martijn van Beurden)
+	* Various fixes (Sam James, Miroslav Lichvar, Cristian Rodríguez, manxorist, kgroeneveld, Lee Carré, Jevin Sweval)
 * flac
 	* Testing mode (flac -t) now parses all metadata blocks and warns the user when ID3v1 metadata is detected
 	* A warning is displayed when frame numbers do not increase correctly throughout a file
@@ -22,11 +23,12 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* An error is sent when a frame is missing
 	* The algorithm of the 'loose mid side' option has changed. Instead of checking every few frames which option is best and keeping that for the next few frames, a fast heuristic is now used. This was necessary to enable multithreading
 	* Most level 0 metadata interface functions now also work with Ogg FLAC files
-	* When encoding Ogg FLAC files, the callback now returns a number of samples instead of always 0
+	* When encoding Ogg FLAC files, the callback now returns a number of samples instead of always 0 (Jesper Larsson, ziplantil)
 	* When changing metadata, libFLAC now detects when an input file is a symlink, and will refuse to write data to it when an in-place rewrite of the metadata cannot happen
 * Build system
 	* Fix building on Android with API version < 24 (Steve Lhomme)
 	* The microbench utility has been removed
+	* Enable building with emscripten (werner mendizabal)
 * Testing/validation
 	* Improve fuzzing of allocation failures
 	* Various other fuzzing improvements
