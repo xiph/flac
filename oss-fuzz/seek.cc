@@ -35,6 +35,8 @@
 #include "common.h"
 
 int write_abort_check_counter = -1;
+int written_uncompressed_bytes = 0;
+int errors_received_counter = 0;
 
 #if 0 /* set to 1 to debug */
 #define FPRINTF_DEBUG_ONLY(...) fprintf(__VA_ARGS__)
@@ -46,7 +48,7 @@ int write_abort_check_counter = -1;
 
 static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 *const buffer[], void *client_data)
 {
-        (void)decoder, (void)frame, (void)buffer, (void)client_data;
+	(void)decoder, (void)buffer, (void)client_data;
 	if(write_abort_check_counter > 0) {
 		write_abort_check_counter--;
 		if(write_abort_check_counter == 0)
@@ -54,12 +56,22 @@ static FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *
 	} else if(write_abort_check_counter == 0)
 		/* This must not happen: write callback called after abort is returned */
 		abort();
+
+	written_uncompressed_bytes += frame->header.blocksize * frame->header.channels * frame->header.bits_per_sample / 8;
+	if(written_uncompressed_bytes > (1 << 24))
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+
+
+	if(errors_received_counter > 10000)
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+
         return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
 }
 
 static void error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus error, void *client_data)
 {
-        (void)decoder, (void)error, (void)client_data;
+	(void)decoder, (void)error, (void)client_data;
+	errors_received_counter++;
 }
 
 
@@ -80,6 +92,8 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	alloc_check_counter = 0;
 
 	write_abort_check_counter = -1;
+	written_uncompressed_bytes = 0;
+	errors_received_counter = 0;
 
 	/* allocate the decoder */
 	if((decoder = FLAC__stream_decoder_new()) == NULL) {
