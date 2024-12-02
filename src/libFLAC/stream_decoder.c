@@ -1552,6 +1552,11 @@ FLAC__bool allocate_output_(FLAC__StreamDecoder *decoder, uint32_t size, uint32_
 		decoder->private_->side_subframe = 0;
 	}
 
+	/* Only grow per-channel buffers, even if number of channels increases */
+	if(decoder->private_->output_capacity > size) {
+		size = decoder->private_->output_capacity;
+	}
+
 	for(i = 0; i < channels; i++) {
 		/* WATCHOUT:
 		 * FLAC__lpc_restore_signal_asm_ia32_mmx() and ..._intrin_sseN()
