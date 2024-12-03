@@ -776,7 +776,7 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 	else if(format == FORMAT_AIFF)
 		iff_size = 46 + foreign_metadata_size + aligned_data_size;
 	else /* AIFF-C */
-		iff_size = 16 + foreign_metadata_size + aligned_data_size + (fm?fm->aifc_comm_length:0);
+		iff_size = 16 + foreign_metadata_size + aligned_data_size + (fm?fm->aifc_comm_length:36);
 
 	if(format != FORMAT_WAVE64 && format != FORMAT_RF64 && iff_size >= 0xFFFFFFF4) {
 		flac__utils_printf(stderr, 1, "%s: ERROR: stream is too big to fit in a single %s file\n", decoder_session->inbasefilename, fmt_desc);
