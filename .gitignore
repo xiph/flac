@@ -57,6 +57,7 @@ src/test_seeking/test_seeking
 src/test_streams/test_streams
 stamp-h1
 test/*.aiff
+test/*.aifc
 test/*.cmp
 test/*.cue
 test/*.flac
