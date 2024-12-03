@@ -266,6 +266,34 @@ rt_test_aiff ()
 	rm -f rt.flac rt.aiff
 }
 
+rt_test_aifc ()
+{
+	f="$1"
+	extra="$2"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none -o rt.aifc --force-aiff-c-none-format $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f rt.aifc || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.aifc
+}
+
+rt_test_aifc_le ()
+{
+	f="$1"
+	extra="$2"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none -o rt.aifc --force-aiff-c-sowt-format $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f rt.aifc || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.aifc
+}
+
 rt_test_autokf ()
 {
 	f="$1"
@@ -328,6 +356,12 @@ for f in rt-*.rf64 ; do
 done
 for f in rt-*.aiff ; do
 	rt_test_aiff $f
+done
+for f in rt-*[0-9].aifc ; do
+	rt_test_aifc $f
+done
+for f in rt-*le.aifc ; do
+	rt_test_aifc_le $f
 done
 for f in rt-*.wav ; do
 	rt_test_flac $f

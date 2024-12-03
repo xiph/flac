@@ -747,7 +747,8 @@ foo:
 	return false;
 }
 
-static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples)
+/* flavor is: 0:AIFF, 1:AIFF-C NONE, 2:AIFF-C sowt */
+static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, int flavor)
 {
 	const unsigned bytes_per_sample = (bps+7)/8;
 	const unsigned true_size = channels * bytes_per_sample * samples;
@@ -765,10 +766,18 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		return false;
 	if(fwrite("FORM", 1, 4, f) < 4)
 		goto foo;
-	if(!write_big_endian_uint32(f, padded_size + 46))
-		goto foo;
-	if(fwrite("AIFFCOMM\000\000\000\022", 1, 12, f) < 12)
-		goto foo;
+	if(flavor == 0) {
+		if(!write_big_endian_uint32(f, padded_size + 46))
+			goto foo;
+		if(fwrite("AIFFCOMM\000\000\000\022", 1, 12, f) < 12)
+			goto foo;
+	}
+	else {
+		if(!write_big_endian_uint32(f, padded_size + 52))
+			goto foo;
+		if(fwrite("AIFCCOMM\000\000\000\030", 1, 12, f) < 12)
+			goto foo;
+	}
 	if(!write_big_endian_uint16(f, (FLAC__uint16)channels))
 		goto foo;
 	if(!write_big_endian_uint32(f, samples))
@@ -777,6 +786,14 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		goto foo;
 	if(!write_sane_extended(f, sample_rate))
 		goto foo;
+	if(flavor == 1) {
+		if(fwrite("NONE\000\000", 1, 6, f) < 6)
+			goto foo;
+	}
+	else if(flavor == 2) {
+		if(fwrite("sowt\000\000", 1, 6, f) < 6)
+			goto foo;
+	}
 	if(fwrite("SSND", 1, 4, f) < 4)
 		goto foo;
 	if(!write_big_endian_uint32(f, true_size + 8))
@@ -788,8 +805,14 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		for(j = 0; j < channels; j++) {
 			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 			FLAC__int32 v = ((FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8)) << shift;
-			if(!write_big_endian(f, v, bytes_per_sample))
-				goto foo;
+			if(flavor == 0 || flavor == 1) {
+				if(!write_big_endian(f, v, bytes_per_sample))
+					goto foo;
+			}
+			else {
+				if(!write_little_endian_signed(f, v, bytes_per_sample))
+					goto foo;
+			}
 		}
 	}
 	for(i = true_size; i < padded_size; i++)
@@ -1367,7 +1390,15 @@ int main(int argc, char *argv[])
 				char fn[64];
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.aiff", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples]))
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], 0))
+					return 1;
+
+				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.aifc", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], 1))
+					return 1;
+
+				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u-le.aifc", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], 2))
 					return 1;
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
