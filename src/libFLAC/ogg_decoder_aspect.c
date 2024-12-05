@@ -654,8 +654,6 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 					}
 				}
 				else { /* aspect->beginning_of_link == true */
-					/* Didn't seek, so move up left_pos */
-					left_pos = current_pos;
 					if(aspect->end_of_stream) {
 						if(aspect->current_linknumber == 0)
 							return FLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
@@ -681,6 +679,10 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 								return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
 							}
 							find_bos_twice = false;
+						}
+						if(!aspect->beginning_of_link) {
+							/* Done scanning BOS pages, move up left_pos */
+							left_pos = page_pos;
 						}
 					}
 				}
