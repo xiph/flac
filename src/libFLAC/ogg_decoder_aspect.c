@@ -646,8 +646,14 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 						/* We read from the left_pos but found nothing interesting, so we can move left_pos up */
 						left_pos = current_pos;
 					}
-					else if(did_a_seek)
-						right_pos = page_pos;
+					else if(did_a_seek) {
+						if(right_pos <= page_pos) {
+							/* Ended up somewhere we've already been */
+							seek_to_left_pos = true;
+						}
+						else
+							right_pos = page_pos;
+					}
 					else {
 						/* Read forward but found an unknown serial number */
 						return FLAC__OGG_DECODER_ASPECT_READ_STATUS_ERROR;
