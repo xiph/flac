@@ -170,6 +170,9 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine and find_total_samples to check when process_single() actually writes a frame */
 	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
 	FLAC__bool error_has_been_sent; /* To check whether a missing frame has been signalled yet */
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	uint32_t fuzzing_rewind_count; /* To stop excessive rewinding, as it causes timeouts */
+#endif
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -2511,6 +2514,9 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	decoder->private_->error_has_been_sent = false;
 
 	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC || decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM) {
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+		decoder->private_->fuzzing_rewind_count++; /* To stop excessive rewinding, as it causes timeouts */
+#endif
 		/* Got corruption, rewind if possible. Return value of seek
 		* isn't checked, if the seek fails the decoder will continue anyway */
 		if(!FLAC__bitreader_rewind_to_after_last_seen_framesync(decoder->private_->input)){
@@ -2542,6 +2548,9 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	}
 	else {
 		*got_a_frame = true;
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+		decoder->private_->fuzzing_rewind_count = 0;
+#endif
 
 		/* we wait to update fixed_block_size until here, when we're sure we've got a proper frame and hence a correct blocksize */
 		if(decoder->private_->next_fixed_block_size)
@@ -2853,11 +2862,14 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	if(FLAC__crc8(raw_header, raw_header_len) != crc8) {
+#else
+	if(decoder->private_->fuzzing_rewind_count > 32 && (FLAC__crc8(raw_header, raw_header_len) << 4) != (crc8 << 4)) {
+#endif
+
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER);
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
-#endif
 
 	/* calculate the sample number from the frame number if needed */
 	decoder->private_->next_fixed_block_size = 0;
