@@ -342,7 +342,7 @@ static bool write_chain_(FLAC::Metadata::Chain &chain, bool use_padding, bool pr
 
 		if(to_different_file || chain.check_if_tempfile_needed(use_padding)) {
 			struct flac_stat_s stats;
-			FILE *file, *tempfile;
+			FILE *file, *tempfile = 0;
 			char *tempfilename;
 			if(preserve_file_stats) {
 				if(!get_file_stats_(filename, &stats))

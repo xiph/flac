@@ -1,5 +1,3 @@
-cmake_minimum_required(VERSION 3.9)
-
 option(BUILD_DOXYGEN "Enable API documentation building via Doxygen if not already present" ON)
 
 if(NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/api")
