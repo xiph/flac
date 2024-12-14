@@ -128,7 +128,7 @@ Some common **encoding** tasks using flac:
 :	Like above, except abc.wav is deleted if there were no errors and no warnings.
 
 `flac --best abc.wav` or `flac -8 abc.wav`
-:	Encode abc.wav to abc.flac using the highest compression preset.  
+:	Encode abc.wav to abc.flac using the highest compression preset. 
 
 `flac --verify abc.wav` or `flac -V abc.wav`
 :	Encode abc.wav to abc.flac and internally decode abc.flac to make sure it matches abc.wav.
@@ -136,26 +136,43 @@ Some common **encoding** tasks using flac:
 `flac -o my.flac abc.wav`
 :	Encode abc.wav to my.flac.
 
-`flac -T "TITLE=Bohemian Rhapsody" -T "ARTIST=Queen" abc.wav`
-:	Encode abc.wav and add some tags at the same time, to abc.flac.
-
 `flac abc.aiff foo.rf64 bar.w64`
 :	Encode abc.aiff to abc.flac, foo.rf64 to foo.flac and bar.w64 to bar.flac
 
-`flac *.wav *.aif`
-:	Encode all .wav files and all .aif files in the current directory.
+`flac *.wav *.aif?`
+:	Wildcards are supported. This command will encode all .wav files and all 
+	.aif/.aiff/.aifc files (as well as other supported files ending in 
+ 	.aif+one character) in the current directory.
 
 `flac abc.flac --force` or `flac abc.flac -f`
-:	This one's a little tricky: notice that flac is in encode mode by
-	default (you have to specify -d to decode) so this command actually
-	recompresses abc.flac back to abc.flac. \--force is needed to make
-	sure you really want to overwrite abc.flac with a new version. Why
-	would you want to do this? It allows you to recompress an existing
+:	This one's a little tricky: because flac defaults to encode mode 
+	(you have to specify -d to decode), this command actually recompresses 
+	abc.flac back to abc.flac. To prevent against accidental overwrites, 
+	flac requires \--force or shortform -f to force overwriting. It will 
+	then write a temporary file, which afterwards replaces the old 
+	abc.flac (provided flac has write access to that file). 
+	Why would you want to do this? It allows you to recompress an existing
 	FLAC file with (usually) higher compression options or a newer
 	version of FLAC and preserve all the metadata like tags too.
  	Note: If the FLAC file does not end with .flac - say, it is abc.fla
-  	- then a new abc.flac will be created and the old kept, just like 
-   	for an uncompressed input file.
+	- then a new abc.flac will be created and the old kept, just like 
+	for an uncompressed input file.
+
+`flac --tag-from-file="ALBUM=albumtitle.txt" -T "ARTIST=Queen" *.wav`
+:	Encode every .wav file in the directory and add some tags. Every 
+	file will get the same set of tags.
+	Warning: Will wipe all existing tags, when when the input file is 
+	(Ogg) FLAC - not just those listed. Use the metaflac utility to tag
+	FLAC files.
+
+`flac --keep-foreign-metadata-if-present abc.wav`
+:	FLAC files can store non-audio chunks of input WAVE/AIFF/RF64/W64
+	files. The related option \--keep-foreign-metadata works the same
+	way, but will instead exit with an error if the input has no such 
+	non-audio chunks.
+	The encoder only stores the chunks as they are, it cannot import 
+	the content into its own tags (vorbis comments). To transfer such
+	tags from a source file, use tagging software which supports them.
 
 `flac -8Vfo Track04.flac -T "ARTIST=Queen" -- -4.wav`
 :	Options in their short version - those invoked with single dash - 
@@ -163,35 +180,44 @@ Some common **encoding** tasks using flac:
  	-T do, and so one of them requires its own dash. 
 	This command line takes the track -4.wav as input; its filename 
  	starts with a dash, so it needs the \-- to keep the encoder from
-  	taking the "4" as an option. All options must go before the --: 
-        It will overwrite any Track04.flac already present, encode with
+	taking the "4" as an option. All options must go before the --:
+	It will overwrite any Track04.flac already present, encode with
 	highest compression preset, decode to verify that it matches, and 
- 	a tag will be added. 
+	a tag will be added. 
 
 
 Some common **decoding** tasks using flac:
 
 `flac --decode abc.flac` or `flac -d abc.flac`
-:	Decode abc.flac to abc.wav. abc.flac is not deleted. NOTE: Without 
-	-d it would mean to re-encode abc.flac to abc.flac (see above) and 
- 	would err out because abc.flac already exists.
+:	Decode abc.flac to abc.wav. abc.flac is not deleted. If abc.wav is
+	already present, the process will exit with an error instead of 
+	overwriting; use --force / -f to force overwrite.
+	NOTE: A mere flac abc.flac *without --decode or its shortform -d*, 
+	would mean to re-encode abc.flac to abc.flac (see above), and that 
+	command would err out because abc.flac already exists.
 
 `flac -d --force-aiff-format abc.flac` or `flac -d -o abc.aiff abc.flac`
 :	Two different ways of decoding abc.flac to abc.aiff (AIFF format).
-	abc.flac is not deleted. -d -o could be concatenated to -do.
- 	The decoder can force other output formats, see the options below.
+	abc.flac is not deleted. -d -o could be shortened to -do.
+ 	The decoder can force other output formats, or different versions 
+	of the WAVE/AIFF formats, see the options below.
 
 `flac -d --keep-foreign-metadata-if-present abc.flac`
-:	FLAC files can store non-audio chunks of input WAVE/AIFF/RF64/W64
-	files. If there are such chunks stored, the decoder will select
- 	output format accordingly and restore both audio and non-audio.
-  	If there are no such chunks stored, it will decode to abc.wav.
-   	The related option \--keep-foreign-metadata will instead exit 
-    	with an error if no such non-audio chunks are found.
+:	If the FLAC file has non-audio chunks stored from the original
+	input file, this option will restore both audio and non-audio. 
+	The chunks will reveal the original file type, and the decoder 
+	will select output format and output file extension accordingly 
+	- note that this is not compatible with forcing a particular 
+	output format except if it coincides with the original, as the
+	decoder cannot transcode non-audio between formats.
+	If there are no such chunks stored, it will decode to abc.wav.
+	The related option \--keep-foreign-metadata will instead exit 
+	with an error if no such non-audio chunks are found.
 
 `flac -d -F abc.flac`
 :	Decode abc.flac to abc.wav and don't abort if errors are found
 	(useful for recovering as much as possible from corrupted files).
+
 
 
 # OPTIONS
@@ -202,28 +228,28 @@ the HTML documentation. Several of the options can be negated, see the
 
 ## GENERAL OPTIONS
 
-**-v, \--version**
+**-v**, **\--version**
 :	Show the flac version number, and quit.
 
-**-h, \--help**
+**-h**, **\--help**
 :	Show basic usage and a list of all options, and quit.
 
-**-d, \--decode**
+**-d**, **\--decode**
 :	Decode (the default behavior is to encode)
 
-**-t, \--test**
+**-t**, **\--test**
 :	Test a flac encoded file. This works the same as -d except no
-	decoded file is written, with some additional checks like parsing
+	decoded file is written, and with some additional checks like parsing
 	of all metadata blocks.
 
-**-a, \--analyze**
-:	Analyze a FLAC encoded file (same as -d except an analysis file is
-	written)
+**-a**, **\--analyze**
+:	Analyze a FLAC encoded file. This works the same as -d except the 
+	output is an analysis file, not a decoded file.
 
-**-c, \--stdout**
+**-c**, **\--stdout**
 :	Write output to stdout
 
-**-f, \--force**
+**-f**, **\--force**
 :	Force overwriting of output files. By default, flac warns that the
 	output file already exists and continues to the next file.
 
@@ -232,20 +258,20 @@ the HTML documentation. Several of the options can be negated, see the
 	decode. If there was an error (including a verify error) the input
 	file is left intact.
 
-**-o** _filename_, **\--output-name=** _filename_
+**-o** *FILENAME*, **\--output-name**=*FILENAME*
 :	Force the output file name (usually flac just changes the extension).
 	May only be used when encoding a single file. May not be used in
 	conjunction with \--output-prefix.
 
-**\--output-prefix=** _string_
+**\--output-prefix**=*STRING*
 :	Prefix each output file name with the given string. This can be
 	useful for encoding or decoding files to a different directory. Make
 	sure if your string is a path name that it ends with a trailing \`/'
 	(slash).
 
 **\--preserve-modtime**
-:	(default!) Output files have their timestamps/permissions set to 
-	match those of their inputs. Use \--no-preserve-modtime to make
+:	(Enabled by default.) Output files have their timestamps/permissions 
+	set to match those of their inputs. Use \--no-preserve-modtime to make
 	output files have the current time and default permissions.
 
 **\--keep-foreign-metadata**
@@ -259,66 +285,68 @@ the HTML documentation. Several of the options can be negated, see the
 
 **\--keep-foreign-metadata-if-present**
 :	Like \--keep-foreign-metadata, but without throwing an error if
-	foreign metadata cannot be found or restored.  Instead, prints a 
+	foreign metadata cannot be found or restored. Instead, prints a 
 	warning.
 
-**\--skip={**_\#_**\|**_mm:ss.ss_**}**
-:	Skip over the first number of samples of the input. This works for
-	both encoding and decoding, but not testing. The alternative form
-	mm:ss.ss can be used to specify minutes, seconds, and fractions of a
-	second.
-
-**\--until={**_\#_**\|\[**_+_**\|**_-_**\]**_mm:ss.ss_**}**
-:	Stop at the given sample number for each input file. This works for
-	both encoding and decoding, but not testing. The given sample number
-	is not included in the decoded output. The alternative form mm:ss.ss
-	can be used to specify minutes, seconds, and fractions of a second.
-	If a \`+' (plus) sign is at the beginning, the \--until point is
-	relative to the \--skip point. If a \`-' (minus) sign is at the
-	beginning, the \--until point is relative to end of the audio.
+**\--skip**={\#\|*MM:SS*}
+:	Skip over the first number of samples of the input. To skip over
+	a given time, specify instead minutes and seconds. Fractions of a
+	second can be specified, with locale-dependent decimal point, e.g.
+	\--skip=2:34,567 if your decimal point is a comma. 
+	The option is applied to each input file. 
+	This option cannot be used with -t. When used with -a, the analysis
+	file will enumerate frames from starting point.
+	
+**\--until**={\#\|\[+\|\]*MM:SS*}
+:	Stop at the given sample number (which is not included). A negative
+	number is taken relative to the end of the audio, a \`+' (plus) 
+	sign means that the \--until point is taken relative to the \--skip 
+	point. For other considerations, see \--skip. 
 
 **\--no-utf8-convert**
 :	Do not convert tags from local charset to UTF-8. This is useful for
 	scripts, and setting tags in situations where the locale is wrong.
 	This option must appear before any tag options!
 
-**-s, \--silent**
+**-s**, **\--silent**
 :	Silent mode (do not write runtime encode/decode statistics to stderr)
 
 **\--totally-silent**
 : Do not print anything of any kind, including warnings or errors. The
 	exit code will be the only way to determine successful completion.
 
-**-w, \--warnings-as-errors**
+**-w**, **\--warnings-as-errors**
 :	Treat all warnings as errors (which cause flac to terminate with a
 	non-zero exit code).
 
+
 ## DECODING OPTIONS
 
-**-F, \--decode-through-errors**
-:	By default flac stops decoding with an error and removes the
+**-F**, **\--decode-through-errors**
+:	By default flac stops decoding with an error message and removes the
 	partially decoded file if it encounters a bitstream error. With -F,
 	errors are still printed but flac will continue decoding to
 	completion. Note that errors may cause the decoded audio to be
 	missing some samples or have silent sections.
 
-**\--cue=\[**_\#.#_**\]\[-\[**_\#.#_**\]\]**
-:	Set the beginning and ending cuepoints to decode. The optional first
-	\#.# is the track and index point at which decoding will start; the
-	default is the beginning of the stream. The optional second \#.# is
-	the track and index point at which decoding will end; the default is
-	the end of the stream. If the cuepoint does not exist, the closest
-	one before it (for the start point) or after it (for the end point)
-	will be used. If those don't exist, the start of the stream (for the
-	start point) or end of the stream (for the end point) will be used.
-	The cuepoints are merely translated into sample numbers then used as
+**\--cue**=\[\#.#\]\[-\[\#.#\]\]
+:	Set the beginning and ending cuepoints to decode. Decimal points are
+	locale-dependent (dot or comma). The optional first \#.# is the track
+	and index point at which decoding will start; the default is the
+	beginning of the stream. The optional second \#.# is the track and
+	index point at which decoding will end; the default is the end of
+	the stream. If the cuepoint does not exist, the closest one before
+	it (for the start point) or after it (for the end point) will be
+	used. If those don't exist , the start of the stream (for the start
+	point) or end of the stream (for the end point) will be used. The
+	cuepoints are merely translated into sample numbers then used as
 	\--skip and \--until. A CD track can always be cued by, for example,
 	\--cue=9.1-10.1 for track 9, even if the CD has no 10th track.
 
 **--decode-chained-stream**
 : Decode all links in a chained Ogg stream, not just the first one.
 
-**\--apply-replaygain-which-is-not-lossless\[=\<specification\>\]**
+**\--apply-replaygain-which-is-not-lossless**\[=*SPECIFICATION*\]
 :	Applies ReplayGain values while decoding. **WARNING: THIS IS NOT
 	LOSSLESS. DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH
 	THIS OPTION.** This option is useful for example in transcoding
@@ -326,80 +354,83 @@ the HTML documentation. Several of the options can be negated, see the
 	details on the use of this option, see the section **ReplayGain
 	application specification**.
 
+
 ## ENCODING OPTIONS
 
 Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 
-**-V, \--verify**
+**-V**, **\--verify**
 :	Verify a correct encoding by decoding the output in parallel and
 	comparing to the original.
 
-**-0, \--compression-level-0, \--fast**
-:	Fastest compression preset. Synonymous with `-l 0 -b 1152 -r 3 --no-mid-side`
+**-0**, **\--compression-level-0**, **\--fast**
+:	Fastest compression preset. Currently synonymous with `-l 0 -b 1152 -r 3 --no-mid-side`
 
-**-1, \--compression-level-1**
-:	Synonymous with `-l 0 -b 1152 -M -r 3`
+**-1**, **\--compression-level-1**
+:	Currently synonymous with `-l 0 -b 1152 -M -r 3`
 
-**-2, \--compression-level-2**
-:	Synonymous with `-l 0 -b 1152 -m -r 3`
+**-2**, **\--compression-level-2**
+:	Currently synonymous with `-l 0 -b 1152 -m -r 3`
 
-**-3, \--compression-level-3**
-:	Synonymous with `-l 6 -b 4096 -r 4 --no-mid-side`
+**-3**, **\--compression-level-3**
+:	Currently synonymous with `-l 6 -b 4096 -r 4 --no-mid-side`
 
-**-4, \--compression-level-4**
+**-4**, **\--compression-level-4**
 :	Synonymous with `-l 8 -b 4096 -M -r 4`
 
-**-5, \--compression-level-5**
+**-5**, **\--compression-level-5**
 :	Synonymous with `-l 8 -b 4096 -m -r 5`
 
-**-6, \--compression-level-6**
-:	Synonymous with `-l 8 -b 4096 -m -r 6 -A "subdivide_tukey(2)"`
+**-6**, **\--compression-level-6**
+:	Currently synonymous with `-l 8 -b 4096 -m -r 6 -A "subdivide_tukey(2)"`
 
-**-7, \--compression-level-7**
-:	Synonymous with `-l 12 -b 4096 -m -r 6 -A "subdivide_tukey(2)"`
+**-7**, **\--compression-level-7**
+:	Currently synonymous with `-l 12 -b 4096 -m -r 6 -A "subdivide_tukey(2)"`
 
-**-8, \--compression-level-8, \--best**
-:	Synonymous with `-l 12 -b 4096 -m -r 6 -A "subdivide_tukey(3)"`
+**-8**, **\--compression-level-8**, **\--best**
+:	Currently synonymous with `-l 12 -b 4096 -m -r 6 -A "subdivide_tukey(3)"`
 
-**-l** _\#_**, \--max-lpc-order=**_\#_  
-:	Specifies the maximum LPC order. This number must be \<= 32. For
-	subset streams, it must be \<=12 if the sample rate is \<=48kHz. If
-	0, the encoder will not attempt generic linear prediction, and use
-	only fixed predictors. Using fixed predictors is faster but usually
-	results in files being 5-10% larger.
+**-l** \#, **\--max-lpc-order**=\#
+:	Specifies the maximum LPC order. This number must be \<= 32. 
+	For subset streams, it must be \<=12 if the sample rate is \<=48kHz. 
+	If 0, the encoder will not attempt generic linear prediction, and 
+	only choose among a set of fixed (hard-coded) predictors. Restricting 
+	to fixed predictors only is faster, but compresses weaker - typically 
+	five percentage points / ten percent larger files.
 
-**-b** _\#_**, \--blocksize=**_\#_  
-:	Specify the blocksize in samples. The default is 1152 for -l 0,
-	else 4096. Blocksize must be between 16 and 65535 (inclusive). 
- 	For subset streams it must be \<= 4608 if the samplerate is 
-  	\<= 48kHz, for subset streams with higher samplerates it must be \<=
-	16384.
+**-b** \#, **\--blocksize**=\#
+:	Specify the blocksize in samples. The current default is 1152 for 
+	-l 0, else 4096. Blocksize must be between 16 and 65535 (inclusive). 
+ 	For subset streams it must be \<= 4608 if the samplerate is \<= 48kHz,
+	for subset streams with higher samplerates it must be \<= 16384.
 
-**-m, \--mid-side**
-:	Try mid-side coding for each frame (stereo input only, otherwise ignored)
+**-m**, **\--mid-side**
+:	Try mid-side coding for each frame (stereo only, otherwise ignored).
 
-**-M, \--adaptive-mid-side**
-:	Adaptive mid-side coding for all frames (stereo input only, otherwise ignored)
+**-M**, **\--adaptive-mid-side**
+:	Adaptive mid-side coding for all frames (stereo only, otherwise ignored).
 
-**-r \[**_\#_**,\]**_\#_**, \--rice-partition-order=\[**_\#_**,\]**_\#_  
-:	Set the \[min,\]max residual partition order (0..15).  For subset streams 
-	max must be \<=8.  min defaults to 0 if unspecified. Default is -r 5.
+**-r** \[\#,\]\#, **\--rice-partition-order**=\[\#,\]\#
+:	Set the \[min,\]max residual partition order (0..15). For subset 
+	streams, max must be \<=8. min defaults to 0. Default is -r 5.
+	Actual partitioning will be restricted by block size and prediction 
+	order, and the encoder will silently reduce too high values. 
 
-**-A** _function_**, \--apodization=** _function_  
-:	Window audio data with given the apodization function(s). See section
-	**Apodization functions** for details.
+**-A** *FUNCTION(S)*, **\--apodization**=*FUNCTION(S)*
+:	Window audio data with given apodization function. More can be given, 
+	comma-separated. See section **Apodization functions** for details.
 
-**-e, \--exhaustive-model-search**
-:	Do exhaustive model search (expensive!)
+**-e**, **\--exhaustive-model-search**
+:	Do exhaustive model search (expensive!).
 
-**-q** _\#_**, \--qlp-coeff-precision=**_\#_  
-:	Precision of the quantized linear-predictor coefficients. This number must 
-	be in between 5 and 16, or 0 (default) =\> to encoder decide.  
+**-q** \#, **\--qlp-coeff-precision**=\#
+:	Precision of the quantized linear-predictor coefficients. This number 
+	must be in between 5 and 16, or 0 (the default) to let encoder decide. 
  	Does nothing if using -l 0. 
 
-**-p, \--qlp-coeff-precision-search**
+**-p**, **\--qlp-coeff-precision-search**
 :	Do exhaustive search of LP coefficient quantization (expensive!).
-	Overrides -q; does nothing if using -l 0
+	Overrides -q; does nothing if using -l 0.
 
 **\--lax**
 :	Allow encoder to generate non-Subset files. The resulting FLAC file
@@ -409,26 +440,28 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	archival.
 
 **\--limit-min-bitrate**
-:	Ensure a certain minimum bitrate. This is sometimes needed for 
-	streaming. 
+:	Limit minimum bitrate by not allowing frames consisting of only 
+	constant subframes. This ensures a bitrate of at least 1 bit/sample, 
+	for example 48kbit/s for 48kHz input. This is mainly useful for 
+	internet streaming.
 
-**-j** _\#_**, \--threads=**_\#_  
+**-j** \#, **\--threads**=\#
 :	Try to set a maximum number of threads to use for encoding. If
 	multithreading was not enabled on compilation or when setting a
 	number of threads that is too high, this fails with a warning. The
 	value of 0 means a default set by the encoder; currently that is 1 
  	thread (i.e. no multithreading), but that could change in the 
-  	future.  Currently, up to 128 threads are supported. Using a value 
-   	higher than the number of available CPU threads harms performance.
+	future. Currently, up to 128 threads are supported. Using a value 
+ 	higher than the number of available CPU threads harms performance.
 
 **\--ignore-chunk-sizes**
 :	When encoding to flac, ignore the file size headers in WAV and AIFF
 	files to attempt to work around problems with over-sized or malformed
 	files. WAV and AIFF files both specifies length of audio data with
  	an unsigned 32-bit number, limiting audio to just over 4 gigabytes. 
-  	Files larger than this are malformed, but should be read correctly 
-   	using this option. However, it could interpret any data following
-    	the audio chunk, as audio.
+	Files larger than this are malformed, but should be read correctly 
+ 	using this option. Beware however, it could misinterpret any data 
+	following the audio chunk, as audio.
 
 **\--replay-gain**
 :	Calculate ReplayGain values and store them as FLAC tags, similar to
@@ -444,53 +477,54 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	are processed. Note that this option cannot be used when encoding
 	to standard output (stdout).
 
-**\--cuesheet=**_filename_  
+**\--cuesheet**=*FILENAME*
 :	Import the given cuesheet file and store it in a CUESHEET metadata
 	block. This option may only be used when encoding a single file. A
 	seekpoint will be added for each index point in the cuesheet to the
 	SEEKTABLE unless \--no-cued-seekpoints is specified.
 
-**\--picture={**_FILENAME_**\|**_SPECIFICATION_**}**
+**\--picture**={*FILENAME\|SPECIFICATION*}
 :	Import a picture and store it in a PICTURE metadata block. More than
 	one \--picture option can be specified. Either a filename for the
 	picture file or a more complete specification form can be used. The
 	SPECIFICATION is a string whose parts are separated by \| (pipe)
 	characters. Some parts may be left empty to invoke default values.
 	FILENAME is just shorthand for "\|\|\|\|FILENAME". For the format of
-	SPECIFICATION, see the section **picture specification**.
+	SPECIFICATION, see the section **Picture specification**.
 
-**-S {**_\#_**\|**_X_**\|**_\#x_**\|**_\#s_**}, \--seekpoint={**_\#_**\|**_X_**\|**_\#x_**\|**_\#s_**}**
-:	Include a point or points in a SEEKTABLE. Using \#, a seek point at
-	that sample number is added. Using X, a placeholder point is added at
-	the end of a the table. Using \#x, \# evenly spaced seek points will
+**-S** {\#\|X\|\#x\|\#s}, **\--seekpoint**={\#\|X\|\#x\|\#s}
+:	Specifies point(s) to include in SEEKTABLE, to override the encoder's
+	default choice of one per ten seconds ('-s 10s'). Using \#, a seek point 
+	at that sample number is added. Using X, a placeholder point is added 
+	at the end of a the table. Using \#x, \# evenly spaced seek points will
 	be added, the first being at sample 0. Using \#s, a seekpoint will be
-	added every \# seconds (# does not have to be a whole number; it can
-	be, for example, 9.5, meaning a seekpoint every 9.5 seconds). You may
-	use many -S options; the resulting SEEKTABLE will be the unique-ified
-	union of all such values. With no -S options, flac defaults to
-	'-S 10s'. Use \--no-seektable for no SEEKTABLE. Note: '-S \#x' and
-	'-S \#s' will not work if the encoder can't determine the input size
-	before starting. Note: if you use '-S \#' and \# is \>= samples in
-	the input, there will be either no seek point entered (if the input
-	size is determinable before encoding starts) or a placeholder point
-	(if input size is not determinable).
+	added every \# seconds, where decimal points are locale-dependent, e.g. 
+	'-s 9.5s' or '-s 9,5s'. 
+	Several -S options may be given; the resulting SEEKTABLE will contain 
+	all seekpoints specified (duplicates removed).
+	Note: '-S \#x' and '-S \#s' will not work if the encoder cannot 
+	determine the input size before starting. Note: if you use '-S \#' with 
+	\# being \>= the number of samples in the input, there will be either no 
+	seek point entered (if the input size is determinable before encoding 
+	starts) or a placeholder point (if input size is not determinable).
+	Use \--no-seektable for no SEEKTABLE. 
 
-**-P** _\#_**, \--padding=**_\#_  
-:	(default: 8192 bytes, although 65536 for input audio above 20 minutes) 
+**-P** \#, **\--padding**=\#
+:	(Default: 8192 bytes, although 65536 for input above 20 minutes.) 
 	Tell the encoder to write a PADDING metadata block of the given
 	length (in bytes) after the STREAMINFO block. This is useful for 
  	later tagging, where one can write over the PADDING block instead 
-  	of having to rewrite the entire file. Note that a block header 
-        of 4 bytes will come on top of the length specified.
+	of having to rewrite the entire file. Note that a block header 
+	of 4 bytes will come on top of the length specified.
 
-**-T** "_FIELD=VALUE_"**, \--tag=**"_FIELD=VALUE_"  
+**-T** "*FIELD=VALUE*"**, \--tag**="*FIELD=VALUE*"
 :	Add a FLAC tag. The comment must adhere to the Vorbis comment spec;
 	i.e. the FIELD must contain only legal characters, terminated by an
-	'equals' sign. Make sure to quote the comment if necessary. This
-	option may appear more than once to add several comments. 
+	'equals' sign. Make sure to quote the content if necessary. This
+	option may appear more than once to add several Vorbis comments. 
  	NOTE: all tags will be added to all encoded files.
 
-**\--tag-from-file=**_FIELD=FILENAME_  
+**\--tag-from-file**="*FIELD=FILENAME*"
 :	Like \--tag, except FILENAME is a file whose contents will be read
 	verbatim to set the tag value. The contents will be converted to
 	UTF-8 from the local charset. This can be used to store a cuesheet
@@ -500,9 +534,9 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 
 ## FORMAT OPTIONS
 
-Encoding defaults to FLAC and not OGG.  Decoding defaults to WAVE (more
-specifically WAVE_FORMAT_PCM for mono/stereo with 8/16 bits, and to 
-WAVE_FORMAT_EXTENSIBLE otherwise), except: will be overridden by chunks 
+Encoding defaults to FLAC and not OGG. Decoding defaults to WAVE (more
+specifically WAVE\_FORMAT\_PCM for mono/stereo with 8/16 bits, and to 
+WAVE\_FORMAT\_EXTENSIBLE otherwise), except: will be overridden by chunks 
 found by \--keep-foreign-metadata-if-present or \--keep-foreign-metadata 
 
 **\--ogg**
@@ -513,7 +547,7 @@ found by \--keep-foreign-metadata-if-present or \--keep-foreign-metadata
 	Ogg FLAC. This is useful when piping input from stdin or when the
 	filename does not end in '.oga' or '.ogg'.
 
-**\--serial-number=**_\#_
+**\--serial-number**=\#
 :	When used with \--ogg, specifies the serial number to use for the
 	first Ogg FLAC stream, which is then incremented for each additional
 	stream. When encoding and no serial number is given, flac uses a
@@ -532,8 +566,8 @@ found by \--keep-foreign-metadata-if-present or \--keep-foreign-metadata
 
 **\--force-legacy-wave-format**  
 **\--force-extensible-wave-format**
-:	Instruct the decoder to output a WAVE file with WAVE_FORMAT_PCM and
-	WAVE_FORMAT_EXTENSIBLE respectively, overriding default choice.
+:	Instruct the decoder to output a WAVE file with WAVE\_FORMAT\_PCM and
+	WAVE\_FORMAT\_EXTENSIBLE respectively, overriding default choice.
 
 **\--force-aiff-c-none-format**  
 **\--force-aiff-c-sowt-format**
@@ -548,29 +582,30 @@ found by \--keep-foreign-metadata-if-present or \--keep-foreign-metadata
 
 When encoding from or decoding to raw PCM, format must be specified.
 
-**\--sign={**_signed_**\|**_unsigned_**}**
+**\--sign**={signed\|unsigned}
 :	Specify the sign of samples.
 
-**\--endian={**_big_**\|**_little_**}**
+**\--endian**={big\|little}
 :	Specify the byte order for samples
 
-**\--channels=**_\#_
-:	(Input only) specify number of channels.  For output, the channels 
-	of the FLAC file will be written interleaved. 
+**\--channels**=\#
+:	(Input only) specify number of channels. The channels must be 
+	interleaved, and in the order of the FLAC format (see the format
+	specification); the encoder (/decoder) cannot re-order channels.
 
-**\--bps=**_\#_
+**\--bps**=\#
 :	(Input only) specify bits per sample (per channel: 16 for CDDA.)
 
-**\--sample-rate=**_\#_
-:	(Input only) specify sample rate (in Hz).
+**\--sample-rate**=\#
+:	(Input only) specify sample rate (in Hz. Only integers supported.)
 
-**\--input-size=**_\#_
-:	(Input only) specify the size of the raw input in bytes.  This is only
-	compulsory when encoding from stdin and using options that need to 
- 	know the input size beforehand (like, \--skip, \--until, \--cuesheet )
+**\--input-size**=\#
+:	(Input only) specify the size of the raw input in bytes. This option
+	is only compulsory when encoding from stdin and using options that need
+ 	to know the input size beforehand (like, \--skip, \--until, \--cuesheet )
 	The encoder will truncate at the specified size if the input stream is
- 	bigger.  If the input stream is smaller, it will complain about an 
-  	unexpected end-of-file. 
+ 	bigger. If the input stream is smaller, it will complain about an 
+	unexpected end-of-file. 
 
 ## ANALYSIS OPTIONS
 
@@ -582,7 +617,6 @@ When encoding from or decoding to raw PCM, format must be specified.
 :	Generates a gnuplot file for every subframe; each file will contain
 	the residual distribution of the subframe. This will create a lot of
 	files. gnuplot must be installed separately. 
-
 
 ## NEGATIVE OPTIONS
 
@@ -608,7 +642,6 @@ The following will negate an option previously given:
 **\--no-silent**  
 **\--no-verify**  
 **\--no-warnings-as-errors**
-
 
 ## ReplayGain application specification
 The option \--apply-replaygain-which-is-not-lossless\[=\<specification\>\]
@@ -703,12 +736,10 @@ against the file for accuracy.
 FILE is the path to the picture file to be imported, or the URL if MIME
 type is \--\>
 
-For example, "\|image/jpeg\|\|\|../cover.jpg" will embed the JPEG file
-at ../cover.jpg, defaulting to type 3 (front cover) and an empty
-description. The resolution and color info will be retrieved from the
-file itself.
-
-The specification
+Specification examples: "\|image/jpeg\|\|\|../cover.jpg" will embed the 
+JPEG file at ../cover.jpg, defaulting to type 3 (front cover) and an 
+empty description. The resolution and color info will be retrieved 
+from the file itself. 
 "4\|\--\>\|CD\|320x300x24/173\|http://blah.blah/backcover.tiff" will
 embed the given URL, with type 4 (back cover), description "CD", and a
 manually specified resolution of 320x300, 24 bits-per-pixel, and 173
@@ -716,58 +747,54 @@ colors. The file at the URL will not be fetched; the URL itself is
 stored in the PICTURE metadata block.
 
 ## Apodization functions
-To improve LPC analysis, audio data is windowed . The window can be
-selected with one or more **-A** options. Possible functions are:
-bartlett, bartlett_hann, blackman, blackman_harris_4term_92db,
-connes, flattop, gauss(STDDEV), hamming, hann, kaiser_bessel, nuttall,
-rectangle, triangle, tukey(P), partial_tukey(n\[/ov\[/P\]\]),
-punchout_tukey(n\[/ov\[/P\]\]), subdivide_tukey(n\[/P\]) welch.
+To improve LPC analysis, the audio data is windowed. An **-A** option 
+applies the specified apodization function(s) instead of the default 
+(which is tukey(5e-1), though different for presets -6 to -8.)
+Specifying one more function effectively means, for each subframe, to 
+try another weighting of the data and see if it happens to result in a 
+smaller encoded subframe. Specifying several functions is time-expensive, 
+at typically diminishing compression gains. 
 
-- For gauss(STDDEV), STDDEV is the standard deviation (0\<STDDEV\<=0.5).
+The subdivide_tukey(*N*) functions (see below) used in presets -6 to -8 
+were developed to recycle calculations for speed, compared to using 
+a number of independent functions. Even then, a high number like *N*\>4 
+or 5, will often (though results vary with signal) become less 
+efficient than other options considered expensive, like the slower -p.
 
-- For tukey(P), P specifies the fraction of the window that is tapered
-(0\<=P\<=1; P=0 corresponds to "rectangle" and P=1 corresponds to
-"hann").
+Up to 32 functions can be given as comma-separated list and/or individual 
+**-A** options. Any mis-specified function is silently ignored. Depending 
+on shell, it may be necessary to escape parentheses. Currently the 
+following functions are implemented: bartlett, bartlett_hann, blackman, 
+blackman_harris_4term_92db, connes, flattop, gauss(*STDDEV*), hamming, 
+hann, kaiser_bessel, nuttall, rectangle, triangle, tukey(*P*), 
+partial_tukey(*N*\[/*OV*\[/*P*\]\]), punchout_tukey(*N*\[/*OV*\[/*P*\]\]), 
+subdivide_tukey(*N*\[/*P*\]), welch.
 
-- For partial_tukey(n) and punchout_tukey(n), n apodization functions are
-added that span different parts of each block. Values of 2 to 6 seem to
-yield sane results. If necessary, an overlap can be specified, as can be
-the taper parameter, for example partial_tukey(2/0.2) or
-partial_tukey(2/0.2/0.5). ov should be smaller than 1 and can be
-negative. The use of this is that different parts of a block are ignored
-as they might contain transients which are hard to predict anyway. The
-encoder will try each different added apodization (each covering a
-different part of the block) to see which resulting predictor results in
-the smallest representation.
+For parameters *P*, *STDDEV* and *OV*, scientific notation is supported, e.g. 
+tukey(5e-1). Otherwise, the decimal point must agree with the locale, 
+e.g. tukey(0.5) or tukey(0,5) depending on your system.
 
-- subdivide_tukey(n) is a more efficient reimplementation of partial_tukey
-and punchout_tukey taken together, recycling as much data as possible. It
-combines all possible non-redundant partial_tukey(n) and punchout_tukey(n)
-up to the n specified.  Specifying subdivide_tukey(3) is equivalent to
-specifying tukey, partial_tukey(2), partial_tukey(3) and punchout_tukey(3),
-specifying subdivide_tukey(5) equivalently adds partial_tukey(4),
-punchout_tukey(4), partial_tukey(5) and punchout_tukey(5). To be able to
-reuse data as much as possible, the tukey taper is taken equal for all
-windows, and the P specified is applied for the smallest used window.
-In other words, subdivide_tukey(2/0.5) results in a taper equal to that
-of tukey(0.25) and subdivide_tukey(5) in a taper equal to that of
-tukey(0.1). The default P for subdivide_tukey when none is specified is
-0.5.
+- For gauss(*STDDEV*), *STDDEV* is the standard deviation (0\<*STDDEV*\<=5e-1).
 
-Note that P, STDDEV and ov are locale specific, so a comma as
-decimal separator might be required instead of a dot. Use scientific
-notation for a locale-independent specification, for example
-tukey(5e-1) instead of tukey(0.5) or tukey(0,5).
+- For tukey(*P*), *P* (between 0 and 1) specifies the fraction of the window 
+that is cosine-tapered; *P*=0 corresponds to "rectangle" and *P*=1 to "hann". 
 
-More than one -A option (up to 32) may be used. Any function that is
-specified erroneously is silently dropped. The encoder chooses suitable
-defaults in the absence of any -A options; any -A option specified
-replaces the default(s).
+- partial_tukey(*N*) and punchout_tukey(*N*) are largely obsoleted by the 
+more time-effective subdivide_tukey(*N*), see next item. They generate n 
+functions each spanning a part of each block. Optional arguments are an 
+overlap *OV* (\<1, may be negative), for example partial_tukey(2/2e-1); 
+and then a taper parameter *P*, for example partial_tukey(2/2e-1/5e-1).
 
-When more than one function is specified, then for every subframe the
-encoder will try each of them separately and choose the window that
-results in the smallest compressed subframe. Multiple functions can
-greatly increase the encoding time.
+- subdivide_tukey(*N*) is a more efficient reimplementation of partial_tukey 
+and punchout_tukey taken together, combining the windows they would 
+generate up to the specified *N*. Specifying subdivide_tukey(3) entails a 
+tukey, a partial_tukey(2), a partial_tukey(3) and a punchout_tukey(3); 
+specifying subdivide_tukey(5) will on top of that add a partial_tukey(4), 
+a punchout_tukey(4), a partial_tukey(5) and a punchout_tukey(5) - but all 
+with tapering chosen to facilitate the re-use of computation. Thus the *P* 
+parameter (defaulting to 5e-1) is applied for the smallest used window:
+For example, subdivide_tukey(2/5e-1) results in the same taper as that of
+tukey(25e-2) and subdivide_tukey(5) in the same taper as of tukey(1e-1). 
 
 # SEE ALSO
 
