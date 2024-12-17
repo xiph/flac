@@ -41,17 +41,19 @@ the convention is that FLAC files have the extension ".flac"
 
 Before going into the full command-line description, a few other things
 help to sort it out:
-1. flac encodes by default, so you must use -d to decode
-2. the options -0 .. -8 (or \--fast and \--best) that control the
-   compression level actually are just synonyms for different groups of
-   specific encoding options (described later) and you can get the same
-   effect by using the same options. When specific options are specified
-   they take priority over the compression level no matter the order
-3. flac behaves similarly to gzip in the way it handles input and output
-   files
-4. the order in which options are specified is generally not important
+1.	flac encodes by default, so you must use -d to decode
+2.	Encoding options -0 .. -8 (or \--fast and \--best) that control the
+	compression level actually are just synonyms for different groups of
+	specific encoding options (described later).  
+3.	The order in which options are specified is generally not important 
+	except when they contradict each other, then the latter takes 
+	precedence except that compression presets are overridden by any
+	option given before or after. For example, -0M, -M0, -M2 and -2M are 
+	all the same as -1, and -l 12 -6 the same as -7.
+4.	flac behaves similarly to gzip in the way it handles input and output 
+	files
 
-Skip to the examples below for examples of some common tasks.
+Skip to the EXAMPLES section below for examples of some typical tasks.
 
 flac will be invoked one of four ways, depending on whether you are
 encoding, decoding, testing, or analyzing. Encoding is the default
@@ -116,7 +118,9 @@ the FLAC website.
 
 # EXAMPLES
 
-Some common **encoding** tasks using flac:
+Some typical encoding and decoding tasks using flac:
+
+## Encoding examples
 
 `flac abc.wav`
 :	Encode abc.wav to abc.flac using the default compression setting. abc.wav is not deleted.
@@ -145,25 +149,25 @@ Some common **encoding** tasks using flac:
  	.aif+one character) in the current directory.
 
 `flac abc.flac --force` or `flac abc.flac -f`
-:	This one's a little tricky: because flac defaults to encode mode 
-	(you have to specify -d to decode), this command actually recompresses 
-	abc.flac back to abc.flac. To prevent against accidental overwrites, 
-	flac requires \--force or shortform -f to force overwriting. It will 
-	then write a temporary file, which afterwards replaces the old 
-	abc.flac (provided flac has write access to that file). 
-	Why would you want to do this? It allows you to recompress an existing
-	FLAC file with (usually) higher compression options or a newer
-	version of FLAC and preserve all the metadata like tags too.
+:	Recompresses, keeping metadata like tags. The syntax is a little 
+	tricky: this is an *encoding* command (which is the default: you need 
+	to specify -d for decoded output), and will thus want to output the 
+	file abc.flac - which already exists. flac will require the \--force 
+	or shortform -f option to overwrite an existing file. Recompression 
+	will first write a temporary file, which afterwards replaces the old 
+	abc.flac (provided flac has write access to that file).
+	The above example uses default settings. More often, recompression is
+	combined with a different - usually higher - compression option.
  	Note: If the FLAC file does not end with .flac - say, it is abc.fla
-	- then a new abc.flac will be created and the old kept, just like 
-	for an uncompressed input file.
+	- the -f is not needed: A new abc.flac will be created and the old 
+	kept, just like for an uncompressed input file.
 
 `flac --tag-from-file="ALBUM=albumtitle.txt" -T "ARTIST=Queen" *.wav`
 :	Encode every .wav file in the directory and add some tags. Every 
 	file will get the same set of tags.
-	Warning: Will wipe all existing tags, when when the input file is 
-	(Ogg) FLAC - not just those listed. Use the metaflac utility to tag
-	FLAC files.
+	Warning: Will wipe all existing tags, when the input file is (Ogg) 
+	FLAC - not just those tags listed in the option. Use the metaflac 
+	utility to tag FLAC files.
 
 `flac --keep-foreign-metadata-if-present abc.wav`
 :	FLAC files can store non-audio chunks of input WAVE/AIFF/RF64/W64
@@ -174,19 +178,27 @@ Some common **encoding** tasks using flac:
 	the content into its own tags (vorbis comments). To transfer such
 	tags from a source file, use tagging software which supports them.
 
-`flac -8Vfo Track04.flac -T "ARTIST=Queen" -- -4.wav`
-:	Options in their short version - those invoked with single dash - 
-	can be concatenated until one that takes an argument: here -o and 
- 	-T do, and so one of them requires its own dash. 
-	This command line takes the track -4.wav as input; its filename 
- 	starts with a dash, so it needs the \-- to keep the encoder from
-	taking the "4" as an option. All options must go before the --:
-	It will overwrite any Track04.flac already present, encode with
-	highest compression preset, decode to verify that it matches, and 
-	a tag will be added. 
+`flac -Vj2 -m3fo Track07.flac  -- -7.wav`
+:	flac employs the commonplace convention that options in a short 
+	version - invoked with single dash - can be shortened together until 
+	one that takes an argument. Here -j and -o do, and after the "2" a 
+	whitespace is needed to start new options with single/double dash. 
+	The -m option does not, and the following "3" is the -3 compression
+	setting. The options could equally well have been written out as 
+	-V -j 2 -m -3 -f -o Track04.flac , or as -fo Track04.flac -3mVj2.  
+	flac also employs the convention that `-- ` (with whitespace!)  
+	signifies end of options, treating everything to follow as filename.
+	That is needed when an input filenames could otherwise be read as an
+	option, and "-7" is one such.
+	In total, this line takes the input file -7.wav as input; -o will 
+	give output filename as Track07.flac, and the -f will overwrite if 
+	the file Track04.flac is already present. The encoder will select 
+	encoding preset -3 modified with the -m switch, and use two CPU 
+	threads. Afterwards, the -V will make it decode the flac file and 
+	compare the audio to the input, to ensure they are indeed equal. 
 
 
-Some common **decoding** tasks using flac:
+## Decoding examples
 
 `flac --decode abc.flac` or `flac -d abc.flac`
 :	Decode abc.flac to abc.wav. abc.flac is not deleted. If abc.wav is
@@ -215,16 +227,23 @@ Some common **decoding** tasks using flac:
 	with an error if no such non-audio chunks are found.
 
 `flac -d -F abc.flac`
-:	Decode abc.flac to abc.wav and don't abort if errors are found
-	(useful for recovering as much as possible from corrupted files).
-
+:	Decode abc.flac to abc.wav and don't abort if errors are found.
+	This is potentially useful for recovering as much as possible from 
+	a corrupted file.
+	Note: Be careful about trying to "repair" files this way. Often it
+	will only conceal an error, and not play any subjectively "better"
+	than the corrupted file. It is a good idea to at least keep it,
+	and possibly try several decoders, including the one that generated 
+	the file, and hear if one has less detrimental audible errors than 
+	another. Make sure output volume is limited, as corrupted audio can
+	generate loud noises.
 
 
 # OPTIONS
 
-A summary of options is included below. For a complete description, see
-the HTML documentation. Several of the options can be negated, see the 
-**Negative options** section below.
+A summary of options is included below. Several of the options can be 
+negated, see the **Negative options** section below. 
+
 
 ## GENERAL OPTIONS
 
@@ -289,11 +308,12 @@ the HTML documentation. Several of the options can be negated, see the
 	warning.
 
 **\--skip**={\#\|*MM:SS*}
-:	Skip over the first number of samples of the input. To skip over
-	a given time, specify instead minutes and seconds. Fractions of a
+:	Skip the first number of samples of the input. To skip over a given
+	initial time, specify instead minutes and seconds: there must then 
+	be at least one digit on each side of the colon sign. Fractions of a 
 	second can be specified, with locale-dependent decimal point, e.g.
-	\--skip=2:34,567 if your decimal point is a comma. 
-	The option is applied to each input file. 
+	\--skip=123:9,867 if your decimal point is a comma. 
+	A \--skip option is applied to each input file if more are given. 
 	This option cannot be used with -t. When used with -a, the analysis
 	file will enumerate frames from starting point.
 	
@@ -376,10 +396,10 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 :	Currently synonymous with `-l 6 -b 4096 -r 4 --no-mid-side`
 
 **-4**, **\--compression-level-4**
-:	Synonymous with `-l 8 -b 4096 -M -r 4`
+:	Currently synonymous with `-l 8 -b 4096 -M -r 4`
 
 **-5**, **\--compression-level-5**
-:	Synonymous with `-l 8 -b 4096 -m -r 5`
+:	Currently synonymous with `-l 8 -b 4096 -m -r 5`
 
 **-6**, **\--compression-level-6**
 :	Currently synonymous with `-l 8 -b 4096 -m -r 6 -A "subdivide_tukey(2)"`
@@ -487,10 +507,10 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 :	Import a picture and store it in a PICTURE metadata block. More than
 	one \--picture option can be specified. Either a filename for the
 	picture file or a more complete specification form can be used. The
-	SPECIFICATION is a string whose parts are separated by \| (pipe)
+	*SPECIFICATION* is a string whose parts are separated by \| (pipe)
 	characters. Some parts may be left empty to invoke default values.
-	FILENAME is just shorthand for "\|\|\|\|FILENAME". For the format of
-	SPECIFICATION, see the section **Picture specification**.
+	Specifying only *FILENAME* is just shorthand for "\|\|\|\|FILENAME". 
+	See the section **Picture specification** for *SPECIFICATION* format.
 
 **-S** {\#\|X\|\#x\|\#s}, **\--seekpoint**={\#\|X\|\#x\|\#s}
 :	Specifies point(s) to include in SEEKTABLE, to override the encoder's
@@ -650,12 +670,9 @@ LOSSLESS. DECODED AUDIO WILL NOT BE IDENTICAL TO THE ORIGINAL WITH THIS
 OPTION.** This option is useful for example in transcoding media servers,
 where the client does not support ReplayGain.
 	
-The equals sign and \<specification\> is optional. If omitted, the
-default specification is 0aLn1.
-
 The \<specification\> is a shorthand notation for describing how to	apply
-ReplayGain. All components are optional but order is important. '\[\]'
-means 'optional'. '\|' means 'or'. '{}' means required. The format is: 
+ReplayGain. All elements are optional - defaulting to 0aLn1 - but order 
+is important.  The format is: 
 	
 \[\<preamp\>\]\[a\|t\]\[l\|L\]\[n{0\|1\|2\|3}\]
 
@@ -689,9 +706,9 @@ continue with a warning, and no ReplayGain is applied to that stream.
 
 ## Picture specification
 This described the specification used for the **\--picture** option.
-\[TYPE\]\|\[MIME-TYPE\]\|\[DESCRIPTION\]\|\[WIDTHxHEIGHTxDEPTH\[/COLORS\]\]\|FILE
+\[*TYPE*\]\|\[*MIME-TYPE*\]\|\[*DESCRIPTION*\]\|\[*WIDTHxHEIGHTxDEPTH*\[/*COLORS*\]\]\|*FILE*
 
-TYPE is optional; it is a number from one of:
+*TYPE* is optional; it is a number from one of:
 
 0. Other
 1. 32x32 pixels 'file icon' (PNG only)
@@ -718,25 +735,26 @@ TYPE is optional; it is a number from one of:
 The default is 3 (front cover). There may only be one picture each of
 type 1 and 2 in a file.
 
-MIME-TYPE is optional; if left blank, it will be detected from the file.
+*MIME-TYPE* is optional; if left blank, it will be detected from the file.
 For best compatibility with players, use pictures with MIME type
 image/jpeg or image/png. The MIME type can also be \--\> to mean that
 FILE is actually a URL to an image, though this use is discouraged.
 
-DESCRIPTION is optional; the default is an empty string.
+*DESCRIPTION* is optional; the default is an empty string.
 
 The next part specifies the resolution and color information. If the
-MIME-TYPE is image/jpeg, image/png, or image/gif, you can usually leave
+*MIME-TYPE* is image/jpeg, image/png, or image/gif, you can usually leave
 this empty and they can be detected from the file. Otherwise, you must
 specify the width in pixels, height in pixels, and color depth in
 bits-per-pixel. If the image has indexed colors you should also specify
 the number of colors used. When manually specified, it is not checked
 against the file for accuracy.
 
-FILE is the path to the picture file to be imported, or the URL if MIME
+*FILE* is the path to the picture file to be imported, or the URL if MIME
 type is \--\>
 
-Specification examples: "\|image/jpeg\|\|\|../cover.jpg" will embed the 
+**Specification examples:** 
+"\|image/jpeg\|\|\|../cover.jpg" will embed the 
 JPEG file at ../cover.jpg, defaulting to type 3 (front cover) and an 
 empty description. The resolution and color info will be retrieved 
 from the file itself. 
@@ -749,26 +767,26 @@ stored in the PICTURE metadata block.
 ## Apodization functions
 To improve LPC analysis, the audio data is windowed. An **-A** option 
 applies the specified apodization function(s) instead of the default 
-(which is tukey(5e-1), though different for presets -6 to -8.)
+(which is "tukey(5e-1)", though different for presets -6 to -8.)
 Specifying one more function effectively means, for each subframe, to 
 try another weighting of the data and see if it happens to result in a 
 smaller encoded subframe. Specifying several functions is time-expensive, 
 at typically diminishing compression gains. 
 
 The subdivide_tukey(*N*) functions (see below) used in presets -6 to -8 
-were developed to recycle calculations for speed, compared to using 
-a number of independent functions. Even then, a high number like *N*\>4 
-or 5, will often (though results vary with signal) become less 
-efficient than other options considered expensive, like the slower -p.
+were developed to recycle calculations for speed, compared to using a 
+number of independent functions. Even then, a high number like *N*\>4 
+or 5, will often become less efficient than other options considered 
+expensive, like the slower -p, though results vary with signal.
 
 Up to 32 functions can be given as comma-separated list and/or individual 
-**-A** options. Any mis-specified function is silently ignored. Depending 
-on shell, it may be necessary to escape parentheses. Currently the 
-following functions are implemented: bartlett, bartlett_hann, blackman, 
-blackman_harris_4term_92db, connes, flattop, gauss(*STDDEV*), hamming, 
-hann, kaiser_bessel, nuttall, rectangle, triangle, tukey(*P*), 
-partial_tukey(*N*\[/*OV*\[/*P*\]\]), punchout_tukey(*N*\[/*OV*\[/*P*\]\]), 
-subdivide_tukey(*N*\[/*P*\]), welch.
+**-A** options. Any mis-specified function is silently ignored. Quoting 
+a function which takes options (and has parentheses) may be necessary, 
+depending on shell. Currently the following functions are implemented: 
+bartlett, bartlett_hann, blackman, blackman_harris_4term_92db, connes, 
+flattop, gauss(*STDDEV*), hamming, hann, kaiser_bessel, nuttall, 
+rectangle, triangle, tukey(*P*), partial_tukey(*N*\[/*OV*\[/*P*\]\]), 
+punchout_tukey(*N*\[/*OV*\[/*P*\]\]), subdivide_tukey(*N*\[/*P*\]), welch.
 
 For parameters *P*, *STDDEV* and *OV*, scientific notation is supported, e.g. 
 tukey(5e-1). Otherwise, the decimal point must agree with the locale, 
