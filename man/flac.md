@@ -185,8 +185,8 @@ Some typical encoding and decoding tasks using flac:
 	whitespace is needed to start new options with single/double dash. 
 	The -m option does not, and the following "3" is the -3 compression
 	setting. The options could equally well have been written out as 
-	-V -j 2 -m -3 -f -o Track04.flac , or as -fo Track04.flac -3mVj2.  
-	flac also employs the convention that `-- ` (with whitespace!)  
+	-V -j 2 -m -3 -f -o Track04.flac , or as -fo Track04.flac -3mVj2. 
+	flac also employs the convention that `-- ` (with whitespace!) 
 	signifies end of options, treating everything to follow as filename.
 	That is needed when an input filenames could otherwise be read as an
 	option, and "-7" is one such.
