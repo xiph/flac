@@ -41,6 +41,7 @@ the convention is that FLAC files have the extension ".flac"
 
 Before going into the full command-line description, a few other things
 help to sort it out:
+
 1.	flac encodes by default, so you must use -d to decode
 2.	Encoding options -0 .. -8 (or \--fast and \--best) that control the
 	compression level actually are just synonyms for different groups of
