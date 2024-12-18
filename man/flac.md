@@ -799,7 +799,7 @@ e.g. tukey(0.5) or tukey(0,5) depending on your system.
 that is cosine-tapered; *P*=0 corresponds to "rectangle" and *P*=1 to "hann". 
 
 - partial_tukey(*N*) and punchout_tukey(*N*) are largely obsoleted by the 
-more time-effective subdivide_tukey(*N*), see next item. They generate n 
+more time-effective subdivide_tukey(*N*), see next item. They generate *N* 
 functions each spanning a part of each block. Optional arguments are an 
 overlap *OV* (\<1, may be negative), for example partial_tukey(2/2e-1); 
 and then a taper parameter *P*, for example partial_tukey(2/2e-1/5e-1).
