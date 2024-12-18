@@ -2,7 +2,7 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## git as of 15-11-2024
+## git as of 18-12-2024
 
 As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 14. The libFLAC++ version number is incremented to 11.
 
@@ -17,7 +17,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Testing mode (flac -t) now parses all metadata blocks and warns the user when ID3v1 metadata is detected
 	* A warning is displayed when frame numbers do not increase correctly throughout a file
 	* The explain option (-H or --explain) is now removed, use the manpage or html tool documentation instead
-	* Built-in help is improved (H2Swine)
+	* Built-in help and tool documentation are improved (H2Swine)
 	* When re-encoding a FLAC file from an existing FLAC file, a check is added that the MD5 sums of both files are the same
 * libFLAC and libFLAC++
 	* The library interfaces have been extended. See the porting guide ***TODO TODO TODO***
@@ -31,6 +31,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Fix building on Android with API version < 24 (Steve Lhomme)
 	* The microbench utility has been removed
 	* Enable building with emscripten (werner mendizabal)
+	* Minimum CMake version required (when building with CMake) is now formally 3.12
 * Testing/validation
 	* Improve fuzzing of allocation failures
 	* Various other fuzzing improvements
