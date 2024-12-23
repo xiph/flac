@@ -444,14 +444,14 @@
  *
  * \section porting_1_4_3_to_1_5_0_summary Summary
  *
- * Between FLAC 1.3.4 and FLAC 1.5.0, there has been changes to
+ * Between FLAC 1.3.4 and FLAC 1.5.0, there have been changes to
  * existing functions and enums:
  * - the functions FLAC__metadata_get_streaminfo,
  *   FLAC__metadata_get_tags and FLAC__metadata_get_cuesheet can now
  *   read from Ogg FLAC files
  * - when encoding Ogg FLAC files, the 'samples' argument of the
  *   write callback no longer always returns 0.
- * - two error statusses have been added to the
+ * - two error statuses have been added to the
  *   FLAC__StreamDecoderErrorStatus enum
  * - one status is added to FLAC__StreamDecoderState, which is only
  *   used when the new decoding of chained streams functionality is
@@ -472,7 +472,7 @@
  *   FLAC__stream_decoder_process_until_end_of_link have been added
  *   to support decoding of chained streams
  * - the function FLAC__metadata_chain_write_new_file has been added,
- *   which is useful to combine copying of a file with chainging its
+ *   which is useful to combine copying of a file with chaining its
  *   metadata
  * - the function FLAC__stream_decoder_find_total_samples was added,
  *   which seeks to the end of a file to find the total number of
