@@ -3036,13 +3036,14 @@ FLAC__StreamEncoderWriteStatus write_frame_(FLAC__StreamEncoder *encoder, const 
 	 * Watch for the STREAMINFO block and first SEEKTABLE block to go by and store their offsets.
 	 */
 	if(samples == 0) {
+		FLAC__MetadataType type = (buffer[0] & 0x7f);
+
 		/* FLAC__STREAM_ENCODER_TELL_STATUS_UNSUPPORTED just means we didn't get the offset; no error */
 		if(encoder->private_->tell_callback && encoder->private_->tell_callback(encoder, &output_position, encoder->private_->client_data) == FLAC__STREAM_ENCODER_TELL_STATUS_ERROR) {
 			encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 			return FLAC__STREAM_ENCODER_WRITE_STATUS_FATAL_ERROR;
 		}
 
-		FLAC__MetadataType type = (buffer[0] & 0x7f);
 		if(type == FLAC__METADATA_TYPE_STREAMINFO)
 			encoder->protected_->streaminfo_offset = output_position;
 		else if(type == FLAC__METADATA_TYPE_SEEKTABLE && encoder->protected_->seektable_offset == 0)
