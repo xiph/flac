@@ -35,10 +35,10 @@ EXTRA_DIST = \
 noinst_PROGRAMS =
 
 if USE_OSSFUZZERS
-noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder fuzzer_tool_metaflac
+noinst_PROGRAMS += fuzzer_encoder fuzzer_encoder_v2 fuzzer_decoder fuzzer_seek fuzzer_metadata fuzzer_reencoder
 if FLaC__CPU_IA32
 else
-noinst_PROGRAMS += fuzzer_tool_flac
+noinst_PROGRAMS += fuzzer_tool_metaflac fuzzer_tool_flac
 endif
 endif
 
