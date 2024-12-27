@@ -70,7 +70,7 @@
 #define FLAC__OFF_T_MAX LONG_MAX
 #else
 #define FLAC__off_t off_t
-#define FLAC__OFF_T_MAX OFF_T_MAX
+#define FLAC__OFF_T_MAX (sizeof(off_t) == sizeof(int64_t) ? INT64_MAX : sizeof(off_t) == sizeof(int32_t) ? INT32_MAX : -999999)
 #endif
 #endif
 
