@@ -2915,6 +2915,9 @@ FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 	static uint8_t dump[8192];
 	struct flac_stat_s stb;
 
+	if(offset > (FLAC__uint64)FLAC__OFF_T_MAX)
+		return false;
+
 	if(flac_fstat(fileno(f), &stb) == 0 && (stb.st_mode & S_IFMT) == S_IFREG)
 	{
 		if(fseeko(f, offset, SEEK_CUR) == 0)
