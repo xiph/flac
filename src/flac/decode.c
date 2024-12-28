@@ -1293,6 +1293,15 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		}
 	}
 
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	if(decoder_session->samples_processed > (1 << 23)) {
+			decoder_session->abort_flag = true;
+			decoder_session->aborting_due_to_until = true;
+			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+#endif
+
+
 	if(decoder_session->analysis_mode && decoder_session->decode_position_valid) {
 		FLAC__uint64 dpos;
 		if(!FLAC__stream_decoder_get_decode_position(decoder_session->decoder, &dpos))
