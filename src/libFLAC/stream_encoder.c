@@ -4721,13 +4721,14 @@ uint32_t find_best_partition_order_(
 		uint32_t sum;
 
 		for(partition_order = (int)max_partition_order, sum = 0; partition_order >= (int)min_partition_order; partition_order--) {
+			FLAC__ASSERT(do_escape_coding != /* XOR */ (raw_bits_per_partition == NULL));
 			if(!
 				set_partitioned_rice_(
 #ifdef EXACT_RICE_BITS_CALCULATION
 					residual,
 #endif
 					abs_residual_partition_sums+sum,
-					raw_bits_per_partition+sum,
+					do_escape_coding ? raw_bits_per_partition+sum : NULL,
 					residual_samples,
 					predictor_order,
 					rice_parameter_limit,
