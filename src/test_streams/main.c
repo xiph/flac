@@ -125,11 +125,11 @@ static FLAC__bool write_little_endian_uint64(FILE *f, FLAC__uint64 x)
 static FLAC__bool write_big_endian(FILE *f, FLAC__int32 x, size_t bytes)
 {
 	if(bytes < 4)
-		x <<= 8*(4-bytes);
+		x = (uint32_t)x << 8*(4-bytes);
 	while(bytes) {
 		if(fputc(x>>24, f) == EOF)
 			return false;
-		x <<= 8;
+		x = (uint32_t)x << 8;
 		bytes--;
 	}
 	return true;
@@ -1057,7 +1057,7 @@ static FLAC__bool write_simple_wavex_header (FILE * f, unsigned samplerate, unsi
 static FLAC__bool generate_noisy_sine(void)
 {
 	FILE *f;
-	int64_t randstate = 0x1243456;
+	uint64_t randstate = 0x1243456;
 	double sample, last_val = 0.0;
 	int k;
 	int seconds = 300;

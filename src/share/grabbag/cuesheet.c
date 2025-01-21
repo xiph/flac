@@ -332,7 +332,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 			}
 			else if(0 == FLAC__STRCASECMP(field, "INDEX")) {
 				FLAC__int64 xx;
-				FLAC__StreamMetadata_CueSheet_Track *track = &cs->tracks[cs->num_tracks-1];
+				FLAC__StreamMetadata_CueSheet_Track *track;
 				if(in_track_num < 0) {
 					*error_message = "found INDEX before any TRACK";
 					return false;
@@ -347,6 +347,7 @@ static FLAC__bool local__cuesheet_parse_(FILE *file, const char **error_message,
 					return false;
 				}
 				FLAC__ASSERT(cs->num_tracks > 0);
+				track = &cs->tracks[cs->num_tracks-1];
 				if(track->num_indices == 0) {
 					/* it's the first index point of the track */
 					if(in_index_num > 1) {

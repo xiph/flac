@@ -58,7 +58,7 @@ void FLAC__ogg_encoder_aspect_set_defaults(FLAC__OggEncoderAspect *aspect);
 FLAC__bool FLAC__ogg_encoder_aspect_init(FLAC__OggEncoderAspect *aspect);
 void FLAC__ogg_encoder_aspect_finish(FLAC__OggEncoderAspect *aspect);
 
-typedef FLAC__StreamEncoderWriteStatus (*FLAC__OggEncoderAspectWriteCallbackProxy)(const void *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
+typedef FLAC__StreamEncoderWriteStatus (*FLAC__OggEncoderAspectWriteCallbackProxy)(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data);
 
 FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(FLAC__OggEncoderAspect *aspect, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, FLAC__bool is_last_block, FLAC__OggEncoderAspectWriteCallbackProxy write_callback, void *encoder, void *client_data);
 #endif
