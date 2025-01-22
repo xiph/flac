@@ -15,7 +15,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: mingw64
-          install: autotools mingw-w64-x86_64-gcc mingw-w64-x86_64-libogg git
+          install: autotools mingw-w64-x86_64-gcc mingw-w64-x86_64-libogg
 
       - name: Install pandoc
         run: |
@@ -24,7 +24,7 @@ jobs:
       - name: Build, run tests and prepare package
         shell: msys2 {0}
         run: |
-          PATH=$PATH:/c/ProgramData/chocolatey/bin/
+          PATH=$PATH:/c/ProgramData/chocolatey/bin/:/c/Program\ Files/Git/bin/
           ./autogen.sh
           ./configure --enable-static --disable-shared # This is because the libtool helper script doesn't handle UTF-8 filenames correctly
           make LDFLAGS='-all-static' # Otherwise ogg isn't linked statically
