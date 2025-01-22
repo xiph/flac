@@ -15,7 +15,7 @@ jobs:
       - uses: msys2/setup-msys2@v2
         with:
           msystem: mingw64
-          install: autotools mingw-w64-x86_64-gcc mingw-w64-x86_64-libogg
+          install: autotools mingw-w64-x86_64-gcc mingw-w64-x86_64-libogg git
 
       - name: Install pandoc
         run: |
