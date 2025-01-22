@@ -24,7 +24,7 @@ jobs:
       - name: Build, run tests and prepare package
         shell: msys2 {0}
         run: |
-          PATH=$PATH:/c/ProgramData/chocolatey/bin/
+          PATH=$PATH:/c/ProgramData/chocolatey/bin/:/c/Program\ Files/Git/bin/
           ./autogen.sh
           ./configure --enable-static --disable-shared # This is because the libtool helper script doesn't handle UTF-8 filenames correctly
           make LDFLAGS='-all-static' # Otherwise ogg isn't linked statically
