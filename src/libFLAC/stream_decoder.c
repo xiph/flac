@@ -170,6 +170,9 @@ typedef struct FLAC__StreamDecoderPrivate {
 	FLAC__bool got_a_frame; /* hack needed in Ogg FLAC seek routine and find_total_samples to check when process_single() actually writes a frame */
 	FLAC__bool (*local_bitreader_read_rice_signed_block)(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
 	FLAC__bool error_has_been_sent; /* To check whether a missing frame has been signalled yet */
+#if FLAC__HAS_OGG
+	FLAC__bool ogg_decoder_aspect_allocation_failure;
+#endif
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	uint32_t fuzzing_rewind_count; /* To stop excessive rewinding, as it causes timeouts */
 #endif
@@ -931,6 +934,8 @@ FLAC_API FLAC__bool FLAC__stream_decoder_flush(FLAC__StreamDecoder *decoder)
 
 	if(!decoder->private_->internal_reset_hack && decoder->protected_->state == FLAC__STREAM_DECODER_UNINITIALIZED)
 		return false;
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR)
+		return false;
 
 	decoder->private_->samples_decoded = 0;
 	decoder->private_->do_md5_checking = false;
@@ -1173,7 +1178,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_process_until_end_of_stream(FLAC__Strea
 					return false; /* above function sets the status for us */
 				break;
 			case FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC:
-				if(!frame_sync_(decoder) && decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_LINK) {
+				if(!frame_sync_(decoder) && decoder->protected_->state != FLAC__STREAM_DECODER_END_OF_LINK && decoder->protected_->state != FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR) {
 					return true; /* above function sets the status for us */
 				}
 				break;
@@ -3370,6 +3375,12 @@ FLAC__bool read_callback_(FLAC__byte buffer[], size_t *bytes, void *client_data)
 				decoder->private_->read_callback(decoder, buffer, bytes, decoder->private_->client_data)
 			;
 			if(status == FLAC__STREAM_DECODER_READ_STATUS_ABORT) {
+#if FLAC__HAS_OGG
+				if(decoder->private_->ogg_decoder_aspect_allocation_failure) {
+					decoder->protected_->state = FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR;
+					return false;
+				}
+#endif
 				decoder->protected_->state = FLAC__STREAM_DECODER_ABORTED;
 				return false;
 			}
@@ -3498,7 +3509,9 @@ FLAC__StreamDecoderReadStatus read_callback_ogg_aspect_(const FLAC__StreamDecode
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_UNSUPPORTED_MAPPING_VERSION:
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_ABORT:
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_ERROR:
+			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		case FLAC__OGG_DECODER_ASPECT_READ_STATUS_MEMORY_ALLOCATION_ERROR:
+			decoder->private_->ogg_decoder_aspect_allocation_failure = true;
 			return FLAC__STREAM_DECODER_READ_STATUS_ABORT;
 		default:
 			FLAC__ASSERT(0);
