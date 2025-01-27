@@ -1668,7 +1668,11 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 
 		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
 		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
-		FLAC__ASSERT((FLAC__uint64)decoder_session->until_specification->value.samples <= decoder_session->total_samples);
+		if((FLAC__uint64)decoder_session->until_specification->value.samples > decoder_session->total_samples) {
+			flac__utils_printf(stderr, 1, "%s: ERROR specified cuepoints exceed length of file\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
+		}
 		FLAC__ASSERT(decoder_session->skip_specification->value.samples <= decoder_session->until_specification->value.samples);
 
 		decoder_session->total_samples = decoder_session->until_specification->value.samples - decoder_session->skip_specification->value.samples;
