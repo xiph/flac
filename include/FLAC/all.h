@@ -444,7 +444,7 @@
  *
  * \section porting_1_4_3_to_1_5_0_summary Summary
  *
- * Between FLAC 1.3.4 and FLAC 1.5.0, there have been changes to
+ * Between FLAC 1.4.3 and FLAC 1.5.0, there have been changes to
  * existing functions and enums:
  * - the functions FLAC__metadata_get_streaminfo,
  *   FLAC__metadata_get_tags and FLAC__metadata_get_cuesheet can now
