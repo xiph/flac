@@ -511,7 +511,7 @@ int do_it(void)
 				return usage_error("ERROR: --keep-foreign-metadata is not allowed in test mode\n");
 			if(option_values.analyze)
 				return usage_error("ERROR: --keep-foreign-metadata is not allowed in analyis mode\n");
-			flac__utils_printf(stderr, 1, "NOTE: --keep-foreign-metadata is a new feature; make sure to test the output file before deleting the original.\n");
+			flac__utils_printf(stderr, 2, "NOTE: --keep-foreign-metadata is a new feature; make sure to test the output file before deleting the original.\n");
 		}
 		if(0 != option_values.decode_chained_stream) {
 			if(0 != option_values.skip_specification)
