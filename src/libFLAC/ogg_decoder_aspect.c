@@ -696,6 +696,10 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_skip_link(FLAC__OggDec
 			else if(aspect->end_of_stream) {
 				if(aspect->beginning_of_link && !aspect->bos_flag_seen) {
 					/* We were looking for the next link, but found end of stream instead */
+					if(aspect->current_linknumber == 0)
+						return FLAC__OGG_DECODER_ASPECT_READ_STATUS_LOST_SYNC;
+					aspect->current_linknumber--;
+					aspect->linkdetails[aspect->current_linknumber].is_last = true;
 					return FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM;
 				}
 				else if(did_a_seek) {
