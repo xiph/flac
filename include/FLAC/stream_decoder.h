@@ -1112,6 +1112,43 @@ FLAC_API FLAC__bool FLAC__stream_decoder_get_decode_position(const FLAC__StreamD
  */
 FLAC_API const void *FLAC__stream_decoder_get_client_data(FLAC__StreamDecoder *decoder);
 
+#define FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID -1
+#define FLAC__STREAM_DECODER_GET_LINK_LENGTHS_NOT_INDEXED -2
+#define FLAC__STREAM_DECODER_GET_LINK_LENGTHS_MEMORY_ALLOCATION_ERROR -3
+
+/** Get the link lengths in samples in a chained stream
+ *
+ *  After either processing the whole file or using
+ *  FLAC__stream_decoder_find_total_samples, this function
+ *  returns an array with link lengths in samples. If it fails,
+ *  it returns a negative number as error code, currently either
+ *  FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID if the current
+ *  decoder is not in a valid state or not processing a chained
+ *  stream, FLAC__STREAM_DECODER_GET_LINK_LENGTHS_NOT_INDEXED if
+ *  the stream hasn't been indexed yet, and
+ *  FLAC__STREAM_DECODER_GET_LINK_LENGTHS_MEMORY_ALLOCATION_ERROR
+ *  if allocating memory failed.
+ *
+ *  If the function succeeds, the return value is the number of
+ *  links. The link_lengths parameter is a FLAC__uint64 pointer
+ *  which is allocated by the call, and must be freed by the user.
+ *  If a null pointer is passed, the function only returns the
+ *  number of links, not their lengths. The length of the returned
+ *  array is equal to the number of links and thus to the return
+ *  value of the function.
+ *
+ * \param  decoder   A decoder instance to query.
+ * \param  link_lengths  Address at which to return the link lengths
+ *                       array.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval int32_t
+ *    \c the number of links if successful, zero or a negative
+ *    number if unsuccessful
+ */
+
+FLAC_API int32_t FLAC__stream_decoder_get_link_lengths(FLAC__StreamDecoder *decoder, FLAC__uint64 **link_lengths);
+
 /** Initialize the decoder instance to decode native FLAC streams.
  *
  *  This flavor of initialization sets up the decoder to decode from a

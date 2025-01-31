@@ -1471,6 +1471,43 @@ FLAC_API FLAC__uint64 FLAC__stream_decoder_find_total_samples(FLAC__StreamDecode
 	return 0;
 }
 
+FLAC_API int32_t FLAC__stream_decoder_get_link_lengths(FLAC__StreamDecoder *decoder, FLAC__uint64 **link_lengths)
+{
+	/* If we don't have Ogg, this is (for now) useless, fail */
+#if FLAC__HAS_OGG
+	uint32_t i;
+
+	/* Check whether we're decoding chaines ogg, and decoder is somewhat valid */
+	if(!decoder->private_->is_ogg ||
+	   !FLAC__stream_decoder_get_decode_chained_stream(decoder) ||
+	   decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED ||
+	   decoder->protected_->state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR ||
+	   decoder->protected_->state == FLAC__STREAM_DECODER_UNINITIALIZED)
+		return FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID;
+
+	/* Check whether link details are known. If not, fail */
+	if(decoder->protected_->ogg_decoder_aspect.number_of_links_indexed == 0 ||
+	   !decoder->protected_->ogg_decoder_aspect.linkdetails[decoder->protected_->ogg_decoder_aspect.number_of_links_indexed - 1].is_last)
+		return FLAC__STREAM_DECODER_GET_LINK_LENGTHS_NOT_INDEXED;
+
+	if(link_lengths != NULL) {
+		*link_lengths = safe_malloc_mul_2op_p(sizeof(FLAC__uint64), decoder->protected_->ogg_decoder_aspect.number_of_links_indexed);
+		if(*link_lengths == NULL)
+			return FLAC__STREAM_DECODER_GET_LINK_LENGTHS_MEMORY_ALLOCATION_ERROR;
+
+		for(i = 0; i < decoder->protected_->ogg_decoder_aspect.number_of_links_indexed; i++)
+			(*link_lengths)[i] = decoder->protected_->ogg_decoder_aspect.linkdetails[i].samples;
+	}
+
+	return decoder->protected_->ogg_decoder_aspect.number_of_links_indexed;
+#else
+	(void)decoder;
+	(void)link_lengths;
+	return FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID;
+#endif
+}
+
+
 /***********************************************************************
  *
  * Protected class methods

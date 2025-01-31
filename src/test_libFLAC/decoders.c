@@ -560,6 +560,17 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 		return die_s_(0, decoder);
 	printf("OK\n");
 
+	printf("testing FLAC__stream_decoder_get_link_lengths()... ");
+	if(is_chained_ogg) {
+		if(FLAC__stream_decoder_get_link_lengths(decoder, NULL) != FLAC__STREAM_DECODER_GET_LINK_LENGTHS_NOT_INDEXED)
+			return die_s_("returned incorrectly", decoder);
+	}
+	else{ /* not chained ogg */
+		if(FLAC__stream_decoder_get_link_lengths(decoder, NULL) != FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID)
+			return die_s_("returned incorrectly", decoder);
+	}
+	printf("OK\n");
+
 	printf("testing FLAC__stream_decoder_find_total_samples... ");
 	total_samples = FLAC__stream_decoder_find_total_samples(decoder);
 	printf("Number of samples returned is %" PRIu64 "... ",total_samples);
@@ -568,6 +579,22 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 	   (layer != LAYER_STREAM && !is_chained_ogg && total_samples != samples_))
 		return die_s_("returned wrong number of samples", decoder);
 	printf("OK\n");
+
+	if(is_chained_ogg) {
+		printf("testing FLAC__stream_decoder_get_link_lengths()... ");
+		if(layer == LAYER_STREAM) {
+			if(FLAC__stream_decoder_get_link_lengths(decoder, NULL) != FLAC__STREAM_DECODER_GET_LINK_LENGTHS_NOT_INDEXED)
+				return die_s_("returned incorrectly", decoder);
+		}
+		else {
+			int32_t retval = FLAC__stream_decoder_get_link_lengths(decoder, NULL);
+			printf("Number of links returned is %d\n",retval);
+			if(retval != 2)
+				return die_s_("returned incorrectly", decoder);
+
+		}
+		printf("OK\n");
+	}
 
 	if(layer < LAYER_FILE) /* for LAYER_FILE, FLAC__stream_decoder_finish() closes the file */
 		fclose(decoder_client_data.file);
@@ -721,6 +748,20 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 			return die_s_("wrong state", decoder);
 		}
 		printf("returned state = %u (%s)... OK\n", state, FLAC__StreamDecoderStateString[state]);
+
+		printf("testing FLAC__stream_decoder_get_link_lengths()... ");
+		{
+			FLAC__uint64 *link_lengths;
+			int32_t retval = FLAC__stream_decoder_get_link_lengths(decoder, &link_lengths);
+			printf("Number of links returned is %d\n",retval);
+			printf("Number of samples is %" PRIu64 " and %" PRIu64 "\n",link_lengths[0],link_lengths[1]);
+			if(retval != 2)
+				return die_s_("returned incorrectly", decoder);
+			free(link_lengths);
+
+		}
+		printf("OK\n");
+
 
 		printf("testing FLAC__stream_decoder_reset()... ");
 		if(!FLAC__stream_decoder_reset(decoder)) {
