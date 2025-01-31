@@ -469,10 +469,11 @@
  *   FLAC__stream_decoder_get_decode_chained_stream,
  *   FLAC__stream_decoder_finish_link,
  *   FLAC__stream_decoder_skip_single_link,
- *   FLAC__stream_decoder_process_until_end_of_link have been added
+ *   FLAC__stream_decoder_process_until_end_of_link and
+ *   FLAC__stream_decoder_get_link_lengths have been added
  *   to support decoding of chained streams
  * - the function FLAC__metadata_chain_write_new_file has been added,
- *   which is useful to combine copying of a file with chaining its
+ *   which is useful to combine copying of a file with changing its
  *   metadata
  * - the function FLAC__stream_decoder_find_total_samples was added,
  *   which seeks to the end of a file to find the total number of
