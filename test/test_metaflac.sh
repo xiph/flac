@@ -544,3 +544,27 @@ check_flac
 metaflac_test_nofilter case67 "-o --append --block-number=0" "--list"
 
 rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta
+
+echo $ECHO_N "Checking for --ogg support in flac ... " $ECHO_C
+if flac${EXE} --ogg --no-error-on-compression-fail --silent --force-raw-format --endian=little --sign=signed --channels=1 --bps=8 --sample-rate=44100 -c $0 1>/dev/null 2>&1 ; then
+	has_ogg=yes;
+else
+	has_ogg=no;
+fi
+echo ${has_ogg}
+
+if [ $has_ogg = "yes" ] ; then
+	if command -v oggz > /dev/null ; then
+		if command -v oggenc > /dev/null ; then
+			echo $ECHO_N "Creating merged and chained-merged files" $ECHO_C
+			run_flac --ogg metaflac1.flac -o small.oga
+			run_flac --ogg metaflac1.flac -o small2.oga
+			oggenc -Q --skeleton -o small-vorbis.oga metaflac1.flac
+			oggenc -Q --skeleton -o small2-vorbis.oga metaflac1.flac
+			oggz merge -o small-merged.oga small-vorbis.oga small.oga
+			oggz merge -o small2-merged.oga small2-vorbis.oga small2.oga
+			cat small2-merged.oga small-merged.oga > chained-merged.oga
+
+		fi
+	fi
+fi
