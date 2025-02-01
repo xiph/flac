@@ -1,6 +1,6 @@
 /* metaflac - Command-line FLAC metadata editor
  * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2024  Xiph.Org Foundation
+ * Copyright (C) 2011-2025  Xiph.Org Foundation
  *
  * This program is free software; you can redistribute it and/or
  * modify it under the terms of the GNU General Public License
@@ -33,7 +33,7 @@ static void usage_header(FILE *out)
 	flac_fprintf(out, "==============================================================================\n");
 	flac_fprintf(out, "metaflac - Command-line FLAC metadata editor version %s\n", FLAC__VERSION_STRING);
 	flac_fprintf(out, "Copyright (C) 2001-2009  Josh Coalson\n");
-	flac_fprintf(out, "Copyright (C) 2011-2024  Xiph.Org Foundation\n");
+	flac_fprintf(out, "Copyright (C) 2011-2025  Xiph.Org Foundation\n");
 	flac_fprintf(out, "\n");
 	flac_fprintf(out, "This program is free software; you can redistribute it and/or\n");
 	flac_fprintf(out, "modify it under the terms of the GNU General Public License\n");
