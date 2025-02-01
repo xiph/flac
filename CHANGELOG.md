@@ -20,7 +20,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Built-in help and tool documentation are improved (H2Swine)
 	* When re-encoding a FLAC file from an existing FLAC file, a check is added that the MD5 sums of both files are the same
 * libFLAC and libFLAC++
-	* The library interfaces have been extended. See the porting guide ***TODO TODO TODO***
+	* The library interfaces have been extended. See the porting guide (part of the API documentation)
 	* An error is sent when a frame is missing
 	* The algorithm of the 'loose mid side' option has changed. Instead of checking every few frames which option is best and keeping that for the next few frames, a fast heuristic is now used. This was necessary to enable multithreading
 	* Most level 0 metadata interface functions now also work with Ogg FLAC files
