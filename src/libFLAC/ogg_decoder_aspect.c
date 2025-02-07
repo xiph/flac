@@ -89,7 +89,7 @@ static FLAC__OggDecoderAspectReadStatus process_page_(FLAC__OggDecoderAspect *as
 		/* Check whether not FLAC. The next if is somewhat confusing: check
 		 * whether the length of the next page body agrees with the length
 		 * of a FLAC 'header' possibly contained in that page */
-		if(aspect->working_page.body_len > 1 + FLAC__OGG_MAPPING_MAGIC_LENGTH &&
+		if(aspect->working_page.body_len > (long)(1 + FLAC__OGG_MAPPING_MAGIC_LENGTH) &&
 		   aspect->working_page.body[0] == FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE &&
 		   memcmp((&aspect->working_page.body) + 1, FLAC__OGG_MAPPING_MAGIC, FLAC__OGG_MAPPING_MAGIC_LENGTH)) {
 			aspect->bos_flag_seen = true;
