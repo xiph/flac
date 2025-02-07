@@ -322,7 +322,7 @@ static FLAC__bool seek_barrage(FLAC__bool is_ogg, const char *filename, FLAC__of
 	if(total_samples > n)
 		n = (long int)total_samples;
 
-	printf("file's total_samples is %" PRIu64 "\n", n);
+	printf("file's total_samples is %ld\n", n);
 
 	/* if we don't have a total samples count, just guess based on the file size */
 	/* @@@ for is_ogg we should get it from last page's granulepos */
