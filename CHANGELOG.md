@@ -2,7 +2,7 @@
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
-## git as of 18-12-2024
+## FLAC 1.5.0-rc1 (07-Feb-2025)
 
 As there have been additions to the libFLAC interfaces, the libFLAC version number is incremented to 14. The libFLAC++ version number is incremented to 11.
 
@@ -11,7 +11,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* The GFDL license file is updated to version 1.3
 	* The markdown tool documentation is now also converted to HTML, for bundling with systems that do not read manpages (e.g. Windows)
 	* Decoding of chained Ogg FLAC files is now possible (philippe44, Martijn van Beurden)
-	* Various fixes (Sam James, Miroslav Lichvar, Cristian Rodríguez, manxorist, kgroeneveld, Lee Carré, Jevin Sweval)
+	* Various fixes (Sam James, Miroslav Lichvar, Cristian Rodríguez, manxorist, kgroeneveld, Lee Carré, Jevin Sweval, braheezy, Wolfgang Stöggl)
 	* Is is now possible in libFLAC, libFLAC++ and metaflac to write to a new file when changing metadata, instead of needing to overwrite an existing file
 * flac
 	* Testing mode (flac -t) now parses all metadata blocks and warns the user when ID3v1 metadata is detected
