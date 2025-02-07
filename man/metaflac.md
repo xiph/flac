@@ -1,4 +1,4 @@
-% metaflac(1) Version 1.4.3 | Free Lossless Audio Codec metadata tool
+% metaflac(1) Version 1.5.0 | Free Lossless Audio Codec metadata tool
 
 # NAME
 
