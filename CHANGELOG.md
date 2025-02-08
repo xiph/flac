@@ -1,4 +1,4 @@
-# Changelog
+\# Changelog
 
 This changelog is not exhaustive, review [the git commit log](https://github.com/xiph/flac/commits) for an exhaustive list of changes.
 
@@ -16,7 +16,7 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 * flac
 	* Testing mode (flac -t) now parses all metadata blocks and warns the user when ID3v1 metadata is detected
 	* A warning is displayed when frame numbers do not increase correctly throughout a file
-	* The explain option (-H or --explain) is now removed, use the manpage or html tool documentation instead
+	* The explain option (-H or \--explain) is now removed, use the manpage or html tool documentation instead
 	* Built-in help and tool documentation are improved (H2Swine)
 	* When re-encoding a FLAC file from an existing FLAC file, a check is added that the MD5 sums of both files are the same
 * libFLAC and libFLAC++
@@ -51,29 +51,29 @@ As there have been additions to the libFLAC interfaces, the libFLAC version numb
 	* Fix building on Universal Windows Platform (Dmitry Kostjučenko)
 * flac
 	* A lot of small fixes for bugs found by fuzzing
-	* Various improvements to the --keep-foreign-metadata and --keep-foreign-metadata-if-present options on decoding
+	* Various improvements to the \--keep-foreign-metadata and \--keep-foreign-metadata-if-present options on decoding
 		* The output format (WAV/AIFF/RF64 etc.) is now automatically selected based on what kind of foreign metadata is stored
 		* Decoded file is checked afterwards, to see whether stored foreign format data agrees with FLAC audio properties
 		* AIFF-C sowt data can now be restored
-	* Add --force-legacy-wave-format option, to decode to WAV with WAVEFORMATPCM where WAVE_FORMAT_EXTENSIBLE would be more appropriate
-	* Add --force-aiff-c-none-format and --force-aiff-c-sowt-format to decode to AIFF-C
+	* Add \--force-legacy-wave-format option, to decode to WAV with WAVEFORMATPCM where WAVE_FORMAT_EXTENSIBLE would be more appropriate
+	* Add \--force-aiff-c-none-format and \--force-aiff-c-sowt-format to decode to AIFF-C
 	* The storage of WAVEFORMATEXTENSIBLE_CHANNEL_MASK is no longer restricted to known channel orderings
-	* Throw an error when WAV or AIFF files are over 4GiB in length and the --ignore-chunk-sizes option is not set
+	* Throw an error when WAV or AIFF files are over 4GiB in length and the \--ignore-chunk-sizes option is not set
 	* Warn on testing files when ID3v2 tags are found
 	* Warn when data trails the audio data of a WAV/AIFF/RF64/W64 file
 	* Fix output file not being deleted after error on Windows
-	* Removal of the --sector--align option
+	* Removal of the \--sector-align option
 * metaflac
 	* A lot of small fixes for bugs found by fuzzing
-	* Added options --append and --data-format, which makes it possible to copy metadata blocks from one FLAC file to another
-	* Added option --remove-all-tags-except
-	* Added option --show-all-tags (harridu, Martijn van Beurden)
+	* Added options \--append and \--data-format, which makes it possible to copy metadata blocks from one FLAC file to another
+	* Added option \--remove-all-tags-except
+	* Added option \--show-all-tags (harridu, Martijn van Beurden)
 * libFLAC
 	* No longer write seektables to Ogg, even when specifically asked for. Seektables in Ogg are not defined
 	* Add functions FLAC__metadata_object_set_raw and FLAC__metadata_object_get_raw to convert between blob and FLAC__StreamMetadata
 * Build system
 	* Autoconf (configure)
-		* The option --enable-64-bit-words is now on by default
+		* The option \--enable-64-bit-words is now on by default
 	* CMake
 		* The option ENABLE_64_BIT_WORDS is now on by default
 * Testing/validation
@@ -88,7 +88,7 @@ Once again, this release only has a few changes. A problem with FLAC playback in
     * Remove xmms plugin (Martijn van Beurden, TokyoBlackHole)
     * Remove all pure assembler, removing build dependency on nasm
     * Made console output more uniform across different platforms and CPUs
-    * Improve ability to tune compile for a certain system (for example with -march=native) when combining with --disable-asm-optimizations: plain C functions can now be better optimized
+    * Improve ability to tune compile for a certain system (for example with -march=native) when combining with \--disable-asm-optimizations: plain C functions can now be better optimized
 * Build system
     * Default CFLAGS are now prepended instead of dropped when user CFLAGS are set
     * -msse2 is no longer added by default (was only applicable to x86)
@@ -131,8 +131,8 @@ The XMMS plugin and 'common' plugin code (used only by the XMMS plugin) are depr
     * The FLAC format document specifies no bounds for the residual. In other to match current decoder implementations, it is proposed to bound the residual to the range provided by a 32-bit int signed two's complement. This limit must be checked by FLAC encoders as to keep FLAC decoders free from the complexity of being to decode a residual exceeding a 32-bit int.
     * There is now a set of files available to test whether a FLAC decoder implements the format correctly. This FLAC decoder testbench can be found at [https://github.com/ietf-wg-cellar/flac-test-files](https://github.com/ietf-wg-cellar/flac-test-files). Also, results of testing hard- and software can be found here at [https://wiki.hydrogenaud.io/index.php?title=FLAC_decoder_testbench](https://wiki.hydrogenaud.io/index.php?title=FLAC_decoder_testbench).
 * flac:
-    * The option --limit-min-bitrate was added to aid streaming, see [github #264](https://github.com/xiph/flac/pull/264)
-    * The option --keep-foreign-metadata-if-present is added. This option works the same as --keep-foreign-metadata, but does return a warning instead of an error if no foreign metadata was found to store or restore
+    * The option \--limit-min-bitrate was added to aid streaming, see [github #264](https://github.com/xiph/flac/pull/264)
+    * The option \--keep-foreign-metadata-if-present is added. This option works the same as \--keep-foreign-metadata, but does return a warning instead of an error if no foreign metadata was found to store or restore
     * The warning returned by the foreign metadata handling is now clearer in case a user tries to restore foreign metadata of the wrong type, for example decoding a FLAC file containing AIFF foreign metadata to a WAV file
     * A problem when using the analyse function causing the first frame to have a wrong size and offset was fixed
     * Fix bug where channel mask of a file is unintentionally reused when several files are processed with one command
@@ -232,7 +232,7 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * (none)
 * flac:
     * When converting to WAV, use WAVEFORMATEXTENSIBLE when bits per second is not 8 or 16 (erikd).
-    * Fix --output-prefix with input-files in sub-directories (orbea).
+    * Fix \--output-prefix with input-files in sub-directories (orbea).
 * metaflac:
     * (none)
 * plugins:
@@ -272,7 +272,7 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * Only write vorbis-comments if they are non-empty.
     * Error out if decoding RAW with bits != (8|16|24).
 * metaflac:
-    * Add --scan-replay-gain option.
+    * Add \--scan-replay-gain option.
 * plugins:
     * (none)
 * build system:
@@ -334,22 +334,22 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 
 * General:
     * Move development to Xiph.org git repository.
-    * The <span class="argument">[--sector-align](https://xiph.org/flac/documentation_tools_flac.html#flac_options_sector_align)</span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions. [shntool](http://www.etree.org/shnutils/shntool/) provides similar functionality.
+    * The <span class="argument">[\--sector-align](https://xiph.org/flac/documentation_tools_flac.html#flac_options_sector_align)</span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions. [shntool](http://www.etree.org/shnutils/shntool/) provides similar functionality.
     * Support for the RF64 and Wave64 formats in <span class="commandname">flac</span> (see below).
     * Better handling of cuesheets with non-CD-DA sample rates.
-    * The <span class="argument">[--ignore-chunk-sizes](https://xiph.org/flac/documentation_tools_flac.html#flac_options_ignore_chunk_sizes)</span> option has been added to the <span class="commandname">flac</span> command line tool.
+    * The <span class="argument">[\--ignore-chunk-sizes](https://xiph.org/flac/documentation_tools_flac.html#flac_options_ignore_chunk_sizes)</span> option has been added to the <span class="commandname">flac</span> command line tool.
 * FLAC format:
     * (none)
 * Ogg FLAC format:
     * (none)
 * flac:
-    * Added support for encoding from and decoding to the RF64 format, and a new corresponding option <span class="argument">[--force-rf64-format](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force_rf64_format)</span>. ([SF #1762502](http://sourceforge.net/p/flac/feature-requests/78/)). <span class="argument">[--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> is also supported.
-    * Added support for encoding from and decoding to the Sony Wave64 format, and a new corresponding option <span class="argument">[--force-wave64-format](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force_wave64_format)</span>. ([SF #1769582](http://sourceforge.net/p/flac/feature-requests/79/)). <span class="argument">[--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> is also supported.
-    * Added new options <span class="argument">[--preserve-modtime](https://xiph.org/flac/documentation_tools_flac.html#flac_options_preserve_modtime)</span> and <span class="argument">[--no-preserve-modtime](https://xiph.org/flac/documentation_tools_flac.html#negative_options)</span> to specify whether or not output files should copy the timestamp and permissions from their input files. The default is <span class="argument">[--preserve-modtime](https://xiph.org/flac/documentation_tools_flac.html#flac_options_preserve_modtime)</span> as in previous versions. ([SF #1805428](http://sourceforge.net/p/flac/feature-requests/85/)).
+    * Added support for encoding from and decoding to the RF64 format, and a new corresponding option <span class="argument">[\--force-rf64-format](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force_rf64_format)</span>. ([SF #1762502](http://sourceforge.net/p/flac/feature-requests/78/)). <span class="argument">[\--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> is also supported.
+    * Added support for encoding from and decoding to the Sony Wave64 format, and a new corresponding option <span class="argument">[\--force-wave64-format](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force_wave64_format)</span>. ([SF #1769582](http://sourceforge.net/p/flac/feature-requests/79/)). <span class="argument">[\--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> is also supported.
+    * Added new options <span class="argument">[\--preserve-modtime](https://xiph.org/flac/documentation_tools_flac.html#flac_options_preserve_modtime)</span> and <span class="argument">[\--no-preserve-modtime](https://xiph.org/flac/documentation_tools_flac.html#negative_options)</span> to specify whether or not output files should copy the timestamp and permissions from their input files. The default is <span class="argument">[\--preserve-modtime](https://xiph.org/flac/documentation_tools_flac.html#flac_options_preserve_modtime)</span> as in previous versions. ([SF #1805428](http://sourceforge.net/p/flac/feature-requests/85/)).
     * Allow MM:SS:FF and MM:SS.SS time formats in non-CD-DA cuesheets. ([SF #1947353](http://sourceforge.net/p/flac/feature-requests/95/), [SF #2182432](http://sourceforge.net/p/flac/bugs/338/))
-    * The <span class="argument">[--sector-align](https://xiph.org/flac/documentation_tools_flac.html#flac_options_sector_align)</span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions. [shntool](http://www.etree.org/shnutils/shntool/) provides similar functionality. ([SF #1805946](http://sourceforge.net/p/flac/feature-requests/86/))
+    * The <span class="argument">[\--sector-align](https://xiph.org/flac/documentation_tools_flac.html#flac_options_sector_align)</span> option of <span class="commandname">flac</span> has been deprecated and may not exist in future versions. [shntool](http://www.etree.org/shnutils/shntool/) provides similar functionality. ([SF #1805946](http://sourceforge.net/p/flac/feature-requests/86/))
     * Improved error message when user attempts to decode a non-FLAC file ([SF #2222789](http://sourceforge.net/p/flac/bugs/341/)).
-    * Fix bug where <span class="commandname">flac</span> was disallowing use of <span class="argument">--replay-gain</span> when encoding from stdin ([SF #1840124](http://sourceforge.net/p/flac/bugs/313/)).
+    * Fix bug where <span class="commandname">flac</span> was disallowing use of <span class="argument">\--replay-gain</span> when encoding from stdin ([SF #1840124](http://sourceforge.net/p/flac/bugs/313/)).
     * Fix bug with fractional seconds on some locales ([SF #1815517](http://sourceforge.net/p/flac/bugs/309/), [SF #1858012](http://sourceforge.net/p/flac/bugs/321/)).
     * Read and write appropriate channel masks for 6.1 and 7.1 surround input WAV files. Documentation was also updated.
     * Correct Wave64 GUIDs.
@@ -370,7 +370,7 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * Compile with GNU gcc _FORTIFY_SOURCE=2 and stack protection where those features are detected.
     * Enable a bunch of GCC compiler warnings and fix code that generates warnings.
 * documentation:
-    * Document <span class="argument">[--ignore-chunk-sizes](https://xiph.org/flac/documentation_tools_flac.html#flac_options_ignore_chunk_sizes)</span> and <span class="argument">[--apply-replaygain-which-is-not-lossless](https://xiph.org/flac/documentation_tools_flac.html#flac_options_apply_replaygain_which_is_not_lossless)</span> option for <span class="commandname">flac</span>.
+    * Document <span class="argument">[\--ignore-chunk-sizes](https://xiph.org/flac/documentation_tools_flac.html#flac_options_ignore_chunk_sizes)</span> and <span class="argument">[\--apply-replaygain-which-is-not-lossless](https://xiph.org/flac/documentation_tools_flac.html#flac_options_apply_replaygain_which_is_not_lossless)</span> option for <span class="commandname">flac</span>.
 * libraries:
     * libFLAC encoder was defaulting to level 0 compression instead of 5 ([SF #1816825](http://sourceforge.net/p/flac/bugs/310/)).
     * Fix bug in bitreader handling of read callback returning a short count ([SF #2490454](http://sourceforge.net/p/flac/bugs/345/)).
@@ -384,17 +384,17 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 ## FLAC 1.2.1 (17-Sep-2007)  
 
 * General:
-    * With the new <span class="argument">[--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> in <span class="commandname">flac</span>, non-audio RIFF and AIFF chunks can be stored in FLAC files and recreated when decoding. This allows, among other, things support for archiving BWF files and other WAVE files from editing tools that preserves all the metadata.
+    * With the new <span class="argument">[\--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> in <span class="commandname">flac</span>, non-audio RIFF and AIFF chunks can be stored in FLAC files and recreated when decoding. This allows, among other, things support for archiving BWF files and other WAVE files from editing tools that preserves all the metadata.
 * FLAC format:
-    * Specified 2 new APPLICATION metadata blocks for storing WAVE and AIFF chunks (for use with [--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata) in <span class="commandname">flac</span>).
+    * Specified 2 new APPLICATION metadata blocks for storing WAVE and AIFF chunks (for use with [\--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata) in <span class="commandname">flac</span>).
     * The lead-out track number for non-CDDA cuesheets now must be 255.
 * Ogg FLAC format:
     * This is not a format change, but changed default extension for Ogg FLAC from .ogg to .oga, according to new Xiph [specification](http://wiki.xiph.org/index.php/MIME_Types_and_File_Extensions) ([SF #1762492](http://sourceforge.net/p/flac/bugs/283/)).
 * flac:
-    * Added a new option <span class="argument">[--no-utf8-convert](https://xiph.org/flac/documentation_tools_flac.html#flac_options_no_utf8_convert)</span> which works like it does in <span class="commandname">metaflac</span> ([SF #973740](http://sourceforge.net/p/flac/feature-requests/35/)).
-    * Added a new option <span class="argument">[--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> which can save/restore RIFF and AIFF chunks to/from FLAC files ([SF #363478](http://sourceforge.net/p/flac/feature-requests/9/)).
+    * Added a new option <span class="argument">[\--no-utf8-convert](https://xiph.org/flac/documentation_tools_flac.html#flac_options_no_utf8_convert)</span> which works like it does in <span class="commandname">metaflac</span> ([SF #973740](http://sourceforge.net/p/flac/feature-requests/35/)).
+    * Added a new option <span class="argument">[\--keep-foreign-metadata](https://xiph.org/flac/documentation_tools_flac.html#flac_options_keep_foreign_metadata)</span> which can save/restore RIFF and AIFF chunks to/from FLAC files ([SF #363478](http://sourceforge.net/p/flac/feature-requests/9/)).
     * Changed default extension for Ogg FLAC from .ogg to .oga, according to new Xiph [specification](http://wiki.xiph.org/index.php/MIME_Types_and_File_Extensions) ([SF #1762492](http://sourceforge.net/p/flac/bugs/283/)).
-    * Fixed bug where using <span class="argument">--replay-gain</span> without any padding option caused only a small PADDING block to be created ([SF #1760790](http://sourceforge.net/p/flac/bugs/282/)).
+    * Fixed bug where using <span class="argument">\--replay-gain</span> without any padding option caused only a small PADDING block to be created ([SF #1760790](http://sourceforge.net/p/flac/bugs/282/)).
     * Fixed bug where encoding from stdin on Windows could fail if WAVE/AIFF contained unknown chunks ([SF #1776803](http://sourceforge.net/p/flac/bugs/290/)).
     * Fixed bug where importing non-CDDA cuesheets would cause an invalid lead-out track number ([SF #1764105](http://sourceforge.net/p/flac/bugs/286/)).
 * metaflac:
@@ -403,7 +403,7 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 * plugins:
     * (none)
 * build system:
-    * New configure option <span class="argument">--disable-cpplibs</span> to prevent building libFLAC++ ([SF #1723295](http://sourceforge.net/p/flac/patches/23/)).
+    * New configure option <span class="argument">\--disable-cpplibs</span> to prevent building libFLAC++ ([SF #1723295](http://sourceforge.net/p/flac/patches/23/)).
     * Fixed bug compiling <span class="commandname">flac</span> without Ogg support ([SF #1760786](http://sourceforge.net/p/flac/bugs/281/)).
     * Fixed bug where sometimes an existing installation of flac could interfere with the build process ([SF #1763690](http://sourceforge.net/p/flac/bugs/285/)).
     * OS X fixes ([SF #1786225](http://sourceforge.net/p/flac/patches/25/)).
@@ -443,7 +443,7 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * (none)
 * flac:
     * Added runtime detection of SSE OS support for most operating systems.
-    * Added a new undocumented option <span class="argument">--ignore-chunk-sizes</span> for ignoring the size of the 'data' chunk (WAVE) or 'SSND' chunk (AIFF). Can be used to encode files with bogus data sizes (e.g. with WAV files piped from foobar2000 to flac.exe as an external encoder). **Use with caution**: all subsequent data is treated as audio, so the data/SSND chunk must be the last or the following data/tags will be treated as audio and encoded.
+    * Added a new undocumented option <span class="argument">\--ignore-chunk-sizes</span> for ignoring the size of the 'data' chunk (WAVE) or 'SSND' chunk (AIFF). Can be used to encode files with bogus data sizes (e.g. with WAV files piped from foobar2000 to flac.exe as an external encoder). **Use with caution**: all subsequent data is treated as audio, so the data/SSND chunk must be the last or the following data/tags will be treated as audio and encoded.
 * metaflac:
     * (none)
 * plugins:
@@ -472,20 +472,20 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 * flac:
     * Improved compression with no change to format or decrease in speed.
     * Encoding and decoding speedups for all modes. Encoding at -8 is twice as fast.
-    * Added a new option <span class="argument">[-w,--warnings-as-errors](https://xiph.org/flac/documentation_tools_flac.html#flac_options_warnings_as_errors)</span> for treating all warnings as errors.
-    * Allow <span class="argument">[--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> option to take only a filename, and have all other attributes extracted from the file itself.
+    * Added a new option <span class="argument">[-w,\--warnings-as-errors](https://xiph.org/flac/documentation_tools_flac.html#flac_options_warnings_as_errors)</span> for treating all warnings as errors.
+    * Allow <span class="argument">[\--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> option to take only a filename, and have all other attributes extracted from the file itself.
     * Fixed a bug that caused suboptimal default compression settings in some locales ([SF #1608883](http://sourceforge.net/p/flac/bugs/237/)).
     * Fixed a bug where FLAC-to-FLAC transcoding of a corrupted FLAC file would truncate the transcoded file at the first error ([SF #1615019](http://sourceforge.net/p/flac/bugs/241/)).
     * Fixed a bug where using <span class="argument">[-F](https://xiph.org/flac/documentation_tools_flac.html#flac_options_decode_through_errors)</span> with FLAC-to-FLAC transcoding of a corrupted FLAC would have no effect ([SF #1615391](http://sourceforge.net/p/flac/bugs/242/)).
-    * Fixed a bug where new PICTURE metadata blocks specified with <span class="argument">[--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> would not be transferred during FLAC-to-FLAC transcoding ([SF #1627993](http://sourceforge.net/p/flac/bugs/246/)).
+    * Fixed a bug where new PICTURE metadata blocks specified with <span class="argument">[\--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> would not be transferred during FLAC-to-FLAC transcoding ([SF #1627993](http://sourceforge.net/p/flac/bugs/246/)).
 * metaflac:
-    * Allow <span class="argument">[--import-picture-from](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from)</span> option to take only a filename, and have all other attributes extracted from the file itself.
+    * Allow <span class="argument">[\--import-picture-from](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from)</span> option to take only a filename, and have all other attributes extracted from the file itself.
 * plugins:
     * Fixed a bug in the XMMS plugin where Ctrl-3 (file info) would cause a crash if the file did not exist ([SF #1634941](http://sourceforge.net/p/flac/patches/20/)).
 * build system:
     * Fixed a makefile linkage bug with libogg ([SF #1611414](http://sourceforge.net/p/flac/bugs/239/)).
     * Added pkg-config files for libFLAC and libFLAC++ ([SF #1647881](http://sourceforge.net/p/flac/patches/21/)).
-    * Added <span class="argument">--disable-ogg</span> option for building without Ogg support even if libogg is installed ([SF #1196996](http://sourceforge.net/p/flac/bugs/165/)).
+    * Added <span class="argument">\--disable-ogg</span> option for building without Ogg support even if libogg is installed ([SF #1196996](http://sourceforge.net/p/flac/bugs/165/)).
 * libraries:
     * Completely rewritten bitbuffer which uses native machine word size instead of bytes for dramatic speed improvements. The speedup should be most dramatic on CPUs with slower byte manipulation capability and big-endian machines.
     * Much faster Rice partition size estimation which greatly speeds encoding in higher modes.
@@ -506,9 +506,9 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * Better multichannel support
     * Large file (>2GB) support everywhere
     * <span class="commandname">flac</span> now supports FLAC and Ogg FLAC as input to the encoder (e.g. can re-encode FLAC to FLAC) and preserve all the metadata like tags, etc.
-    * New <span class="code">[PICTURE](https://xiph.org/flac/format.html#def_PICTURE)</span> metadata block for storing things like cover art, new <span class="argument">[--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> option to <span class="commandname">flac</span> and <span class="argument">[--import-picture-from](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from)</span> option to <span class="commandname">metaflac</span> for importing pictures, new <span class="argument">[--export-picture-to](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_export_picture_to)</span> option to <span class="commandname">metaflac</span> for exporting pictures, and metadata API [additions](https://xiph.org/flac/api/group__flac__metadata__level0.html#ga3) for searching for suitable pictures based on type, size and color constraints.
+    * New <span class="code">[PICTURE](https://xiph.org/flac/format.html#def_PICTURE)</span> metadata block for storing things like cover art, new <span class="argument">[\--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> option to <span class="commandname">flac</span> and <span class="argument">[\--import-picture-from](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from)</span> option to <span class="commandname">metaflac</span> for importing pictures, new <span class="argument">[\--export-picture-to](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_export_picture_to)</span> option to <span class="commandname">metaflac</span> for exporting pictures, and metadata API [additions](https://xiph.org/flac/api/group__flac__metadata__level0.html#ga3) for searching for suitable pictures based on type, size and color constraints.
     * Support for new <tt>REPLAYGAIN_REFERENCE_LOUDNESS</tt> tag.
-    * Fixed a bug in Ogg FLAC encoding where metadata was not being updated properly. Existing Ogg FLAC files should be recoded to fix up the metadata, e.g. <span class="command">flac -Vf -S 10s --ogg file.ogg</span>
+    * Fixed a bug in Ogg FLAC encoding where metadata was not being updated properly. Existing Ogg FLAC files should be recoded to fix up the metadata, e.g. <span class="command">flac -Vf -S 10s \--ogg file.ogg</span>
     * In the developer libraries, the interface has been simplfied by merging the three decoding layers into a single class; ditto for the encoders. Also, libOggFLAC has been merged into libFLAC and libOggFLAC++ has been merged into libFLAC++ so there is a single API supporting both native FLAC and Ogg FLAC.
 * FLAC format:
     * New <span class="code">[PICTURE](https://xiph.org/flac/format.html#def_PICTURE)</span> metadata block for storing things like cover art.
@@ -522,41 +522,41 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * Encoder can now take WAVEFORMATEXTENSIBLE WAVE files as input; decoder will output WAVEFORMATEXTENSIBLE WAVE files when necessary to conform to the latest Microsoft specifications.
     * Now properly supports AIFF and WAVEFORMATEXTENSIBLE multichannel input, performing necessary channel reordering both for encoding and decoding. WAVEFORMATEXTENSIBLE channel mask is also saved to a tag on encoding and restored on decoding for situations when there is no natural mapping to FLAC channel assignments.
     * Expanded support for "odd" sample resolutions to WAVE and AIFF input; all resolutions from 4 to 24 bits-per-sample now supported for all input types.
-    * Added a new option <span class="argument">[--tag-from-file](https://xiph.org/flac/documentation_tools_flac.html#flac_options_tag_from_file)</span> for setting a tag from file (e.g. for importing a cuesheet as a tag).
-    * Added a new option <span class="argument">[--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> for adding pictures.
-    * Added a new option <span class="argument">[--apodization](https://xiph.org/flac/documentation_tools_flac.html#flac_options_apodization)</span> for specifying the window function(s) to be used in LPC analysis.
+    * Added a new option <span class="argument">[\--tag-from-file](https://xiph.org/flac/documentation_tools_flac.html#flac_options_tag_from_file)</span> for setting a tag from file (e.g. for importing a cuesheet as a tag).
+    * Added a new option <span class="argument">[\--picture](https://xiph.org/flac/documentation_tools_flac.html#flac_options_picture)</span> for adding pictures.
+    * Added a new option <span class="argument">[\--apodization](https://xiph.org/flac/documentation_tools_flac.html#flac_options_apodization)</span> for specifying the window function(s) to be used in LPC analysis.
     * Added support for encoding from non-compressed AIFF-C ([SF #1090933](http://sourceforge.net/p/flac/bugs/143/)).
     * Importing of non-CDDA-compliant cuesheets now only issues a warning, not an error (see [here](http://www.hydrogenaud.io/forums/index.php?showtopic=31282)).
     * MD5 comparison failures on decoding are now an error instead of a warning and will also return a non-zero exit code ([SF #1493725](http://sourceforge.net/p/flac/bugs/221/)).
     * The default padding size is now 8K, or 64K if the input audio stream is more than 20 minutes long.
     * Fixed a bug in cuesheet parsing where it would return an error if the last line of the cuesheet did not end with a newline.
     * Fixed a bug that caused a crash when <span class="argument">-a</span> and <span class="argument">-t</span> were used together ([SF #1229481](http://sourceforge.net/p/flac/bugs/173/)).
-    * Fixed a bug with --sector-align where appended samples were not always totally silent ([SF #1237707](http://sourceforge.net/p/flac/bugs/179/)).
-    * Fixed bugs with --sector-align and raw input files.
+    * Fixed a bug with \--sector-align where appended samples were not always totally silent ([SF #1237707](http://sourceforge.net/p/flac/bugs/179/)).
+    * Fixed bugs with \--sector-align and raw input files.
     * Fixed a bug printing out unknown AIFF subchunk names ([SF #1267476](http://sourceforge.net/p/flac/bugs/186/)).
     * Fixed a bug where WAVE files with "data" subchunks of size 0 where accepted ([SF #1293830](http://sourceforge.net/p/flac/bugs/190/)).
     * Fixed a bug where sync error at end-of-stream of truncated files was not being caught ([SF #1244071](http://sourceforge.net/p/flac/bugs/183/)).
     * Fixed a problem with filename parsing if file does not have extension but also has a . in the path ([SF #1161916](http://sourceforge.net/p/flac/bugs/159/)).
-    * Fixed a problem with fractional-second parsing for <span class="argument">--skip</span>/<span class="argument">--until</span> in some locales ([SF #1031043](http://sourceforge.net/p/flac/bugs/125/)).
+    * Fixed a problem with fractional-second parsing for <span class="argument">\--skip</span>/<span class="argument">\--until</span> in some locales ([SF #1031043](http://sourceforge.net/p/flac/bugs/125/)).
     * Increase progress report rate when -p and -e are used together ([SF #1580122](http://sourceforge.net/p/flac/bugs/229/)).
 * metaflac:
     * Added support for read-only operations on Ogg FLAC files.
-    * Added a new option <span class="argument">[--set-tag-from-file](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_set_tag_from_file)</span> for setting a tag from file (e.g. for importing a cuesheet as a tag).
-    * Added a new option <span class="argument">[--import-picture-from](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from)</span> for importing pictures.
-    * Added a new option <span class="argument">[--export-picture-to](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_export_picture_to)</span> for exporting pictures.
-    * Added shorthand operation <span class="argument">[--remove-replay-gain](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_remove_replay_gain)</span> for removing ReplayGain tags.
-    * <span class="argument">[--export-cuesheet-to](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_export_cuesheet_to)</span> now properly specifies the FLAC file name ([SF #1272825](http://sourceforge.net/p/flac/feature-requests/46/)).
+    * Added a new option <span class="argument">[\--set-tag-from-file](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_set_tag_from_file)</span> for setting a tag from file (e.g. for importing a cuesheet as a tag).
+    * Added a new option <span class="argument">[\--import-picture-from](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_import_picture_from)</span> for importing pictures.
+    * Added a new option <span class="argument">[\--export-picture-to](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_export_picture_to)</span> for exporting pictures.
+    * Added shorthand operation <span class="argument">[\--remove-replay-gain](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_remove_replay_gain)</span> for removing ReplayGain tags.
+    * <span class="argument">[\--export-cuesheet-to](https://xiph.org/flac/documentation_tools_metaflac.html#metaflac_shorthand_export_cuesheet_to)</span> now properly specifies the FLAC file name ([SF #1272825](http://sourceforge.net/p/flac/feature-requests/46/)).
     * Importing of non-CDDA-compliant cuesheets now issues a warning.
     * Removed the following deprecated tag editing options; you should use the new option names shown instead:
-        * Removed <span class="argument">--show-vc-vendor</span>; use <span class="argument">--show-vendor-tag</span>
-        * Removed <span class="argument">--show-vc-field</span>; use <span class="argument">--show-tag</span>
-        * Removed <span class="argument">--remove-vc-all</span>; use <span class="argument">--remove-all-tags</span>
-        * Removed <span class="argument">--remove-vc-field</span>; use <span class="argument">--remove-tag</span>
-        * Removed <span class="argument">--remove-vc-firstfield</span>; use <span class="argument">--remove-first-tag</span>
-        * Removed <span class="argument">--set-vc-field</span>; use <span class="argument">--set-tag</span>
-        * Removed <span class="argument">--import-vc-from</span>; use <span class="argument">--import-tags-from</span>
-        * Removed <span class="argument">--export-vc-to</span>; use <span class="argument">--export-tags-to</span>
-    * Disallow multiple input FLAC files when --import-tags-from=- is used ([SF #1082577](http://sourceforge.net/p/flac/bugs/141/)).
+        * Removed <span class="argument">\--show-vc-vendor</span>; use <span class="argument">\--show-vendor-tag</span>
+        * Removed <span class="argument">\--show-vc-field</span>; use <span class="argument">\--show-tag</span>
+        * Removed <span class="argument">\--remove-vc-all</span>; use <span class="argument">\--remove-all-tags</span>
+        * Removed <span class="argument">\--remove-vc-field</span>; use <span class="argument">\--remove-tag</span>
+        * Removed <span class="argument">\--remove-vc-firstfield</span>; use <span class="argument">\--remove-first-tag</span>
+        * Removed <span class="argument">\--set-vc-field</span>; use <span class="argument">\--set-tag</span>
+        * Removed <span class="argument">\--import-vc-from</span>; use <span class="argument">\--import-tags-from</span>
+        * Removed <span class="argument">\--export-vc-to</span>; use <span class="argument">\--export-tags-to</span>
+    * Disallow multiple input FLAC files when \--import-tags-from=- is used ([SF #1082577](http://sourceforge.net/p/flac/bugs/141/)).
 * plugins:
     * When ReplayGain is on, if tags for the preferred kind of gain (album/track) are not in a stream, the other kind will be used.
     * Added ReplayGain info to file info box in XMMS plugin
@@ -564,10 +564,10 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 * build system:
     * Added support for building on OS/2 with EMX ([SF #1229495](http://sourceforge.net/p/flac/bugs/174/))
     * Added support for building with Borland C++ ([SF #1599018](http://sourceforge.net/p/flac/patches/17/))
-    * Added a <span class="argument">--disable-xmms-plugin</span> option to <span class="command">configure</span> to prevent building the XMMS plugin ([SF #930494](http://sourceforge.net/p/flac/feature-requests/33/)).
-    * Added a <span class="argument">--disable-doxygen-docs</span> option to <span class="command">configure</span> for disabling Doxygen-based API doc generation ([SF #1365935](http://sourceforge.net/p/flac/patches/12/)).
-    * Added a <span class="argument">--disable-thorough-tests</span> option to <span class="command">configure</span> to do the basic library, stream, and tool tests in a reasonable time ([SF #1077948](http://sourceforge.net/p/flac/feature-requests/40/)).
-    * Added large file support with <span class="argument">AC_SYS_LARGEFILE</span>; use <span class="argument">--disable-largefile</span> with <span class="command">configure</span> to disable.
+    * Added a <span class="argument">\--disable-xmms-plugin</span> option to <span class="command">configure</span> to prevent building the XMMS plugin ([SF #930494](http://sourceforge.net/p/flac/feature-requests/33/)).
+    * Added a <span class="argument">\--disable-doxygen-docs</span> option to <span class="command">configure</span> for disabling Doxygen-based API doc generation ([SF #1365935](http://sourceforge.net/p/flac/patches/12/)).
+    * Added a <span class="argument">\--disable-thorough-tests</span> option to <span class="command">configure</span> to do the basic library, stream, and tool tests in a reasonable time ([SF #1077948](http://sourceforge.net/p/flac/feature-requests/40/)).
+    * Added large file support with <span class="argument">AC_SYS_LARGEFILE</span>; use <span class="argument">\--disable-largefile</span> with <span class="command">configure</span> to disable.
 * libraries:
     * Merged libOggFLAC into libFLAC; both formats are now supported through the same API.
     * Merged libOggFLAC++ into libFLAC++; both formats are now supported through the same API.
@@ -622,7 +622,7 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 * Ogg FLAC format:
     * (none)
 * flac:
-    * New option <span class="argument">[--input-size](https://xiph.org/flac/documentation_tools_flac.html#flac_options_input_size)</span> to manually specify the input size when encoding raw samples from stdin.
+    * New option <span class="argument">[\--input-size](https://xiph.org/flac/documentation_tools_flac.html#flac_options_input_size)</span> to manually specify the input size when encoding raw samples from stdin.
 * metaflac:
     * (none)
 * plugins:
@@ -672,15 +672,15 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
 * FLAC format:
     * Made invalid the metadata block type 127 so that audio frames can always be distinguished from metadata by seeing 0xff as the first byte. (This was also required for the Ogg FLAC mapping.)
 * Ogg FLAC format:
-    * First official FLAC->Ogg bitstream mapping standardized (see new [FLAC-to-Ogg mapping specification](ogg_mapping.html)). See the documentation for the <span class="argument">[--ogg](https://xiph.org/flac/documentation_tools_flac.html#flac_options_ogg)</span> switch about having to re-encode older Ogg FLAC files.
+    * First official FLAC->Ogg bitstream mapping standardized (see new [FLAC-to-Ogg mapping specification](ogg_mapping.html)). See the documentation for the <span class="argument">[\--ogg](https://xiph.org/flac/documentation_tools_flac.html#flac_options_ogg)</span> switch about having to re-encode older Ogg FLAC files.
 * flac:
     * Print an error when output file already exists instead of automatically overwriting.
-    * New option <span class="argument">[-f](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force)</span> (<span class="argument">[--force](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force)</span>) to force overwriting if the output file already exists.
-    * New option <span class="argument">[--cue](https://xiph.org/flac/documentation_tools_flac.html#flac_options_cue)</span> to select a specific section to decode using cuesheet track/index points.
-    * New option <span class="argument">[--totally-silent](https://xiph.org/flac/documentation_tools_flac.html#flac_options_totally_silent)</span> to suppress all output.
-    * New (but undocumented) option <span class="argument">--apply-replaygain-which-is-not-lossless</span> which applies ReplayGain to the decoded output. See [this thread](http://www.hydrogenaud.io/forums/index.php?showtopic=17293&st=11) for usage and caveats.
+    * New option <span class="argument">[-f](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force)</span> (<span class="argument">[\--force](https://xiph.org/flac/documentation_tools_flac.html#flac_options_force)</span>) to force overwriting if the output file already exists.
+    * New option <span class="argument">[\--cue](https://xiph.org/flac/documentation_tools_flac.html#flac_options_cue)</span> to select a specific section to decode using cuesheet track/index points.
+    * New option <span class="argument">[\--totally-silent](https://xiph.org/flac/documentation_tools_flac.html#flac_options_totally_silent)</span> to suppress all output.
+    * New (but undocumented) option <span class="argument">\--apply-replaygain-which-is-not-lossless</span> which applies ReplayGain to the decoded output. See [this thread](http://www.hydrogenaud.io/forums/index.php?showtopic=17293&st=11) for usage and caveats.
     * When encoding to Ogg FLAC, use a random serial number (instead of 0 as was done before) when a serial number is not specified.
-    * When encoding multiple Ogg FLAC streams, <span class="argument">--serial-number</span> or random serial number sets the first number, which is then incremented for subsequent streams (before, the same serial number was used for all streams).
+    * When encoding multiple Ogg FLAC streams, <span class="argument">\--serial-number</span> or random serial number sets the first number, which is then incremented for subsequent streams (before, the same serial number was used for all streams).
     * Decoder no longer exits with an error when writing to stdout and the pipe is broken.
     * Better explanation of common error messages.
     * Default extension when writing AIFF files is .aif (before, it was .aiff).
@@ -689,21 +689,21 @@ This release mostly fixes (security related) bugs. When building with MSVC, usin
     * Bug fix: check for supported block alignments in WAVE files.
     * Bug fix: "offset" field in AIFF SSND chunk properly handled.
     * Bug fix: [#679166](http://sourceforge.net/p/flac/bugs/77/): flac doesn't respect RIFF subchunk padding byte.
-    * Bug fix: [#828391](http://sourceforge.net/p/flac/bugs/90/): --add-replay-gain segfaults.
+    * Bug fix: [#828391](http://sourceforge.net/p/flac/bugs/90/): \--add-replay-gain segfaults.
     * Bug fix: [#851155](http://sourceforge.net/p/flac/bugs/96/): Can't seek to position in flac file.
-    * Bug fix: [#851756](http://sourceforge.net/p/flac/bugs/97/): flac --skip --until reads entire file.
+    * Bug fix: [#851756](http://sourceforge.net/p/flac/bugs/97/): flac \--skip \--until reads entire file.
     * Bug fix: [#877122](http://sourceforge.net/p/flac/bugs/100/): problem parsing cuesheet with CATALOG entry.
     * Bug fix: [#896057](http://sourceforge.net/p/flac/bugs/104/): parsing ISRC number from cuesheet.
 * metaflac:
     * Renamed the tag editing options as follows (the <span class="argument">...-vc-...</span> options still work but are deprecated):
-        * <span class="argument">--show-vc-vendor</span> becomes <span class="argument">--show-vendor-tag</span>
-        * <span class="argument">--show-vc-field</span> becomes <span class="argument">--show-tag</span>
-        * <span class="argument">--remove-vc-all</span> becomes <span class="argument">--remove-all-tags</span>
-        * <span class="argument">--remove-vc-field</span> becomes <span class="argument">--remove-tag</span>
-        * <span class="argument">--remove-vc-firstfield</span> becomes <span class="argument">--remove-first-tag</span>
-        * <span class="argument">--set-vc-field</span> becomes <span class="argument">--set-tag</span>
-        * <span class="argument">--import-vc-from</span> becomes <span class="argument">--import-tags-from</span>
-        * <span class="argument">--export-vc-to</span> becomes <span class="argument">--export-tags-to</span>
+        * <span class="argument">\--show-vc-vendor</span> becomes <span class="argument">\--show-vendor-tag</span>
+        * <span class="argument">\--show-vc-field</span> becomes <span class="argument">\--show-tag</span>
+        * <span class="argument">\--remove-vc-all</span> becomes <span class="argument">\--remove-all-tags</span>
+        * <span class="argument">\--remove-vc-field</span> becomes <span class="argument">\--remove-tag</span>
+        * <span class="argument">\--remove-vc-firstfield</span> becomes <span class="argument">\--remove-first-tag</span>
+        * <span class="argument">\--set-vc-field</span> becomes <span class="argument">\--set-tag</span>
+        * <span class="argument">\--import-vc-from</span> becomes <span class="argument">\--import-tags-from</span>
+        * <span class="argument">\--export-vc-to</span> becomes <span class="argument">\--export-tags-to</span>
     * Better explanation of common error messages.
     * Bug fix: calculating ReplayGain on 48kHz streams.
     * Bug fix: incorrect numbers when printing seek points.
@@ -790,23 +790,23 @@ General:
     
 <span class="commandname">flac</span>:
 
-* Can now decode FLAC to AIFF; new <span class="argument">--force-aiff-format</span> option.
-* New <span class="argument">--cuesheet</span> option for reading and storing a cuesheet when encoding a whole CD. Automatically creates seek points for track and index points unless <span class="argument">--no-cued-seekpoints</span> is used.
-* New <span class="argument">--replay-gain</span> option for calculating ReplayGain values and storing them as tags.
-* New <span class="argument">--until</span> option complements <span class="argument">--skip</span> to stop decoding at a specified point in the stream.
-* <span class="argument">--skip</span> and <span class="argument">--until</span> now also accept mm:ss.ss format.
+* Can now decode FLAC to AIFF; new <span class="argument">\--force-aiff-format</span> option.
+* New <span class="argument">\--cuesheet</span> option for reading and storing a cuesheet when encoding a whole CD. Automatically creates seek points for track and index points unless <span class="argument">\--no-cued-seekpoints</span> is used.
+* New <span class="argument">\--replay-gain</span> option for calculating ReplayGain values and storing them as tags.
+* New <span class="argument">\--until</span> option complements <span class="argument">\--skip</span> to stop decoding at a specified point in the stream.
+* <span class="argument">\--skip</span> and <span class="argument">\--until</span> now also accept mm:ss.ss format.
 * New <span class="argument">-S #s</span> flavor to specify seekpoints every '#' number of seconds.
 * <span class="commandname">flac</span> now defaults to <span class="argument">-S 10s</span> instead of <span class="argument">-S 100x</span> for the seek table.
-* <span class="commandname">flac</span> now adds a 4k PADDING block by default (turn off with <span class="argument">--no-padding</span>).
-* Fixed a bug with --skip and AIFF-to-FLAC encoding.
+* <span class="commandname">flac</span> now adds a 4k PADDING block by default (turn off with <span class="argument">\--no-padding</span>).
+* Fixed a bug with \--skip and AIFF-to-FLAC encoding.
 * Fixed a bug where decoding a FLAC file whose total_samples==0 in the STREAMINFO would corrupt the WAVE header.
 
 <span class="commandname">metaflac</span>:
 
-* New <span class="argument">--import-cuesheet-from</span> option for reading and storing a cuesheet to a FLAC-encoded CD. Automatically creates seek points for track and index points unless <span class="argument">--no-cued-seekpoints</span> is used.
-* New <span class="argument">--export-cuesheet-to</span> option for writing a cuesheet from a FLAC file for use with CD authoring software.
-* New <span class="argument">--add-replay-gain</span> option for calculating ReplayGain values and storing them as tags.
-* New <span class="argument">--add-seekpoint</span> option to add seekpoints to an existing FLAC file. Includes new <span class="argument">--add-seekpoint=#s</span> flavor to add seekpoints every '#' number of seconds.
+* New <span class="argument">\--import-cuesheet-from</span> option for reading and storing a cuesheet to a FLAC-encoded CD. Automatically creates seek points for track and index points unless <span class="argument">\--no-cued-seekpoints</span> is used.
+* New <span class="argument">\--export-cuesheet-to</span> option for writing a cuesheet from a FLAC file for use with CD authoring software.
+* New <span class="argument">\--add-replay-gain</span> option for calculating ReplayGain values and storing them as tags.
+* New <span class="argument">\--add-seekpoint</span> option to add seekpoints to an existing FLAC file. Includes new <span class="argument">\--add-seekpoint=#s</span> flavor to add seekpoints every '#' number of seconds.
 
 XMMS plugin:
 
@@ -844,9 +844,9 @@ Plugins:
 * Improved option parser (now uses getopt).
 * AIFF input support (thanks to Brady Patterson).
 * Small decoder speedup.
-* <span class="argument">--sector-align</span> now supported for raw input files.
-* New -T, --tag options for adding Vorbis comments while encoding.
-* New --serial-number option for use with --ogg.
+* <span class="argument">\--sector-align</span> now supported for raw input files.
+* New -T, \--tag options for adding Vorbis comments while encoding.
+* New \--serial-number option for use with \--ogg.
 * Automatically writes vendor string in Vorbis comments.
 * Drastically reduced memory requirements.
 * Fixed bug where extra fmt/data chunks that were supposed to be skipped were not getting skipped.
@@ -856,9 +856,9 @@ Plugins:
 <span class="commandname">metaflac</span>:
 
 * UTF-8 support in Vorbis comments.
-* New --import-vc-from and --export-vc-to commands for importing/exporting Vorbis comments from/to a file. For example, the following can be used to copy tags back and forth:  
-<span class="code">metaflac --export-vc-to=- --no-utf8-convert file.flac | vorbiscomment --raw -w file.ogg  
-vorbiscomment --raw -l file.ogg | metaflac --import-vc-from=- --no-utf8-convert file.flac  
+* New \--import-vc-from and \--export-vc-to commands for importing/exporting Vorbis comments from/to a file. For example, the following can be used to copy tags back and forth:  
+<span class="code">metaflac \--export-vc-to=- \--no-utf8-convert file.flac | vorbiscomment \--raw -w file.ogg  
+vorbiscomment \--raw -l file.ogg | metaflac \--import-vc-from=- \--no-utf8-convert file.flac  
 </span>
 * Fixed [bug #606796](http://sourceforge.net/p/flac/bugs/54/) where <span class="commandname">metaflac</span> was failing on read-only files.
 
@@ -941,12 +941,12 @@ Bug fixes:
 
 It's finally here. There are a few new features but mostly it is minor bug fixes since 0.10:
 
-* New '--sector-align' option to <span class="commandname">flac</span> which aligns a group of encoded files on CD audio sector boundaries.
-* New '--output-prefix' option to <span class="commandname">flac</span> to allow the user to prepend a prefix to all output filenames (useful, for example, for encoding/decoding to a different directory).
+* New '\--sector-align' option to <span class="commandname">flac</span> which aligns a group of encoded files on CD audio sector boundaries.
+* New '\--output-prefix' option to <span class="commandname">flac</span> to allow the user to prepend a prefix to all output filenames (useful, for example, for encoding/decoding to a different directory).
 * Better WAVE autodetection (doesn't rely on ungetc() anymore).
 * Cleaner one-line encoding/decoding stats.
 * Changes to the libFLAC interface and type names to make binary compatibility easier to maintain in the future.
-* New '--sse-os' option to 'configure' to enable faster SSE-based routines.
+* New '\--sse-os' option to 'configure' to enable faster SSE-based routines.
 * Another (hopefully last) fix to the Winamp 2 plugin.
 * Slightly improved Rice parameter estimation.
 * Bug fixes for some very rare corner cases when encoding.
@@ -961,7 +961,7 @@ This is probably the final beta. There have been many improvements in the last t
 * The -# options in <span class="commandname">flac</span> have been tweaked to yield the best compression-to-encode-time ratios. The new default is -5.
 * <span class="commandname">flac</span> can now usually autodetect WAVE files when encoding so that -fw is usually not needed when encoding from stdin.
 * The WAVE reader in <span class="commandname">flac</span> now just ignores (with a warning) unsupported sub-chunks instead of aborting with an error.
-* Added an option '--delete-input-file' to <span class="commandname">flac</span> which automatically deletes the input after a successful encode/decode.
+* Added an option '\--delete-input-file' to <span class="commandname">flac</span> which automatically deletes the input after a successful encode/decode.
 * Added an option '-o' to <span class="commandname">flac</span> to force the output file name (the old usage of "flac - outputfilename" is no longer supported).
 * Changed the XMMS plugin to send smaller chunks of samples (now 512) so that visualization is not slow.
 * Fixed a bug in the stream decoder where the decoded samples counter got corrupted after a seek.
@@ -1000,7 +1000,7 @@ Changes since 0.7:
 
 Changes:
  
-* Fixed a bug that happened when both -fr and --seek were used at the same time.
+* Fixed a bug that happened when both -fr and \--seek were used at the same time.
 * Fixed a bug with -p (c.f. [bug #230992](http://sourceforge.net/p/flac/bugs/1/)).
 * Fixed a bug that happened when using large (>32K) blocksizes and -V (c.f. [bug #231976](http://sourceforge.net/p/flac/bugs/5/)).
 * Fixed a bug where encoder was double-closing a file.
