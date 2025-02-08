@@ -146,6 +146,12 @@ namespace FLAC {
 			return ::FLAC__stream_decoder_get_total_samples(decoder_);
 		}
 
+		FLAC__uint64 Stream::find_total_samples()
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_decoder_find_total_samples(decoder_);
+		}
+
 		uint32_t Stream::get_channels() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -180,6 +186,12 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_decoder_get_decode_position(decoder_, position);
+		}
+
+		int32_t Stream::get_link_lengths(FLAC__uint64 **link_lengths)
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_decoder_get_link_lengths(decoder_, link_lengths);
 		}
 
 		::FLAC__StreamDecoderInitStatus Stream::init()
