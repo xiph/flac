@@ -445,7 +445,7 @@
  * \section porting_1_4_3_to_1_5_0_summary Summary
  *
  * Between FLAC 1.4.3 and FLAC 1.5.0, there have been changes to
- * existing functions and enums:
+ * existing C functions and enums:
  * - the functions FLAC__metadata_get_streaminfo,
  *   FLAC__metadata_get_tags and FLAC__metadata_get_cuesheet can now
  *   read from Ogg FLAC files
@@ -478,6 +478,11 @@
  * - the function FLAC__stream_decoder_find_total_samples was added,
  *   which seeks to the end of a file to find the total number of
  *   samples
+ * - the function FLAC__stream_encoder_set_num_threads and
+ *   FLAC__stream_encoder_get_num_threads have been added, which
+ *   can be used to enable multithreading in the encoder
+ *
+ * For the C++ API, changes are the same, but in C++ nomenclature
  *
  */
 
