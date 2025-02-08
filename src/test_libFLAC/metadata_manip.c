@@ -1503,13 +1503,13 @@ static FLAC__bool test_level_2_(FLAC__bool filename_based, FLAC__bool is_ogg, FL
 	if(!test_file_(is_ogg, decoder_metadata_callback_compare_, false))
 		return false;
 
-	if(is_ogg)
-		goto end;
-
 	printf("switch file to read-write\n");
 
 	if(!change_stats_(flacfilename(is_ogg, false), /*read-only=*/false))
 		return false;
+
+	if(is_ogg)
+		goto end;
 
 	printf("create iterator\n");
 	if(0 == (iterator = FLAC__metadata_iterator_new()))
@@ -1966,12 +1966,28 @@ static FLAC__bool test_level_2_(FLAC__bool filename_based, FLAC__bool is_ogg, FL
 		return false;
 
 end:
-	printf("delete chain\n");
 
-	FLAC__metadata_chain_delete(chain);
+	if(is_ogg) {
+		/* Check whether opening a chained file fails */
+		printf("create chained Ogg FLAC file\n");
+
+		if(0 != flac_rename(flacfilename(is_ogg, false),flacfilename(is_ogg, true)))
+			return false;
+		file_utils__ogg_serial_number++;
+		if(!generate_file_(/*include_extras=*/false, is_ogg))
+			return false;
+		if(!file_utils__append_file(flacfilename(is_ogg, false), flacfilename(is_ogg, true)))
+			return false;
+		if(read_chain_(chain, flacfilename(is_ogg, false), filename_based, is_ogg))
+			return die_c_("read chained Ogg instead of throwing error", FLAC__metadata_chain_status(chain));
+	}
 
 	if(!remove_file_(flacfilename(is_ogg, false)))
 		return false;
+
+	printf("delete chain\n");
+
+	FLAC__metadata_chain_delete(chain);
 
 	return true;
 }
