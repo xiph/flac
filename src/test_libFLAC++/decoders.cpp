@@ -679,10 +679,19 @@ static bool test_stream_decoder(Layer layer, bool is_ogg, bool is_chained_ogg)
 		FLAC::Decoder::Stream::State state = decoder->get_state();
 		printf("returned state = %u (%s)... OK\n", (uint32_t)((::FLAC__StreamDecoderState)state), state.as_cstring());
 
+		printf("testing get_link_lengths()... ");
+		if(decoder->get_link_lengths(NULL) != FLAC__STREAM_DECODER_GET_LINK_LENGTHS_NOT_INDEXED)
+			return die_s_("returned incorrectly", decoder);
+
 		printf("progress to next chain link with finish_link()... ");
 		if(!decoder->finish_link())
 			return die_s_("returned false", decoder);
 		printf("OK\n");
+	}
+	else {
+		printf("testing get_link_lengths()... ");
+		if(decoder->get_link_lengths(NULL) != FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID)
+			return die_s_("returned incorrectly", decoder);
 	}
 
 	printf("testing get_state()... ");
@@ -771,6 +780,24 @@ static bool test_stream_decoder(Layer layer, bool is_ogg, bool is_chained_ogg)
 	if(decoder->seek_absolute(0) != expect)
 		return die_s_(expect? "returned false" : "returned true", decoder);
 	printf("OK\n");
+
+	if(is_chained_ogg) {
+		FLAC__uint64 *link_lengths;
+		printf("testing get_link_lengths()... ");
+		if(decoder->get_link_lengths(NULL) != 2)
+			return die_s_("returned incorrectly", decoder);
+
+		printf("testing get_link_lengths()... ");
+		if(decoder->get_link_lengths(&link_lengths) != 2)
+			return die_s_("returned incorrectly", decoder);
+		free(link_lengths);
+	}
+	else {
+		printf("testing get_link_lengths()... ");
+		if(decoder->get_link_lengths(NULL) != FLAC__STREAM_DECODER_GET_LINK_LENGTHS_INVALID)
+			return die_s_("returned incorrectly", decoder);
+	}
+
 
 	printf("testing get_channels()... ");
 	{
