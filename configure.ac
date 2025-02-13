@@ -386,7 +386,7 @@ if test "x$enable_multithreading" != "xno" ; then
 		CC="$PTHREAD_CC"
 		CXX="$PTHREAD_CXX"
 		],[HAVE_PTHREAD=no])
-	if test "x${HAVE_PTHREAD}" == "xno"; then
+	if test "x${HAVE_PTHREAD}" = "xno"; then
 		AC_MSG_WARN("pthread support, needed for multithreading, is not found")
 	fi
 fi
