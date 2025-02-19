@@ -104,7 +104,7 @@ FLAC__bool do_operations(const CommandLineOptions *options)
 
 void show_version(void)
 {
-	printf("metaflac %s\n", FLAC__VERSION_STRING);
+	flac_printf("metaflac %s\n", FLAC__VERSION_STRING);
 }
 
 FLAC__bool do_major_operation(const CommandLineOptions *options)
