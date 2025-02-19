@@ -132,3 +132,9 @@ jobs:
           path: |
             ./**/*.log
             ./**/out*.meta
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: flac-${{ github.run_id }}-${{ github.sha }}
+          path: flac
