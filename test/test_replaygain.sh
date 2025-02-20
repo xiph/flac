@@ -140,7 +140,4 @@ for ACTION in $REPLAYGAIN_FREQ ; do
   done
 done
 
-
-rm -f $testdir/out.flac $testdir/out.meta
-
 exit 0

@@ -543,4 +543,4 @@ mv $flacfile_secondary $flacfile
 check_flac
 metaflac_test_nofilter case67 "-o --append --block-number=0" "--list"
 
-rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta
+rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta metaflac-test-files/out.flac
