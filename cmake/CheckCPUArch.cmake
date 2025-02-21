@@ -25,3 +25,7 @@ endmacro(CHECK_CPU_ARCH_X86)
 macro(CHECK_CPU_ARCH_ARM64 VARIABLE)
     _CHECK_CPU_ARCH(arm64 "defined(__aarch64__) || defined(__arm64__)" ${VARIABLE})
 endmacro(CHECK_CPU_ARCH_ARM64)
+
+macro(CHECK_CPU_ARCH_RISCV64 VARIABLE)
+    _CHECK_CPU_ARCH(riscv64 "defined(__riscv)" ${VARIABLE})
+endmacro(CHECK_CPU_ARCH_RISCV64)
