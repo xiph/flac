@@ -187,8 +187,10 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	}
 	if(encoder_valid && (metadata_mask & 4) && size > 20){
 		FLAC__byte * application_data = (FLAC__byte *)malloc(size-20);
-		if(0 != application_data && ((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION)) == NULL))
+		if(0 != application_data && ((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_APPLICATION)) == NULL)) {
 			encoder_valid = false;
+			free(application_data);
+		}
 		else {
 			memcpy(application_data,data+20,size-20);
 			FLAC__metadata_object_application_set_data(metadata[num_metadata++], application_data, size-20, 0);
