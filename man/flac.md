@@ -324,11 +324,6 @@ negated, see the **Negative options** section below.
 	sign means that the \--until point is taken relative to the \--skip 
 	point. For other considerations, see \--skip. 
 
-**\--no-utf8-convert**
-:	Do not convert tags from local charset to UTF-8. This is useful for
-	scripts, and setting tags in situations where the locale is wrong.
-	This option must appear before any tag options!
-
 **-s**, **\--silent**
 :	Silent mode (do not write runtime encode/decode statistics to stderr)
 
@@ -426,10 +421,11 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	for subset streams with higher samplerates it must be \<= 16384.
 
 **-m**, **\--mid-side**
-:	Try mid-side coding for each frame (stereo only, otherwise ignored).
+:	Try mid-side coding for each frame in addition to left and right, and 
+	select the best compression. (Stereo only, ignored otherwise.)
 
 **-M**, **\--adaptive-mid-side**
-:	Adaptive mid-side coding for all frames (stereo only, otherwise ignored).
+:	Like -m, but adaptive choice (faster, slightly weaker compression).
 
 **-r** \[\#,\]\#, **\--rice-partition-order**=\[\#,\]\#
 :	Set the \[min,\]max residual partition order (0..15). For subset 
@@ -445,20 +441,19 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 :	Do exhaustive model search (expensive!).
 
 **-q** \#, **\--qlp-coeff-precision**=\#
-:	Precision of the quantized linear-predictor coefficients. This number 
-	must be in between 5 and 16, or 0 (the default) to let encoder decide. 
- 	Does nothing if using -l 0. 
+:	Set precision (in bits) of the quantized linear-predictor 
+	coefficients, 5\<= \# \<=15 or the default 0 to let encoder decide. 
+	Does nothing if using -l 0. The encoder may reduce the actual 
+	quantization below the \# number by signal and prediction order.
 
 **-p**, **\--qlp-coeff-precision-search**
-:	Do exhaustive search of LP coefficient quantization (expensive!).
+:	Do exhaustive search of LP coefficient precision (expensive!).
 	Overrides -q; does nothing if using -l 0.
 
 **\--lax**
-:	Allow encoder to generate non-Subset files. The resulting FLAC file
-	may not be streamable or might have trouble being played in all
-	players (especially hardware devices), so you should only use this
-	option in combination with custom encoding options meant for
-	archival.
+:	Allow encoding to non-*subset* FLAC files (see RFC 9639 section 7). 
+	WARNING: may cause some applications (especially legacy hardware 
+	devices) to fail streaming or playback.
 
 **\--limit-min-bitrate**
 :	Limit minimum bitrate by not allowing frames consisting of only 
@@ -513,6 +508,27 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	Specifying only *FILENAME* is just shorthand for "\|\|\|\|FILENAME". 
 	See the section **Picture specification** for *SPECIFICATION* format.
 
+**\--no-utf8-convert**
+:	Upon tagging, do not convert tags from local charset to UTF-8. This 
+	is useful for scripts, and for setting tags in situations where the 
+	locale is wrong. This option must appear *before* any tag options!
+
+**-T** "*FIELD=VALUE*"**, \--tag**="*FIELD=VALUE*"
+:	Add a FLAC tag. The comment must adhere to the Vorbis comment spec;
+	i.e. the FIELD must contain only legal characters, terminated by an
+	'equals' sign. Make sure to quote the content if necessary. This
+	option may appear more than once to add several Vorbis comments. 
+ 	NOTE: all tags will be added to all encoded files. Upon re-encoding,
+	all existing tags will be lost, not only those set with -T / \--tag. 
+
+**\--tag-from-file**="*FIELD=FILENAME*"
+:	Like \--tag, except FILENAME is a file whose contents will be read
+	verbatim to set the tag value. The contents will be converted to
+	UTF-8 from the local charset. This can be used to store a cuesheet
+	in a tag (e.g. \--tag-from-file="CUESHEET=image.cue").  
+	NOTE: Do not try to store binary data in tag fields! Use PICTURE 
+	blocks for pictures and APPLICATION blocks for other binary data. 
+
 **-S** {\#\|X\|\#x\|\#s}, **\--seekpoint**={\#\|X\|\#x\|\#s}
 :	Specifies point(s) to include in SEEKTABLE, to override the encoder's
 	default choice of one per ten seconds ('-s 10s'). Using \#, a seek point 
@@ -537,20 +553,6 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
  	later tagging, where one can write over the PADDING block instead 
 	of having to rewrite the entire file. Note that a block header 
 	of 4 bytes will come on top of the length specified.
-
-**-T** "*FIELD=VALUE*"**, \--tag**="*FIELD=VALUE*"
-:	Add a FLAC tag. The comment must adhere to the Vorbis comment spec;
-	i.e. the FIELD must contain only legal characters, terminated by an
-	'equals' sign. Make sure to quote the content if necessary. This
-	option may appear more than once to add several Vorbis comments. 
- 	NOTE: all tags will be added to all encoded files.
-
-**\--tag-from-file**="*FIELD=FILENAME*"
-:	Like \--tag, except FILENAME is a file whose contents will be read
-	verbatim to set the tag value. The contents will be converted to
-	UTF-8 from the local charset. This can be used to store a cuesheet
-	in a tag (e.g. \--tag-from-file="CUESHEET=image.cue"). Do not try to
-	store binary data in tag fields! Use APPLICATION blocks for that.
 
 
 ## FORMAT OPTIONS
