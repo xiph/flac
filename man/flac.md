@@ -462,13 +462,14 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	internet streaming.
 
 **-j** \#, **\--threads**=\#
-:	Try to set a maximum number of threads to use for encoding. If
-	multithreading was not enabled on compilation or when setting a
-	number of threads that is too high, this fails with a warning. The
-	value of 0 means a default set by the encoder; currently that is 1 
- 	thread (i.e. no multithreading), but that could change in the 
-	future. Currently, up to 128 threads are supported. Using a value 
- 	higher than the number of available CPU threads harms performance.
+:	By default, **flac** will encode with one thread. This option enables 
+	multithreading with max \# number of threads, although "0" to let the 
+	encoder decide. Currently, -j 0 is synonymous with -j 1 (i.e. no
+	multithreading), and the max supported number is 64; both could change
+	in the future. If \# exceeds the supported maximum (64), **flac** will 
+	encode with a single thread (and throw a warning). The same happens 
+	(for any \#) if **flac** was compiled with multithreading disabled. 
+	NOTE: Exceeding the *actual* available CPU threads, harms speed.
 
 **\--ignore-chunk-sizes**
 :	When encoding to flac, ignore the file size headers in WAV and AIFF
