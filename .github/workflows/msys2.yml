@@ -49,6 +49,7 @@ jobs:
 
       - name: Package build
         uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
         with:
           name: flac-win64-static-${{ github.sha}}
           path: flac
