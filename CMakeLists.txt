@@ -48,9 +48,9 @@ if(WITH_OGG)
     endif()
 endif()
 
-find_program (HAVE_GIT git)
+find_package(Git)
 
-if(HAVE_GIT)
+if(Git_FOUND)
     execute_process(
         COMMAND git --git-dir=.git describe --tags --exact-match
         WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
