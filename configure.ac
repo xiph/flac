@@ -53,7 +53,7 @@ AM_PROG_CC_C_O
 AC_C_INLINE
 AC_C_TYPEOF
 
-AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h sys/time.h termios.h x86intrin.h cpuid.h arm_neon.h])
+AC_CHECK_HEADERS([stdint.h stdbool.h inttypes.h byteswap.h sys/auxv.h sys/param.h sys/ioctl.h sys/time.h termios.h x86intrin.h cpuid.h arm_neon.h threads.h])
 
 if test "x$ac_cv_header_stdint_h" != xyes -o "x$ac_cv_header_stdbool_h" != xyes; then
 AC_MSG_ERROR("Header stdint.h and/or stdbool.h not found")
@@ -379,15 +379,21 @@ HAVE_PTHREAD=no
 if test "x$enable_multithreading" != "xno" ; then
 	AX_PTHREAD([
 		HAVE_PTHREAD=yes
-		AC_DEFINE(HAVE_PTHREAD,1,[Define if pthread is enabled])
+		AC_DEFINE([HAVE_PTHREAD],1,[Define if multithreading is enable and pthread is available])
 		LIBS="$PTHREAD_LIBS $LIBS"
 		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
 		CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
 		CC="$PTHREAD_CC"
 		CXX="$PTHREAD_CXX"
 		],[HAVE_PTHREAD=no])
-	if test "x${HAVE_PTHREAD}" = "xno"; then
-		AC_MSG_WARN("pthread support, needed for multithreading, is not found")
+	if test  "x${HAVE_PTHREAD}" = "xno" -a "x$ac_cv_header_threads_h" = "xyes"; then
+		HAVE_C11THREADS=yes
+		AC_DEFINE([HAVE_C11THREADS],1,[Define if multithreading is enable and <threads.h> is available])
+	else
+		HAVE_C11THREADS=no
+	fi
+	if test "x${HAVE_PTHREAD}" = "xno" -a "x${HAVE_C11THREADS}" = "xno"; then
+		AC_MSG_WARN("pthread or C11 threads support, needed for multithreading, are not found")
 	fi
 fi
 
@@ -616,7 +622,13 @@ fi
 	echo "    Compiler is Clang : ....................... ${xiph_cv_c_compiler_clang}"
 	echo "    Asm optimizations : ....................... ${asm_optimisation}"
 	echo "    Ogg/FLAC support : ........................ ${have_ogg}"
-	echo "    Multithreading   : ........................ ${HAVE_PTHREAD}"
+if test "x${HAVE_C11THREADS}" = "xyes" ; then
+	echo "    Multithreading   : ........................ C11 threads"
+elif test "x${HAVE_PTHREAD}" = "xyes" ; then
+	echo "    Multithreading   : ........................ pthread"
+else
+	echo "    Multithreading   : ........................ no"
+fi
 	echo "    Stack protector  : ........................ ${enable_stack_smash_protection}"
 	echo "    Fuzzing support (Clang only) : ............ ${have_oss_fuzzers}"
 echo
