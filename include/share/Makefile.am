@@ -5,6 +5,7 @@ SUBDIRS = grabbag
 EXTRA_DIST = \
 	alloc.h \
 	compat.h \
+	compat_threads.h \
 	endswap.h \
 	getopt.h \
 	grabbag.h \
