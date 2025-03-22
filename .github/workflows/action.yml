@@ -54,6 +54,16 @@ jobs:
             build-system: cmake
             configure-opts: '-DBUILD_SHARED_LIBS=ON'
 
+          - name: windows-latest-cmake-c11
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DCMAKE_C_STANDARD=11'
+
+          - name: windows-latest-cmake-c11-shared
+            os: windows-latest
+            build-system: cmake
+            configure-opts: '-DCMAKE_C_STANDARD=11 -DBUILD_SHARED_LIBS=ON'
+
     runs-on: ${{ matrix.os }}
 
     steps:

@@ -61,6 +61,9 @@
 /* Define to 1 if you have the <byteswap.h> header file. */
 #cmakedefine HAVE_BYTESWAP_H
 
+/* Define if multithreading is enable and <threads.h> is available */
+#cmakedefine HAVE_C11THREADS 1
+
 /* define if you have clock_gettime */
 #cmakedefine HAVE_CLOCK_GETTIME
 
@@ -88,7 +91,7 @@
 /* Define to 1 if you have the <memory.h> header file. */
 #cmakedefine HAVE_MEMORY_H
 
-/* Define if multithreading is enabled */
+/* Define if multithreading is enable and pthread is available */
 #cmakedefine HAVE_PTHREAD 1
 
 /* Define to 1 if you have the <stdint.h> header file. */
