@@ -5,6 +5,10 @@ if(NOT TARGET Ogg::ogg)
     find_dependency(Ogg)
 endif()
 
+if (@ENABLE_MULTITHREADING@)
+    find_dependency(Threads)
+endif()
+
 include("${CMAKE_CURRENT_LIST_DIR}/targets.cmake")
 
 if(TARGET FLAC::FLAC)
