@@ -373,24 +373,28 @@ AC_ARG_ENABLE([version-from-git],
 
 dnl Build with multithreading?
 AC_ARG_ENABLE([multithreading],
-	AS_HELP_STRING([--disable-multithreading], [Disable multithreading in libFLAC]))
+	AS_HELP_STRING([--enable-multithreading=yes|pthread|c11threads|no], [Enable multithreading in libFLAC. When not specifying pthread or c11threads, configure will use pthread if available (default: yes)]))
 
 HAVE_PTHREAD=no
+HAVE_C11THREADS=no
+
 if test "x$enable_multithreading" != "xno" ; then
-	AX_PTHREAD([
-		HAVE_PTHREAD=yes
-		AC_DEFINE([HAVE_PTHREAD],1,[Define if multithreading is enable and pthread is available])
-		LIBS="$PTHREAD_LIBS $LIBS"
-		CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
-		CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
-		CC="$PTHREAD_CC"
-		CXX="$PTHREAD_CXX"
-		],[HAVE_PTHREAD=no])
-	if test  "x${HAVE_PTHREAD}" = "xno" -a "x$ac_cv_header_threads_h" = "xyes"; then
+	if test "x$enable_multithreading" != "xc11threads" ; then
+		AX_PTHREAD([
+			HAVE_PTHREAD=yes
+			AC_DEFINE([HAVE_PTHREAD],1,[Define if multithreading is enable and pthread is available])
+			LIBS="$PTHREAD_LIBS $LIBS"
+			CFLAGS="$CFLAGS $PTHREAD_CFLAGS"
+			CXXFLAGS="$CXXFLAGS $PTHREAD_CFLAGS"
+			CC="$PTHREAD_CC"
+			CXX="$PTHREAD_CXX"
+			],[HAVE_PTHREAD=no])
+	else
+		HAVE_PTHREAD=no
+	fi
+	if test "x$enable_multithreading" != "xpthread" -a "x${HAVE_PTHREAD}" = "xno" -a "x$ac_cv_header_threads_h" = "xyes"; then
 		HAVE_C11THREADS=yes
 		AC_DEFINE([HAVE_C11THREADS],1,[Define if multithreading is enable and <threads.h> is available])
-	else
-		HAVE_C11THREADS=no
 	fi
 	if test "x${HAVE_PTHREAD}" = "xno" -a "x${HAVE_C11THREADS}" = "xno"; then
 		AC_MSG_WARN("pthread or C11 threads support, needed for multithreading, are not found")
