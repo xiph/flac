@@ -86,6 +86,15 @@ AC_DEFINE(FLAC__NO_ASM)
 AH_TEMPLATE(FLAC__NO_ASM, [define to disable use of assembly code])
 fi
 
+AC_ARG_ENABLE(riscv-vector-optimizations, AS_HELP_STRING([--enable-riscv-vector-optimizations],[Enable RiscV Vector Optimization Routines]), riscv_vector_opt=yes, riscv_vector_opt=no)
+AM_CONDITIONAL(FLAC__RISCV_VECTOR, test "x$riscv_vector_opt" = xyes)
+if test "x$riscv_vector_opt" = xyes ; then
+CFLAGS="-march=rv64gcv $CFLAGS"
+AC_CHECK_HEADERS([riscv_vector.h])
+AC_DEFINE(FLAC__RISCV_VECTOR)
+AH_TEMPLATE(FLAC__RISCV_VECTOR, [define to enable use riscv vector extensions])
+fi
+
 dnl check for getauxval in standard library
 AC_CHECK_FUNCS(getauxval)
 
@@ -131,10 +140,16 @@ case "$host_cpu" in
 		AC_DEFINE(FLAC__CPU_ARM64)
 		AH_TEMPLATE(FLAC__CPU_ARM64, [define if building for ARM])
 		;;
+	riscv64)
+		cpu_riscv64=true
+		AC_DEFINE(FLAC__CPU_RISCV64)
+		AH_TEMPLATE(FLAC__CPU_RISCV64, [define if building for Riscv64])
+		;;
 esac
 AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)
 AM_CONDITIONAL(FLAC__CPU_ARM64, test "x$cpu_arm64" = xtrue)
+AM_CONDITIONAL(FLAC__CPU_RISCV64, test "x$cpu_riscv64" = xtrue)
 
 if test "x$ac_cv_header_x86intrin_h" = xyes -a "x$asm_opt" = xyes; then
   AC_DEFINE([FLAC__HAS_X86INTRIN], 1, [Set to 1 if <x86intrin.h> is available.])
@@ -160,6 +175,25 @@ if test "x$ac_cv_header_arm_neon_h" = xyes -a "x$asm_opt" = xyes; then
   fi
 else
   AC_DEFINE([FLAC__HAS_NEONINTRIN], 0)
+fi
+
+if test "x$ac_cv_header_riscv_vector_h" = xyes -a "x$asm_opt" = xyes; then
+  AC_DEFINE([FLAC__HAS_RISCVINTRIN], 1, [Set to 1 if <riscv_vector.h> is available.])
+  AC_MSG_CHECKING([whether riscv_vector.h has Vector functions])
+  AC_COMPILE_IFELSE(
+	[AC_LANG_PROGRAM([[#include <riscv_vector.h>]],
+	[[size_t vl = __riscv_vsetvl_e64m2(8); vfloat64m2_t a = __riscv_vfmv_v_f_f64m2(0.5, vl);]])],
+	[AC_MSG_RESULT([yes])
+	 has_riscvvector=yes],
+	[AC_MSG_RESULT([no])])
+  if test "x$has_riscvvector" = xyes; then
+    AC_DEFINE([FLAC__HAS_RISCVINTRIN], 1, [Set to 1 if <riscv_vector.h> has vector instructions.])
+    asm_optimisation=yes
+  else
+    AC_DEFINE([FLAC__HAS_RISCVINTRIN], 0)
+  fi
+else
+  AC_DEFINE([FLAC__HAS_RISCVINTRIN], 0)
 fi
 
 case "$host" in
