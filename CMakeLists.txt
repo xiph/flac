@@ -122,14 +122,17 @@ else()
 endif()
 
 
-if(ANDROID AND CMAKE_SYSTEM_VERSION VERSION_LESS 24 AND (CMAKE_SYSTEM_PROCESSOR MATCHES "i686" OR CMAKE_SYSTEM_PROCESSOR MATCHES "armv7-a"))
+if(ANDROID AND CMAKE_SYSTEM_PROCESSOR MATCHES "armv7-a|i686")
     # fseeko/ftello may link, but it's not usable before Android API 24 on 32-bit Android
     # https://android.googlesource.com/platform/bionic/+/main/docs/32-bit-abi.md
-    message(STATUS "Disabling fseeko/ftello for 32-bit Android before API 24")
-    set(HAVE_FSEEKO 0 CACHE INTERNAL "")
-else()
-    check_function_exists(fseeko HAVE_FSEEKO)
+    # The API level can be in different variables, subject to actual toolchain.
+    string(REPLACE "android-" "" api_level "${ANDROID_PLATFORM}")
+    if(NOT (CMAKE_SYSTEM_VERSION GREATER_EQUAL "24" OR api_level GREATER_EQUAL "24"))
+        message(STATUS "Disabling fseeko/ftello for 32-bit Android before API 24")
+        set(HAVE_FSEEKO 0 CACHE INTERNAL "")
+    endif()
 endif()
+check_function_exists(fseeko HAVE_FSEEKO)
 
 check_c_source_compiles("int main() { return __builtin_bswap16 (0) ; }" HAVE_BSWAP16)
 check_c_source_compiles("int main() { return __builtin_bswap32 (0) ; }" HAVE_BSWAP32)
