@@ -487,6 +487,9 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 
 	decoder_client_data.layer = layer;
 	decoder_client_data.other_chain = false;
+	decoder_client_data.error_occurred = false;
+	decoder_client_data.got_audio = false;
+	decoder_client_data.ignore_errors = false;
 
 	printf("\n+++ libFLAC unit test: FLAC__StreamDecoder (layer: %s, format: %s)\n\n", LayerString[layer], is_chained_ogg? "chained Ogg FLAC" : is_ogg? "Ogg FLAC" : "FLAC");
 
