@@ -534,6 +534,9 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		print_error_with_state(d, "ERROR during decoding");
 		return false;
 	}
+	else if(d->until_specification->value.samples > 0 && !d->aborting_due_to_until) {
+		flac__utils_printf(stderr, 1, "%s: WARNING, input file ended before --until value was reached\n", d->inbasefilename);
+	}
 
 	/* write padding bytes for alignment if necessary */
 	if(!d->analysis_mode && !d->test_only && d->format != FORMAT_RAW) {
@@ -664,17 +667,22 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 	}
 
 	/* in any other case the total samples in the input must be known */
-	if(total_samples_in_input == 0) {
+	/*if(total_samples_in_input == 0) {
 		flac__utils_printf(stderr, 1, "%s: ERROR, cannot use --until when FLAC metadata has total sample count of 0\n", inbasefilename);
 		return false;
-	}
+	}*/
 
 	FLAC__ASSERT(spec->value_is_samples);
 
 	/* convert relative specifications to absolute */
 	if(spec->is_relative) {
 		if(spec->value.samples <= 0)
-			spec->value.samples += (FLAC__int64)total_samples_in_input;
+			if (total_samples_in_input == 0) {
+				flac__utils_printf(stderr, 1, "%s: ERROR, cannot use --until relative to end when FLAC metadata has total sample count of 0\n", inbasefilename);
+				return false;
+			}
+			else
+				spec->value.samples += (FLAC__int64)total_samples_in_input;
 		else
 			spec->value.samples += skip;
 		spec->is_relative = false;
@@ -689,7 +697,7 @@ FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec,
 		flac__utils_printf(stderr, 1, "%s: ERROR, --until value is before --skip point\n", inbasefilename);
 		return false;
 	}
-	if((FLAC__uint64)spec->value.samples > total_samples_in_input) {
+	if((FLAC__uint64)spec->value.samples > total_samples_in_input && total_samples_in_input != 0) {
 		flac__utils_printf(stderr, 1, "%s: ERROR, --until value is after end of input\n", inbasefilename);
 		return false;
 	}
@@ -1600,8 +1608,8 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 				decoder_session->abort_flag = true;
 				return;
 			}
-		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
-		skip = (FLAC__uint64)decoder_session->skip_specification->value.samples;
+			FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
+			skip = (FLAC__uint64)decoder_session->skip_specification->value.samples;
 		}
 		else
 			skip = 0;
@@ -1612,13 +1620,17 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			decoder_session->abort_flag = true;
 			return;
 		}
-		else if(metadata->data.stream_info.total_samples == 0 && skip > 0) {
+		/*else if(metadata->data.stream_info.total_samples == 0 && skip > 0) {
 			flac__utils_printf(stderr, 1, "%s: ERROR, can't --skip when FLAC metadata has total sample count of 0\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
-		}
+		}*/
 		FLAC__ASSERT(skip == 0 || 0 == decoder_session->cue_specification);
-		decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
+
+		if(metadata->data.stream_info.total_samples > 0)
+			decoder_session->total_samples = metadata->data.stream_info.total_samples - skip;
+		else
+			decoder_session->total_samples = metadata->data.stream_info.total_samples;
 
 		/* note that we use metadata->data.stream_info.total_samples instead of decoder_session->total_samples */
 		if(decoder_session->stream_counter < 0) {
@@ -1632,7 +1644,7 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		else
 			until = 0;
 
-		if(until > 0) {
+		if(until > 0 && decoder_session->total_samples > 0) {
 			FLAC__ASSERT(decoder_session->total_samples != 0);
 			FLAC__ASSERT(0 == decoder_session->cue_specification);
 			decoder_session->total_samples -= (metadata->data.stream_info.total_samples - until);
