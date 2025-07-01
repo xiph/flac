@@ -425,7 +425,8 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	select the best compression. (Stereo only, ignored otherwise.)
 
 **-M**, **\--adaptive-mid-side**
-:	Like -m, but adaptive choice (faster, slightly weaker compression).
+:	Like -m, but choose with a heuristic (faster, slightly weaker
+	compression).
 
 **-r** \[\#,\]\#, **\--rice-partition-order**=\[\#,\]\#
 :	Set the \[min,\]max residual partition order (0..15). For subset 
@@ -519,8 +520,10 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	i.e. the FIELD must contain only legal characters, terminated by an
 	'equals' sign. Make sure to quote the content if necessary. This
 	option may appear more than once to add several Vorbis comments. 
- 	NOTE: all tags will be added to all encoded files. Upon re-encoding,
-	all existing tags will be lost, not only those set with -T / \--tag. 
+	NOTE 1: All tags will be added to all encoded files.
+	NOTE 2: Upon re-encoding a file with one or more -T or \--tag
+	options, all tags in the input file will be ignored, not only those
+	set with -T / \--tag. 
 
 **\--tag-from-file**="*FIELD=FILENAME*"
 :	Like \--tag, except FILENAME is a file whose contents will be read
