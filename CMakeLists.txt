@@ -20,7 +20,7 @@ option(INSTALL_PKGCONFIG_MODULES "Install PkgConfig modules" ON)
 option(INSTALL_CMAKE_CONFIG_MODULE "Install CMake package-config module" ON)
 option(WITH_OGG "ogg support (default: test for libogg)" ON)
 option(BUILD_SHARED_LIBS "Build shared instead of static libraries" OFF)
-option(ENABLE_MULTITHREADING "Enable multithreading if pthreads is available" ON)
+option(ENABLE_MULTITHREADING "Enable multithreading if pthread or C11 threads are available" ON)
 
 set(VERSION ${PROJECT_VERSION})
 
@@ -111,6 +111,19 @@ check_include_file("stdint.h" HAVE_STDINT_H)
 check_include_file("stdbool.h" HAVE_STDBOOL_H)
 check_include_file("arm_neon.h" FLAC__HAS_NEONINTRIN)
 
+check_include_file("threads.h" HAVE_THREADS_H)
+if(MSVC AND CMAKE_C_STANDARD GREATER_EQUAL 11)
+    # Work-around CMake check_include_file() ignoring the global value of CMAKE_C_STANDARD.
+    # For MSVC, threads.h fails to compile unless it is in C11 or C17 mode.
+    set(OLD_CMAKE_REQUIRED_FLAGS ${CMAKE_REQUIRED_FLAGS})
+    set(CMAKE_REQUIRED_FLAGS /std:c11)
+    check_include_file("threads.h" HAVE_THREADS_H_MSVC_C11)
+    set(CMAKE_REQUIRED_FLAGS ${OLD_CMAKE_REQUIRED_FLAGS})
+    if(HAVE_THREADS_H_MSVC_C11)
+        set(HAVE_THREADS_H 1)
+    endif()
+endif()
+
 if(NOT HAVE_STDINT_H OR NOT HAVE_STDBOOL_H)
     message(SEND_ERROR "Header stdint.h and/or stdbool.h not found")
 endif()
@@ -122,14 +135,17 @@ else()
 endif()
 
 
-if(ANDROID AND CMAKE_SYSTEM_VERSION VERSION_LESS 24 AND (CMAKE_SYSTEM_PROCESSOR MATCHES "i686" OR CMAKE_SYSTEM_PROCESSOR MATCHES "armv7-a"))
+if(ANDROID AND CMAKE_SYSTEM_PROCESSOR MATCHES "armv7-a|i686")
     # fseeko/ftello may link, but it's not usable before Android API 24 on 32-bit Android
     # https://android.googlesource.com/platform/bionic/+/main/docs/32-bit-abi.md
-    message(STATUS "Disabling fseeko/ftello for 32-bit Android before API 24")
-    set(HAVE_FSEEKO 0 CACHE INTERNAL "")
-else()
-    check_function_exists(fseeko HAVE_FSEEKO)
+    # The API level can be in different variables, subject to actual toolchain.
+    string(REPLACE "android-" "" api_level "${ANDROID_PLATFORM}")
+    if(NOT (CMAKE_SYSTEM_VERSION GREATER_EQUAL "24" OR api_level GREATER_EQUAL "24"))
+        message(STATUS "Disabling fseeko/ftello for 32-bit Android before API 24")
+        set(HAVE_FSEEKO 0 CACHE INTERNAL "")
+    endif()
 endif()
+check_function_exists(fseeko HAVE_FSEEKO)
 
 check_c_source_compiles("int main() { return __builtin_bswap16 (0) ; }" HAVE_BSWAP16)
 check_c_source_compiles("int main() { return __builtin_bswap32 (0) ; }" HAVE_BSWAP32)
@@ -213,6 +229,10 @@ if(ENABLE_MULTITHREADING)
     if(CMAKE_USE_PTHREADS_INIT)
         set(HAVE_PTHREAD 1)
         set(FLAC_STATIC_LIBS "${FLAC_STATIC_LIBS} -pthread")
+    else()
+        if(HAVE_THREADS_H)
+            set(HAVE_C11THREADS 1)
+        endif()
     endif()
 endif()
 

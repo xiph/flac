@@ -102,7 +102,7 @@
  * \section getting_started Getting Started
  *
  * A good starting point for learning the API is to browse through
- * the <A HREF="modules.html">modules</A>.  Modules are logical
+ * the <A HREF="topics.html">modules</A>.  Modules are logical
  * groupings of related functions or classes, which correspond roughly
  * to header files or sections of header files.  Each module includes a
  * detailed description of the general usage of its functions or
