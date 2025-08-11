@@ -708,6 +708,10 @@ static FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_Stre
 		return false;
 	if (block1->channels != block2->channels)
 		return false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(block1->sample_type != block2->sample_type)
+		return false;
+#endif
 	if (block1->bits_per_sample != block2->bits_per_sample)
 		return false;
 	if (block1->total_samples != block2->total_samples)

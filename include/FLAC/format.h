@@ -178,6 +178,9 @@ extern FLAC_API const uint32_t FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 /** The length of the FLAC signature in bytes. */
 #define FLAC__STREAM_SYNC_LENGTH (4u)
 
+typedef enum { FLAC__SAMPLE_TYPE_NOT_SPECIFIED = -1,
+			   FLAC__SAMPLE_TYPE_INT = 0,
+			   FLAC__SAMPLE_TYPE_FLOAT = 1 } FLAC__SampleType; // TODO: merge with endian & unsigned
 
 /*****************************************************************************
  *
@@ -539,6 +542,9 @@ typedef struct {
 	uint32_t sample_rate;
 	uint32_t channels;
 	uint32_t bits_per_sample;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SampleType sample_type;
+#endif
 	FLAC__uint64 total_samples;
 	FLAC__byte md5sum[16];
 } FLAC__StreamMetadata_StreamInfo;

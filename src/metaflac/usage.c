@@ -126,6 +126,9 @@ int long_usage(const char *message, ...)
 	flac_fprintf(out, "--show-sample-rate    Show the sample rate from the STREAMINFO block.\n");
 	flac_fprintf(out, "--show-channels       Show the number of channels from the STREAMINFO block.\n");
 	flac_fprintf(out, "--show-bps            Show the # of bits per sample from the STREAMINFO block.\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	flac_fprintf(out, "--show-sample-type    Show if the audio samples are integer or floating-point from the STREAMINFO block.\n");
+#endif
 	flac_fprintf(out, "--show-total-samples  Show the total # of samples from the STREAMINFO block.\n");
 	flac_fprintf(out, "\n");
 	flac_fprintf(out, "--show-vendor-tag     Show the vendor string from the VORBIS_COMMENT block.\n");
