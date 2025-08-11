@@ -64,6 +64,9 @@
 #endif
 #include "private/stream_encoder.h"
 #include "private/stream_encoder_framing.h"
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+#include "private/transform_float.h"
+#endif
 #include "private/window.h"
 #include "share/alloc.h"
 #include "share/private.h"
@@ -1361,6 +1364,9 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->streaminfo.data.stream_info.max_framesize = 0; /* we don't know this yet; have to fill it in later */
 	encoder->private_->streaminfo.data.stream_info.sample_rate = encoder->protected_->sample_rate;
 	encoder->private_->streaminfo.data.stream_info.channels = encoder->protected_->channels;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	encoder->private_->streaminfo.data.stream_info.sample_type = encoder->protected_->sample_type;
+#endif
 	encoder->private_->streaminfo.data.stream_info.bits_per_sample = encoder->protected_->bits_per_sample;
 	encoder->private_->streaminfo.data.stream_info.total_samples = encoder->protected_->total_samples_estimate; /* we will replace this later with the real total */
 	memset(encoder->private_->streaminfo.data.stream_info.md5sum, 0, 16); /* we don't know this yet; have to fill it in later */
@@ -1847,6 +1853,19 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encod
 	encoder->protected_->channels = value;
 	return true;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_type(FLAC__StreamEncoder *encoder, SampleType value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->sample_type = value;
+	return true;
+}
+#endif
 
 FLAC_API FLAC__bool FLAC__stream_encoder_set_bits_per_sample(FLAC__StreamEncoder *encoder, uint32_t value)
 {
@@ -2382,6 +2401,16 @@ FLAC_API uint32_t FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *e
 	return encoder->protected_->channels;
 }
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API SampleType FLAC__stream_encoder_get_sample_type(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	return encoder->protected_->sample_type;
+}
+#endif
+
 FLAC_API uint32_t FLAC__stream_encoder_get_bits_per_sample(const FLAC__StreamEncoder *encoder)
 {
 	FLAC__ASSERT(0 != encoder);
@@ -2540,7 +2569,12 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 					return false;
 				}
 			}
-			memcpy(&encoder->private_->threadtask[0]->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(encoder->protected_->sample_type)
+				FLAC__transform_f32_buffer_to_i32_signal(&encoder->private_->threadtask[0]->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], n);
+			else
+#endif
+				memcpy(&encoder->private_->threadtask[0]->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
 		}
 		j += n;
 		encoder->private_->current_sample_number += n;
@@ -2580,6 +2614,13 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 		if(encoder->protected_->verify)
 			append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, flac_min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j));
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(encoder->protected_->sample_type) {
+			if(!FLAC__transform_f32_interleaved_buffer_to_i32_signal(encoder->private_->threadtask[0]->integer_signal[channel], buffer, &i, &j, &k, &channel, encoder->protected_, encoder->private_->current_sample_number, blocksize, samples, channels, sample_min, sample_max))
+				return false;
+		}
+		else
+#endif
 			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
 		for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
 			for(channel = 0; channel < channels; channel++){
@@ -2627,6 +2668,9 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->do_mid_side_stereo = false;
 	encoder->protected_->loose_mid_side_stereo = false;
 	encoder->protected_->channels = 2;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	encoder->protected_->sample_type = INT;
+#endif
 	encoder->protected_->bits_per_sample = 16;
 	encoder->protected_->sample_rate = 44100;
 	encoder->protected_->blocksize = 0;
@@ -3131,7 +3175,11 @@ void update_metadata_(const FLAC__StreamEncoder *encoder)
 	FLAC__uint64 samples = metadata->data.stream_info.total_samples;
 	const uint32_t min_framesize = metadata->data.stream_info.min_framesize;
 	const uint32_t max_framesize = metadata->data.stream_info.max_framesize;
-	const uint32_t bps = metadata->data.stream_info.bits_per_sample;
+	const uint32_t bps =
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		metadata->data.stream_info.sample_type == FLOAT ? 1 :
+#endif
+		metadata->data.stream_info.bits_per_sample;
 	FLAC__StreamEncoderSeekStatus seek_status;
 
 	FLAC__ASSERT(metadata->type == FLAC__METADATA_TYPE_STREAMINFO);
@@ -3754,6 +3802,9 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	frame_header.blocksize = encoder->protected_->blocksize;
 	frame_header.sample_rate = encoder->protected_->sample_rate;
 	frame_header.channels = encoder->protected_->channels;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	frame_header.sample_type = encoder->protected_->sample_type;
+#endif
 	frame_header.channel_assignment = FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT; /* the default unless the encoder determines otherwise */
 	frame_header.bits_per_sample = encoder->protected_->bits_per_sample;
 	frame_header.number_type = FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER;

@@ -783,6 +783,20 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_streamable_subset(FLAC__StreamEncod
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_channels(FLAC__StreamEncoder *encoder, uint32_t value);
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** Set the sample type of the input to be encoded.
+ *
+ * \default \c false
+ * \param  encoder  An encoder instance to set.
+ * \param  value    FLOAT for IEEE 754 binary32, INT otherwise.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_set_sample_type(FLAC__StreamEncoder *encoder, SampleType value);
+#endif
+
 /** Set the sample resolution of the input to be encoded.
  *
  * \warning
@@ -1371,6 +1385,18 @@ FLAC_API FLAC__bool FLAC__stream_encoder_get_streamable_subset(const FLAC__Strea
  *    See FLAC__stream_encoder_set_channels().
  */
 FLAC_API uint32_t FLAC__stream_encoder_get_channels(const FLAC__StreamEncoder *encoder);
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** Get the input sample type setting.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval SampleType
+ *    FLOAT if samples are in IEEE 754 binary32 format, INT otherwise.
+ */
+FLAC_API SampleType FLAC__stream_encoder_get_sample_type(const FLAC__StreamEncoder *encoder);
+#endif
 
 /** Get the input sample resolution setting.
  *

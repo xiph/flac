@@ -55,6 +55,9 @@ struct share__option long_options_[] = {
 	{ "show-sample-rate", 0, 0, 0 },
 	{ "show-channels", 0, 0, 0 },
 	{ "show-bps", 0, 0, 0 },
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	{ "show-sample-type", 0, 0, 0 },
+#endif
 	{ "show-total-samples", 0, 0, 0 },
 	{ "set-md5sum", 1, 0, 0 }, /* undocumented */
 	{ "set-min-blocksize", 1, 0, 0 }, /* undocumented */
@@ -64,6 +67,9 @@ struct share__option long_options_[] = {
 	{ "set-sample-rate", 1, 0, 0 }, /* undocumented */
 	{ "set-channels", 1, 0, 0 }, /* undocumented */
 	{ "set-bps", 1, 0, 0 }, /* undocumented */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	{ "set-sample-type", 1, 0, 0 }, /* undocumented */
+#endif
 	{ "set-total-samples", 1, 0, 0 }, /* undocumented */ /* WATCHOUT: used by test/test_flac.sh on windows */
 	{ "show-vendor-tag", 0, 0, 0 },
 	{ "show-all-tags", 0, 0, 0 },
@@ -412,6 +418,11 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	else if(0 == strcmp(opt, "show-bps")) {
 		(void) append_shorthand_operation(options, OP__SHOW_BPS);
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	else if(0 == strcmp(opt, "show-sample-type")) {
+		(void)append_shorthand_operation(options, OP__SHOW_SAMPLE_TYPE);
+	}
+#endif
 	else if(0 == strcmp(opt, "show-total-samples")) {
 		(void) append_shorthand_operation(options, OP__SHOW_TOTAL_SAMPLES);
 	}
@@ -488,6 +499,24 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 		else
 			undocumented_warning(opt);
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	else if(0 == strcmp(opt, "set-sample-type")) {
+		FLAC__ASSERT(0 != option_argument);
+		op = append_shorthand_operation(options, OP__SET_SAMPLE_TYPE);
+		if(strcmp(option_argument, "float") == 0 || strcmp(option_argument, "IEEE754") == 0 || strcmp(option_argument, "binary32") == 0) {
+			op->argument.streaminfo_uint32.value = FLOAT;
+			undocumented_warning(opt);
+		}
+		else if(strcmp(option_argument, "int") == 0 || strcmp(option_argument, "integer") == 0) {
+			op->argument.streaminfo_uint32.value = INT;
+			undocumented_warning(opt);
+		}
+		else {
+			flac_fprintf(stderr, "ERROR (--%s): value must be \"float\" (or \"IEEE754\" or \"binary32\") or \"int\" (or \"integer\")\n", opt);
+			ok = false;
+		}
+	}
+#endif
 	else if(0 == strcmp(opt, "set-total-samples")) {
 		op = append_shorthand_operation(options, OP__SET_TOTAL_SAMPLES);
 		if(!parse_uint64(option_argument, &(op->argument.streaminfo_uint64.value)) || op->argument.streaminfo_uint64.value >= (((FLAC__uint64)1)<<FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN)) {

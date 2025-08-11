@@ -139,6 +139,9 @@ namespace FLAC {
 			virtual FLAC__uint64 get_total_samples() const;                   ///< See FLAC__stream_decoder_get_total_samples()
 			virtual FLAC__uint64 find_total_samples();			  ///< See FLAC__stream_decoder_find_total_samples()
 			virtual uint32_t get_channels() const;                            ///< See FLAC__stream_decoder_get_channels()
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			virtual SampleType get_sample_type() const;                       ///< See FLAC__stream_decoder_get_is_float_samples()
+#endif
 			virtual ::FLAC__ChannelAssignment get_channel_assignment() const; ///< See FLAC__stream_decoder_get_channel_assignment()
 			virtual uint32_t get_bits_per_sample() const;                     ///< See FLAC__stream_decoder_get_bits_per_sample()
 			virtual uint32_t get_sample_rate() const;                         ///< See FLAC__stream_decoder_get_sample_rate()

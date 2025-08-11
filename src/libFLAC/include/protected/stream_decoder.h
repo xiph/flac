@@ -47,6 +47,9 @@ typedef struct FLAC__StreamDecoderProtected {
 	uint32_t sample_rate; /* in Hz */
 	uint32_t blocksize; /* in samples (per channel) */
 	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the STREAMINFO metadata block */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	SampleType sample_type;
+#endif
 #if FLAC__HAS_OGG
 	FLAC__OggDecoderAspect ogg_decoder_aspect;
 #endif

@@ -103,6 +103,9 @@ modification time is set to the current time):
 **\--show-channels**  
 :	Show the number of channels from the STREAMINFO block.
 
+**\--show-sample-type**  
+:	Show if the audio samples are integer or floating-point from the STREAMINFO block.
+
 **\--show-bps**  
 :	Show the \# of bits per sample from the STREAMINFO block.
 

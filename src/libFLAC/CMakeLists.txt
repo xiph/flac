@@ -65,6 +65,7 @@ add_library(FLAC
     stream_encoder_framing.c
     version.rc
     window.c
+    $<$<BOOL:${ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING}>:transform_float.c>
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
     $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_decoder_aspect.c>

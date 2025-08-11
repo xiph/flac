@@ -53,7 +53,9 @@
 #include "private/md5.h"
 #include "private/memory.h"
 #include "private/macros.h"
-
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+#include "private/transform_float.h"
+#endif
 
 /* technically this should be in an "export.c" but this is convenient enough */
 FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC = FLAC__HAS_OGG;
@@ -871,6 +873,15 @@ FLAC_API uint32_t FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *d
 	FLAC__ASSERT(0 != decoder->protected_);
 	return decoder->protected_->channels;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API SampleType FLAC__stream_decoder_get_sample_type(const FLAC__StreamDecoder *decoder)
+{
+	FLAC__ASSERT(0 != decoder);
+	FLAC__ASSERT(0 != decoder->protected_);
+	return decoder->protected_->sample_type;
+}
+#endif
 
 FLAC_API FLAC__ChannelAssignment FLAC__stream_decoder_get_channel_assignment(const FLAC__StreamDecoder *decoder)
 {
@@ -1957,6 +1968,13 @@ FLAC__bool read_metadata_streaminfo_(FLAC__StreamDecoder *decoder, FLAC__bool is
 	bits = FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN;
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
 		return false; /* read_callback_ sets the state for us */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(x == 0) {
+		decoder->private_->stream_info.data.stream_info.bits_per_sample = 32;
+		decoder->private_->stream_info.data.stream_info.sample_type = FLOAT;
+	}
+	else
+#endif
 	decoder->private_->stream_info.data.stream_info.bits_per_sample = x+1;
 	used_bits += bits;
 
@@ -2492,7 +2510,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			 * are complete */
 			if(!decoder->private_->error_has_been_sent)
 				send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_MISSING_FRAME);
-			/* Do some extra validation to assure last frame an current frame
+			/* Do some extra validation to assure last frame and current frame
 			 * header are both valid before adding silence inbetween
 			 * Technically both frames could be valid with differing sample_rates,
 			 * channels and bits_per_sample, but it is quite rare */
@@ -2604,6 +2622,9 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 		decoder->protected_->bits_per_sample = decoder->private_->frame.header.bits_per_sample;
 		decoder->protected_->sample_rate = decoder->private_->frame.header.sample_rate;
 		decoder->protected_->blocksize = decoder->private_->frame.header.blocksize;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		decoder->protected_->sample_type = decoder->private_->frame.header.sample_type;
+#endif
 
 		FLAC__ASSERT(decoder->private_->frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 		decoder->private_->samples_decoded = decoder->private_->frame.header.number.sample_number + decoder->private_->frame.header.blocksize;
@@ -2818,10 +2839,15 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 			break;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(raw_header[3] & 0x01)
+		decoder->private_->frame.header.sample_type = FLOAT;
+#else
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	/* check to make sure that reserved bit is 0 */
 	if(raw_header[3] & 0x01) /* MAGIC NUMBER */
 		is_unparseable = true;
+#endif
 #endif
 
 	/* read the frame's starting sample number (or frame number as the case may be) */
@@ -3590,6 +3616,15 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 		decoder->private_->got_a_frame = true;
 
 		if(this_frame_sample <= target_sample && target_sample < next_frame_sample) { /* we hit our target frame */
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(decoder->protected_->sample_type == FLOAT || frame->header.sample_type == FLOAT) {
+				for(uint32_t channel = 0; channel < frame->header.channels; channel++) {
+					FLAC__transform_i32_signal_to_f32_buffer(buffer[channel], frame->header.blocksize);
+				}
+			}
+#endif
+
 			uint32_t delta = (uint32_t)(target_sample - this_frame_sample);
 			/* kick out of seek mode */
 			decoder->private_->is_seeking = false;
@@ -3628,6 +3663,15 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 			if(!FLAC__MD5Accumulate(&decoder->private_->md5context, buffer, frame->header.channels, frame->header.blocksize, (frame->header.bits_per_sample+7) / 8))
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(decoder->protected_->sample_type == FLOAT || frame->header.sample_type == FLOAT) {
+			for(uint32_t channel = 0; channel < frame->header.channels; channel++) {
+				FLAC__transform_i32_signal_to_f32_buffer(buffer[channel], frame->header.blocksize);
+			}
+		}
+#endif
+
 		return decoder->private_->write_callback(decoder, frame, buffer, decoder->private_->client_data);
 	}
 	else { /* decoder->private_->is_indexing == true */

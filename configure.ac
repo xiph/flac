@@ -275,6 +275,18 @@ else
 fi
 AC_SUBST(ENABLE_64_BIT_WORDS)
 
+AC_ARG_ENABLE(experimental-float-sample-coding,
+	AS_HELP_STRING([--enable-experimental-float-sample-coding],[Enable experimental feature to encode & decode 32-bit float (IEEE 754 standard) samples]))
+AM_CONDITIONAL([ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING],
+  [test "x$enable_experimental_float_sample_coding" = xyes])
+if test "x$enable_experimental_float_sample_coding" = xyes ; then
+	AC_DEFINE_UNQUOTED([ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING],1)
+else
+	AC_DEFINE_UNQUOTED([ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING],0,[Disable the feature (this is the default)])
+fi
+AH_TEMPLATE(ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING, [define to enable experimental float sample coding])  
+AC_SUBST(ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING)
+
 AC_ARG_ENABLE(valgrind-testing,
 AS_HELP_STRING([--enable-valgrind-testing],[Run all tests inside Valgrind]),
 [case "${enableval}" in
