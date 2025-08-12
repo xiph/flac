@@ -1673,8 +1673,11 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			decoder_session->abort_flag = true;
 			return;
 		}
-		FLAC__ASSERT(decoder_session->skip_specification->value.samples <= decoder_session->until_specification->value.samples);
-
+		if(decoder_session->skip_specification->value.samples > decoder_session->until_specification->value.samples) {
+			flac__utils_printf(stderr, 1, "%s: ERROR specified end point is before specified starting point\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
+		}
 		decoder_session->total_samples = decoder_session->until_specification->value.samples - decoder_session->skip_specification->value.samples;
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT && !decoder_session->test_only) {
