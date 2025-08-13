@@ -515,6 +515,11 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 			}
 			if(FLAC__stream_decoder_get_state(d->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 				break;
+			if(FLAC__stream_decoder_get_state(d->decoder) == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR) {
+				flac__utils_printf(stderr, 2, "\n");
+				print_error_with_state(d, "ERROR while processing links");
+				return false;
+			}
 			md5_failure = !FLAC__stream_decoder_finish_link(d->decoder) && !d->aborting_due_to_until;
 			if(!verify_streaminfo(d, md5_failure))
 				return false;
