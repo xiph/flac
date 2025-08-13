@@ -2164,6 +2164,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], uint32_t samples)
 {
+
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	if(e->samples_written > (1 << 19)) {
+		return false;
+	}
+#endif
+
 	if(e->replay_gain) {
 		if(!grabbag__replaygain_analyze(buffer, e->info.channels==2, e->info.bits_per_sample, samples)) {
 			flac__utils_printf(stderr, 1, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
