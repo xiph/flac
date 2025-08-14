@@ -1671,8 +1671,12 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		FLAC__ASSERT(!decoder_session->until_specification->is_relative);
 		FLAC__ASSERT(decoder_session->until_specification->value_is_samples);
 
-		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
-		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
+		if((decoder_session->skip_specification->value.samples < 0) ||
+		   (decoder_session->until_specification->value.samples < 0)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR specified cuepoints too large to process\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
+		}
 		if((FLAC__uint64)decoder_session->until_specification->value.samples > decoder_session->total_samples) {
 			flac__utils_printf(stderr, 1, "%s: ERROR specified cuepoints exceed length of file\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
