@@ -2697,14 +2697,17 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 
 	if(!FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/false, &error_message)) {
 		flac__utils_printf(stderr, 1, "%s: ERROR parsing cuesheet \"%s\": %s\n", inbasefilename, cuesheet_filename, error_message);
+		FLAC__metadata_object_delete(*cuesheet);
 		return false;
 	}
 
 	/* if we're expecting CDDA, warn about non-compliance */
 	if(is_cdda && !FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/true, &error_message)) {
 		flac__utils_printf(stderr, 1, "%s: WARNING cuesheet \"%s\" is not audio CD compliant: %s\n", inbasefilename, cuesheet_filename, error_message);
-		if(treat_warnings_as_errors)
+		if(treat_warnings_as_errors) {
+			FLAC__metadata_object_delete(*cuesheet);
 			return false;
+		}
 		(*cuesheet)->data.cue_sheet.is_cd = false;
 	}
 
