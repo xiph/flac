@@ -158,6 +158,14 @@ namespace FLAC {
 			return ::FLAC__stream_decoder_get_channels(decoder_);
 		}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		SampleType Stream::get_sample_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_decoder_get_sample_type(decoder_);
+		}
+#endif
+
 		::FLAC__ChannelAssignment Stream::get_channel_assignment() const
 		{
 			FLAC__ASSERT(is_valid());

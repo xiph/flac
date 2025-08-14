@@ -330,6 +330,9 @@ namespace FLAC {
 			uint32_t get_max_framesize() const;
 			uint32_t get_sample_rate() const;
 			uint32_t get_channels() const;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			SampleType get_sample_type() const;
+#endif
 			uint32_t get_bits_per_sample() const;
 			FLAC__uint64 get_total_samples() const;
 			const FLAC__byte *get_md5sum() const;
@@ -340,6 +343,9 @@ namespace FLAC {
 			void set_max_framesize(uint32_t value);
 			void set_sample_rate(uint32_t value);
 			void set_channels(uint32_t value);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			void set_sample_type(SampleType value);
+#endif
 			void set_bits_per_sample(uint32_t value);
 			void set_total_samples(FLAC__uint64 value);
 			void set_md5sum(const FLAC__byte value[16]);

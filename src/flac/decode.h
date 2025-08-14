@@ -61,6 +61,9 @@ typedef struct {
 		struct {
 			FLAC__bool is_big_endian;
 			FLAC__bool is_unsigned_samples;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			SampleType sample_type;
+#endif
 		} raw;
 		struct {
 			foreign_metadata_t *foreign_metadata; /* NULL unless --keep-foreign-metadata requested */

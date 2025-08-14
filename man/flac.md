@@ -615,6 +615,9 @@ When encoding from or decoding to raw PCM, format must be specified.
 **\--endian**={big\|little}
 :	Specify the byte order for samples
 
+**\--sample-type**={int\|float}
+:	Specify the sample types.
+
 **\--channels**=\#
 :	(Input only) specify number of channels. The channels must be 
 	interleaved, and in the order of the FLAC format (see the format
