@@ -508,7 +508,9 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		while(1) {
 			FLAC__bool md5_failure;
 			d->stream_counter++;
-			if(!FLAC__stream_decoder_process_until_end_of_link(d->decoder) && !d->aborting_due_to_until) {
+			if((!FLAC__stream_decoder_process_until_end_of_link(d->decoder) ||
+			     FLAC__stream_decoder_get_state(d->decoder) == FLAC__STREAM_DECODER_ABORTED) &&
+			    !d->aborting_due_to_until) {
 				flac__utils_printf(stderr, 2, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
 				return false;

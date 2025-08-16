@@ -1027,6 +1027,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 					return EncoderSession_finish_error(&encoder_session);
 				}
+				if(skip > total_samples_in_input || (skip * encoder_session.info.bytes_per_wide_sample) > (FLAC__uint64)infilesize) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip exceeds input size\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				infilesize -= (FLAC__off_t)skip * encoder_session.info.bytes_per_wide_sample;
 				encoder_session.total_samples_to_encode = total_samples_in_input - skip;
 				break;
@@ -1040,6 +1044,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 					return EncoderSession_finish_error(&encoder_session);
 				}
+				if(skip > total_samples_in_input || (skip * encoder_session.info.bytes_per_wide_sample) > encoder_session.fmt.iff.data_bytes) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip exceeds input size\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				encoder_session.fmt.iff.data_bytes -= skip * encoder_session.info.bytes_per_wide_sample;
 				if(options.ignore_chunk_sizes) {
 					encoder_session.total_samples_to_encode = 0;
@@ -1051,6 +1059,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				break;
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:
+				if(skip > total_samples_in_input) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip exceeds input size\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				encoder_session.total_samples_to_encode = total_samples_in_input - skip;
 				break;
 			default:

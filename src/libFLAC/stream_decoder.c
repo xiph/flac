@@ -2905,9 +2905,8 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 #ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	if(FLAC__crc8(raw_header, raw_header_len) != crc8) {
 #else
-	if(decoder->private_->fuzzing_rewind_count > 32 && (FLAC__crc8(raw_header, raw_header_len) << 4) != (crc8 << 4)) {
+	if(decoder->private_->fuzzing_rewind_count > 8 && (FLAC__crc8(raw_header, raw_header_len) << 4) != (crc8 << 4)) {
 #endif
-
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_BAD_HEADER);
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
