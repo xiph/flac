@@ -152,7 +152,9 @@ namespace FLAC {
 		object_(copy? ::FLAC__metadata_object_clone(object) : object),
 		is_reference_(false)
 		{
+#ifndef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 			FLAC__ASSERT(0 != object);
+#endif
 		}
 
 		Prototype::~Prototype()
@@ -599,7 +601,7 @@ namespace FLAC {
 
 		VorbisComment::Entry &VorbisComment::Entry::operator=(const Entry &entry)
 		{
-			FLAC__ASSERT(entry.is_valid());
+			FLAC__ASSERT_IF_NOT_FUZZING(entry.is_valid());
 			clear();
 			construct(reinterpret_cast<const char *>(entry.entry_.entry), entry.entry_.length);
 			return *this;
