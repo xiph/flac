@@ -2613,17 +2613,15 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 	do {
 		if(encoder->protected_->verify)
 			append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, flac_min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j));
-
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-		if(encoder->protected_->sample_type) {
-			if(!FLAC__transform_f32_interleaved_buffer_to_i32_signal(encoder->private_->threadtask[0]->integer_signal[channel], buffer, &i, &j, &k, &channel, encoder->protected_, encoder->private_->current_sample_number, blocksize, samples, channels, sample_min, sample_max))
-				return false;
-		}
-		else
-#endif
-			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
+		/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
 		for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-			for(channel = 0; channel < channels; channel++){
+			for(channel = 0; channel < channels; channel++)
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				if(encoder->protected_->sample_type == FLOAT)
+					encoder->private_->threadtask[0]->integer_signal[channel][i] = FLAC__do_float_bit_manipulation(buffer[k++]);
+				else
+#endif
+			{
 				if(buffer[k] < sample_min || buffer[k] > sample_max){
 					encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 					return false;

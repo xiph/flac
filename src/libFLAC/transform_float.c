@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2001-2009  Josh Coalson
- * Copyright (C) 2011-2025  Xiph.Org Foundation
+ * Copyright (C) 2025 Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -57,14 +56,15 @@ Possible design choices are listed below. The further we go, the higher the leve
    1. just leaving the floats as ints
 		probably would lead to saving most of them in verbatim frames with no compression
 		my tests resulted in an ~80% ratio
-   2. doing some basic bit manipulation (current)
+   2. doing some basic bit manipulation (current approach)
 		saves ~3 bits theoretically
-		my tests resulted in a ~70% ratio
+		my tests resulted in a ~70% ratio,
+		even reaching 51% when the stream is a direct conversion from int samples to 32-bit floats.
    3. splitting the "exponent" (8 bit) and "sign+significand" (24 bit) parts of floats into two channels,
 	subtracting an (automatically recognised) DC offset from the "exponents" channel
 	and	storing the offset in each frame header (i.e. unsigned to signed conversion)
 		could be better (haven't tried it yet. hard for me to implement).
-		my guess would be ~62% ratio.
+		my guess would be a *consistent* ~60% ratio, at least.
 */
 
 #include <stddef.h>
@@ -72,7 +72,8 @@ Possible design choices are listed below. The further we go, the higher the leve
 #include "private/transform_float.h"
 
 /*
-float FLAC__transform_i32_to_f32(uint32_t in) {
+float FLAC__transform_i32_to_f32(uint32_t in)
+{
 	// simply doing "return in;", the compiler would instruct the CPU to convert the int
 	// like below. this is just a reminder-note on how f32 is represented (IEEE 754 standard).
 	union {
@@ -138,55 +139,61 @@ float FLAC__transform_i32_to_f32(uint32_t in) {
 }
 */
 
-void FLAC__transform_f32_buffer_to_i32_signal(FLAC__int32 *dest, const FLAC__int32 *src, size_t n)
+uint32_t reverse_bits(uint32_t x);
+
+uint32_t reverse_bits(uint32_t x)
 {
-	uint32_t sign;
-	uint32_t exponent;
-	uint32_t significand;
-	for(size_t i = 0; i < n; i++) {
-		sign = (src[i] & 0b10000000000000000000000000000000) != 0;
-		exponent = (src[i] & 0b01111111100000000000000000000000) >> 23;
-		significand = src[i] & 0b00000000011111111111111111111111;
-		exponent = ((exponent + 1) % 256) ^ 0b10000000;
-		dest[i] = (exponent << 24) | (sign << 23) | significand;
-	}
+    uint32_t result = 0;
+    for (int i = 0; i < 32; ++i) {
+        result <<= 1;
+        result |= (x & 1);
+        x >>= 1;
+    }
+    return result;
 }
 
-bool FLAC__transform_f32_interleaved_buffer_to_i32_signal(FLAC__int32 *dest, const FLAC__int32 *src, uint32_t *i, uint32_t *j, uint32_t *k, uint32_t *channel, struct FLAC__StreamEncoderProtected *protected_, const uint32_t current_sample_number, const uint32_t blocksize, const uint32_t samples, const uint32_t channels, const FLAC__int32 sample_min, const FLAC__int32 sample_max)
+#if defined(__has_builtin) && __has_builtin(__builtin_bitreverse32)
+    #define bitreverse(x) __builtin_bitreverse32(x)
+#else
+    #define bitreverse(x) reverse_bits(x)
+#endif
+
+inline uint32_t FLAC__do_float_bit_manipulation(uint32_t x)
 {
-	uint32_t sign;
-	uint32_t exponent;
-	uint32_t significand;
-	for(*i = current_sample_number; *i <= blocksize && *j < samples; (*i)++, (*j)++) {
-		for(*channel = 0; *channel < channels; (*channel)++) {
-			if(src[*k] < sample_min || src[*k] > sample_max) {
-				protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
-				return false;
-			}
+	uint32_t sign = x & 0b10000000000000000000000000000000;
+	uint32_t exponent = x & 0b01111111100000000000000000000000;
+	uint32_t significand = x & 0b00000000011111111111111111111111;
+	exponent >>= 23;
+	exponent = (exponent + 1) % 256;
+	exponent ^= 0b10000000;
+	exponent <<= 23;
+	significand = bitreverse(significand);
+	return (exponent << 1) | (sign >> 8) | significand;
+}
 
-			sign = (src[*k] & 0b10000000000000000000000000000000) != 0;
-			exponent = (src[*k] & 0b01111111100000000000000000000000) >> 23;
-			significand = src[*k] & 0b00000000011111111111111111111111;
-			exponent = ((exponent + 1) % 256) ^ 0b10000000;
-			dest[*i] = (exponent << 24) | (sign << 23) | significand;
+inline uint32_t FLAC__undo_float_bit_manipulation(uint32_t x)
+{
+	uint32_t sign = (x & 0b00000000100000000000000000000000) << 8;
+	uint32_t exponent = (x & 0b11111111000000000000000000000000) >> 1;
+	uint32_t significand = x & 0b00000000011111111111111111111111;
+	significand = bitreverse(significand);
+	exponent >>= 23;
+	exponent ^= 0b10000000;
+	exponent = (exponent + 255) % 256;
+	exponent <<= 23;
+	return sign | exponent | significand;
+}
 
-			(*k)++;
-		}
+void FLAC__transform_f32_buffer_to_i32_signal(uint32_t *dest, const uint32_t *src, size_t n)
+{
+	for(size_t i = 0; i < n; i++) {
+		dest[i] = FLAC__do_float_bit_manipulation(src[i]);
 	}
-	return true;
 }
 
 void FLAC__transform_i32_signal_to_f32_buffer(uint32_t *buffer, size_t n)
 {
-	uint32_t sign;
-	uint32_t exponent;
-	uint32_t significand;
 	for(size_t i = 0; i < n; i++) {
-		sign = (buffer[i] & 0b00000000100000000000000000000000) << 8;
-		exponent = buffer[i] >> 24; // would not work if buffer was int32_t
-		significand = buffer[i] & 0b00000000011111111111111111111111;
-		exponent ^= 0b10000000;
-		exponent = (exponent == 0) ? 255 : (exponent - 1);
-		buffer[i] = (sign) | (exponent << 23) | (significand);
+		buffer[i] = FLAC__undo_float_bit_manipulation(buffer[i]);
 	}
 }
