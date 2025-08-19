@@ -436,7 +436,7 @@ typedef struct {
 
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	SampleType sample_type;
-	/**< true if the samples are IEEE 754 binary32 (32-bit floating point) */
+	/**< FLOAT if the samples are IEEE 754 binary32 (32-bit floating point) */
 #endif
 
 	FLAC__FrameNumberType number_type;
