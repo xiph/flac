@@ -1027,6 +1027,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 					return EncoderSession_finish_error(&encoder_session);
 				}
+				if(skip > total_samples_in_input || (skip * encoder_session.info.bytes_per_wide_sample) > (FLAC__uint64)infilesize) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip exceeds input size\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				infilesize -= (FLAC__off_t)skip * encoder_session.info.bytes_per_wide_sample;
 				encoder_session.total_samples_to_encode = total_samples_in_input - skip;
 				break;
@@ -1040,6 +1044,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 					return EncoderSession_finish_error(&encoder_session);
 				}
+				if(skip > total_samples_in_input || (skip * encoder_session.info.bytes_per_wide_sample) > encoder_session.fmt.iff.data_bytes) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip exceeds input size\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				encoder_session.fmt.iff.data_bytes -= skip * encoder_session.info.bytes_per_wide_sample;
 				if(options.ignore_chunk_sizes) {
 					encoder_session.total_samples_to_encode = 0;
@@ -1051,6 +1059,10 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 				break;
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:
+				if(skip > total_samples_in_input) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip exceeds input size\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+					return EncoderSession_finish_error(&encoder_session);
+				}
 				encoder_session.total_samples_to_encode = total_samples_in_input - skip;
 				break;
 			default:
@@ -2164,6 +2176,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 
 FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], uint32_t samples)
 {
+
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+	if(e->samples_written > (1 << 19)) {
+		return false;
+	}
+#endif
+
 	if(e->replay_gain) {
 		if(!grabbag__replaygain_analyze(buffer, e->info.channels==2, e->info.bits_per_sample, samples)) {
 			flac__utils_printf(stderr, 1, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
@@ -2690,14 +2709,17 @@ FLAC__bool parse_cuesheet(FLAC__StreamMetadata **cuesheet, const char *cuesheet_
 
 	if(!FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/false, &error_message)) {
 		flac__utils_printf(stderr, 1, "%s: ERROR parsing cuesheet \"%s\": %s\n", inbasefilename, cuesheet_filename, error_message);
+		FLAC__metadata_object_delete(*cuesheet);
 		return false;
 	}
 
 	/* if we're expecting CDDA, warn about non-compliance */
 	if(is_cdda && !FLAC__format_cuesheet_is_legal(&(*cuesheet)->data.cue_sheet, /*check_cd_da_subset=*/true, &error_message)) {
 		flac__utils_printf(stderr, 1, "%s: WARNING cuesheet \"%s\" is not audio CD compliant: %s\n", inbasefilename, cuesheet_filename, error_message);
-		if(treat_warnings_as_errors)
+		if(treat_warnings_as_errors) {
+			FLAC__metadata_object_delete(*cuesheet);
 			return false;
+		}
 		(*cuesheet)->data.cue_sheet.is_cd = false;
 	}
 

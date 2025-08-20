@@ -508,13 +508,20 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 		while(1) {
 			FLAC__bool md5_failure;
 			d->stream_counter++;
-			if(!FLAC__stream_decoder_process_until_end_of_link(d->decoder) && !d->aborting_due_to_until) {
+			if((!FLAC__stream_decoder_process_until_end_of_link(d->decoder) ||
+			     FLAC__stream_decoder_get_state(d->decoder) == FLAC__STREAM_DECODER_ABORTED) &&
+			    !d->aborting_due_to_until) {
 				flac__utils_printf(stderr, 2, "\n");
 				print_error_with_state(d, "ERROR while decoding data");
 				return false;
 			}
 			if(FLAC__stream_decoder_get_state(d->decoder) == FLAC__STREAM_DECODER_END_OF_STREAM)
 				break;
+			if(FLAC__stream_decoder_get_state(d->decoder) == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR) {
+				flac__utils_printf(stderr, 2, "\n");
+				print_error_with_state(d, "ERROR while processing links");
+				return false;
+			}
 			md5_failure = !FLAC__stream_decoder_finish_link(d->decoder) && !d->aborting_due_to_until;
 			if(!verify_streaminfo(d, md5_failure))
 				return false;
@@ -1678,15 +1685,22 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 		FLAC__ASSERT(!decoder_session->until_specification->is_relative);
 		FLAC__ASSERT(decoder_session->until_specification->value_is_samples);
 
-		FLAC__ASSERT(decoder_session->skip_specification->value.samples >= 0);
-		FLAC__ASSERT(decoder_session->until_specification->value.samples >= 0);
+		if((decoder_session->skip_specification->value.samples < 0) ||
+		   (decoder_session->until_specification->value.samples < 0)) {
+			flac__utils_printf(stderr, 1, "%s: ERROR specified cuepoints too large to process\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
+		}
 		if((FLAC__uint64)decoder_session->until_specification->value.samples > decoder_session->total_samples) {
 			flac__utils_printf(stderr, 1, "%s: ERROR specified cuepoints exceed length of file\n", decoder_session->inbasefilename);
 			decoder_session->abort_flag = true;
 			return;
 		}
-		FLAC__ASSERT(decoder_session->skip_specification->value.samples <= decoder_session->until_specification->value.samples);
-
+		if(decoder_session->skip_specification->value.samples > decoder_session->until_specification->value.samples) {
+			flac__utils_printf(stderr, 1, "%s: ERROR specified end point is before specified starting point\n", decoder_session->inbasefilename);
+			decoder_session->abort_flag = true;
+			return;
+		}
 		decoder_session->total_samples = decoder_session->until_specification->value.samples - decoder_session->skip_specification->value.samples;
 	}
 	else if(metadata->type == FLAC__METADATA_TYPE_VORBIS_COMMENT && !decoder_session->test_only) {
