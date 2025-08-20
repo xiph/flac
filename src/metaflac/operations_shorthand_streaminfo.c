@@ -76,6 +76,14 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool p
 		case OP__SHOW_BPS:
 			flac_printf("%u\n", block->data.stream_info.bits_per_sample);
 			break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case OP__SHOW_SAMPLE_TYPE:
+			if(block->data.stream_info.sample_type == FLOAT)
+				flac_printf("LPCM floating point (IEEE 754 binary32)\n");
+			else
+				flac_printf("LPCM integer\n");
+			break;
+#endif
 		case OP__SHOW_TOTAL_SAMPLES:
 			flac_printf("%" PRIu64 "\n", block->data.stream_info.total_samples);
 			break;
@@ -107,6 +115,14 @@ FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool p
 			block->data.stream_info.channels = operation->argument.streaminfo_uint32.value;
 			*needs_write = true;
 			break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case OP__SET_SAMPLE_TYPE:
+			block->data.stream_info.sample_type = operation->argument.streaminfo_uint32.value;
+			if(block->data.stream_info.sample_type == FLOAT)
+				block->data.stream_info.bits_per_sample = 32;
+			*needs_write = true;
+			break;
+#endif
 		case OP__SET_BPS:
 			block->data.stream_info.bits_per_sample = operation->argument.streaminfo_uint32.value;
 			*needs_write = true;

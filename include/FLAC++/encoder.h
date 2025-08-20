@@ -129,6 +129,9 @@ namespace FLAC {
 			virtual bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
 			virtual bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
 			virtual bool set_channels(uint32_t value);                      ///< See FLAC__stream_encoder_set_channels()
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			virtual bool set_sample_type(SampleType value);                 ///< See FLAC__stream_encoder_set_sample_type()
+#endif
 			virtual bool set_bits_per_sample(uint32_t value);               ///< See FLAC__stream_encoder_set_bits_per_sample()
 			virtual bool set_sample_rate(uint32_t value);                   ///< See FLAC__stream_encoder_set_sample_rate()
 			virtual bool set_compression_level(uint32_t value);             ///< See FLAC__stream_encoder_set_compression_level()
@@ -159,6 +162,9 @@ namespace FLAC {
 			virtual bool     get_do_mid_side_stereo() const;           ///< See FLAC__stream_encoder_get_do_mid_side_stereo()
 			virtual bool     get_loose_mid_side_stereo() const;        ///< See FLAC__stream_encoder_get_loose_mid_side_stereo()
 			virtual uint32_t get_channels() const;                     ///< See FLAC__stream_encoder_get_channels()
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			virtual SampleType get_sample_type() const;                ///< See FLAC__stream_encoder_get_is_float_samples()
+#endif
 			virtual uint32_t get_bits_per_sample() const;              ///< See FLAC__stream_encoder_get_bits_per_sample()
 			virtual uint32_t get_sample_rate() const;                  ///< See FLAC__stream_encoder_get_sample_rate()
 			virtual uint32_t get_blocksize() const;                    ///< See FLAC__stream_encoder_get_blocksize()

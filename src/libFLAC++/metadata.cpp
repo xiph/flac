@@ -274,6 +274,14 @@ namespace FLAC {
 			return object_->data.stream_info.channels;
 		}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		SampleType StreamInfo::get_sample_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.stream_info.sample_type;
+		}
+#endif
+
 		uint32_t StreamInfo::get_bits_per_sample() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -336,6 +344,16 @@ namespace FLAC {
 			FLAC__ASSERT(value <= FLAC__MAX_CHANNELS);
 			object_->data.stream_info.channels = value;
 		}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		void StreamInfo::set_sample_type(SampleType value)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(value >= 0);
+			FLAC__ASSERT(value <= 1);
+			object_->data.stream_info.sample_type = value;
+		}
+#endif
 
 		void StreamInfo::set_bits_per_sample(uint32_t value)
 		{

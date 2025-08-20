@@ -2332,6 +2332,12 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_cb_(FLAC
 	block->sample_rate = (unpack_uint32_(b, 2) << 4) | ((uint32_t)(b[2] & 0xf0) >> 4);
 	block->channels = (uint32_t)((b[2] & 0x0e) >> 1) + 1;
 	block->bits_per_sample = ((((uint32_t)(b[2] & 0x01)) << 4) | (((uint32_t)(b[3] & 0xf0)) >> 4)) + 1;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(block->bits_per_sample == 1) {
+		block->bits_per_sample = 32;
+		block->sample_type = FLOAT;
+	}
+#endif
 	block->total_samples = (((FLAC__uint64)(b[3] & 0x0f)) << 32) | unpack_uint64_(b+4, 4);
 	memcpy(block->md5sum, b+8, 16);
 
@@ -2785,7 +2791,11 @@ FLAC__bool write_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC_
 {
 	FLAC__byte buffer[FLAC__STREAM_METADATA_STREAMINFO_LENGTH];
 	const uint32_t channels1 = block->channels - 1;
-	const uint32_t bps1 = block->bits_per_sample - 1;
+	const uint32_t bps1 =
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		block->sample_type == FLOAT ? 0 :
+#endif
+									block->bits_per_sample - 1;
 
 	/* we are using hardcoded numbers for simplicity but we should
 	 * probably eventually write a bit-level packer and use the

@@ -97,6 +97,13 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 				return false;
 			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample > 0);
 			FLAC__ASSERT(metadata->data.stream_info.bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(metadata->data.stream_info.sample_type == FLOAT) {
+				if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
+					return false;
+			}
+			else
+#endif
 			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info.bits_per_sample-1, FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN))
 				return false;
 			if(metadata->data.stream_info.total_samples >= (FLAC__U64L(1) << FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN)){
@@ -252,7 +259,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__FRAME_HEADER_SYNC, FLAC__FRAME_HEADER_SYNC_LEN))
 		return false;
 
-	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_RESERVED_LEN))
+	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_RESERVED_LEN)) // sample trype could also be stored here, but we've decided to store it on FLAC__FRAME_HEADER_ZERO_PAD_LEN
 		return false;
 
 	if(!FLAC__bitwriter_write_raw_uint32(bw, (header->number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER)? 0 : 1, FLAC__FRAME_HEADER_BLOCKING_STRATEGY_LEN))
@@ -350,8 +357,13 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN))
 		return false;
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(!FLAC__bitwriter_write_raw_uint32(bw, header->sample_type, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
+		return false;
+#else
 	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
 		return false;
+#endif
 
 	if(header->number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER) {
 		if(!FLAC__bitwriter_write_utf8_uint32(bw, header->number.frame_number))

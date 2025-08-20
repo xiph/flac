@@ -176,6 +176,9 @@ static struct share__option long_options_[] = {
 	{ "threads"                   , share__required_argument, 0, 'j' },
 	{ "endian"                    , share__required_argument, 0, 0 },
 	{ "channels"                  , share__required_argument, 0, 0 },
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	{ "sample-type"               , share__required_argument, 0, 0 },
+#endif
 	{ "bps"                       , share__required_argument, 0, 0 },
 	{ "sample-rate"               , share__required_argument, 0, 0 },
 	{ "sign"                      , share__required_argument, 0, 0 },
@@ -277,6 +280,9 @@ static struct {
 	int format_is_big_endian;
 	int format_is_unsigned_samples;
 	int format_channels;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	int format_sample_type;
+#endif
 	int format_bps;
 	int format_sample_rate;
 	FLAC__off_t format_input_size;
@@ -459,6 +465,10 @@ int do_it(void)
 					return usage_error("ERROR: --endian only allowed with --force-raw-format\n");
 				if(option_values.format_is_unsigned_samples >= 0)
 					return usage_error("ERROR: --sign only allowed with --force-raw-format\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				if(option_values.format_sample_type >= 0)
+					return usage_error("ERROR: --sample-type only allowed with --force-raw-format\n");
+#endif
 			}
 			if(option_values.format_channels >= 0)
 				return usage_error("ERROR: --channels not allowed with --decode\n");
@@ -644,6 +654,9 @@ FLAC__bool init_options(void)
 	option_values.cue_specification = 0;
 	option_values.format_is_big_endian = -1;
 	option_values.format_is_unsigned_samples = -1;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	option_values.format_sample_type = NOT_SPECIFIED;
+#endif
 	option_values.format_channels = -1;
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
@@ -869,6 +882,17 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			else
 				return usage_error("ERROR: argument to --endian must be \"big\" or \"little\"\n");
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		else if(0 == strcmp(long_option, "sample-type")) {
+			FLAC__ASSERT(0 != option_argument);
+			if(0 == strcmp(option_argument, "float") || 0 == strcmp(option_argument, "IEEE754") || 0 == strcmp(option_argument, "binary32"))
+				option_values.format_sample_type = FLOAT;
+			else if(0 == strcmp(option_argument, "int") || 0 == strcmp(option_argument, "integer"))
+				option_values.format_sample_type = INT;
+			else
+				return usage_error("ERROR: argument to --sample-type must be \"float\" (or \"IEEE754\" or \"binary32\") or \"int\" (or \"integer\")\n");
+		}
+#endif
 		else if(0 == strcmp(long_option, "channels")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.format_channels = atoi(option_argument);
@@ -1414,6 +1438,10 @@ void show_help(void)
 	printf("      --sign={signed|unsigned}       Sign of samples (input/output) \n");
 	printf("      --endian={big|little}          Byte order for samples (input/output)\n");
 	printf("      --channels=#                   Number of channels in raw input\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	printf("      --sample-type={int|float}      If raw input samples are in PCM integer format\n");
+	printf("                                     or PCM floating point (experimental))\n");
+#endif
 	printf("      --bps=#                        Number of bits per sample in raw input\n");
 	printf("      --sample-rate=#                Sample rate in Hz in raw input\n");
 	printf("      --input-size=#                 Size in bytes of raw input from stdin\n");
@@ -1633,15 +1661,47 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(input_format == FORMAT_RAW) {
-		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(option_values.format_sample_type == NOT_SPECIFIED) {
+			option_values.format_sample_type = INT; // for backwards compatibility
+			// TODO: maybe an error would be better in future versions
+		}
+		if(option_values.format_sample_type == FLOAT) {
+			if(option_values.format_channels < 0 || option_values.format_sample_rate < 0) {
+				conditional_fclose(encode_infile);
+				return usage_error("ERROR: for encoding a raw file with float samples, you must specify a value for --channels and --sample-rate\n");
+			}
+			else if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_bps >= 0) {
+				conditional_fclose(encode_infile);
+				return usage_error("ERROR: when encoding a raw file with float samples, --endian, --sign, and --bps are not allowed.\n");
+			}
+			else {
+				FLAC__uint32 test = 1;
+				FLAC__bool is_big_endian_host_ = (*((FLAC__byte *)(&test))) ? false : true;
+				option_values.format_is_big_endian = is_big_endian_host_;
+				option_values.format_is_unsigned_samples = false;
+				option_values.format_bps = 32;
+			}
+		}
+		else
+#endif
+			if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
 		}
 	}
 	else {
-		if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_channels >= 0 || option_values.format_bps >= 0 || option_values.format_sample_rate >= 0) {
+		if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_channels >= 0 ||
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		   option_values.format_sample_type >= 0 ||
+#endif
+		   option_values.format_bps >= 0 || option_values.format_sample_rate >= 0) {
 			conditional_fclose(encode_infile);
-			return usage_error("ERROR: raw format options (--endian, --sign, --channels, --bps, and --sample-rate) are not allowed for non-raw input\n");
+			return usage_error("ERROR: raw format options (--endian, --sign, --channels, "
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+							   "--sample-type, "
+#endif
+							   "--bps, and --sample-rate) are not allowed for non-raw input\n");
 		}
 	}
 
@@ -1729,6 +1789,9 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(input_format == FORMAT_RAW) {
 		encode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
 		encode_options.format_options.raw.is_unsigned_samples = option_values.format_is_unsigned_samples;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		encode_options.format_options.raw.sample_type = option_values.format_sample_type;
+#endif
 		encode_options.format_options.raw.channels = option_values.format_channels;
 		encode_options.format_options.raw.bps = option_values.format_bps;
 		encode_options.format_options.raw.sample_rate = option_values.format_sample_rate;
@@ -1965,6 +2028,16 @@ int decode_file(const char *infilename)
 		return 1;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(option_values.format_sample_type == FLOAT) {
+		FLAC__uint32 test = 1;
+		FLAC__bool is_big_endian_host_ = (*((FLAC__byte *)(&test))) ? false : true;
+		option_values.format_is_big_endian = is_big_endian_host_;
+		option_values.format_is_unsigned_samples = false;
+		option_values.format_bps = 32;
+	}
+#endif
+
 	if(!option_values.test_only && !option_values.analyze) {
 		if(output_format == FORMAT_RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0)) {
 			flac__foreign_metadata_delete(foreign_metadata);
@@ -2030,6 +2103,9 @@ int decode_file(const char *infilename)
 	if(output_format == FORMAT_RAW) {
 		decode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
 		decode_options.format_options.raw.is_unsigned_samples = option_values.format_is_unsigned_samples;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		decode_options.format_options.raw.sample_type = option_values.format_sample_type;
+#endif
 
 		retval = flac__decode_file(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, decode_options);
 	}

@@ -95,6 +95,9 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__bool do_md5;
 	FLAC__bool do_mid_side_stereo;
 	FLAC__bool loose_mid_side_stereo;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	SampleType sample_type;
+#endif
 	uint32_t channels;
 	uint32_t bits_per_sample;
 	uint32_t sample_rate;
