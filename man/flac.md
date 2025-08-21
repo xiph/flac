@@ -745,65 +745,59 @@ flac uses the ReplayGain tags for the calculation. If a stream does
 not have the required tags or they can't be parsed, decoding will
 continue with a warning, and no ReplayGain is applied to that stream.
 
-## Picture specification
-This described the specification used for the **\--picture** option.
-\[*TYPE*\]\|\[*MIME-TYPE*\]\|\[*DESCRIPTION*\]\|\[*WIDTHxHEIGHTxDEPTH*\[/*COLORS*\]\]\|*FILE*
+## Picture specification  
 
-*TYPE* is optional; it is a number from one of:
+The *SPECIFICATION* for **\--picture** takes the following form:  
+\[*TYPE*\]\|\[*MIME-TYPE*\]\|\[*DESCRIPTION*\]\|\[*WIDTH*x*HEIGHT*x*DEPTH*\[/*COLORS*\]\]\|*FILE*  
+All arguments but *FILE* can be left empty. The fields are: 
 
- 0. Other
- 1. PNG file icon of 32x32 pixels (see RFC 2083)
- 2. General file icon
- 3. Front cover
- 4. Back cover
- 5. Liner notes page
- 6. Media label (e.g., CD, Vinyl or Cassette label)
- 7. Lead artist, lead performer, or soloist
- 8. Artist or performer
- 9. Conductor
- 10. Band or orchestra
- 11. Composer
- 12. Lyricist or text writer
- 13. Recording location
- 14. During recording
- 15. During performance
- 16. Movie or video screen capture
- 17. A bright colored fish (from ID3v2, use discouraged)
- 18. Illustration
- 19. Band or artist logotype
- 20. Publisher or studio logotype
+- *TYPE* (defaults to 3, front cover) is a number from the following list 
+(and there may only be one picture each of type 1 and 2 in a file):  
+  0\. Other  
+  1\. PNG file icon of 32x32 pixels (see RFC 2083)  
+  2\. General file icon  
+  3\. Front cover  
+  4\. Back cover  
+  5\. Liner notes page  
+  6\. Media label (e.g., CD, Vinyl or Cassette label)  
+  7\. Lead artist, lead performer, or soloist  
+  8\. Artist or performer  
+  9\. Conductor  
+  10\. Band or orchestra  
+  11\. Composer  
+  12\. Lyricist or text writer  
+  13\. Recording location  
+  14\. During recording  
+  15\. During performance  
+  16\. Movie or video screen capture  
+  17\. A bright colored fish (from ID3v2, use discouraged)  
+  18\. Illustration  
+  19\. Band or artist logotype  
+  20\. Publisher or studio logotype  
 
-The default is 3 (front cover). There may only be one picture each of
-type 1 and 2 in a file.
+- *MIME-TYPE* (default: detect from file). Pictures with MIME-type 
+	image/jpeg or image/png are most compatible. *MIME-TYPE* \--\> means 
+	that *FILE* is actually URI to an image, though this use is discouraged.  
+- *DESCRIPTION* (defaults to empty string): free text.  
+- *WIDTH*x*HEIGHT*x*DEPTH*\[/*COLORS*\] (default: attempt to detect from 
+	image, as typically possible for jpeg/png/gif MIME-types): *WIDTH* 
+	and *HEIGHT* are given in pixels, and color *DEPTH* in bits-per-pixel. 
+	Also, optionally (for images with indexed colors) the number of 
+	colors used.  
+	*CAUTION:* **flac** will *not* try to verify that the information is correct.  
+- *FILE* is the only mandatory argument. It is either the path to the 
+	picture file to be imported, or the URI if MIME-type is "\--\>"
 
-*MIME-TYPE* is optional; if left blank, it will be detected from the file.
-For best compatibility with players, use pictures with MIME type
-image/jpeg or image/png. The MIME type can also be \--\> to mean that
-FILE is actually a URL to an image, though this use is discouraged.
-
-*DESCRIPTION* is optional; the default is an empty string.
-
-The next part specifies the resolution and color information. If the
-*MIME-TYPE* is image/jpeg, image/png, or image/gif, you can usually leave
-this empty and they can be detected from the file. Otherwise, you must
-specify the width in pixels, height in pixels, and color depth in
-bits-per-pixel. If the image has indexed colors you should also specify
-the number of colors used. When manually specified, it is not checked
-against the file for accuracy.
-
-*FILE* is the path to the picture file to be imported, or the URL if MIME
-type is \--\>
-
-**Specification examples:** 
-"\|image/jpeg\|\|\|../cover.jpg" will embed the 
-JPEG file at ../cover.jpg, defaulting to type 3 (front cover) and an 
-empty description. The resolution and color info will be retrieved 
-from the file itself. 
-"4\|\--\>\|CD\|320x300x24/173\|http://blah.blah/backcover.tiff" will
-embed the given URL, with type 4 (back cover), description "CD", and a
-manually specified resolution of 320x300, 24 bits-per-pixel, and 173
-colors. The file at the URL will not be fetched; the URL itself is
-stored in the PICTURE metadata block.
+**examples:**  
+`--picture="||||../cover.jpg"`. The same as `--picture="../cover.jpg"` 
+(with *FILENAME* rather than as full specification). The file at 
+../cover.jpg wil be embedded, and by default: type 3 (front cover), empty
+description. The MIME-type (presumably image/jpeg), the resolution and 
+color info will be retrieved from the file itself.  
+`--picture="4|-->|CD|320x300x24/173|http://example.com/backcover.tiff"` 
+will store the given URI literally (not retrieving the referenced 
+file!), as type 4 (back cover), description "CD", and the following 
+information: 320x300 resolution, 24 bits-per-pixel and 173 colors.
 
 ## Apodization functions
 To improve LPC analysis, the audio data is windowed. An **-A** option 
@@ -854,8 +848,8 @@ parameter (defaulting to 5e-1) is applied for the smallest used window:
 For example, subdivide_tukey(2/5e-1) results in the same taper as that of
 tukey(25e-2) and subdivide_tukey(5) in the same taper as of tukey(1e-1). 
 
-#### Example (for illustration - impractically long!):
-`-A "flattop;gauss(1e-1);tukey(3e-2);punchout_tukey(3/-9e-4/54e-2);subdivide_tukey(5/7e-1);hanning`
+**example (for illustration - impractically long!):**  
+`-A "flattop;gauss(1e-1);tukey(3e-2);punchout_tukey(3/-9e-4/54e-2);subdivide_tukey(5/7e-1);hanning"`
 
 The encoder will for each subframe try all the following in order,
 estimate the size, and pick the best which is then used to encode:
