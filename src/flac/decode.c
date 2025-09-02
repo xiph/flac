@@ -141,6 +141,23 @@ static void print_stats(const DecoderSession *decoder_session);
  */
 int flac__decode_file(const char *infilename, const char *outfilename, FLAC__bool analysis_mode, analysis_options aopts, decode_options_t options)
 {
+	FILE *infile = flac_fopen(infilename, "rb");
+	if(!infile) {
+		flac__utils_printf(stderr, 1, "ERROR: cannot open input file '%s'\n", infilename);
+		return 1;
+	}
+
+	unsigned char sig[4];
+	size_t bytes_read = fread(sig, 1, 4, infile);
+	fclose(infile);
+
+	if(bytes_read != 4 || !(sig[0] == 0xFF && (sig[1] & 0xFC) == 0xF8)) {
+		flac__utils_printf(stderr, 1,
+						   "ERROR: '%s' is not a valid FLAC file.\n",
+						   infilename);
+		return 1;
+	}
+
 	DecoderSession decoder_session;
 
 	FLAC__ASSERT(
