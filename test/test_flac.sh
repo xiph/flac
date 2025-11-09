@@ -38,7 +38,7 @@ run_flac ()
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_flac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} $TOTALLY_SILENT --no-error-on-compression-fail $* 4>>test_flac.valgrind.log
 	else
-		flac${EXE} $TOTALLY_SILENT --no-error-on-compression-fail $*
+		flac${EXE} --no-error-on-compression-fail $*
 	fi
 }
 
@@ -1293,6 +1293,36 @@ flac2flac input-SCVA.flac case04d "--no-padding --no-seektable"
 flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
+
+############################################################################
+# test skip ID3v2 tags
+############################################################################
+
+# Try to work with a flac file that has ID3v2 tag
+# without decoding through errors
+
+if run_flac -o out.flac -f "$testdatadir/input-id3v2.flac" ; then
+        die "ERROR: it should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+
+# Decode though errors to seek past IDv3 tag
+# and make sure the file metadata matches
+# We just added an ID3v2 tag to input-VA.flac,
+# So we refrenece it's metadata to ensure the operation wa sucessfull
+
+if flac2flac input-id3v2.flac case04c "-F --no-padding" ; then
+        # Test to see if ID3v2 errors are gone
+        if run_flac -t "out.flac" ; then
+                echo "Ok, it suceeded and bad tags are gone"
+        else
+                die "ID3v2 tags still present in files"
+        fi
+else
+        echo $?
+        die "ERROR: it should have succeeded but didn't"
+fi
 
 ############################################################################
 # test limiting minimum bitrate
