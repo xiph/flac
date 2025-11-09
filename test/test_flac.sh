@@ -38,7 +38,7 @@ run_flac ()
 		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 flac $*" >>test_flac.valgrind.log
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 flac${EXE} $TOTALLY_SILENT --no-error-on-compression-fail $* 4>>test_flac.valgrind.log
 	else
-		flac${EXE} --no-error-on-compression-fail $*
+		flac${EXE} $TOTALLY_SILENT --no-error-on-compression-fail $*
 	fi
 }
 
