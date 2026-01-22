@@ -1033,6 +1033,20 @@ FLAC_API FLAC__uint64 FLAC__stream_decoder_find_total_samples(FLAC__StreamDecode
  */
 FLAC_API uint32_t FLAC__stream_decoder_get_channels(const FLAC__StreamDecoder *decoder);
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** Get the current sample type in the stream being decoded.
+ *  Will only be valid after decoding has started and will contain the
+ *  value from the most recently decoded frame header.
+ *
+ * \param  decoder  A decoder instance to query.
+ * \assert
+ *    \code decoder != NULL \endcode
+ * \retval SampleType
+ *    FLOAT if samples are in IEEE 754 binary32 format, INT otherwise.
+ */
+FLAC_API SampleType FLAC__stream_decoder_get_sample_type(const FLAC__StreamDecoder *decoder);
+#endif
+
 /** Get the current channel assignment in the stream being decoded.
  *  Will only be valid after decoding has started and will contain the
  *  value from the most recently decoded frame header.

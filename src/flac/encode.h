@@ -95,6 +95,9 @@ typedef struct {
 		struct {
 			FLAC__bool is_big_endian;
 			FLAC__bool is_unsigned_samples;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			SampleType sample_type;
+#endif
 			unsigned channels;
 			unsigned bps;
 			unsigned sample_rate;

@@ -178,6 +178,9 @@ extern FLAC_API const uint32_t FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 /** The length of the FLAC signature in bytes. */
 #define FLAC__STREAM_SYNC_LENGTH (4u)
 
+typedef enum { NOT_SPECIFIED = -1,
+			   INT = 0,
+			   FLOAT = 1 } SampleType; // TODO: merge with endian & unsigned
 
 /*****************************************************************************
  *
@@ -431,6 +434,11 @@ typedef struct {
 	uint32_t bits_per_sample;
 	/**< The sample resolution. */
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	SampleType sample_type;
+	/**< FLOAT if the samples are IEEE 754 binary32 (32-bit floating point) */
+#endif
+
 	FLAC__FrameNumberType number_type;
 	/**< The numbering scheme used for the frame.  As a convenience, the
 	 * decoder will always convert a frame number to a sample number because
@@ -539,6 +547,9 @@ typedef struct {
 	uint32_t sample_rate;
 	uint32_t channels;
 	uint32_t bits_per_sample;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	SampleType sample_type;
+#endif
 	FLAC__uint64 total_samples;
 	FLAC__byte md5sum[16];
 } FLAC__StreamMetadata_StreamInfo;

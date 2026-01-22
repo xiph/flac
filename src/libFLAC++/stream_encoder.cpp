@@ -93,6 +93,14 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_set_channels(encoder_, value));
 		}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		bool Stream::set_sample_type(SampleType value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_set_sample_type(encoder_, value));
+		}
+#endif
+
 		bool Stream::set_bits_per_sample(uint32_t value)
 		{
 			FLAC__ASSERT(is_valid());
@@ -270,6 +278,14 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			return ::FLAC__stream_encoder_get_channels(encoder_);
 		}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		SampleType Stream::get_sample_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_get_sample_type(encoder_);
+		}
+#endif
 
 		uint32_t Stream::get_bits_per_sample() const
 		{

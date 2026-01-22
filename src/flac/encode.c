@@ -58,6 +58,9 @@ typedef struct {
 	uint32_t bytes_per_wide_sample; /* for convenience, always == channels*((bps+7)/8), or 0 if N/A to input format (like FLAC) */
 	FLAC__bool is_unsigned_samples;
 	FLAC__bool is_big_endian;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__bool sample_type;
+#endif
 	FLAC__uint32 channel_mask;
 } SampleInfo;
 
@@ -184,6 +187,9 @@ static FLAC__bool get_sample_info_raw(EncoderSession *e, encode_options_t option
 	e->info.bytes_per_wide_sample = options.format_options.raw.channels * ((options.format_options.raw.bps+7)/8);
 	e->info.is_unsigned_samples = options.format_options.raw.is_unsigned_samples;
 	e->info.is_big_endian = options.format_options.raw.is_big_endian;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = options.format_options.raw.sample_type;
+#endif
 	e->info.channel_mask = 0;
 
 	return true;
@@ -198,6 +204,9 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 
 	e->info.is_unsigned_samples = false;
 	e->info.is_big_endian = false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = INT;
+#endif
 
 	if(e->format == FORMAT_WAVE64) {
 		/*
@@ -285,7 +294,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			 *
 			 * WAVEFORMAT is
 			 * 4 byte: chunk size
-			 * 2 byte: format type: 1 for WAVE_FORMAT_PCM, 65534 for WAVE_FORMAT_EXTENSIBLE
+			 * 2 byte: format type: 1 for WAVE_FORMAT_PCM, 3 for WAVE_FORMAT_IEEE_FLOAT, 65534 for WAVE_FORMAT_EXTENSIBLE
 			 * 2 byte: # channels
 			 * 4 byte: sample rate (Hz)
 			 * 4 byte: avg bytes per sec
@@ -343,7 +352,11 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			/* format code */
 			if(!read_uint16(e->fin, /*big_endian=*/false, &wFormatTag, e->inbasefilename))
 				return false;
-			if(wFormatTag != 1 /*WAVE_FORMAT_PCM*/ && wFormatTag != 65534 /*WAVE_FORMAT_EXTENSIBLE*/) {
+			if(wFormatTag != 1 /*WAVE_FORMAT_PCM*/ &&
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			   wFormatTag != 3 /*WAVE_FORMAT_IEEE_FLOAT*/ &&
+#endif
+			   wFormatTag != 65534 /*WAVE_FORMAT_EXTENSIBLE*/) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: unsupported format type %u\n", e->inbasefilename, (uint32_t)wFormatTag);
 				return false;
 			}
@@ -397,6 +410,25 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				FLAC__ASSERT(data_bytes >= 16);
 				data_bytes -= 16;
 			}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			else if(wFormatTag == 3) {
+				if(bps != 32) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: legacy WAVE file has format type %u but bits-per-sample=%u\n", e->inbasefilename, (uint32_t)wFormatTag, bps);
+					return false;
+				}
+				if(bps / 8 * channels != block_align) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: legacy WAVE file has block alignment=%u, bits-per-sample=%u, channels=%u\n", e->inbasefilename, (uint32_t)wFormatTag, block_align, bps, channels);
+					return false;
+				}
+				if(channels > 2 && !options.channel_map_none) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: WAVE has >2 channels but is not WAVE_FORMAT_EXTENSIBLE; cannot assign channels\n", e->inbasefilename);
+					return false;
+				}
+				FLAC__ASSERT(data_bytes >= 16);
+				data_bytes -= 16;
+				e->info.sample_type = FLOAT;
+			}
+#endif
 			else {
 				if(data_bytes < 40) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with size %u\n", e->inbasefilename, (uint32_t)data_bytes);
@@ -584,6 +616,9 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 
 	e->info.is_unsigned_samples = false;
 	e->info.is_big_endian = true;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = INT;
+#endif
 
 	/*
 	 * lookahead[] already has "FORMxxxxAIFF", do chunks
@@ -657,6 +692,11 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 					e->info.is_big_endian = false;
 				else if(xx == 0x4E4F4E45) /* "NONE" */
 					; /* nothing to do, we already default to big-endian */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				else if(xx == 0x666c3332) { /* "fl32" */
+					e->info.sample_type = FLOAT;
+				}
+#endif
 				else {
 					flac__utils_printf(stderr, 1, "%s: ERROR: can't handle AIFF-C compression type \"%c%c%c%c\"\n", e->inbasefilename, (char)(xx>>24), (char)((xx>>16)&8), (char)((xx>>8)&8), (char)(xx&8));
 					return false;
@@ -851,6 +891,9 @@ static FLAC__bool get_sample_info_flac(EncoderSession *e, FLAC__bool do_check_md
 	e->info.bytes_per_wide_sample = 0;
 	e->info.is_unsigned_samples = false; /* not applicable for FLAC input */
 	e->info.is_big_endian = false; /* not applicable for FLAC input */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = e->fmt.flac.client_data.metadata_blocks[0]->data.stream_info.sample_type;
+#endif
 	e->info.channel_mask = 0;
 
 	return true;
@@ -2032,6 +2075,9 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_set_verify(e->encoder, options.verify);
 	FLAC__stream_encoder_set_streamable_subset(e->encoder, !options.lax);
 	FLAC__stream_encoder_set_channels(e->encoder, channels);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__stream_encoder_set_sample_type(e->encoder, e->info.sample_type);
+#endif
 	FLAC__stream_encoder_set_bits_per_sample(e->encoder, bps);
 	FLAC__stream_encoder_set_sample_rate(e->encoder, sample_rate);
 	for(ic = 0; ic < options.num_compression_settings; ic++) {

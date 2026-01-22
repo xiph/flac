@@ -1,6 +1,5 @@
 /* libFLAC - Free Lossless Audio Codec library
- * Copyright (C) 2000-2009  Josh Coalson
- * Copyright (C) 2011-2025  Xiph.Org Foundation
+ * Copyright (C) 2025 Xiph.Org Foundation
  *
  * Redistribution and use in source and binary forms, with or without
  * modification, are permitted provided that the following conditions
@@ -30,34 +29,10 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
-#ifndef FLAC__PROTECTED__STREAM_DECODER_H
-#define FLAC__PROTECTED__STREAM_DECODER_H
+#include "FLAC/assert.h"
+#include "FLAC/ordinals.h"
 
-#include "FLAC/stream_decoder.h"
-#if FLAC__HAS_OGG
-#include "private/ogg_decoder_aspect.h"
-#endif
-
-typedef struct FLAC__StreamDecoderProtected {
-	FLAC__StreamDecoderState state;
-	FLAC__StreamDecoderInitStatus initstate;
-	uint32_t channels;
-	FLAC__ChannelAssignment channel_assignment;
-	uint32_t bits_per_sample;
-	uint32_t sample_rate; /* in Hz */
-	uint32_t blocksize; /* in samples (per channel) */
-	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the STREAMINFO metadata block */
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	SampleType sample_type;
-#endif
-#if FLAC__HAS_OGG
-	FLAC__OggDecoderAspect ogg_decoder_aspect;
-#endif
-} FLAC__StreamDecoderProtected;
-
-/*
- * Return the number of input bytes consumed
- */
-uint32_t FLAC__stream_decoder_get_input_bytes_unconsumed(const FLAC__StreamDecoder *decoder);
-
-#endif
+uint32_t FLAC__do_float_bit_manipulation(uint32_t x);
+uint32_t FLAC__undo_float_bit_manipulation(uint32_t x);
+void FLAC__transform_f32_buffer_to_i32_signal(uint32_t *dest, const uint32_t *src, size_t n);
+void FLAC__transform_i32_signal_to_f32_buffer(uint32_t *buffer, size_t n);

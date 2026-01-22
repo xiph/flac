@@ -62,6 +62,11 @@ EXTRA_DIST = \
 	deduplication/lpc_compute_autocorrelation_intrin_sse2.c \
 	deduplication/lpc_compute_autocorrelation_intrin_neon.c
 
+if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+float_sample_encoding_sources = \
+	transform_float.c
+endif
+
 if OS_IS_WINDOWS
 windows_unicode_compat = ../share/win_utf8_io/win_utf8_io.c
 if HAVE_WINDRES
@@ -111,6 +116,7 @@ libFLAC_sources = \
 	stream_encoder_intrin_avx2.c \
 	stream_encoder_framing.c \
 	window.c \
+	$(float_sample_encoding_sources) \
 	$(windows_unicode_compat) \
 	$(extra_ogg_sources)
 

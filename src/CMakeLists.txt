@@ -1,4 +1,5 @@
 option(ENABLE_64_BIT_WORDS "Set FLAC__BYTES_PER_WORD to 8, for 64-bit machines. For 32-bit machines, turning this off might give a tiny speed improvement" ON)
+option(ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING "Enable experimental feature to encode & decode 32-bit float (IEEE 754 standard) samples" ON)
 option(BUILD_UTILS "Build utils" OFF)
 
 add_subdirectory("libFLAC")

@@ -12,6 +12,9 @@
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 
+/* Enable experimental feature to encode & decode 32-bit float (IEEE 754 standard) samples */
+#cmakedefine01 ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+
 /* define to align allocated memory on 32-byte boundaries */
 #cmakedefine FLAC__ALIGN_MALLOC_DATA
 
