@@ -36,7 +36,10 @@ static int main_to_fuzz(int argc, char *argv[])
 {
 	CommandLineOptions options;
 	int ret = 0;
-
+#ifdef _WIN32
+	UINT old_console_output_cp;
+	old_console_output_cp = GetConsoleOutputCP();
+#endif
 #ifdef __EMX__
 	_response(&argc, &argv);
 	_wildcard(&argc, &argv);
@@ -70,6 +73,10 @@ static int main_to_fuzz(int argc, char *argv[])
 		ret = 1;
 
 	free_options(&options);
+
+#ifdef _WIN32
+	SetConsoleOutputCP(old_console_output_cp);
+#endif
 
 	return ret;
 }

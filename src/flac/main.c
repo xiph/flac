@@ -316,6 +316,10 @@ static int main_to_fuzz(int argc, char *argv[])
 #endif
 {
 	int retval = 0;
+#ifdef _WIN32
+	UINT old_console_output_cp;
+	old_console_output_cp = GetConsoleOutputCP();
+#endif
 
 #ifdef __EMX__
 	_response(&argc, &argv);
@@ -383,6 +387,10 @@ static int main_to_fuzz(int argc, char *argv[])
 	}
 
 	free_options();
+
+#ifdef _WIN32
+	SetConsoleOutputCP(old_console_output_cp);
+#endif
 
 	return retval;
 }
