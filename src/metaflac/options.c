@@ -216,6 +216,12 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 		}
 	}
 
+	if(!options->show_long_help && !options->show_version &&
+	   (options->args.checks.num_major_ops == 0) && (options->args.checks.num_shorthand_ops == 0)) {
+		flac_fprintf(stderr, "ERROR: no operations specified\n");
+		had_error = true;
+	}
+
 	/* check for only one FLAC file used with certain options */
 	if(!had_error && options->num_files > 1) {
 		if(0 != options->output_name) {
