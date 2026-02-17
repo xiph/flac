@@ -1203,10 +1203,13 @@ echo "Testing --keep-foreign-metadata..."
 
 rt_test_wav wacky1.wav '--keep-foreign-metadata'
 rt_test_wav wacky2.wav '--keep-foreign-metadata'
+rt_test_wav wacky3.wav '--keep-foreign-metadata'
 rt_test_w64 wacky1.w64 '--keep-foreign-metadata'
 rt_test_w64 wacky2.w64 '--keep-foreign-metadata'
+rt_test_w64 wacky3.w64 '--keep-foreign-metadata'
 rt_test_rf64 wacky1.rf64 '--keep-foreign-metadata'
 rt_test_rf64 wacky2.rf64 '--keep-foreign-metadata'
+rt_test_rf64 wacky3.rf64 '--keep-foreign-metadata'
 
 rt_test_wav_autokf wacky1.wav '--keep-foreign-metadata'
 rt_test_wav_autokf wacky2.wav '--keep-foreign-metadata'

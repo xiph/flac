@@ -989,6 +989,7 @@ static FLAC__bool generate_wackywavs(void)
 		 36,   0,  49,   0, 'p', 'a', 'd', ' ',
 		  4,   0,   0,   0, 'b', 'l', 'a', 'h'
 	};
+	const unsigned data_offset = 60;
 
 	if(0 == (f = fopen("wacky1.wav", "wb")))
 		return false;
@@ -1000,6 +1001,19 @@ static FLAC__bool generate_wackywavs(void)
 	if(0 == (f = fopen("wacky2.wav", "wb")))
 		return false;
 	if(fwrite(wav, 1, 96, f) < 96)
+		goto foo;
+	fclose(f);
+
+	/* WAV with cbSize = 0 at the end of the fmt chunk */
+	wav[4] += 2; /* increase size of file */
+	wav[40] += 2; /* increase size of fmt */
+	if(0 == (f = fopen("wacky3.wav", "wb")))
+		return false;
+	if(fwrite(wav, 1, data_offset, f) < data_offset)
+		goto foo;
+	if(!write_little_endian_uint16(f, 0)) /* cbSize */
+		goto foo;
+	if(fwrite(wav + data_offset, 1, 96 - data_offset, f) < 96 - data_offset)
 		goto foo;
 	fclose(f);
 
@@ -1124,6 +1138,7 @@ static FLAC__bool generate_wackywav64s(void)
 		  32,   0,   0,  0 ,   0,   0,   0,   0,
 		 'b', 'l', 'a', 'h', 'b', 'l', 'a', 'h'
 	};
+	const unsigned data_offset = 112;
 
 	if(0 == (f = fopen("wacky1.w64", "wb")))
 		return false;
@@ -1135,6 +1150,19 @@ static FLAC__bool generate_wackywav64s(void)
 	if(0 == (f = fopen("wacky2.w64", "wb")))
 		return false;
 	if(fwrite(wav, 1, wav[16], f) < wav[16])
+		goto foo;
+	fclose(f);
+
+	/* WAVE64 with cbSize = 0 at the end of the fmt chunk */
+	wav[16] += 8; /* increase size of file */
+	wav[88] += 2; /* increase size of fmt */
+	if(0 == (f = fopen("wacky3.w64", "wb")))
+		return false;
+	if(fwrite(wav, 1, data_offset, f) < data_offset)
+		goto foo;
+	if(!write_little_endian_uint64(f, 0)) /* cbSize and padding */
+		goto foo;
+	if(fwrite(wav + data_offset, 1, (wav[16] - 8) - data_offset, f) < (wav[16] - 8) - data_offset)
 		goto foo;
 	fclose(f);
 
@@ -1166,6 +1194,7 @@ static FLAC__bool generate_wackyrf64s(void)
 		 36,   0,  49,   0, 'p', 'a', 'd', ' ',
 		  4,   0,   0,   0, 'b', 'l', 'a', 'h'
 	};
+	const unsigned data_offset = 96;
 
 	if(0 == (f = fopen("wacky1.rf64", "wb")))
 		return false;
@@ -1177,6 +1206,19 @@ static FLAC__bool generate_wackyrf64s(void)
 	if(0 == (f = fopen("wacky2.rf64", "wb")))
 		return false;
 	if(fwrite(wav, 1, 132, f) < 132)
+		goto foo;
+	fclose(f);
+
+	/* RF64 with cbSize = 0 at the end of the fmt chunk */
+	wav[20] += 2; /* increase size of file */
+	wav[76] += 2; /* increase size of fmt */
+	if(0 == (f = fopen("wacky3.rf64", "wb")))
+		return false;
+	if(fwrite(wav, 1, data_offset, f) < data_offset)
+		goto foo;
+	if(!write_little_endian_uint16(f, 0)) /* cbSize */
+		goto foo;
+	if(fwrite(wav + data_offset, 1, 132 - data_offset, f) < 132 - data_offset)
 		goto foo;
 	fclose(f);
 
