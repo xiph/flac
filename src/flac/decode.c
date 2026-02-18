@@ -119,6 +119,8 @@ static int DecoderSession_finish_ok(DecoderSession *d);
 static int DecoderSession_finish_error(DecoderSession *d);
 static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
 static FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uint64 samples);
+static FLAC__uint64 calculate_total_riff_wave_fmt_chunk_size(FileFormat format, FLAC__bool is_waveformatextensible, FLAC__bool preserve_dummy_cbsize);
+static FLAC__uint64 calculate_riff_wave_fmt_chunk_body_size(FLAC__bool is_waveformatextensible, FLAC__bool preserve_dummy_cbsize);
 static FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, FLAC__bool preserve_dummy_cbsize, uint32_t bps, uint32_t channels, uint32_t sample_rate, FLAC__uint32 channel_mask);
 static FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bps, uint32_t channels, uint32_t sample_rate, FileFormat format, FileSubFormat subformat, FLAC__uint32 comm_length);
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 val);
@@ -773,12 +775,9 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 			if(i != fm->format_block && i != fm->audio_block)
 				foreign_metadata_size += fm->blocks[i].size;
 		}
-		/* preserve dummy cbSize = 0 at the end of the fmt chunk if the encoded file's fmt chunk's size equals */
-		/* chunk header (+16+8 for GUID and size for WAVE64 or +8 for fmt chunk header) */
-		/* +16 for mandatory fmt body */
-		/* +2 for optional cbSize (which must be 0 when it concludes the fmt chunk) */
-		/* (+6 padding if WAVE64) */
-		if(fm->blocks[fm->format_block].size == (format == FORMAT_WAVE64 ? (16 + 8 + 16 + 2 + 6) : (8 + 16 + 2)))
+		/* preserve dummy cbSize = 0 at the end of the fmt chunk if the encoded file's fmt chunk's size */
+		/* indicates that it includes cbSize and nothing more */
+		if(fm->blocks[fm->format_block].size == calculate_total_riff_wave_fmt_chunk_size(format, /*is_waveformatextensible=*/false, /*preserve_dummy_cbsize=*/true))
 			preserve_dummy_cbsize = true;
 	}
 
@@ -787,15 +786,15 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 	else if(format == FORMAT_WAVE || format == FORMAT_RF64)
 		/* 4 for WAVE form bytes */
 		/* +{36,0} for ds64 chunk */
-		/* +8+{40,18,16} for fmt chunk header and body */
+		/* +fmt chunk header and body */
 		/* +8 for data chunk header */
-		iff_size = 4 + (format == FORMAT_RF64 ? 36 : 0) + 8 + (is_waveformatextensible ? 40 : (preserve_dummy_cbsize ? 18 : 16)) + 8 + foreign_metadata_size + aligned_data_size;
+		iff_size = 4 + (format == FORMAT_RF64 ? 36 : 0) + calculate_total_riff_wave_fmt_chunk_size(format, is_waveformatextensible, preserve_dummy_cbsize) + 8 + foreign_metadata_size + aligned_data_size;
 	else if(format == FORMAT_WAVE64)
 		/* 16+8 for RIFF GUID and size field */
 		/* +16 for WAVE GUID */
-		/* +16+8+{40,24,16} for fmt chunk header (GUID and size field) and body */
+		/* +fmt chunk header and body */
 		/* +16+8 for data chunk header (GUID and size field) */
-		iff_size = 16 + 8 + 16 + 16 + 8 + (is_waveformatextensible ? 40 : (preserve_dummy_cbsize ? 24 : 16)) + 16 + 8 + foreign_metadata_size + aligned_data_size;
+		iff_size = 16 + 8 + 16 + calculate_total_riff_wave_fmt_chunk_size(format, is_waveformatextensible, preserve_dummy_cbsize) + 16 + 8 + foreign_metadata_size + aligned_data_size;
 	else if(format == FORMAT_AIFF)
 		iff_size = 46 + foreign_metadata_size + aligned_data_size;
 	else /* AIFF-C */
@@ -875,15 +874,15 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		if(format != FORMAT_WAVE64) {
 			if(flac__utils_fwrite("fmt ", 1, 4, f) != 4)
 				return false;
-			if(!write_little_endian_uint32(f, is_waveformatextensible ? 40 : (preserve_dummy_cbsize ? 18 : 16))) /* chunk size */
+			if(!write_little_endian_uint32(f, calculate_riff_wave_fmt_chunk_body_size(is_waveformatextensible, preserve_dummy_cbsize))) /* chunk size */
 				return false;
 		}
 		else { /* Wave64 */
 			/* fmt GUID 20746D66-ACF3-11D3-8CD1-00C04F8EDB8A */
 			if(flac__utils_fwrite("\x66\x6D\x74\x20\xF3\xAC\xD3\x11\x8C\xD1\x00\xC0\x4F\x8E\xDB\x8A", 1, 16, f) != 16)
 				return false;
-			/* chunk size (+16+8 for GUID and size fields) */
-			if(!write_little_endian_uint64(f, 16 + 8 + (is_waveformatextensible ? 40 : (preserve_dummy_cbsize ? 18 : 16))))
+			/* chunk size (+16+8 for GUID and size fields, but without padding) */
+			if(!write_little_endian_uint64(f, 16 + 8 + calculate_riff_wave_fmt_chunk_body_size(is_waveformatextensible, preserve_dummy_cbsize)))
 				return false;
 		}
 
@@ -983,6 +982,29 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 	}
 
 	return true;
+}
+
+FLAC__uint64 calculate_total_riff_wave_fmt_chunk_size(FileFormat format, FLAC__bool is_waveformatextensible, FLAC__bool preserve_dummy_cbsize)
+{
+	if(format == FORMAT_WAVE64) {
+		FLAC__uint16 extra_padding = (!is_waveformatextensible && preserve_dummy_cbsize) ? 6 : 0;
+		/* +16+8 for GUID and size for WAVE64 */
+		return (16 + 8 + calculate_riff_wave_fmt_chunk_body_size(is_waveformatextensible, preserve_dummy_cbsize) + extra_padding);
+	}
+	else {
+		/* +8 for fmt chunk header */
+		return (8 + calculate_riff_wave_fmt_chunk_body_size(is_waveformatextensible, preserve_dummy_cbsize));
+	}
+}
+
+FLAC__uint64 calculate_riff_wave_fmt_chunk_body_size(FLAC__bool is_waveformatextensible, FLAC__bool preserve_dummy_cbsize)
+{
+	if(is_waveformatextensible)
+		return 40;
+	else if(preserve_dummy_cbsize)
+		return 18;
+	else
+		return 16;
 }
 
 FLAC__bool write_riff_wave_fmt_chunk_body(FILE *f, FLAC__bool is_waveformatextensible, FLAC__bool preserve_dummy_cbsize, uint32_t bps, uint32_t channels, uint32_t sample_rate, FLAC__uint32 channel_mask)
