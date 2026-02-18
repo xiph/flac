@@ -890,10 +890,13 @@ FLAC__bool write_iff_headers(FILE *f, DecoderSession *decoder_session, FLAC__uin
 		if(!write_riff_wave_fmt_chunk_body(f, is_waveformatextensible, preserve_dummy_cbsize, decoder_session->bps, decoder_session->channels, decoder_session->sample_rate, decoder_session->channel_mask))
 			return false;
 
-		if(format == FORMAT_WAVE64 && !is_waveformatextensible && preserve_dummy_cbsize) {
-			/* fmt block size 18 must be padded with 6 bytes in order to align with 8 byte alignment */
-			if(flac__utils_fwrite("\x00\x00\x00\x00\x00\x00", 1, 6, f) != 6)
-				return false;
+		if(format == FORMAT_WAVE64) {
+			unsigned padding = ((8 - ftello(f) % 8) % 8);
+			if(padding > 0) {
+				/* fmt chunk must be padded in order to align with 8-byte alignment */
+				if(flac__utils_fwrite("\x00\x00\x00\x00\x00\x00\x00", 1, padding, f) != padding)
+					return false;
+			}
 		}
 
 		decoder_session->fm_offset2 = ftello(f);
