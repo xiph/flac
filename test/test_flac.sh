@@ -1381,6 +1381,35 @@ fi
 
 rm -f out.flac out.meta out1.meta
 
+############################################################################
+# test handling of broken flac files
+############################################################################
+testdatadir="${top_srcdir}/test/broken-flac-test-files"
+
+test_broken_flac_files ()
+{
+    echo $ECHO_N "Test decoding from $1 to wav; should fail... " $ECHO_C
+    run_flac -d "$testdatadir/$1" -o out.wav && die "ERROR: it should have failed but didn't"
+    echo "OK, it failed as it should"
+
+    echo $ECHO_N "Test verifying from $1; should fail... " $ECHO_C
+    run_flac -t "$testdatadir/$1" && die "ERROR: it should have failed but didn't"
+    echo "OK, it failed as it should"
+}
+
+# Each file contains a single cycle of a sinus at full scale for that bit depth
+# notsignext   = Not properly sign-extended, upper bits set to all zeros
+# oob          = Samples values are twice as big as they are allowed to be
+test_broken_flac_files "broken-8bps-notsignext.flac"
+test_broken_flac_files "broken-8bps-oob.flac"
+test_broken_flac_files "broken-16bps-notsignext.flac"
+test_broken_flac_files "broken-16bps-oob.flac"
+test_broken_flac_files "broken-24bps-notsignext.flac"
+test_broken_flac_files "broken-24bps-oob.flac"
+
+rm -f out.wav out.flac
+
+
 #@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
 
 cd ..
