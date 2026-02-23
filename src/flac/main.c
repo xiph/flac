@@ -182,6 +182,7 @@ static struct share__option long_options_[] = {
 	{ "input-size"                , share__required_argument, 0, 0 },
 	{ "error-on-compression-fail" , share__no_argument, 0, 0 },
 	{ "limit-min-bitrate"         , share__no_argument, 0, 0 },
+	{ "zero-lsbs"                 , share__required_argument, 0, 0 },
 
 	/*
 	 * analysis options
@@ -287,6 +288,7 @@ static struct {
 	FLAC__bool channel_map_none; /* --channel-map=none specified, eventually will expand to take actual channel map */
 	FLAC__bool error_on_compression_fail;
 	FLAC__bool limit_min_bitrate;
+	uint32_t zero_lsbs;
 
 	uint32_t num_files;
 	char **filenames;
@@ -655,6 +657,7 @@ FLAC__bool init_options(void)
 	option_values.channel_map_none = false;
 	option_values.error_on_compression_fail = false;
 	option_values.limit_min_bitrate = false;
+	option_values.zero_lsbs = 0;
 
 	option_values.num_files = 0;
 	option_values.filenames = 0;
@@ -898,6 +901,17 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "limit-min-bitrate")) {
 			option_values.limit_min_bitrate = true;
+		}
+		else if(0 == strcmp(long_option, "zero-lsbs")) {
+			FLAC__ASSERT(0 != option_argument);
+			{
+				uint32_t i;
+				i = atoi(option_argument);
+				if(i > 31)
+					return usage_error("ERROR: invalid value for --zero-lsbs '%s', must be >= 0 and <= 31\n", option_argument);
+				option_values.zero_lsbs = i;
+				add_compression_setting_uint32_t(CST_ZERO_LSBS, i);
+			}
 		}
 		/*
 		 * negatives
@@ -1385,6 +1399,9 @@ void show_help(void)
 	printf("  -p, --qlp-coeff-precision-search   Exhaustively search LP coeff quantization\n");
 	printf("      --lax                          Allow encoder to generate non-Subset files\n");
 	printf("      --limit-min-bitrate            Limit minimum bitrate (for streaming)\n");
+	printf("      --zero-lsbs=#                  Zero out # least-significant bits per\n");
+	printf("                                     sample (improves compression, loses\n");
+	printf("                                     precision, must be < bits-per-sample)\n");
 	printf("  -j, --threads=#                    Set number of encoding threads\n");
 	printf("      --ignore-chunk-sizes           Ignore data chunk sizes in WAVE/AIFF files\n");
 	printf("      --replay-gain                  Calculate ReplayGain & store in FLAC tags\n");
@@ -1711,6 +1728,7 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.debug.do_md5 = option_values.debug.do_md5;
 	encode_options.error_on_compression_fail = option_values.error_on_compression_fail;
 	encode_options.limit_min_bitrate = option_values.limit_min_bitrate;
+	encode_options.zero_lsbs = option_values.zero_lsbs;
 	encode_options.relaxed_foreign_metadata_handling = option_values.keep_foreign_metadata_if_present;
 
 	/* if infilename and outfilename point to the same file, we need to write to a temporary file */

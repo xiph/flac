@@ -742,6 +742,9 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if(encoder->protected_->bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || encoder->protected_->bits_per_sample > FLAC__MAX_BITS_PER_SAMPLE)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BITS_PER_SAMPLE;
 
+	if(encoder->protected_->zero_lsbs >= encoder->protected_->bits_per_sample)
+		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_BITS_PER_SAMPLE;
+
 	if(!FLAC__format_sample_rate_is_valid(encoder->protected_->sample_rate))
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_SAMPLE_RATE;
 
@@ -2242,6 +2245,17 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_limit_min_bitrate(FLAC__StreamEncod
 	return true;
 }
 
+FLAC_API FLAC__bool FLAC__stream_encoder_set_zero_lsbs(FLAC__StreamEncoder *encoder, uint32_t value)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	if(encoder->protected_->state != FLAC__STREAM_ENCODER_UNINITIALIZED)
+		return false;
+	encoder->protected_->zero_lsbs = value;
+	return true;
+}
+
 /*
  * These four functions are not static, but not publicly exposed in
  * include/FLAC/ either.  They are used by the test suite and in fuzzing
@@ -2510,6 +2524,14 @@ FLAC_API FLAC__bool FLAC__stream_encoder_get_limit_min_bitrate(const FLAC__Strea
 	return encoder->protected_->limit_min_bitrate;
 }
 
+FLAC_API uint32_t FLAC__stream_encoder_get_zero_lsbs(const FLAC__StreamEncoder *encoder)
+{
+	FLAC__ASSERT(0 != encoder);
+	FLAC__ASSERT(0 != encoder->private_);
+	FLAC__ASSERT(0 != encoder->protected_);
+	return encoder->protected_->zero_lsbs;
+}
+
 FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], uint32_t samples)
 {
 	uint32_t i, j = 0, k = 0, channel;
@@ -2542,6 +2564,17 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 			}
 			memcpy(&encoder->private_->threadtask[0]->integer_signal[channel][encoder->private_->current_sample_number], &buffer[channel][j], sizeof(buffer[channel][0]) * n);
 		}
+
+		/* Zero out LSBs if requested */
+		if(encoder->protected_->zero_lsbs > 0) {
+			const FLAC__int32 mask = ~((FLAC__int32)((1u << encoder->protected_->zero_lsbs) - 1));
+			for(channel = 0; channel < channels; channel++) {
+				for(i = encoder->private_->current_sample_number; i < encoder->private_->current_sample_number + n; i++) {
+					encoder->private_->threadtask[0]->integer_signal[channel][i] &= mask;
+				}
+			}
+		}
+
 		j += n;
 		encoder->private_->current_sample_number += n;
 
@@ -2588,6 +2621,13 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 					return false;
 				}
 				encoder->private_->threadtask[0]->integer_signal[channel][i] = buffer[k++];
+			}
+			/* Zero out LSBs if requested */
+			if(encoder->protected_->zero_lsbs > 0) {
+				const FLAC__int32 mask = ~((FLAC__int32)((1u << encoder->protected_->zero_lsbs) - 1));
+				for(channel = 0; channel < channels; channel++) {
+					encoder->private_->threadtask[0]->integer_signal[channel][i] &= mask;
+				}
 			}
 		}
 		encoder->private_->current_sample_number = i;
@@ -2645,6 +2685,7 @@ void set_defaults_(FLAC__StreamEncoder *encoder)
 	encoder->protected_->rice_parameter_search_dist = 0;
 	encoder->protected_->total_samples_estimate = 0;
 	encoder->protected_->limit_min_bitrate = false;
+	encoder->protected_->zero_lsbs = 0;
 	encoder->protected_->metadata = 0;
 	encoder->protected_->num_metadata_blocks = 0;
 	encoder->protected_->num_threads = 1;

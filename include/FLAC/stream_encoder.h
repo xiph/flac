@@ -1288,6 +1288,20 @@ FLAC_API FLAC__bool FLAC__stream_encoder_set_metadata(FLAC__StreamEncoder *encod
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_set_limit_min_bitrate(FLAC__StreamEncoder *encoder, FLAC__bool value);
 
+/** Set the number of least-significant bits to zero out in each sample
+ *  before encoding. This can improve compression at the cost of precision.
+ *  The value must be less than the bits-per-sample of the input.
+ *
+ * \default \c 0 (no bits zeroed)
+ * \param  encoder  An encoder instance to set.
+ * \param  value    Number of LSBs to zero, must be less than bits-per-sample.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval FLAC__bool
+ *    \c false if the encoder is already initialized, else \c true.
+ */
+FLAC_API FLAC__bool FLAC__stream_encoder_set_zero_lsbs(FLAC__StreamEncoder *encoder, uint32_t value);
+
 /** Get the current encoder state.
  *
  * \param  encoder  An encoder instance to query.
@@ -1534,6 +1548,16 @@ FLAC_API FLAC__uint64 FLAC__stream_encoder_get_total_samples_estimate(const FLAC
  *    See FLAC__stream_encoder_set_limit_min_bitrate().
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_get_limit_min_bitrate(const FLAC__StreamEncoder *encoder);
+
+/** Get the number of least-significant bits being zeroed out.
+ *
+ * \param  encoder  An encoder instance to query.
+ * \assert
+ *    \code encoder != NULL \endcode
+ * \retval uint32_t
+ *    See FLAC__stream_encoder_set_zero_lsbs().
+ */
+FLAC_API uint32_t FLAC__stream_encoder_get_zero_lsbs(const FLAC__StreamEncoder *encoder);
 
 /** Initialize the encoder instance to encode native FLAC streams.
  *

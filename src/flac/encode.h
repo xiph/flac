@@ -44,7 +44,8 @@ typedef enum {
 	CST_DO_EXHAUSTIVE_MODEL_SEARCH,
 	CST_MIN_RESIDUAL_PARTITION_ORDER,
 	CST_MAX_RESIDUAL_PARTITION_ORDER,
-	CST_RICE_PARAMETER_SEARCH_DIST
+	CST_RICE_PARAMETER_SEARCH_DIST,
+	CST_ZERO_LSBS
 } compression_setting_type_t;
 
 typedef struct {
@@ -83,6 +84,7 @@ typedef struct {
 	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool error_on_compression_fail;
 	FLAC__bool limit_min_bitrate;
+	uint32_t zero_lsbs;
 	FLAC__bool relaxed_foreign_metadata_handling;
 
 	FLAC__StreamMetadata *vorbis_comment;
