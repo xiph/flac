@@ -362,7 +362,7 @@ metaflac_test case39 "--import-tags-from=-" "--list"
 
 # Run same test again, but without newline at the end:
 run_metaflac --remove-all-tags --set-tag="f=0123456789abcdefghij" $flacfile
-echo -n "TITLE=Tittle" | run_metaflac --import-tags-from=- $flacfile
+echo $ECHO_N "TITLE=Tittle" | run_metaflac --import-tags-from=- $flacfile
 check_flac
 metaflac_test case39 "--import-tags-from=-" "--list"
 
