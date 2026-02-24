@@ -199,10 +199,23 @@ FLAC__bool parse_options(int argc, char *argv[], CommandLineOptions *options)
 
 	if(options->num_files > 0) {
 		unsigned i = 0;
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+		extern char* allowed_filename;
+#endif
 		if(0 == (options->filenames = safe_malloc_mul_2op_(sizeof(char*), /*times*/options->num_files)))
 			die("out of memory allocating space for file names list");
 		while(share__optind < argc)
-			options->filenames[i++] = local_strdup(argv[share__optind++]);
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+			if(strcmp(argv[share__optind],allowed_filename) == 0)
+#endif
+				options->filenames[i++] = local_strdup(argv[share__optind++]);
+#ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
+			else {
+				if(options->num_files > 0)
+					options->num_files--;
+				share__optind++;
+			}
+#endif
 	}
 
 	if(options->args.checks.num_major_ops > 0) {
