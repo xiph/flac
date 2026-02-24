@@ -1797,6 +1797,15 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 				}
 				decoder_session->replaygain.apply = false;
 			}
+			/* Bounds just to make sure calculations don't overflow */
+			else if(gain > 90 || gain < -90) {
+				flac__utils_printf(stderr, 1, "%s: WARNING: can't apply ReplayGain, found gain value doesn't make sense\n", decoder_session->inbasefilename);
+				if(decoder_session->treat_warnings_as_errors) {
+					decoder_session->abort_flag = true;
+					return;
+				}
+				decoder_session->replaygain.apply = false;
+			}
 			else {
 				const char *ls[] = { "no", "peak", "hard" };
 				const char *ns[] = { "no", "low", "medium", "high" };
