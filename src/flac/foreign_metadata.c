@@ -211,6 +211,7 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 {
 	FLAC__byte buffer[12];
 	FLAC__off_t offset, eof_offset = -1, ds64_data_size = -1;
+	FLAC__uint64 overflow_check;
 	if((offset = ftello(f)) < 0) {
 		if(error) *error = "ftello() error (001)";
 		return false;
@@ -314,12 +315,13 @@ static FLAC__bool read_from_wave_(foreign_metadata_t *fm, FILE *f, const char **
 				if(error) *error = "RF64 file has \"ds64\" chunk with extra size table, which is not currently supported (r06)";
 				return false;
 			}
-			eof_offset = (FLAC__off_t)8 + (FLAC__off_t)unpack64le_(buffer2);
+			overflow_check = 8 + unpack64le_(buffer2);
 			/* @@@ [2^63 limit] */
-			if((FLAC__off_t)unpack64le_(buffer2) < 0 || eof_offset < 0) {
+			if(overflow_check > FLAC__OFF_T_MAX) {
 				if(error) *error = "RF64 file too large (r07)";
 				return false;
 			}
+			eof_offset = (FLAC__off_t)overflow_check;
 		}
 		else { /* skip to next chunk */
 			if(fm->is_rf64 && !memcmp(buffer, "data", 4) && unpack32le_(buffer+4) == 0xffffffff) {
