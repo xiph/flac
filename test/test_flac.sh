@@ -68,7 +68,7 @@ else
 fi
 
 echo "Generating streams..."
-if [ ! -f wacky1.wav ] ; then
+if [ ! -f wacky_cbsize0.wav ] ; then
 	test_streams || die "ERROR during test_streams"
 fi
 
