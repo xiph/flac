@@ -1281,6 +1281,16 @@ flac2flac input-SCPAP.flac case02a ""
 flac2flac input-SCPAP.flac case02b "--tag=artist=0"
 # case 02c: on file with VORBIS_COMMENT block and --tag, replace existing VORBIS_COMMENT with new tags
 flac2flac input-SCVAUP.flac case02c "--tag=artist=0"
+# case 02d: on file with VORBIS_COMMENT block and --escapes --tag, replace existing VORBIS_COMMENT with new tags
+flac2flac input-SCVAUP.flac case02d "--escapes --tag=artist=Line1\\nLine\\\\2\\rLine3"
+# case 02d: on file with VORBIS_COMMENT block and --escapes --tag-from-file, replace existing VORBIS_COMMENT with new tags
+printf 'Line1\\nLine\\\\2\\rLine3' >vc_escapes.txt
+flac2flac input-SCVAUP.flac case02d "--escapes --tag-from-file=artist=vc_escapes.txt"
+rm vc_escapes.txt
+# case 02d: on file with VORBIS_COMMENT block and --tag-from-file, replace existing VORBIS_COMMENT with new tags
+printf 'Line1\nLine\\2\rLine3' >vc_no_escapes.txt
+flac2flac input-SCVAUP.flac case02d "--tag-from-file=artist=vc_no_escapes.txt"
+rm vc_no_escapes.txt
 # case 03a: on file with no CUESHEET block and --cuesheet specified, add it
 flac2flac input-SVAUP.flac case03a "--cuesheet=$testdatadir/input0.cue"
 # case 03b: on file with CUESHEET block and --cuesheet specified, overwrite existing CUESHEET

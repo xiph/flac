@@ -75,6 +75,11 @@ modification time is set to the current time):
 	is useful for scripts, and setting tags in situations where the
 	locale is wrong.
 
+**\--escapes**
+:	Use \\n-style escapes to allow multiline comments. Supported escapes
+	are c-style "\\n", "\\r" and "\\\\". A backslash followed by anything
+	else is an error. This option must appear *before* any tag options!
+
 **\--dont-use-padding**  
 :	By default metaflac tries to use padding where possible to avoid
 	rewriting the entire file if the metadata size changes. Use this

@@ -43,12 +43,12 @@ static FLAC__bool do_major_operation__remove(FLAC__Metadata_Chain *chain, const 
 static FLAC__bool do_major_operation__remove_all(FLAC__Metadata_Chain *chain, const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations(const CommandLineOptions *options);
 static FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLineOptions *options);
-static FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert);
+static FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert, FLAC__bool escapes);
 static FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned num_files, FLAC__bool preserve_modtime, FLAC__bool scan);
 static FLAC__bool do_shorthand_operation__add_padding(const char *filename, FLAC__Metadata_Chain *chain, unsigned length, FLAC__bool *needs_write);
 
 static FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMetadata *block, unsigned block_number);
-static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, FLAC__bool hexdump_application);
+static void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, const FLAC__bool escapes, FLAC__bool hexdump_application);
 static void write_metadata_binary(FLAC__StreamMetadata *block, FLAC__byte *block_raw, FLAC__bool headerless);
 
 /* from operations_shorthand_seektable.c */
@@ -58,7 +58,7 @@ extern FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, F
 extern FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
 
 /* from operations_shorthand_vorbiscomment.c */
-extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
+extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw, FLAC__bool escapes);
 
 /* from operations_shorthand_cuesheet.c */
 extern FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
@@ -206,7 +206,7 @@ FLAC__bool do_major_operation__list(const char *filename, FLAC__Metadata_Chain *
 			flac_fprintf(stderr, "%s: ERROR: couldn't get block from chain\n", filename);
 		else if(passes_filter(options, FLAC__metadata_iterator_get_block(iterator), block_number)) {
 			if(!options->data_format_is_binary && !options->data_format_is_binary_headerless)
-				write_metadata(filename, block, block_number, !options->utf8_convert, options->application_data_format_is_hexdump);
+				write_metadata(filename, block, block_number, !options->utf8_convert, options->escapes, options->application_data_format_is_hexdump);
 			else {
 				FLAC__byte * block_raw = FLAC__metadata_object_get_raw(block);
 				if(block_raw == 0) {
@@ -447,7 +447,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 		 * --add-seekpoint and --import-cuesheet-from are used.
 		 */
 		if(options->ops.operations[i].type != OP__ADD_SEEKPOINT)
-			ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
+			ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert, options->escapes);
 
 		/* The following seems counterintuitive but the meaning
 		 * of 'use_padding' is 'try to keep the overall metadata
@@ -466,7 +466,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	 */
 	for(i = 0; i < options->ops.num_operations && ok; i++) {
 		if(options->ops.operations[i].type == OP__ADD_SEEKPOINT)
-			ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert);
+			ok &= do_shorthand_operation(filename, options->prefix_with_filename, chain, &options->ops.operations[i], &needs_write, options->utf8_convert, options->escapes);
 	}
 
 	if(ok && needs_write) {
@@ -490,7 +490,7 @@ FLAC__bool do_shorthand_operations_on_file(const char *filename, const CommandLi
 	return ok;
 }
 
-FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert)
+FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool utf8_convert, const FLAC__bool escapes)
 {
 	FLAC__bool ok = true;
 
@@ -524,7 +524,7 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__SET_VC_FIELD:
 		case OP__IMPORT_VC_FROM:
 		case OP__EXPORT_VC_TO:
-			ok = do_shorthand_operation__vorbis_comment(filename, prefix_with_filename, chain, operation, needs_write, !utf8_convert);
+			ok = do_shorthand_operation__vorbis_comment(filename, prefix_with_filename, chain, operation, needs_write, !utf8_convert, escapes);
 			break;
 		case OP__IMPORT_CUESHEET_FROM:
 		case OP__EXPORT_CUESHEET_TO:
@@ -718,7 +718,7 @@ FLAC__bool passes_filter(const CommandLineOptions *options, const FLAC__StreamMe
 	return matches_number && matches_type;
 }
 
-void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, FLAC__bool hexdump_application)
+void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned block_number, FLAC__bool raw, const FLAC__bool escapes, FLAC__bool hexdump_application)
 {
 	unsigned i, j;
 
@@ -790,11 +790,11 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			break;
 		case FLAC__METADATA_TYPE_VORBIS_COMMENT:
 			PPR; flac_printf("  vendor string: ");
-			write_vc_field(0, &block->data.vorbis_comment.vendor_string, raw, stdout);
+			write_vc_field(0, &block->data.vorbis_comment.vendor_string, raw, escapes, stdout);
 			PPR; flac_printf("  comments: %u\n", block->data.vorbis_comment.num_comments);
 			for(i = 0; i < block->data.vorbis_comment.num_comments; i++) {
 				PPR; flac_printf("    comment[%u]: ", i);
-				write_vc_field(0, &block->data.vorbis_comment.comments[i], raw, stdout);
+				write_vc_field(0, &block->data.vorbis_comment.comments[i], raw, escapes, stdout);
 			}
 			break;
 		case FLAC__METADATA_TYPE_CUESHEET:

@@ -73,6 +73,7 @@ static void usage_summary(FILE *out)
 	flac_fprintf(out, "--no-utf8-convert     Do not convert tags from UTF-8 to local charset,\n");
 	flac_fprintf(out, "                      or vice versa.  This is useful for scripts, and setting\n");
 	flac_fprintf(out, "                      tags in situations where the locale is wrong.\n");
+	flac_fprintf(out, "--escapes             Use \\n-style escapes to allow multiline comments.\n");
 	flac_fprintf(out, "--dont-use-padding    By default metaflac tries to use padding where possible\n");
 	flac_fprintf(out, "                      to avoid rewriting the entire file if the metadata size\n");
 	flac_fprintf(out, "                      changes.  Use this option to tell metaflac to not take\n");
