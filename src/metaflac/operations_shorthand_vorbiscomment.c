@@ -359,33 +359,39 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 
 	ret = true;
 	while(ret && !feof(f) && fgets(line, sizeof(line), f) != NULL) {
-		if(!feof(f)) {
-			char *p = strchr(line, '\n');
-			if(0 == p) {
+		char *p = strpbrk(line, "\r\n");
+		if(0 == p) {
+			const size_t len = strlen(line);
+			if(len < (sizeof(line) - 1)) {
+				/* Likely missing newline in the last line, allow this */
+				p = &line[len];
+			}
+			else {
 				flac_fprintf(stderr, "%s: ERROR: line too long, aborting\n", vc_filename->value);
 				ret = false;
 			}
-			else {
-				const char *violation;
-				Argument_VcField field;
-				*p = '\0';
-				memset(&field, 0, sizeof(Argument_VcField));
-				field.field_value_from_file = false;
-				if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
-					FLAC__ASSERT(0 != violation);
-					flac_fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", vc_filename->value, line, violation);
-					ret = false;
-				}
-				else {
-					ret = set_vc_field(filename, block, &field, needs_write, raw);
-				}
-				if(0 != field.field)
-					free(field.field);
-				if(0 != field.field_name)
-					free(field.field_name);
-				if(0 != field.field_value)
-					free(field.field_value);
+		}
+
+		if(ret) {
+			const char *violation;
+			Argument_VcField field;
+			*p = '\0';
+			memset(&field, 0, sizeof(Argument_VcField));
+			field.field_value_from_file = false;
+			if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
+				FLAC__ASSERT(0 != violation);
+				flac_fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", vc_filename->value, line, violation);
+				ret = false;
 			}
+			else {
+				ret = set_vc_field(filename, block, &field, needs_write, raw);
+			}
+			if(0 != field.field)
+				free(field.field);
+			if(0 != field.field_name)
+				free(field.field_name);
+			if(0 != field.field_value)
+				free(field.field_value);
 		}
 	};
 
