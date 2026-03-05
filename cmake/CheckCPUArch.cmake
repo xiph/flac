@@ -23,5 +23,5 @@ macro(CHECK_CPU_ARCH_X86 VARIABLE)
 endmacro(CHECK_CPU_ARCH_X86)
 
 macro(CHECK_CPU_ARCH_ARM64 VARIABLE)
-    _CHECK_CPU_ARCH(arm64 "defined(__aarch64__) || defined(__arm64__)" ${VARIABLE})
+    _CHECK_CPU_ARCH(arm64 "defined(__aarch64__) || defined(__arm64__) || defined(_M_ARM64) || defined(_M_ARM64EC)" ${VARIABLE})
 endmacro(CHECK_CPU_ARCH_ARM64)
