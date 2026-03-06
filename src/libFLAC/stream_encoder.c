@@ -2513,13 +2513,19 @@ FLAC_API FLAC__bool FLAC__stream_encoder_get_limit_min_bitrate(const FLAC__Strea
 FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, const FLAC__int32 * const buffer[], uint32_t samples)
 {
 	uint32_t i, j = 0, k = 0, channel;
-	const uint32_t channels = encoder->protected_->channels, blocksize = encoder->protected_->blocksize;
-	const FLAC__int32 sample_max = INT32_MAX >> (32 - encoder->protected_->bits_per_sample);
-	const FLAC__int32 sample_min = INT32_MIN >> (32 - encoder->protected_->bits_per_sample);
+	uint32_t channels;
+	uint32_t blocksize;
+	FLAC__int32 sample_max;
+	FLAC__int32 sample_min;
 
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
+
+	channels = encoder->protected_->channels;
+	blocksize = encoder->protected_->blocksize;
+	sample_max = INT32_MAX >> (32 - encoder->protected_->bits_per_sample);
+	sample_min = INT32_MIN >> (32 - encoder->protected_->bits_per_sample);
 
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_OK)
 		return false;
@@ -2564,13 +2570,19 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
 FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], uint32_t samples)
 {
 	uint32_t i, j, k, channel;
-	const uint32_t channels = encoder->protected_->channels, blocksize = encoder->protected_->blocksize;
-	const FLAC__int32 sample_max = INT32_MAX >> (32 - encoder->protected_->bits_per_sample);
-	const FLAC__int32 sample_min = INT32_MIN >> (32 - encoder->protected_->bits_per_sample);
+	uint32_t channels;
+	uint32_t blocksize;
+	FLAC__int32 sample_max;
+	FLAC__int32 sample_min;
 
 	FLAC__ASSERT(0 != encoder);
 	FLAC__ASSERT(0 != encoder->private_);
 	FLAC__ASSERT(0 != encoder->protected_);
+
+	channels = encoder->protected_->channels;
+	blocksize = encoder->protected_->blocksize;
+	sample_max = INT32_MAX >> (32 - encoder->protected_->bits_per_sample);
+	sample_min = INT32_MIN >> (32 - encoder->protected_->bits_per_sample);
 
 	if(encoder->protected_->state != FLAC__STREAM_ENCODER_OK)
 		return false;
