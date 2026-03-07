@@ -151,13 +151,13 @@ int long_usage(const char *message, ...)
 	flac_fprintf(out, "                      blocks for that.\n");
 	flac_fprintf(out, "--import-tags-from=FILE Import tags from a file.  Use '-' for stdin.  Each line\n");
 	flac_fprintf(out, "                      should be of the form NAME=VALUE.  Multi-line comments\n");
-	flac_fprintf(out, "                      are currently not supported.  Specify --remove-all-tags\n");
+	flac_fprintf(out, "                      are supported with --escapes.  Specify --remove-all-tags\n");
 	flac_fprintf(out, "                      and/or --no-utf8-convert before --import-tags-from if\n");
 	flac_fprintf(out, "                      necessary.  If FILE is '-' (stdin), only one FLAC file\n");
 	flac_fprintf(out, "                      may be specified.\n");
 	flac_fprintf(out, "--export-tags-to=FILE Export tags to a file.  Use '-' for stdout.  Each line\n");
 	flac_fprintf(out, "                      will be of the form NAME=VALUE.  Specify\n");
-	flac_fprintf(out, "                      --no-utf8-convert if necessary.\n");
+	flac_fprintf(out, "                      --escapes and/or --no-utf8-convert if necessary.\n");
 	flac_fprintf(out, "--import-cuesheet-from=FILE  Import a cuesheet from a file.  Use '-' for stdin.\n");
 	flac_fprintf(out, "                      Only one FLAC file may be specified.  A seekpoint will be\n");
 	flac_fprintf(out, "                      added for each index point in the cuesheet to the\n");

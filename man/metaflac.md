@@ -151,14 +151,14 @@ modification time is set to the current time):
 
 **\--import-tags-from=file**  
 :	Import tags from a file. Use '-' for stdin. Each line should be of
-	the form NAME=VALUE. Multi-line comments are currently not supported.
+	the form NAME=VALUE. Multi-line comments are supported with \--escapes.
 	Specify \--remove-all-tags and/or \--no-utf8-convert before
 	\--import-tags-from if necessary. If FILE is '-' (stdin), only one
 	FLAC file may be specified.
 
 **\--export-tags-to=file**  
 :	Export tags to a file. Use '-' for stdout. Each line will be of the
-	form NAME=VALUE. Specify \--no-utf8-convert if necessary.
+	form NAME=VALUE. Specify \--escapes and/or \--no-utf8-convert if necessary.
 
 **\--import-cuesheet-from=file**  
 :	Import a cuesheet from a file. Use '-' for stdin. Only one FLAC file

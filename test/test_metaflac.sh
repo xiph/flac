@@ -578,6 +578,32 @@ run_metaflac --escapes --set-tag="ARTIST=Line1\\nLine\\\\2\\rLine3" --set-tag="T
 check_flac
 metaflac_test case68 "--escapes --set-tag" "--list"
 
+# Set tags with unsupported escape sequences
+if run_metaflac --escapes --set-tag="ARTIST=\\t\\123\\x12\\u1234" $flacfile ; then
+        die "ERROR: metaflac --escapes --set-tag with unsupported escapes should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+check_flac
+
+# Import tags from stdin with unsupported escape sequences
+if printf 'ARTIST=\\t\\123\\x12\\u1234\n' | run_metaflac --escapes --import-tags-from=- $flacfile ; then
+        die "ERROR: metaflac --escapes --import-tags-from=- with unsupported escapes should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+check_flac
+
+# Import tags from FILE with unsupported escape sequences
+printf 'ARTIST=\\t\\123\\x12\\u1234\n' >vc.txt
+if run_metaflac --escapes --import-tags-from=vc.txt $flacfile ; then
+        die "ERROR: metaflac --escapes --import-tags-from=FILE with unsupported escapes should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+check_flac
+rm vc.txt
+
 # Import tags from stdin with --escapes
 run_metaflac --remove-all-tags $flacfile
 printf 'ARTIST=Line1\\nLine\\\\2\\rLine3\nTITLE=Line1\\nLine\\\\2\\rLine3\n' | run_metaflac --escapes --import-tags-from=- $flacfile
@@ -591,6 +617,18 @@ run_metaflac --escapes --import-tags-from=vc.txt $flacfile
 check_flac
 metaflac_test case68 "--escapes --import-tags-from=[FILE]" "--list"
 rm vc.txt
+
+# Show tag with --escapes
+printf 'ARTIST=Line1\\nLine\\\\2\\rLine3\n' >vc_expected.txt
+run_metaflac --escapes --show-tag=ARTIST $flacfile >vc.txt
+diff -w vc_expected.txt vc.txt> /dev/null 2>&1 || die "ERROR: shown tags with escapes does not match expected tags"
+rm vc.txt vc_expected.txt
+
+# Show tag WITHOUT --escapes
+printf 'ARTIST=Line1\nLine\\2\rLine3\n' >vc_expected.txt
+run_metaflac --show-tag=ARTIST $flacfile >vc.txt
+diff -w vc_expected.txt vc.txt> /dev/null 2>&1 || die "ERROR: shown tags without escapes does not match expected tags"
+rm vc.txt vc_expected.txt
 
 # Export tags to stdout with --escapes
 printf 'ARTIST=Line1\\nLine\\\\2\\rLine3\nTITLE=Line1\\nLine\\\\2\\rLine3\n' >vc_expected.txt
