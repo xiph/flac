@@ -54,16 +54,25 @@ static size_t grabbag__escape_string(char *dst, size_t dst_size, const char *src
 	while((d < dst_size) && (s < src_size)) {
 		switch(src[s]) {
 			case '\\':
-				dst[d++] = '\\';
-				dst[d++] = '\\';
+				if(d + 1 < dst_size) {
+					dst[d] = '\\';
+					dst[d + 1] = '\\';
+				}
+				d += 2;
 				break;
 			case '\r':
-				dst[d++] = '\\';
-				dst[d++] = 'r';
+				if(d + 1 < dst_size) {
+					dst[d] = '\\';
+					dst[d + 1] = 'r';
+				}
+				d += 2;
 				break;
 			case '\n':
-				dst[d++] = '\\';
-				dst[d++] = 'n';
+				if(d + 1 < dst_size) {
+					dst[d] = '\\';
+					dst[d + 1] = 'n';
+				}
+				d += 2;
 				break;
 			default:
 				dst[d++] = src[s];
@@ -83,7 +92,7 @@ static size_t grabbag__escape_string(char *dst, size_t dst_size, const char *src
 char *grabbag__create_escaped_string(const char *src, size_t src_size)
 {
 	const size_t dst_size = grabbag__escape_string_size(src, src_size);
-	char *dst = malloc(dst_size + 1);
+	char *dst = malloc(dst_size + 1); /* +1 for null terminator */
 	if(dst != NULL) {
 		FLAC__bool error = false;
 		const size_t size = grabbag__escape_string(dst, dst_size, src, src_size, &error);
@@ -173,7 +182,7 @@ static size_t grabbag__unescape_string(char *dst, size_t dst_size, const char *s
 char *grabbag__create_unescaped_string(const char *src, size_t src_size)
 {
 	const size_t dst_size = grabbag__unescape_string_size(src, src_size);
-	char *dst = malloc(dst_size + 1);
+	char *dst = malloc(dst_size + 1); /* +1 for null terminator */
 	if(dst != NULL) {
 		FLAC__bool error = false;
 		const size_t size = grabbag__unescape_string(dst, dst_size, src, src_size, &error);
