@@ -1132,7 +1132,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			case 'r':
 				{
 					uint32_t i;
-					char * p;
+					const char * p;
 					FLAC__ASSERT(0 != option_argument);
 					p = strchr(option_argument, ',');
 					if(0 == p) {

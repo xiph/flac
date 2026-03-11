@@ -475,7 +475,7 @@ FLAC__bool flac__utils_get_channel_mask_tag(const FLAC__StreamMetadata *object, 
 {
 	int offset;
 	uint32_t val;
-	char *p;
+	const char *p;
 	FLAC__ASSERT(object);
 	FLAC__ASSERT(object->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
 	if(0 > (offset = FLAC__metadata_object_vorbiscomment_find_entry_from(object, /*offset=*/0, CHANNEL_MASK_TAG)))
