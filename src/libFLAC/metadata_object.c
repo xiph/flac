@@ -437,7 +437,7 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 	if (type > FLAC__MAX_METADATA_TYPE)
 		return 0;
 
-	object = calloc(1, sizeof(FLAC__StreamMetadata));
+	object = safe_calloc_(1, sizeof(FLAC__StreamMetadata));
 	if (object != NULL) {
 		object->is_last = false;
 		object->type = type;
@@ -958,7 +958,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_seektable_resize_points(FLAC__StreamMe
 		else {
 			/* Leave object->data.seek_table.points untouched if realloc fails */
 			FLAC__StreamMetadata_SeekPoint *tmpptr;
-			if ((tmpptr = realloc(object->data.seek_table.points, new_size)) == NULL)
+			if ((tmpptr = realloc_(object->data.seek_table.points, new_size)) == NULL)
 				return false;
 			object->data.seek_table.points = tmpptr;
 		}
@@ -1228,7 +1228,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_vorbiscomment_resize_comments(FLAC__St
 		else {
 			/* Leave object->data.vorbis_comment.comments untouched if realloc fails */
 			FLAC__StreamMetadata_VorbisComment_Entry *tmpptr;
-			if ((tmpptr = realloc(object->data.vorbis_comment.comments, new_size)) == NULL)
+			if ((tmpptr = realloc_(object->data.vorbis_comment.comments, new_size)) == NULL)
 				return false;
 			object->data.vorbis_comment.comments = tmpptr;
 		}
@@ -1476,7 +1476,7 @@ FLAC_API int FLAC__metadata_object_vorbiscomment_remove_entries_matching(FLAC__S
 
 FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_new(void)
 {
-	return calloc(1, sizeof(FLAC__StreamMetadata_CueSheet_Track));
+	return safe_calloc_(1, sizeof(FLAC__StreamMetadata_CueSheet_Track));
 }
 
 FLAC_API FLAC__StreamMetadata_CueSheet_Track *FLAC__metadata_object_cuesheet_track_clone(const FLAC__StreamMetadata_CueSheet_Track *object)
@@ -1544,7 +1544,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 		else {
 			/* Leave track->indices untouched if realloc fails */
 			FLAC__StreamMetadata_CueSheet_Index *tmpptr;
-			if ((tmpptr = realloc(track->indices, new_size)) == NULL)
+			if ((tmpptr = realloc_(track->indices, new_size)) == NULL)
 				return false;
 			track->indices = tmpptr;
 		}
@@ -1644,7 +1644,7 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_resize_tracks(FLAC__StreamMet
 		else {
 			/* Leave object->data.cue_sheet.tracks untouched if realloc fails */
 			FLAC__StreamMetadata_CueSheet_Track *tmpptr;
-			if ((tmpptr = realloc(object->data.cue_sheet.tracks, new_size)) == NULL)
+			if ((tmpptr = realloc_(object->data.cue_sheet.tracks, new_size)) == NULL)
 				return false;
 			object->data.cue_sheet.tracks = tmpptr;
 		}
