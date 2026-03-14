@@ -224,34 +224,85 @@ int win_get_console_width(void)
 /* print functions */
 
 #if !FLAC_WINDOWS_APP
-static int wprint_console(FILE *stream, const wchar_t *text, size_t len)
+static int wprint_console(FILE *stream, const char *utf8_text, size_t len)
 {
-	DWORD out;
-	int ret;
+	HANDLE handle;
 
-	do {
-		if (stream == stdout) {
-			HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-			if (hOut == INVALID_HANDLE_VALUE || hOut == NULL || GetFileType(hOut) != FILE_TYPE_CHAR)
-				break;
-			if (WriteConsoleW(hOut, text, len, &out, NULL) == 0)
-				return -1;
-			return out;
-		}
-		if (stream == stderr) {
-			HANDLE hErr = GetStdHandle(STD_ERROR_HANDLE);
-			if (hErr == INVALID_HANDLE_VALUE || hErr == NULL || GetFileType(hErr) != FILE_TYPE_CHAR)
-				break;
-			if (WriteConsoleW(hErr, text, len, &out, NULL) == 0)
-				return -1;
-			return out;
-		}
-	} while(0);
+	/* Convert from standard stream into handle */
+	if(stream == stdout) {
+		handle = GetStdHandle(STD_OUTPUT_HANDLE);
+	}
+	else if(stream == stderr) {
+		handle = GetStdHandle(STD_ERROR_HANDLE);
+	}
+	else {
+		handle = INVALID_HANDLE_VALUE;
+	}
 
-	ret = fputws(text, stream);
-	if (ret < 0)
-		return ret;
-	return len;
+	if((handle != INVALID_HANDLE_VALUE) && (handle != NULL)) {
+		if(GetFileType(handle) == FILE_TYPE_CHAR) {
+			/* Printing to the console, must use UTF-16 */
+			wchar_t *wout = NULL;
+			size_t wsize = 0;
+			if(!(wout = wchar_from_utf8(utf8_text))) {
+				return -1;
+			}
+
+			{
+				/* Prior to Windows 8, there was a max buffer size for console writes.
+				   So we need to split up the console writes.
+				   https://github.com/python/cpython/issues/121940
+				   https://github.com/python/cpython/issues/55604
+				   https://tahoe-lafs.org/trac/tahoe-lafs/ticket/1232
+				   https://www.mail-archive.com/log4net-dev@logging.apache.org/msg00661.html
+				*/
+				size_t chars_left = wcslen(wout);
+				wchar_t *wptr = wout;
+				while(chars_left > 0) {
+					const uint16_t LOW_SURROGATE_FIRST = 0xDC00U;
+					const uint16_t LOW_SURROGATE_LAST = 0xDFFFU;
+					const size_t MAX_CHARS_TO_WRITE = 16384;
+					size_t chars_to_write = (chars_left > MAX_CHARS_TO_WRITE) ? MAX_CHARS_TO_WRITE : chars_left;
+					DWORD chars_written = 0;
+
+					/* Check if end of surrogate pair, then back up one character to avoid splitting it. */
+					if((wptr[chars_to_write - 1] >= LOW_SURROGATE_FIRST) &&
+					   (wptr[chars_to_write - 1] <= LOW_SURROGATE_LAST)) {
+						--chars_to_write;
+					}
+
+					if(WriteConsoleW(handle, wptr, chars_to_write, &chars_written, NULL) == 0) {
+						return -1;
+					}
+					if(chars_written == 0) {
+						return -1;
+					}
+
+					wptr += chars_written;
+					chars_left -= chars_written;
+				}
+			}
+
+			return len;
+		}
+		else {
+			/* Redirect to pipe or file, use UTF-8. */
+			DWORD chars_written = 0;
+			if(WriteFile(handle, utf8_text, len, &chars_written, NULL) == 0) {
+				return -1;
+			}
+
+			if(chars_written != len) {
+				return -1;
+			}
+
+			return len;
+		}
+	}
+
+	/* If we en up here we are writing to another file that is neither stdout nor stderr */
+	/* TODO: Should this be an assert instead? */
+	return (int)fwrite(utf8_text, len, 1, stream);
 }
 #endif // !FLAC_WINDOWS_APP
 
@@ -290,13 +341,13 @@ int vfprintf_utf8(FILE *stream, const char *format, va_list argptr)
 	do {
 		if (!(utmp = (char *)malloc(UTF8_BUFFER_SIZE))) break;
 		if ((ret = local_vsnprintf(utmp, UTF8_BUFFER_SIZE, format, argptr)) <= 0) break;
+#if !FLAC_WINDOWS_APP
+		ret = wprint_console(stream, utmp, strlen(utmp));
+#else // FLAC_WINDOWS_APP
 		if (!(wout = wchar_from_utf8(utmp))) {
 			ret = -1;
 			break;
 		}
-#if !FLAC_WINDOWS_APP
-		ret = wprint_console(stream, wout, wcslen(wout));
-#else // FLAC_WINDOWS_APP
 		OutputDebugStringW(wout);
 		ret = 0;
 #endif // FLAC_WINDOWS_APP
