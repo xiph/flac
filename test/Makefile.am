@@ -55,6 +55,7 @@ EXTRA_DIST = \
 	metaflac.flac.in \
 	metaflac.flac.ok \
 	picture.ok \
+	escapes.ok \
 	$(check_SCRIPTS) \
 	write_iff.pl
 
