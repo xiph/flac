@@ -5,7 +5,7 @@ if(NOT TARGET Ogg::ogg)
     find_dependency(Ogg)
 endif()
 
-if (@ENABLE_MULTITHREADING@)
+if (@Threads_FOUND@)
     find_dependency(Threads)
 endif()
 
