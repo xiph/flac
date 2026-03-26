@@ -1,6 +1,7 @@
 add_library(grabbag STATIC
     alloc.c
     cuesheet.c
+    escapes.c
     file.c
     picture.c
     replaygain.c

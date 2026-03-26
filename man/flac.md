@@ -515,6 +515,11 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	is useful for scripts, and for setting tags in situations where the 
 	locale is wrong. This option must appear *before* any tag options!
 
+**\--escapes**
+:	Use \\n-style escapes to allow multiline comments. Supported escapes
+	are c-style "\\n", "\\r" and "\\\\". A backslash followed by anything
+	else is an error. This option must appear *before* any tag options!
+
 **-T** "*FIELD=VALUE*"**, \--tag**="*FIELD=VALUE*"
 :	Add a FLAC tag. The comment must adhere to the Vorbis comment spec;
 	i.e. the FIELD must contain only legal characters, terminated by an

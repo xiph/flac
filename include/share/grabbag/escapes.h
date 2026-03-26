@@ -1,6 +1,5 @@
 /* grabbag - Convenience lib for various routines common to several tools
- * Copyright (C) 2002-2009  Josh Coalson
- * Copyright (C) 2011-2025  Xiph.Org Foundation
+ * Copyright (C) 2026  Xiph.Org Foundation
  *
  * This library is free software; you can redistribute it and/or
  * modify it under the terms of the GNU Lesser General Public
@@ -17,15 +16,28 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
-#ifndef SHARE__GRABBAG_H
-#define SHARE__GRABBAG_H
+/* This .h cannot be included by itself; #include "share/grabbag.h" instead. */
 
-/* These can't be included by themselves, only from within grabbag.h */
-#include "grabbag/cuesheet.h"
-#include "grabbag/escapes.h"
-#include "grabbag/file.h"
-#include "grabbag/picture.h"
-#include "grabbag/replaygain.h"
-#include "grabbag/seektable.h"
+#ifndef GRABBAG__ESCAPES_H
+#define GRABBAG__ESCAPES_H
+
+#include <stdio.h>
+#include <stddef.h>
+
+#include "FLAC/ordinals.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+FLAC__bool grabbag__escape_string_needed(const char *src, size_t src_size);
+char *grabbag__create_escaped_string(const char *src, size_t src_size);
+
+FLAC__bool grabbag__unescape_string_needed(const char *src, size_t src_size);
+char *grabbag__create_unescaped_string(const char *src, size_t src_size);
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif
