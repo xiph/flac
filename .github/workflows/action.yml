@@ -101,6 +101,7 @@ jobs:
           ./autogen.sh
           ./configure ${{ matrix.configure-opts }}
           make
+          make DESTDIR=$(pwd)/flac install
           make check
 
       - name: Prepare CMake build directory
@@ -124,7 +125,9 @@ jobs:
           CC: ${{ matrix.cc }}
           CXX: ${{ matrix.cxx }}
         working-directory: cmake-build
-        run: cmake --build . --config Release
+        run: |
+          cmake --build . --config Release
+          cmake --install . --prefix ../flac --config Release
 
       - name: CMake test
         if: startsWith(matrix.build-system,'cmake')
@@ -138,7 +141,13 @@ jobs:
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          name: flac-${{ matrix.name }}-${{ github.sha }}-${{ github.run_id }}-logs
           path: |
             ./**/*.log
             ./**/out*.meta
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: flac-${{ matrix.name }}-${{ github.sha }}
+          path: flac
