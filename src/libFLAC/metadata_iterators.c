@@ -666,11 +666,13 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_get_application_id(FLAC__Meta
 
 FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Metadata_SimpleIterator *iterator)
 {
-	FLAC__StreamMetadata *block = FLAC__metadata_object_new(iterator->type);
+	FLAC__StreamMetadata *block;
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
+
+	block = FLAC__metadata_object_new(iterator->type);
 
 	if(0 != block) {
 		block->is_last = iterator->is_last;
@@ -696,13 +698,15 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_simple_iterator_get_block(FLAC__Me
 
 FLAC_API FLAC__bool FLAC__metadata_simple_iterator_set_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block, FLAC__bool use_padding)
 {
-	FLAC__ASSERT_DECLARATION(FLAC__off_t debug_target_offset = iterator->offset[iterator->depth];)
+	FLAC__ASSERT_DECLARATION(FLAC__off_t debug_target_offset;)
 	FLAC__bool ret;
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
+
+	FLAC__ASSERT_DECLARATION(debug_target_offset = iterator->offset[iterator->depth];)
 
 	if(!iterator->is_writable) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
@@ -800,13 +804,15 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Meta
 	uint32_t padding_leftover = 0;
 	FLAC__bool padding_is_last = false;
 
-	FLAC__ASSERT_DECLARATION(FLAC__off_t debug_target_offset = iterator->offset[iterator->depth] + FLAC__STREAM_METADATA_HEADER_LENGTH + iterator->length;)
+	FLAC__ASSERT_DECLARATION(FLAC__off_t debug_target_offset;)
 	FLAC__bool ret;
 
 	FLAC__ASSERT(0 != iterator);
 	FLAC__ASSERT(0 != iterator->file);
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(iterator->status == FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK);
+
+	FLAC__ASSERT_DECLARATION(debug_target_offset = iterator->offset[iterator->depth] + FLAC__STREAM_METADATA_HEADER_LENGTH + iterator->length;)
 
 	if(!iterator->is_writable) {
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_NOT_WRITABLE;
@@ -3601,16 +3607,20 @@ void set_file_stats_(const char *filename, struct flac_stat_s *stats)
 {
 #if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
 	struct timespec srctime[2] = {};
-	srctime[0].tv_sec = stats->st_atime;
-	srctime[1].tv_sec = stats->st_mtime;
 #else
 	struct utimbuf srctime;
-	srctime.actime = stats->st_atime;
-	srctime.modtime = stats->st_mtime;
 #endif
 
 	FLAC__ASSERT(0 != filename);
 	FLAC__ASSERT(0 != stats);
+
+#if defined(_POSIX_C_SOURCE) && (_POSIX_C_SOURCE >= 200809L) && !defined(_WIN32)
+	srctime[0].tv_sec = stats->st_atime;
+	srctime[1].tv_sec = stats->st_mtime;
+#else
+	srctime.actime = stats->st_atime;
+	srctime.modtime = stats->st_mtime;
+#endif
 
 	(void)flac_chmod(filename, stats->st_mode);
 	(void)flac_utime(filename, &srctime);
