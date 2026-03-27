@@ -91,10 +91,15 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
         if(order > 8) {
             if(order > 10) {
                 if (order == 12) {
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+#else
                     int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], qlp_coeff[10], qlp_coeff[11]};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 12);
                     tmp_vec[1] = vld1q_s32(data - 11);
                     tmp_vec[2] = vld1q_s32(data - 10);
@@ -150,10 +155,16 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                 }
 
                 else { /* order == 11 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 3);
+#else
+                    int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], qlp_coeff[10], 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 11);
                     tmp_vec[1] = vld1q_s32(data - 10);
                     tmp_vec[2] = vld1q_s32(data - 9);
@@ -208,10 +219,17 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
             }
             else {
                 if(order == 10) {
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 2);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 3);
+#else
                     int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 10);
                     tmp_vec[1] = vld1q_s32(data - 9);
                     tmp_vec[2] = vld1q_s32(data - 8);
@@ -261,10 +279,18 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 9 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 1);
+                    qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 2);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8], 0, 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 9);
                     tmp_vec[1] = vld1q_s32(data - 8);
                     tmp_vec[2] = vld1q_s32(data - 7);
@@ -313,9 +339,13 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
         else if(order > 4) {
             if(order > 6) {
                 if(order == 8) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 8);
                     tmp_vec[1] = vld1q_s32(data - 7);
                     tmp_vec[2] = vld1q_s32(data - 6);
@@ -357,9 +387,14 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 7 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 7);
                     tmp_vec[1] = vld1q_s32(data - 6);
                     tmp_vec[2] = vld1q_s32(data - 5);
@@ -400,9 +435,15 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
             }
             else {
                 if(order == 6) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 2);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 6);
                     tmp_vec[1] = vld1q_s32(data - 5);
                     
@@ -438,9 +479,17 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 5 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 1);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 2);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], 0, 0, 0};
 
+#endif
                     tmp_vec[0] = vld1q_s32(data - 5);
                     
                     for (i = 0; i < (int)data_len - 11; i += 12)
@@ -478,8 +527,11 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
         else {
             if(order > 2) {
                 if(order == 4) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
+#endif                    
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
                         int32x4_t summ_0, summ_1, summ_2;
@@ -507,8 +559,12 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
                     }
                 }
                 else { /* order == 3 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0};
-
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					qlp_coeff_0 = vsetq_lane_s32(0, qlp_coeff_0, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0 };
+#endif
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
                         int32x4_t summ_0, summ_1, summ_2;
@@ -534,8 +590,13 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_neon(const FLAC__in
             }
             else {
                 if(order == 2) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], 0, 0};
-
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					qlp_coeff_0 = vsetq_lane_s32(0, qlp_coeff_0, 2);
+					qlp_coeff_0 = vsetq_lane_s32(0, qlp_coeff_0, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], 0, 0 };
+#endif
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
                         int32x4_t summ_0, summ_1, summ_2;
@@ -679,10 +740,15 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
 		if(order > 8) {
 			if(order > 10) {
 				if(order == 12) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4],qlp_coeff[5],qlp_coeff[6],qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8],qlp_coeff[9],qlp_coeff[10],qlp_coeff[11]};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 12);
                     tmp_vec[1] = vld1q_s32(data - 11);
                     tmp_vec[2] = vld1q_s32(data - 10);
@@ -735,10 +801,16 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                     }
                 }
 				else { /* order == 11 */			
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4],qlp_coeff[5],qlp_coeff[6],qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8],qlp_coeff[9],qlp_coeff[10],0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 11);
                     tmp_vec[1] = vld1q_s32(data - 10);
                     tmp_vec[2] = vld1q_s32(data - 9);
@@ -791,10 +863,17 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             else
             {
                 if (order == 10) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 2);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8], qlp_coeff[9], 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 10);
                     tmp_vec[1] = vld1q_s32(data - 9);
                     tmp_vec[2] = vld1q_s32(data - 8);
@@ -843,10 +922,18 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                 }
 
                 else /* order == 9 */ {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					int32x4_t qlp_coeff_2 = vld1q_s32(&qlp_coeff[8]);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 1);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 2);
+					qlp_coeff_2 = vsetq_lane_s32(0, qlp_coeff_2, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
                     int32x4_t qlp_coeff_2 = {qlp_coeff[8], 0, 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 9);
                     tmp_vec[1] = vld1q_s32(data - 8);
                     tmp_vec[2] = vld1q_s32(data - 7);
@@ -897,9 +984,13 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             {
                 if (order == 8)
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], qlp_coeff[7]};
-                 
+#endif                 
                     tmp_vec[0] = vld1q_s32(data - 8);
                     tmp_vec[1] = vld1q_s32(data - 7);
                     tmp_vec[2] = vld1q_s32(data - 6);
@@ -942,9 +1033,14 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                 }
                 else /* order == 7 */
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], qlp_coeff[6], 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 7);
                     tmp_vec[1] = vld1q_s32(data - 6);
                     tmp_vec[2] = vld1q_s32(data - 5);
@@ -986,9 +1082,15 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             else
             {
                 if (order == 6) {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 2);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], qlp_coeff[5], 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 6);
                     tmp_vec[1] = vld1q_s32(data - 5);
                     
@@ -1026,9 +1128,16 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
 
                 else
                 { /* order == 5 */
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					int32x4_t qlp_coeff_1 = vld1q_s32(&qlp_coeff[4]);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 1);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 2);
+					qlp_coeff_1 = vsetq_lane_s32(0, qlp_coeff_1, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
                     int32x4_t qlp_coeff_1 = {qlp_coeff[4], 0, 0, 0};
-
+#endif
                     tmp_vec[0] = vld1q_s32(data - 5);
                     
                     for (i = 0; i < (int)data_len - 11; i += 12)
@@ -1066,8 +1175,11 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             {
                 if (order == 4)
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3]};
-                    
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], qlp_coeff[3] };
+#endif                    
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
                         int64x2_t summ_l_0, summ_h_0, summ_l_1, summ_h_1, summ_l_2, summ_h_2;
@@ -1094,9 +1206,12 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
                 }
                 else
                 { /* order == 3 */
-
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					qlp_coeff_0 = vsetq_lane_s32(0, qlp_coeff_0, 3);
+#else
                     int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], qlp_coeff[2], 0};
-                    
+#endif                    
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
                         int64x2_t summ_l_0, summ_h_0, summ_l_1, summ_h_1, summ_l_2, summ_h_2;
@@ -1122,8 +1237,13 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_neon(const FLA
             {
                 if (order == 2)
                 {
-                    int32x4_t qlp_coeff_0 = {qlp_coeff[0], qlp_coeff[1], 0, 0};
-
+#if defined(_MSC_VER)
+					int32x4_t qlp_coeff_0 = vld1q_s32(&qlp_coeff[0]);
+					qlp_coeff_0 = vsetq_lane_s32(0, qlp_coeff_0, 2);
+					qlp_coeff_0 = vsetq_lane_s32(0, qlp_coeff_0, 3);
+#else
+					int32x4_t qlp_coeff_0 = { qlp_coeff[0], qlp_coeff[1], 0, 0 };
+#endif
                     for (i = 0; i < (int)data_len - 11; i += 12)
                     {
                         int64x2_t summ_l_0, summ_h_0, summ_l_1, summ_h_1, summ_l_2, summ_h_2;
