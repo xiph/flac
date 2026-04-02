@@ -142,6 +142,9 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 		}
 
 		/* move 'data' into 'converted', converting to UTF-8 if necessary */
+#ifdef _WIN32
+		converted = data;
+#else
 		if(raw) {
 			converted = data;
 		}
@@ -153,6 +156,7 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 			*violation = "error converting file contents to UTF-8 for tag value";
 			return false;
 		}
+#endif
 
 		/* create and entry and append it */
 		if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, field->field_name, converted)) {

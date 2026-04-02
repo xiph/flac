@@ -71,6 +71,14 @@ FLAC__bool do_operations(const CommandLineOptions *options)
 {
 	FLAC__bool ok = true;
 
+#ifdef _WIN32
+	fflush(stdout);
+	fflush(stderr);
+	_setmode(fileno(stdin), _O_BINARY);
+	_setmode(fileno(stdout), _O_BINARY);
+	_setmode(fileno(stderr), _O_BINARY);
+#endif
+
 	if(options->show_long_help) {
 		long_usage(0);
 	}

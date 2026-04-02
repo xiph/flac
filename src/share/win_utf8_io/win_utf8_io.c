@@ -109,6 +109,42 @@ static wchar_t *wchar_from_utf8(const char *str)
 	return widestr;
 }
 
+/* convert UTF-8 to console output cp. Caller is responsible for freeing memory */
+static char *console_cp_stdout_from_utf8(const char *str)
+{
+	char *cpstr;
+	wchar_t *widestr;
+	int len;
+	const UINT console_output_cp = GetConsoleOutputCP();
+
+	if(!str)
+		return NULL;
+	if((len = MultiByteToWideChar(CP_UTF8, 0, str, -1, NULL, 0)) == 0)
+		return NULL;
+	if((widestr = (wchar_t *)malloc(len * sizeof(wchar_t))) == NULL)
+		return NULL;
+	if(MultiByteToWideChar(CP_UTF8, 0, str, -1, widestr, len) == 0) {
+		free(widestr);
+		return NULL;
+	}
+
+	if((len = WideCharToMultiByte(console_output_cp, 0, widestr, -1, NULL, 0, NULL, NULL)) == 0) {
+		free(widestr);
+		return NULL;
+	}
+	if((cpstr = (char *)malloc(len * sizeof(char))) == NULL) {
+		free(widestr);
+		return NULL;
+	}
+	if(WideCharToMultiByte(console_output_cp, 0, widestr, -1, cpstr, len, NULL, NULL) == 0) {
+		free(widestr);
+		free(cpstr);
+		cpstr = NULL;
+	}
+
+	return cpstr;
+}
+
 /* retrieve WCHAR commandline, expand wildcards and convert everything to UTF-8 */
 int get_utf8_argv(int *argc, char ***argv)
 {
@@ -221,6 +257,12 @@ int win_get_console_width(void)
 	return width;
 }
 
+static FLAC__bool is_low_surrogate(const wchar_t wc)
+{
+	return ((unsigned)wc >= (unsigned)LOW_SURROGATE_START) &&
+		   ((unsigned)wc <= (unsigned)LOW_SURROGATE_END);
+}
+
 /* print functions */
 
 #if !FLAC_WINDOWS_APP
@@ -240,7 +282,8 @@ static int wprint_console(FILE *stream, const char *utf8_text, size_t len)
 	}
 
 	if((handle != INVALID_HANDLE_VALUE) && (handle != NULL)) {
-		if(GetFileType(handle) == FILE_TYPE_CHAR) {
+		const UINT file_type = GetFileType(handle);
+		if(file_type == FILE_TYPE_CHAR) {
 			/* Printing to the console, must use UTF-16 */
 			wchar_t *wout = NULL;
 			size_t wsize = 0;
@@ -259,15 +302,12 @@ static int wprint_console(FILE *stream, const char *utf8_text, size_t len)
 				size_t chars_left = wcslen(wout);
 				wchar_t *wptr = wout;
 				while(chars_left > 0) {
-					const uint16_t LOW_SURROGATE_FIRST = 0xDC00U;
-					const uint16_t LOW_SURROGATE_LAST = 0xDFFFU;
 					const size_t MAX_CHARS_TO_WRITE = 16384;
 					size_t chars_to_write = (chars_left > MAX_CHARS_TO_WRITE) ? MAX_CHARS_TO_WRITE : chars_left;
 					DWORD chars_written = 0;
 
 					/* Check if end of surrogate pair, then back up one character to avoid splitting it. */
-					if((wptr[chars_to_write - 1] >= LOW_SURROGATE_FIRST) &&
-					   (wptr[chars_to_write - 1] <= LOW_SURROGATE_LAST)) {
+					if(is_low_surrogate(wptr[chars_to_write - 1])) {
 						--chars_to_write;
 					}
 
@@ -285,8 +325,25 @@ static int wprint_console(FILE *stream, const char *utf8_text, size_t len)
 
 			return len;
 		}
+		else if(file_type == FILE_TYPE_PIPE) {
+			/* Redirect to pipe, use console CP. */
+			char *cp_text = console_cp_stdout_from_utf8(utf8_text);
+			if(cp_text != NULL) {
+				DWORD chars_written = 0;
+				DWORD len = strlen(cp_text);
+				if(WriteFile(handle, cp_text, len, &chars_written, NULL) == 0) {
+					return -1;
+				}
+
+				if(chars_written != len) {
+					return -1;
+				}
+
+				return len;
+			}
+		}
 		else {
-			/* Redirect to pipe or file, use UTF-8. */
+			/* Redirect to file, use UTF-8. */
 			DWORD chars_written = 0;
 			if(WriteFile(handle, utf8_text, len, &chars_written, NULL) == 0) {
 				return -1;
