@@ -58,6 +58,23 @@ FLAC__bool grabbag__file_remove_file(const char *filename);
 FILE *grabbag__file_get_binary_stdin(void);
 FILE *grabbag__file_get_binary_stdout(void);
 
+/* input/stdin reader that works correctly on Windows console */
+struct grabbag__file_input_reader {
+	FILE *stream;
+	char *buf;
+	size_t pos;
+	size_t size;
+	size_t maxsize;
+	wchar_t surrogate_buffer;
+	FLAC__bool eof;
+	FLAC__bool force_utf8;
+	FLAC__bool error;
+};
+typedef struct grabbag__file_input_reader grabbag__file_input_reader;
+void grabbag__file_input_reader_open(grabbag__file_input_reader *input_reader, FILE *stream);
+void grabbag__file_input_reader_close(grabbag__file_input_reader *input_reader);
+FLAC__bool grabbag__file_input_reader_next_line(grabbag__file_input_reader *input_reader, char **line);
+
 #ifdef __cplusplus
 }
 #endif

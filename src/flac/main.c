@@ -326,8 +326,6 @@ static int main_to_fuzz(int argc, char *argv[])
 		fprintf(stderr, "ERROR: failed to convert command line parameters to UTF-8\n");
 		return 1;
 	}
-	SetConsoleOutputCP(CP_UTF8);
-	_setmode(fileno(stderr),_O_U8TEXT);
 #endif
 
 #ifdef HAVE_SYS_TIME_H
