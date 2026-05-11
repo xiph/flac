@@ -109,7 +109,6 @@ check_include_file("byteswap.h" HAVE_BYTESWAP_H)
 check_include_file("inttypes.h" HAVE_INTTYPES_H)
 check_include_file("stdint.h" HAVE_STDINT_H)
 check_include_file("stdbool.h" HAVE_STDBOOL_H)
-check_include_file("arm_neon.h" FLAC__HAS_NEONINTRIN)
 
 check_include_file("threads.h" HAVE_THREADS_H)
 if(MSVC AND CMAKE_C_STANDARD GREATER_EQUAL 11)
@@ -128,10 +127,14 @@ if(NOT HAVE_STDINT_H OR NOT HAVE_STDBOOL_H)
     message(SEND_ERROR "Header stdint.h and/or stdbool.h not found")
 endif()
 
-if(MSVC)
-    check_include_file("intrin.h" FLAC__HAS_X86INTRIN)
-else()
-    check_include_file("x86intrin.h" FLAC__HAS_X86INTRIN)
+check_include_file("arm_neon.h" FLAC__HAS_NEONINTRIN)
+if(!FLAC__HAS_NEONINTRIN) 
+    # Check for x86 after checking for ARM - treat ARM64EC as ARM not x86
+    if(MSVC)
+        check_include_file("intrin.h" FLAC__HAS_X86INTRIN)
+    else()
+        check_include_file("x86intrin.h" FLAC__HAS_X86INTRIN)
+    endif()
 endif()
 
 
