@@ -54,6 +54,7 @@
 #include "local_string_utils.h" /* for flac__strlcat() and flac__strlcpy() */
 #include "utils.h"
 #include "vorbiscomment.h"
+#include "foreign_metadata.h"
 
 #if 0
 /*[JEC] was:#if HAVE_GETOPT_LONG*/
@@ -1522,9 +1523,13 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 		}
 		else {
 			if(!memcmp(lookahead, "ID3", 3)) {
-				flac__utils_printf(stderr, 1, "ERROR: input file %s has an ID3v2 tag\n", infilename);
-				conditional_fclose(encode_infile);
-				return 1;
+				/* we need to use an internal if to skip the other else if conditions */
+				/* this will assume the type based upon file extension when ID3v2 tags are present */
+				if(!option_values.continue_through_decode_errors) {
+					flac__utils_printf(stderr, 1, "ERROR: input file %s has an ID3v2 tag\n", infilename);
+					conditional_fclose(encode_infile);
+					return 1;
+				}
 			}
 			else if(!memcmp(lookahead, "RIFF", 4) && !memcmp(lookahead+8, "WAVE", 4))
 				input_format = FORMAT_WAVE;
