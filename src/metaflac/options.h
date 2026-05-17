@@ -187,6 +187,7 @@ typedef struct {
 	FLAC__bool preserve_modtime;
 	FLAC__bool prefix_with_filename;
 	FLAC__bool utf8_convert;
+	FLAC__bool escapes; /* Use \n-style escapes to allow multiline comments. */
 	FLAC__bool use_padding;
 	FLAC__bool cued_seekpoints;
 	FLAC__bool show_long_help;

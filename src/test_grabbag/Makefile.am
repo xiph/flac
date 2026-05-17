@@ -16,7 +16,7 @@
 #  restrictive of those mentioned above.  See the file COPYING.Xiph in this
 #  distribution.
 
-SUBDIRS = cuesheet picture
+SUBDIRS = cuesheet picture escapes
 
 EXTRA_DIST = \
 	CMakeLists.txt

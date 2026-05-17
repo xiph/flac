@@ -36,11 +36,11 @@ static FLAC__bool remove_vc_all(const char *filename, FLAC__StreamMetadata *bloc
 static FLAC__bool remove_vc_all_except(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_field(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
 static FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *block, const char *field_name, FLAC__bool *needs_write);
-static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw);
-static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw);
-static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool raw);
+static FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw, FLAC__bool escapes);
+static FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw, FLAC__bool escapes);
+static FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool raw, FLAC__bool escapes);
 
-FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw)
+FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw, const FLAC__bool escapes)
 {
 	FLAC__bool ok = true, found_vc_block = false;
 	FLAC__StreamMetadata *block = 0;
@@ -83,10 +83,10 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bo
 
 	switch(operation->type) {
 		case OP__SHOW_VC_VENDOR:
-			write_vc_field(prefix_with_filename? filename : 0, &block->data.vorbis_comment.vendor_string, raw, stdout);
+			write_vc_field(prefix_with_filename ? filename : 0, &block->data.vorbis_comment.vendor_string, raw, escapes, stdout);
 			break;
 		case OP__SHOW_VC_FIELD:
-			write_vc_fields(prefix_with_filename? filename : 0, operation->argument.vc_field_name.value, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, stdout);
+			write_vc_fields(prefix_with_filename ? filename : 0, operation->argument.vc_field_name.value, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, escapes, stdout);
 			break;
 		case OP__REMOVE_VC_ALL:
 			ok = remove_vc_all(filename, block, needs_write);
@@ -102,16 +102,16 @@ FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bo
 			break;
 		case OP__SET_VC_FIELD:
 #ifdef _WIN32 /* do not convert anything or things will break */
-			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, true);
+			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, true, escapes);
 #else
-			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, raw);
+			ok = set_vc_field(filename, block, &operation->argument.vc_field, needs_write, raw, escapes);
 #endif
 			break;
 		case OP__IMPORT_VC_FROM:
-			ok = import_vc_from(filename, block, &operation->argument.filename, needs_write, raw);
+			ok = import_vc_from(filename, block, &operation->argument.filename, needs_write, raw, escapes);
 			break;
 		case OP__EXPORT_VC_TO:
-			ok = export_vc_to(filename, block, &operation->argument.filename, raw);
+			ok = export_vc_to(filename, block, &operation->argument.filename, raw, escapes);
 			break;
 		default:
 			ok = false;
@@ -229,7 +229,7 @@ FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *bloc
 	return true;
 }
 
-FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw)
+FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw, const FLAC__bool escapes)
 {
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	char *converted;
@@ -282,6 +282,22 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			return false;
 		}
 
+		if(escapes) {
+			const size_t converted_size = strlen(converted);
+			if(grabbag__unescape_string_needed(converted, converted_size)) {
+				char *unescaped = grabbag__create_unescaped_string(converted, converted_size);
+				if(unescaped != NULL) {
+					free(converted);
+					converted = unescaped;
+				}
+				else {
+					free(converted);
+					flac_fprintf(stderr, "%s: ERROR: unescaping file '%s' contents for tag value\n", filename, field->field_value);
+					return false;
+				}
+			}
+		}
+
 		/* create and entry and append it */
 		if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, field->field_name, converted)) {
 			free(converted);
@@ -311,6 +327,24 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			flac_fprintf(stderr, "%s: ERROR: converting comment '%s' to UTF-8\n", filename, field->field);
 			return false;
 		}
+
+		if(escapes) {
+			const char *entry_str = (const char *)entry.entry;
+			const size_t entry_size = strlen(entry_str);
+			if(grabbag__unescape_string_needed(entry_str, entry_size)) {
+				char *unescaped = grabbag__create_unescaped_string(entry_str, entry_size);
+				if(unescaped != NULL) {
+					entry.entry = (FLAC__byte *)unescaped;
+					converted = unescaped;
+					needs_free = true;
+				}
+				else {
+					flac_fprintf(stderr, "%s: ERROR: unescaping comment '%s'\n", filename, field->field);
+					return false;
+				}
+			}
+		}
+
 		entry.length = strlen((const char *)entry.entry);
 		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
 			if(needs_free)
@@ -337,7 +371,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	}
 }
 
-FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw)
+FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw, const FLAC__bool escapes)
 {
 	FILE *f;
 	char line[65536];
@@ -384,7 +418,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 				ret = false;
 			}
 			else {
-				ret = set_vc_field(filename, block, &field, needs_write, raw);
+				ret = set_vc_field(filename, block, &field, needs_write, raw, escapes);
 			}
 			if(0 != field.field)
 				free(field.field);
@@ -400,7 +434,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 	return ret;
 }
 
-FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool raw)
+FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool raw, const FLAC__bool escapes)
 {
 	FILE *f;
 	FLAC__bool ret;
@@ -421,7 +455,7 @@ FLAC__bool export_vc_to(const char *filename, FLAC__StreamMetadata *block, const
 
 	ret = true;
 
-	write_vc_fields(0, 0, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, f);
+	write_vc_fields(0, 0, block->data.vorbis_comment.comments, block->data.vorbis_comment.num_comments, raw, escapes, f);
 
 	if(f != stdout)
 		fclose(f);

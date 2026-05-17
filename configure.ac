@@ -559,6 +559,7 @@ AC_CONFIG_FILES([ \
 	src/share/Makefile \
 	src/test_grabbag/Makefile \
 	src/test_grabbag/cuesheet/Makefile \
+	src/test_grabbag/escapes/Makefile \
 	src/test_grabbag/picture/Makefile \
 	src/test_libs_common/Makefile \
 	src/test_libFLAC/Makefile \
