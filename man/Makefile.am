@@ -18,7 +18,7 @@
 
 if FLaC__HAS_PANDOC
 flac.1: flac.md
-	pandoc --standalone --to man $? > $@
+	cat $? | tr "\n" "\r" | sed -e 's/  \r\t/\r\t/g' | tr "\r"  "\n" | pandoc --standalone --to man > $@
 
 metaflac.1: metaflac.md
 	pandoc --standalone --to man $? > $@
