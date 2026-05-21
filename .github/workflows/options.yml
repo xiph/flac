@@ -42,13 +42,20 @@ jobs:
           ./autogen.sh
           ./configure --disable-thorough-tests ${{ matrix.configure-opts }}
           make
+          make DESTDIR=$(pwd)/flac install
           make check
 
       - name: Upload logs on failure
         uses: actions/upload-artifact@v4
         if: failure()
         with:
-          name: flac-${{ github.sha }}-${{ github.run_id }}-logs
+          name: flac-${{ matrix.name }}-${{ github.sha }}-${{ github.run_id }}-logs
           path: |
             ./**/*.log
             ./**/out*.meta
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ !cancelled() }}
+        with:
+          name: flac-${{ matrix.name }}-${{ github.sha }}
+          path: flac
