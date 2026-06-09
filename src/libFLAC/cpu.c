@@ -207,6 +207,10 @@ void FLAC__cpu_info (FLAC__CPUInfo *info)
 	info->type = FLAC__CPUINFO_TYPE_IA32;
 #elif defined FLAC__CPU_X86_64
 	info->type = FLAC__CPUINFO_TYPE_X86_64;
+#elif defined FLAC__CPU_RISCV64
+	info->type = FLAC__CPUINFO_TYPE_RISCV64;
+#elif defined FLAC__CPU_RISCV
+	info->type = FLAC__CPUINFO_TYPE_RISCV;
 #else
 	info->type = FLAC__CPUINFO_TYPE_UNKNOWN;
 #endif

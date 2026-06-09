@@ -9,6 +9,12 @@
 /* Target processor ARM64 */
 #cmakedefine FLAC__CPU_ARM64
 
+/* Target processor RISC-V */
+#cmakedefine FLAC__CPU_RISCV
+
+/* Target processor 64-bit RISC-V */
+#cmakedefine FLAC__CPU_RISCV64
+
 /* Set FLAC__BYTES_PER_WORD to 8 (4 is the default) */
 #cmakedefine01 ENABLE_64_BIT_WORDS
 

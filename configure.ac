@@ -131,6 +131,16 @@ case "$host_cpu" in
 		AC_DEFINE(FLAC__CPU_ARM64)
 		AH_TEMPLATE(FLAC__CPU_ARM64, [define if building for ARM])
 		;;
+	riscv|riscv32)
+		AC_DEFINE(FLAC__CPU_RISCV)
+		AH_TEMPLATE(FLAC__CPU_RISCV, [define if building for RISC-V])
+		;;
+	riscv64)
+		AC_DEFINE(FLAC__CPU_RISCV)
+		AH_TEMPLATE(FLAC__CPU_RISCV, [define if building for RISC-V])
+		AC_DEFINE(FLAC__CPU_RISCV64)
+		AH_TEMPLATE(FLAC__CPU_RISCV64, [define if building for 64-bit RISC-V])
+		;;
 esac
 AM_CONDITIONAL(FLAC__CPU_X86_64, test "x$cpu_x86_64" = xtrue)
 AM_CONDITIONAL(FLaC__CPU_IA32, test "x$cpu_ia32" = xtrue)

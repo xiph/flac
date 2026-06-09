@@ -39,9 +39,25 @@
 #include <config.h>
 #endif
 
+#ifndef FLAC__CPU_RISCV
+
+#if defined(__riscv)
+#define FLAC__CPU_RISCV
+#endif
+
+#endif
+
+#ifndef FLAC__CPU_RISCV64
+
+#if defined(__riscv) && defined(__riscv_xlen) && __riscv_xlen >= 64
+#define FLAC__CPU_RISCV64
+#endif
+
+#endif
+
 #ifndef FLAC__CPU_X86_64
 
-#if defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64)
+#if !defined(FLAC__CPU_RISCV) && (defined(__amd64__) || defined(__amd64) || defined(__x86_64__) || defined(__x86_64) || defined(_M_X64) || defined(_M_AMD64))
 #define FLAC__CPU_X86_64
 #endif
 
@@ -49,7 +65,7 @@
 
 #ifndef FLAC__CPU_IA32
 
-#if defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) ||defined( __i386) || defined(_M_IX86)
+#if !defined(FLAC__CPU_RISCV) && (defined(__i386__) || defined(__i486__) || defined(__i586__) || defined(__i686__) ||defined( __i386) || defined(_M_IX86))
 #define FLAC__CPU_IA32
 #endif
 
@@ -59,7 +75,7 @@
 #define __has_attribute(x) 0
 #endif
 
-#if FLAC__HAS_X86INTRIN
+#if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
 /* SSE intrinsics support by ICC/MSVC/GCC */
 #if defined __INTEL_COMPILER
   #define FLAC__SSE_TARGET(x)
@@ -162,6 +178,8 @@
 typedef enum {
 	FLAC__CPUINFO_TYPE_IA32,
 	FLAC__CPUINFO_TYPE_X86_64,
+	FLAC__CPUINFO_TYPE_RISCV,
+	FLAC__CPUINFO_TYPE_RISCV64,
 	FLAC__CPUINFO_TYPE_UNKNOWN
 } FLAC__CPUInfo_Type;
 
