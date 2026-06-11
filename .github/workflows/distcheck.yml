@@ -7,13 +7,15 @@ on:
       - master
   pull_request:
 
+permissions: read-all
+
 jobs:
   distcheck:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@11bd71901bbe5b1630ceea73d27597364c9af683 # v4.2.2
         with:
           repository: ietf-wg-cellar/flac-test-files
           path: ./test-files
@@ -46,21 +48,21 @@ jobs:
         run: ./src/flac/flac -t test-files/subset/*.flac test-files/uncommon/0[5-9]*.flac test-files/uncommon/10*.flac
 
       - name: Upload build
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: dist-tarball
           path: |
             ./flac-*.tar.xz
 
       - name: Upload ABI compliance reports
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-compat
           path: |
             ./compat_reports
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4
         if: failure()
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs
