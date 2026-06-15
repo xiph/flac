@@ -3,7 +3,7 @@ name: Build on MSYS2
 on: [ push, pull_request ]
 
 jobs:
-  build:
+  build-x64:
     runs-on: windows-latest
     steps:
       - name: Set git to use LF
@@ -51,4 +51,54 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: flac-win64-static-${{ github.sha}}
+          path: flac
+
+  build-arm64:
+    runs-on: windows-11-arm
+    steps:
+      - name: Set git to use LF
+        run: |
+          git config --global core.autocrlf false
+          git config --global core.eol lf
+
+      - uses: actions/checkout@v4
+      - uses: qcom-eng-691/setup-msys2@v2
+        with:
+          msystem: clangarm64
+          install: autotools mingw-w64-clang-aarch64-clang mingw-w64-clang-aarch64-libogg
+
+      - name: Install pandoc
+        run: |
+          choco install pandoc
+
+      - name: Build, run tests and prepare package
+        shell: msys2 {0}
+        run: |
+          PATH=$PATH:/c/ProgramData/chocolatey/bin/:/c/Program\ Files/Git/bin/
+          ./autogen.sh
+          ./configure --enable-static --disable-shared
+          make LDFLAGS='-all-static'
+          make check
+          mkdir flac
+          cp src/flac/flac.exe flac/flac.exe
+          cp src/metaflac/metaflac.exe flac/metaflac.exe
+          strip flac/*.exe
+          cp COPYING.* flac
+          cp AUTHORS flac
+          cp README* flac
+          cp man/*.html flac
+
+      - name: Upload logs on failure
+        uses: actions/upload-artifact@v4
+        if: failure()
+        with:
+          name: flac-arm64-${{ github.sha }}-${{ github.run_id }}-logs
+          path: |
+            ./**/*.log
+            ./**/out*.meta
+
+      - name: Package build
+        uses: actions/upload-artifact@v4
+        with:
+          name: flac-winarm64-static-${{ github.sha }}
           path: flac
