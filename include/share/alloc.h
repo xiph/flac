@@ -121,6 +121,8 @@ static inline void *safe_calloc_(size_t nmemb, size_t size)
 #endif
 	if(!nmemb || !size)
 		return malloc(1); /* malloc(0) is undefined; FLAC src convention is to always allocate */
+	if(nmemb > SIZE_MAX / size)
+		return 0;
 	return calloc(nmemb, size);
 }
 
