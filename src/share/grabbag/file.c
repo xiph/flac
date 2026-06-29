@@ -301,6 +301,7 @@ static size_t grabbag__file_input_reader_refill(grabbag__file_input_reader *inpu
 	else {
 		handle = INVALID_HANDLE_VALUE;
 	}
+#endif
 
 	if(input_reader->buf == NULL) {
 		input_reader->maxsize = 65536U;
@@ -320,6 +321,7 @@ static size_t grabbag__file_input_reader_refill(grabbag__file_input_reader *inpu
 		input_reader->size = bytes_left;
 	}
 
+#if defined _WIN32 && !defined __CYGWIN__
 	if((handle != INVALID_HANDLE_VALUE) && (handle != NULL)) {
 		const DWORD fileType = GetFileType(handle);
 		if(fileType == FILE_TYPE_CHAR) {
@@ -397,15 +399,17 @@ static size_t grabbag__file_input_reader_refill(grabbag__file_input_reader *inpu
 				return chars_read;
 			}
 		}
-	} 
-	else {
+	}
+	else
+#endif
+	{
 		/* regular file on disk */
 		size_t bytes_left = input_reader->maxsize - input_reader->size;
 		size_t chars_read = fread(&input_reader->buf[input_reader->size], 1, bytes_left, input_reader->stream);
 		input_reader->size += chars_read;
-		return chars_read;	
+		return chars_read;
 	}
-#endif
+
 	return 0;
 }
 
@@ -416,9 +420,7 @@ FLAC__bool grabbag__file_input_reader_next_line(grabbag__file_input_reader *inpu
 	}
 
 	do {
-		const size_t start_pos = input_reader->pos;
 		size_t pos = input_reader->pos;
-		size_t end = 0;
 
 		while(pos < input_reader->size) {
 			/* accept any of \r \n \r\n \n\r as the line ending */
