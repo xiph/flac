@@ -601,6 +601,10 @@ found by \--keep-foreign-metadata-if-present or \--keep-foreign-metadata
 :	Instruct the decoder to output an AIFF-C file with format NONE and
 	sowt respectively.
 
+**\--force-aiff-c-format**={none\|sowt\|twos\|in24\|42ni\|in32\|23ni}
+:	Instruct the decoder to output an AIFF-C file with the specified
+	format.
+
 **\--force-raw-format**
 :	Force input (when encoding) or output (when decoding) to be treated
 	as raw samples (even if filename suggests otherwise).

@@ -575,10 +575,15 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 	return true;
 }
 
+static inline char get_printable_char(const FLAC__uint8 byte)
+{
+	return ((byte >= 0x20) && (byte <= 0x7E)) ? (char)byte : '?';
+}
+
 static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t options)
 {
 	FLAC__bool got_comm_chunk = false, got_ssnd_chunk = false;
-	uint32_t sample_rate = 0, channels = 0, bps = 0, shift = 0;
+	uint32_t sample_rate = 0, channels = 0, bps = 0, original_bps = 0, shift = 0;
 	FLAC__uint64 sample_frames = 0;
 	FLAC__uint32 channel_mask = 0;
 
@@ -641,6 +646,7 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 			if(!read_uint16(e->fin, /*big_endian=*/true, &x, e->inbasefilename))
 				return false;
 			bps = (uint32_t)x;
+			original_bps = bps;
 			shift = (bps%8)? 8-(bps%8) : 0; /* SSND data is always byte-aligned, left-justified but format_input() will double-check */
 			bps += shift;
 
@@ -651,14 +657,59 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 
 			/* check compression type for AIFF-C */
 			if(is_aifc) {
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_NONE = 0x4E4F4E45; /* "NONE" */
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_SOWT = 0x736F7774; /* "sowt" */
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_TWOS = 0x74776F73; /* "twos" */
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_IN24 = 0x696E3234; /* "in24" */
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_IN32 = 0x696E3332; /* "in32" */
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_42NI = 0x34326E69; /* "42ni" */
+				const FLAC__uint32 AIFF_C_COMPRESSION_TYPE_23NI = 0x32336E69; /* "23ni" */
+
 				if(!read_uint32(e->fin, /*big_endian=*/true, &xx, e->inbasefilename))
 					return false;
-				if(xx == 0x736F7774) /* "sowt" */
+				if((xx == AIFF_C_COMPRESSION_TYPE_SOWT) ||
+				   (xx == AIFF_C_COMPRESSION_TYPE_42NI) ||
+				   (xx == AIFF_C_COMPRESSION_TYPE_23NI)) {
 					e->info.is_big_endian = false;
-				else if(xx == 0x4E4F4E45) /* "NONE" */
+				}
+				else if((xx == AIFF_C_COMPRESSION_TYPE_NONE) ||
+						(xx == AIFF_C_COMPRESSION_TYPE_TWOS) ||
+						(xx == AIFF_C_COMPRESSION_TYPE_IN24) ||
+						(xx == AIFF_C_COMPRESSION_TYPE_IN32)) {
 					; /* nothing to do, we already default to big-endian */
+				}
 				else {
-					flac__utils_printf(stderr, 1, "%s: ERROR: can't handle AIFF-C compression type \"%c%c%c%c\"\n", e->inbasefilename, (char)(xx>>24), (char)((xx>>16)&8), (char)((xx>>8)&8), (char)(xx&8));
+					flac__utils_printf(stderr, 1, "%s: ERROR: can't handle AIFF-C compression type \"%c%c%c%c\"\n",
+									   e->inbasefilename,
+									   get_printable_char(xx >> 24),
+									   get_printable_char(xx >> 16),
+									   get_printable_char(xx >> 8),
+									   get_printable_char(xx));
+					return false;
+				}
+
+				if(((xx == AIFF_C_COMPRESSION_TYPE_IN24) ||
+					(xx == AIFF_C_COMPRESSION_TYPE_42NI)) &&
+				   (original_bps != 24)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: invalid bits per sample %u, expected 24 for AIFF-C compression type \"%c%c%c%c\"\n",
+									   e->inbasefilename,
+									   original_bps,
+									   get_printable_char(xx >> 24),
+									   get_printable_char(xx >> 16),
+									   get_printable_char(xx >> 8),
+									   get_printable_char(xx));
+					return false;
+				}
+				else if(((xx == AIFF_C_COMPRESSION_TYPE_IN32) ||
+						 (xx == AIFF_C_COMPRESSION_TYPE_23NI)) &&
+						(original_bps != 32)) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: invalid bits per sample %u, expected 32 for AIFF-C compression type \"%c%c%c%c\"\n",
+									   e->inbasefilename,
+									   original_bps,
+									   get_printable_char(xx >> 24),
+									   get_printable_char(xx >> 16),
+									   get_printable_char(xx >> 8),
+									   get_printable_char(xx));
 					return false;
 				}
 			}

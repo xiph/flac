@@ -62,7 +62,7 @@ typedef struct {
 	FLAC__bool is_rf64; /* always false if type!=RIFF */
 	FLAC__bool is_wavefmtex; /* always false if type!=RIFF */
 	FLAC__bool is_aifc;  /* always false if type!=AIFF */
-	FLAC__bool is_sowt;  /* always false if type!=AIFF */
+	char aifc_comm_compression_type[4]; /* always empty if type!=AIFF */
 	FLAC__uint32 aifc_comm_length;
 	FLAC__uint32 ssnd_offset_size; /* 0 if type!=AIFF */
 } foreign_metadata_t;

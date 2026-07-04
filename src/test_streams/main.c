@@ -24,6 +24,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "share/compat.h"
 #if defined _MSC_VER || defined __MINGW32__
 #include <time.h>
@@ -747,8 +748,18 @@ foo:
 	return false;
 }
 
-/* flavor is: 0:AIFF, 1:AIFF-C NONE, 2:AIFF-C sowt */
-static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, int flavor)
+enum AiffFlavor {
+	AIFF_FLAVOR_AIFF,
+	AIFF_FLAVOR_AIFF_C_NONE,
+	AIFF_FLAVOR_AIFF_C_SOWT,
+	AIFF_FLAVOR_AIFF_C_TWOS,
+	AIFF_FLAVOR_AIFF_C_IN24,
+	AIFF_FLAVOR_AIFF_C_IN32,
+	AIFF_FLAVOR_AIFF_C_42NI,
+	AIFF_FLAVOR_AIFF_C_23NI,
+};
+
+static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, enum AiffFlavor flavor)
 {
 	const unsigned bytes_per_sample = (bps+7)/8;
 	const unsigned true_size = channels * bytes_per_sample * samples;
@@ -766,7 +777,7 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		return false;
 	if(fwrite("FORM", 1, 4, f) < 4)
 		goto foo;
-	if(flavor == 0) {
+	if(flavor == AIFF_FLAVOR_AIFF) {
 		if(!write_big_endian_uint32(f, padded_size + 46))
 			goto foo;
 		if(fwrite("AIFFCOMM\000\000\000\022", 1, 12, f) < 12)
@@ -786,14 +797,39 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		goto foo;
 	if(!write_sane_extended(f, sample_rate))
 		goto foo;
-	if(flavor == 1) {
-		if(fwrite("NONE\000\000", 1, 6, f) < 6)
+
+	if(flavor != AIFF_FLAVOR_AIFF) {
+		char buf[6] = { 0, 0, 0, 0, 0, 0 };
+		switch(flavor) {
+			case AIFF_FLAVOR_AIFF:
+				break;
+			case AIFF_FLAVOR_AIFF_C_NONE:
+				memcpy(buf, "NONE", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_SOWT:
+				memcpy(buf, "sowt", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_TWOS:
+				memcpy(buf, "twos", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_IN24:
+				memcpy(buf, "in24", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_IN32:
+				memcpy(buf, "in32", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_42NI:
+				memcpy(buf, "42ni", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_23NI:
+				memcpy(buf, "23ni", 4);
+				break;
+		}
+		if(fwrite(buf, 1, 6, f) < 6) {
 			goto foo;
+		}
 	}
-	else if(flavor == 2) {
-		if(fwrite("sowt\000\000", 1, 6, f) < 6)
-			goto foo;
-	}
+
 	if(fwrite("SSND", 1, 4, f) < 4)
 		goto foo;
 	if(!write_big_endian_uint32(f, true_size + 8))
@@ -805,9 +841,14 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		for(j = 0; j < channels; j++) {
 			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
 			FLAC__int32 v = ((FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8)) << shift;
-			if(flavor == 0 || flavor == 1) {
-				if(!write_big_endian(f, v, bytes_per_sample))
+			if((flavor == AIFF_FLAVOR_AIFF) ||
+			   (flavor == AIFF_FLAVOR_AIFF_C_NONE) ||
+			   (flavor == AIFF_FLAVOR_AIFF_C_TWOS) ||
+			   (flavor == AIFF_FLAVOR_AIFF_C_IN24) ||
+			   (flavor == AIFF_FLAVOR_AIFF_C_IN32)) {
+				if(!write_big_endian(f, v, bytes_per_sample)) {
 					goto foo;
+				}
 			}
 			else {
 				if(!write_little_endian_signed(f, v, bytes_per_sample))
@@ -1499,23 +1540,53 @@ int main(int argc, char *argv[])
 	if(!generate_noisy_sine()) return 1;
 	for(channels = 1; channels <= 8; channels *= 2) {
 		unsigned bits_per_sample;
-		for(bits_per_sample = 8; bits_per_sample <= 24; bits_per_sample += 4) {
+		for(bits_per_sample = 8; bits_per_sample <= 32; bits_per_sample += 4) {
 			static const unsigned nsamples[] = { 1, 111, 4777 } ;
 			unsigned samples;
 			for(samples = 0; samples < sizeof(nsamples)/sizeof(nsamples[0]); samples++) {
 				char fn[64];
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.aiff", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], 0))
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF))
 					return 1;
 
-				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.aifc", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], 1))
+				flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-none.aifc", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_NONE)) {
 					return 1;
+				}
 
-				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u-le.aifc", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], 2))
+				flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-sowt.aifc", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_SOWT)) {
 					return 1;
+				}
+
+				flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-twos.aifc", channels, bits_per_sample, nsamples[samples]);
+				if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_TWOS)) {
+					return 1;
+				}
+
+				if(bits_per_sample == 24) {
+					flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-in24.aifc", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_IN24)) {
+						return 1;
+					}
+
+					flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-42ni.aifc", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_42NI)) {
+						return 1;
+					}
+				}
+				else if(bits_per_sample == 32) {
+					flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-in32.aifc", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_IN32)) {
+						return 1;
+					}
+
+					flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-23ni.aifc", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_23NI)) {
+						return 1;
+					}
+				}
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
 				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/0))
@@ -1533,9 +1604,12 @@ int main(int argc, char *argv[])
 					flac_snprintf(fn, sizeof (fn), "rt-%u-%u-signed-%u.raw", channels, bits_per_sample, nsamples[samples]);
 					if(!generate_signed_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
 						return 1;
-					flac_snprintf(fn, sizeof (fn), "rt-%u-%u-unsigned-%u.raw", channels, bits_per_sample, nsamples[samples]);
-					if(!generate_unsigned_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
-						return 1;
+					if(bits_per_sample <= 24) {
+						/* unsigned 32 bps raw does not work */
+						flac_snprintf(fn, sizeof(fn), "rt-%u-%u-unsigned-%u.raw", channels, bits_per_sample, nsamples[samples]);
+						if(!generate_unsigned_raw(fn, channels, bits_per_sample / 8, nsamples[samples]))
+							return 1;
+					}
 				}
 			}
 		}

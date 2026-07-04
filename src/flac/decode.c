@@ -1108,14 +1108,37 @@ FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bp
 		return false;
 
 	if(format == FORMAT_AIFF_C) {
-		if(subformat == SUBFORMAT_AIFF_C_NONE) {
-			if(flac__utils_fwrite("NONE", 1, 4, f) != 4)
-				return false;
+		const char *compression_format = "NONE";
+		switch(subformat) {
+			case SUBFORMAT_AIFF_C_NONE:
+				compression_format = "NONE";
+				break;
+			case SUBFORMAT_AIFF_C_SOWT:
+				compression_format = "sowt";
+				break;
+			case SUBFORMAT_AIFF_C_TWOS:
+				compression_format = "twos";
+				break;
+			case SUBFORMAT_AIFF_C_IN24:
+				compression_format = "in24";
+				break;
+			case SUBFORMAT_AIFF_C_IN32:
+				compression_format = "in32";
+				break;
+			case SUBFORMAT_AIFF_C_42NI:
+				compression_format = "42ni";
+				break;
+			case SUBFORMAT_AIFF_C_23NI:
+				compression_format = "23ni";
+				break;
+			default:
+				break;
 		}
-		else if(subformat == SUBFORMAT_AIFF_C_SOWT) {
-			if(flac__utils_fwrite("sowt", 1, 4, f) != 4)
-				return false;
+
+		if(flac__utils_fwrite(compression_format, 1, 4, f) != 4) {
+			return false;
 		}
+
 		for(i = 34; i < comm_length; i++) {
 			if(flac__utils_fwrite("\x00", 1, 1, f) != 1)
 				return false;
@@ -1248,11 +1271,22 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	FILE *fout = decoder_session->fout;
 	const uint32_t bps = frame->header.bits_per_sample, channels = frame->header.channels;
 	const uint32_t shift = (bps%8)? 8-(bps%8): 0;
-	FLAC__bool is_big_endian = (
-		(decoder_session->format == FORMAT_AIFF || (decoder_session->format == FORMAT_AIFF_C && decoder_session->subformat == SUBFORMAT_AIFF_C_NONE)) ? true : (
-		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 || (decoder_session->format == FORMAT_AIFF_C && decoder_session->subformat == SUBFORMAT_AIFF_C_SOWT) ? false :
-		decoder_session->is_big_endian
-	));
+	FLAC__bool is_big_endian = ((decoder_session->format == FORMAT_AIFF ||
+								 (decoder_session->format == FORMAT_AIFF_C &&
+								  ((decoder_session->subformat == SUBFORMAT_AIFF_C_NONE) ||
+								   (decoder_session->subformat == SUBFORMAT_AIFF_C_TWOS) ||
+								   (decoder_session->subformat == SUBFORMAT_AIFF_C_IN24) ||
+								   (decoder_session->subformat == SUBFORMAT_AIFF_C_IN32))))
+									? true
+									: (
+										  decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 ||
+												  decoder_session->format == FORMAT_RF64 ||
+												  (decoder_session->format == FORMAT_AIFF_C &&
+												   ((decoder_session->subformat == SUBFORMAT_AIFF_C_SOWT) ||
+													(decoder_session->subformat == SUBFORMAT_AIFF_C_42NI) ||
+													(decoder_session->subformat == SUBFORMAT_AIFF_C_23NI)))
+											  ? false
+											  : decoder_session->is_big_endian));
 	FLAC__bool is_unsigned_samples = (
 		decoder_session->format == FORMAT_AIFF || decoder_session->format == FORMAT_AIFF_C ? false : (
 		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 ? bps<=8 :
