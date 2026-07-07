@@ -9,6 +9,7 @@
 "--force-aiff-c-sowt-format"
 "--force-aiff-c-none-format"
 "--force-aiff-c-format=none"
+"--force-aiff-c-format=raw"
 "--force-aiff-c-format=sowt"
 "--force-aiff-c-format=twos"
 "--force-aiff-c-format=in24"

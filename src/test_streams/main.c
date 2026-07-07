@@ -751,6 +751,7 @@ foo:
 enum AiffFlavor {
 	AIFF_FLAVOR_AIFF,
 	AIFF_FLAVOR_AIFF_C_NONE,
+	AIFF_FLAVOR_AIFF_C_RAW,
 	AIFF_FLAVOR_AIFF_C_SOWT,
 	AIFF_FLAVOR_AIFF_C_TWOS,
 	AIFF_FLAVOR_AIFF_C_IN24,
@@ -805,6 +806,9 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 				break;
 			case AIFF_FLAVOR_AIFF_C_NONE:
 				memcpy(buf, "NONE", 4);
+				break;
+			case AIFF_FLAVOR_AIFF_C_RAW:
+				memcpy(buf, "raw ", 4);
 				break;
 			case AIFF_FLAVOR_AIFF_C_SOWT:
 				memcpy(buf, "sowt", 4);
@@ -1565,7 +1569,13 @@ int main(int argc, char *argv[])
 					return 1;
 				}
 
-				if(bits_per_sample == 24) {
+				if(bits_per_sample == 8) {
+					flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-raw.aifc", channels, bits_per_sample, nsamples[samples]);
+					if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_RAW)) {
+						return 1;
+					}
+				}
+				else if(bits_per_sample == 24) {
 					flac_snprintf(fn, sizeof(fn), "rt-%u-%u-%u-in24.aifc", channels, bits_per_sample, nsamples[samples]);
 					if(!generate_aiff(fn, 44100, channels, bits_per_sample, nsamples[samples], AIFF_FLAVOR_AIFF_C_IN24)) {
 						return 1;

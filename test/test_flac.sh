@@ -372,27 +372,30 @@ done
 for f in rt-*.aiff ; do
 	rt_test_aiff $f
 done
-for f in rt-*none.aifc ; do
+for f in rt-*-none.aifc ; do
 	rt_test_aifc_none $f
 	rt_test_aifc_format $f "none"
 done
-for f in rt-*sowt.aifc ; do
+for f in rt-*-raw.aifc ; do
+	rt_test_aifc_format $f "raw"
+done
+for f in rt-*-sowt.aifc ; do
 	rt_test_aifc_sowt $f
 	rt_test_aifc_format $f "sowt"
 done
-for f in rt-*twos.aifc ; do
+for f in rt-*-twos.aifc ; do
 	rt_test_aifc_format $f "twos"
 done
-for f in rt-*in24.aifc ; do
+for f in rt-*-in24.aifc ; do
 	rt_test_aifc_format $f "in24"
 done
-for f in rt-*in32.aifc ; do
+for f in rt-*-in32.aifc ; do
 	rt_test_aifc_format $f "in32"
 done
-for f in rt-*42ni.aifc ; do
+for f in rt-*-42ni.aifc ; do
 	rt_test_aifc_format $f "42ni"
 done
-for f in rt-*23ni.aifc ; do
+for f in rt-*-23ni.aifc ; do
 	rt_test_aifc_format $f "23ni"
 done
 

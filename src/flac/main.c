@@ -848,6 +848,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			if(0 == strcmp(option_argument, "none")) {
 				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_NONE;
 			}
+			else if(0 == strcmp(option_argument, "raw")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_RAW;
+			}
 			else if(0 == strcmp(option_argument, "sowt")) {
 				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_SOWT;
 			}
@@ -867,7 +870,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_23NI;
 			}
 			else {
-				return usage_error("ERROR: argument to --force-aiff-c-format must be \"none\", \"sowt\", \"twos\", \"in24\", \"42ni\", \"in32\", or \"23ni\"\n");
+				return usage_error("ERROR: argument to --force-aiff-c-format must be \"none\", \"raw\", \"sowt\", \"twos\", \"in24\", \"42ni\", \"in32\", or \"23ni\"\n");
 			}
 		}
 		else if(0 == strcmp(long_option, "lax")) {
@@ -1440,7 +1443,7 @@ void show_help(void)
 	printf("      --force-extensible-wave-format Decode to extensible wave format\n");
 	printf("      --force-aiff-c-none-format     Decode to AIFF-C NONE format\n");
 	printf("      --force-aiff-c-sowt-format     Decode to AIFF-C sowt format\n");
-	printf("      --force-aiff-c-format=FORMAT   Decode to AIFF-C format (none,sowt,twos,in24,42ni,in32,23ni)\n");
+	printf("      --force-aiff-c-format=FORMAT   Decode to AIFF-C format (none,raw,sowt,twos,in24,42ni,in32,23ni)\n");
 	printf("      --force-raw-format             Treat input or output as raw samples\n");
 	printf("raw format options:\n");
 	printf("      --sign={signed|unsigned}       Sign of samples (input/output) \n");
@@ -1966,6 +1969,9 @@ int decode_file(const char *infilename)
 		else if(foreign_metadata->is_aifc) {
 			if(memcmp(foreign_metadata->aifc_comm_compression_type, "NONE", 4) == 0) {
 				output_subformat = SUBFORMAT_AIFF_C_NONE;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "raw ", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_RAW;
 			}
 			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "sowt", 4) == 0) {
 				output_subformat = SUBFORMAT_AIFF_C_SOWT;

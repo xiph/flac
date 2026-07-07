@@ -1113,6 +1113,9 @@ FLAC__bool write_aiff_form_comm_chunk(FILE *f, FLAC__uint64 samples, uint32_t bp
 			case SUBFORMAT_AIFF_C_NONE:
 				compression_format = "NONE";
 				break;
+			case SUBFORMAT_AIFF_C_RAW:
+				compression_format = "raw ";
+				break;
 			case SUBFORMAT_AIFF_C_SOWT:
 				compression_format = "sowt";
 				break;
@@ -1274,6 +1277,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	FLAC__bool is_big_endian = ((decoder_session->format == FORMAT_AIFF ||
 								 (decoder_session->format == FORMAT_AIFF_C &&
 								  ((decoder_session->subformat == SUBFORMAT_AIFF_C_NONE) ||
+								   (decoder_session->subformat == SUBFORMAT_AIFF_C_RAW) ||
 								   (decoder_session->subformat == SUBFORMAT_AIFF_C_TWOS) ||
 								   (decoder_session->subformat == SUBFORMAT_AIFF_C_IN24) ||
 								   (decoder_session->subformat == SUBFORMAT_AIFF_C_IN32))))
