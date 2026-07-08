@@ -826,11 +826,16 @@ foo:
 	return false;
 }
 
-/* flavor is: 0:WAVE, 1:RF64, 2:WAVE64 */
-static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, unsigned samples, FLAC__bool strict, int flavor)
-{
-	const FLAC__bool waveformatextensible = strict && (channels > 2 || (bps != 8 && bps != 16));
+enum WaveFormatExtensibleType {
+	WAVEFORMATEXTENSIBLE_AUTO, /* enabled only if (channels > 2 || (bps != 8 && bps != 16)) */
+	WAVEFORMATEXTENSIBLE_DISABLE,
+	WAVEFORMATEXTENSIBLE_FORCE,
+};
 
+/* flavor is: 0:WAVE, 1:RF64, 2:WAVE64 */
+static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned bps, FLAC__bool fmt_use_exact_bps, unsigned samples, enum WaveFormatExtensibleType waveformatextensible_type, int flavor)
+{
+	FLAC__bool waveformatextensible = false;
 	const unsigned bytes_per_sample = (bps+7)/8;
 	const unsigned shift = (bps%8)? 8 - (bps%8) : 0;
 	/* this rig is not going over 4G so we're ok with 32-bit sizes here */
@@ -843,6 +848,18 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 	double theta1, theta2;
 	FILE *f;
 	unsigned i, j;
+
+	switch(waveformatextensible_type) {
+		case WAVEFORMATEXTENSIBLE_AUTO:
+			waveformatextensible = (channels > 2 || (bps != 8 && bps != 16));
+			break;
+		case WAVEFORMATEXTENSIBLE_DISABLE:
+			waveformatextensible = false;
+			break;
+		case WAVEFORMATEXTENSIBLE_FORCE:
+			waveformatextensible = true;
+			break;
+	}
 
 	if(0 == (f = fopen(filename, "wb")))
 		return false;
@@ -924,7 +941,7 @@ static FLAC__bool generate_wav(const char *filename, unsigned sample_rate, unsig
 		goto foo;
 	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * bytes_per_sample))) /* block align */
 		goto foo;
-	if(!write_little_endian_uint16(f, (FLAC__uint16)(bps+shift)))
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(bps + (fmt_use_exact_bps ? 0 : shift))))
 		goto foo;
 	if(waveformatextensible) {
 		if(!write_little_endian_uint16(f, (FLAC__uint16)22)) /* cbSize */
@@ -1518,15 +1535,15 @@ int main(int argc, char *argv[])
 					return 1;
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.wav", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/0))
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/false, nsamples[samples], WAVEFORMATEXTENSIBLE_AUTO, /*flavor=*/0))
 					return 1;
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.rf64", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/1))
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/false, nsamples[samples], WAVEFORMATEXTENSIBLE_AUTO, /*flavor=*/1))
 					return 1;
 
 				flac_snprintf(fn, sizeof (fn), "rt-%u-%u-%u.w64", channels, bits_per_sample, nsamples[samples]);
-				if(!generate_wav(fn, 44100, channels, bits_per_sample, nsamples[samples], /*strict=*/true, /*flavor=*/2))
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/false, nsamples[samples], WAVEFORMATEXTENSIBLE_AUTO, /*flavor=*/2))
 					return 1;
 
 				if(bits_per_sample % 8 == 0) {
@@ -1537,6 +1554,54 @@ int main(int argc, char *argv[])
 					if(!generate_unsigned_raw(fn, channels, bits_per_sample/8, nsamples[samples]))
 						return 1;
 				}
+			}
+		}
+	}
+
+	/* Test with non-standard bits per sample */
+	for(channels = 1; channels <= 8; channels *= 2) {
+		unsigned bits_per_sample;
+		for(bits_per_sample = 1; bits_per_sample <= 32; bits_per_sample += 1) {
+			const unsigned nsamples = 5;
+			static const enum WaveFormatExtensibleType wave_format_extensible_types[2] = { WAVEFORMATEXTENSIBLE_DISABLE,
+																						   WAVEFORMATEXTENSIBLE_FORCE };
+			const unsigned bits_per_sample_rounded_up = ((bits_per_sample + 7) / 8) * 8;
+			unsigned type;
+			char fn[64];
+			for(type = 0; type < sizeof(wave_format_extensible_types) / sizeof(wave_format_extensible_types[0]); type++) {
+				const char *suffix = "";
+
+				if((bits_per_sample < 4) || ((bits_per_sample % 8) != 0)) {
+					/* bps is supposed to be in whole number of bytes, while valid-bps provides the real value */
+					suffix = "fail";
+				}
+
+				flac_snprintf(fn, sizeof(fn), "bps%s-%u-%u-%u-%u.wav", suffix, channels, bits_per_sample, bits_per_sample, wave_format_extensible_types[type]);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/true, nsamples, wave_format_extensible_types[type], /*flavor=*/0))
+					return 1;
+
+				flac_snprintf(fn, sizeof(fn), "bps%s-%u-%u-%u-%u.rf64", suffix, channels, bits_per_sample, bits_per_sample, wave_format_extensible_types[type]);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/true, nsamples, wave_format_extensible_types[type], /*flavor=*/1))
+					return 1;
+
+				flac_snprintf(fn, sizeof(fn), "bps%s-%u-%u-%u-%u.w64", suffix, channels, bits_per_sample, bits_per_sample, wave_format_extensible_types[type]);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/true, nsamples, wave_format_extensible_types[type], /*flavor=*/2))
+					return 1;
+			}
+
+			if((bits_per_sample >= 4) && ((bits_per_sample % 8) != 0)) {
+				/* generate valid files also for all bits per sample */
+				flac_snprintf(fn, sizeof(fn), "bps-%u-%u-%u-%u.wav", channels, bits_per_sample_rounded_up, bits_per_sample, WAVEFORMATEXTENSIBLE_FORCE);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/false, nsamples, WAVEFORMATEXTENSIBLE_FORCE, /*flavor=*/0))
+					return 1;
+
+				flac_snprintf(fn, sizeof(fn), "bps-%u-%u-%u-%u.rf64", channels, bits_per_sample_rounded_up, bits_per_sample, WAVEFORMATEXTENSIBLE_FORCE);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/false, nsamples, WAVEFORMATEXTENSIBLE_FORCE, /*flavor=*/1))
+					return 1;
+
+				flac_snprintf(fn, sizeof(fn), "bps-%u%u-%u-%u.w64", channels, bits_per_sample_rounded_up, bits_per_sample, WAVEFORMATEXTENSIBLE_FORCE);
+				if(!generate_wav(fn, 44100, channels, bits_per_sample, /*fmt_use_exact_bps=*/false, nsamples, WAVEFORMATEXTENSIBLE_FORCE, /*flavor=*/2))
+					return 1;
 			}
 		}
 	}
