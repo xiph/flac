@@ -767,12 +767,15 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 	const unsigned padded_size = (true_size + 1) & (~1u);
 	const unsigned shift = (bps%8)? 8 - (bps%8) : 0;
 	const FLAC__int32 full_scale = (1 << (bps-1)) - 1;
+	const double half_scale = 0.5 * full_scale;
 	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
 	const double delta1 = 2.0 * M_PI / ( sample_rate / f1);
 	const double delta2 = 2.0 * M_PI / ( sample_rate / f2);
 	double theta1, theta2;
 	FILE *f;
 	unsigned i, j;
+	FLAC__bool is_big_endian = true;
+	FLAC__bool is_unsigned_samples = false;
 
 	if(0 == (f = fopen(filename, "wb")))
 		return false;
@@ -798,6 +801,26 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 		goto foo;
 	if(!write_sane_extended(f, sample_rate))
 		goto foo;
+
+	switch(flavor) {
+		case AIFF_FLAVOR_AIFF:
+		case AIFF_FLAVOR_AIFF_C_NONE:
+		case AIFF_FLAVOR_AIFF_C_TWOS:
+		case AIFF_FLAVOR_AIFF_C_IN24:
+		case AIFF_FLAVOR_AIFF_C_IN32:
+			is_big_endian = true;
+			break;
+
+		case AIFF_FLAVOR_AIFF_C_RAW:
+			is_unsigned_samples = true;
+			break;
+
+		case AIFF_FLAVOR_AIFF_C_SOWT:
+		case AIFF_FLAVOR_AIFF_C_42NI:
+		case AIFF_FLAVOR_AIFF_C_23NI:
+			is_big_endian = false;
+			break;
+	}
 
 	if(flavor != AIFF_FLAVOR_AIFF) {
 		char buf[6] = { 0, 0, 0, 0, 0, 0 };
@@ -843,20 +866,22 @@ static FLAC__bool generate_aiff(const char *filename, unsigned sample_rate, unsi
 
 	for(i = 0, theta1 = theta2 = 0.0; i < samples; i++, theta1 += delta1, theta2 += delta2) {
 		for(j = 0; j < channels; j++) {
-			double val = (a1*sin(theta1) + a2*sin(theta2))*(double)full_scale;
-			FLAC__int32 v = ((FLAC__int32)(val + 0.5) + ((GET_RANDOM_BYTE>>4)-8)) << shift;
-			if((flavor == AIFF_FLAVOR_AIFF) ||
-			   (flavor == AIFF_FLAVOR_AIFF_C_NONE) ||
-			   (flavor == AIFF_FLAVOR_AIFF_C_TWOS) ||
-			   (flavor == AIFF_FLAVOR_AIFF_C_IN24) ||
-			   (flavor == AIFF_FLAVOR_AIFF_C_IN32)) {
+			const double val = (a1 * sin(theta1) + a2 * sin(theta2)) * (double)full_scale;
+			const FLAC__int32 v = ((FLAC__int32)((is_unsigned_samples ? half_scale : 0.0) + val + 0.5) + ((GET_RANDOM_BYTE >> 4) - 8)) << shift;
+			if(is_unsigned_samples) {
+				if(!write_little_endian_unsigned(f, v, bytes_per_sample)) {
+					goto foo;
+				}
+			}
+			else if(is_big_endian) {
 				if(!write_big_endian(f, v, bytes_per_sample)) {
 					goto foo;
 				}
 			}
 			else {
-				if(!write_little_endian_signed(f, v, bytes_per_sample))
+				if(!write_little_endian_signed(f, v, bytes_per_sample)) {
 					goto foo;
+				}
 			}
 		}
 	}

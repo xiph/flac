@@ -1291,11 +1291,6 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 													(decoder_session->subformat == SUBFORMAT_AIFF_C_23NI)))
 											  ? false
 											  : decoder_session->is_big_endian));
-	FLAC__bool is_unsigned_samples = (
-		decoder_session->format == FORMAT_AIFF || decoder_session->format == FORMAT_AIFF_C ? false : (
-		decoder_session->format == FORMAT_WAVE || decoder_session->format == FORMAT_WAVE64 || decoder_session->format == FORMAT_RF64 ? bps<=8 :
-		decoder_session->is_unsigned_samples
-	));
 	uint32_t wide_samples = frame->header.blocksize, wide_sample, sample, channel;
 	FLAC__uint64 frame_bytes = 0;
 
@@ -1310,6 +1305,26 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	} ubuf;
 
 	size_t bytes_to_write = 0;
+
+	FLAC__bool is_unsigned_samples = false;
+	switch(decoder_session->format) {
+		case FORMAT_WAVE:
+		case FORMAT_WAVE64:
+		case FORMAT_RF64:
+			is_unsigned_samples = (bps <= 8);
+			break;
+
+		case FORMAT_AIFF:
+		case FORMAT_AIFF_C:
+			is_unsigned_samples = (bps <= 8) && (decoder_session->subformat == SUBFORMAT_AIFF_C_RAW);
+			break;
+
+		case FORMAT_RAW:
+		case FORMAT_FLAC:
+		case FORMAT_OGGFLAC:
+			is_unsigned_samples = decoder_session->is_unsigned_samples;
+			break;
+	}
 
 	(void)decoder;
 

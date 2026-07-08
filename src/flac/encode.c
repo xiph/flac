@@ -674,11 +674,13 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 					e->info.is_big_endian = false;
 				}
 				else if((xx == AIFF_C_COMPRESSION_TYPE_NONE) ||
-						(xx == AIFF_C_COMPRESSION_TYPE_RAW) ||
 						(xx == AIFF_C_COMPRESSION_TYPE_TWOS) ||
 						(xx == AIFF_C_COMPRESSION_TYPE_IN24) ||
 						(xx == AIFF_C_COMPRESSION_TYPE_IN32)) {
 					; /* nothing to do, we already default to big-endian */
+				}
+				else if(xx == AIFF_C_COMPRESSION_TYPE_RAW) {
+					e->info.is_unsigned_samples = true;
 				}
 				else {
 					flac__utils_printf(stderr, 1, "%s: ERROR: can't handle AIFF-C compression type \"%c%c%c%c\"\n",
