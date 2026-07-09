@@ -112,6 +112,9 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 	uint32_t new_capacity;
 	bwword *new_buffer;
 
+	/* Refuse to allocate more words than this amount, based on largest possible metadata chunk size */
+	const uint32_t max_capacity = (((1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1) * 8 + FLAC__STREAM_METADATA_LENGTH_LEN + FLAC__BITS_PER_WORD - 1) / FLAC__BITS_PER_WORD;
+
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
 
@@ -124,7 +127,7 @@ FLAC__bool bitwriter_grow_(FLAC__BitWriter *bw, uint32_t bits_to_add)
 	if(bw->capacity >= new_capacity)
 		return true;
 
-	if(new_capacity * sizeof(bwword) > (1u << FLAC__STREAM_METADATA_LENGTH_LEN))
+	if(new_capacity > max_capacity)
 		/* Requested new capacity is larger than the largest possible metadata block,
 		 * which is also larger than the largest sane framesize. That means something
 		 * went very wrong somewhere and previous checks failed.

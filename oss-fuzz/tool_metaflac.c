@@ -57,6 +57,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	share__opterr = 0;
 	share__optind = 0;
 
+	allowed_filename = NULL;
+
 
 	if(size < 2)
 		return 0;
@@ -87,6 +89,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	close(file_to_fuzz);
 
 	argv[numarg++] = filename;
+
+	allowed_filename = filename;
 
 	/* Create file to feed to stdin */
 	if(use_stdin) {

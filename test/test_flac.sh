@@ -1203,17 +1203,23 @@ echo "Testing --keep-foreign-metadata..."
 
 rt_test_wav wacky1.wav '--keep-foreign-metadata'
 rt_test_wav wacky2.wav '--keep-foreign-metadata'
+rt_test_wav wacky_cbsize0.wav '--keep-foreign-metadata'
 rt_test_w64 wacky1.w64 '--keep-foreign-metadata'
 rt_test_w64 wacky2.w64 '--keep-foreign-metadata'
+rt_test_w64 wacky_cbsize0.w64 '--keep-foreign-metadata'
 rt_test_rf64 wacky1.rf64 '--keep-foreign-metadata'
 rt_test_rf64 wacky2.rf64 '--keep-foreign-metadata'
+rt_test_rf64 wacky_cbsize0.rf64 '--keep-foreign-metadata'
 
 rt_test_wav_autokf wacky1.wav '--keep-foreign-metadata'
 rt_test_wav_autokf wacky2.wav '--keep-foreign-metadata'
+rt_test_wav_autokf wacky_cbsize0.wav '--keep-foreign-metadata'
 rt_test_w64_autokf wacky1.w64 '--keep-foreign-metadata'
 rt_test_w64_autokf wacky2.w64 '--keep-foreign-metadata'
+rt_test_w64_autokf wacky_cbsize0.w64 '--keep-foreign-metadata'
 rt_test_rf64_autokf wacky1.rf64 '--keep-foreign-metadata'
 rt_test_rf64_autokf wacky2.rf64 '--keep-foreign-metadata'
+rt_test_rf64_autokf wacky_cbsize0.rf64 '--keep-foreign-metadata'
 
 testdatadir=${top_srcdir}/test/foreign-metadata-test-files
 

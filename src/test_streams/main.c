@@ -1009,6 +1009,39 @@ foo:
 	return false;
 }
 
+/* WAV with cbSize = 0 at the end of the fmt chunk */
+static FLAC__bool generate_wackywav_cbsize0(void)
+{
+	FILE *f;
+	FLAC__byte wav_cbsize0[] = {
+		'R', 'I', 'F', 'F',  90,   0,   0,   0,
+		'W', 'A', 'V', 'E', 'j', 'u', 'n', 'k',
+		  4,   0,   0,  0 , 'b', 'l', 'a', 'h',
+		'p', 'a', 'd', ' ',   4,   0,   0,   0,
+		'B', 'L', 'A', 'H', 'f', 'm', 't', ' ',
+		 18,   0,   0,   0,   1,   0,   1,   0,
+		0x44,0xAC,  0,   0,0x88,0x58,0x01,   0,
+		                  /* cbSize */
+		  2,   0,  16,   0,   0,   0, 'd', 'a',
+		't', 'a',  16,   0,   0,   0,   0,   0,
+		  1,   0,   4,   0,   9,   0,  16,   0,
+		 25,   0,  36,   0,  49,   0, 'p', 'a',
+		'd', ' ',   4,   0,   0,   0, 'b', 'l',
+		'a', 'h'
+	};
+
+	if(0 == (f = fopen("wacky_cbsize0.wav", "wb")))
+		return false;
+	if(fwrite(wav_cbsize0, 1, 98, f) < 98) {
+		fclose(f);
+		return false;
+	}
+
+	fclose(f);
+
+	return true;
+}
+
 static FLAC__bool write_simple_wavex_header (FILE * f, unsigned samplerate, unsigned channels, unsigned bytespersample, unsigned frames)
 {
 	unsigned datalen = channels * bytespersample * frames ;
@@ -1144,6 +1177,49 @@ foo:
 	return false;
 }
 
+/* WAVE64 with cbSize = 0 at the end of the fmt chunk */
+static FLAC__bool generate_wackywav64_cbsize0(void)
+{
+	FILE *f;
+	FLAC__byte wav_cbsize0[] = {
+		0x72,0x69,0x66,0x66,0x2E,0x91,0xCF,0x11, /* RIFF GUID */
+		0xA5,0xD6,0x28,0xDB,0x04,0xC1,0x00,0x00,
+		 192,   0,   0,   0,   0,   0,   0,   0,
+		0x77,0x61,0x76,0x65,0xF3,0xAC,0xD3,0x11, /* WAVE GUID */
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		0x6A,0x75,0x6E,0x6B,0xF3,0xAC,0xD3,0x11, /* junk GUID */
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		  32,   0,   0,  0 ,   0,   0,   0,   0,
+		 'b', 'l', 'a', 'h', 'b', 'l', 'a', 'h',
+		0x66,0x6D,0x74,0x20,0xF3,0xAC,0xD3,0x11, /* fmt GUID */
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		  42,   0,   0,  0 ,   0,   0,   0,   0,
+		   1,   0,   1,   0,0x44,0xAC,   0,   0,
+		0x88,0x58,0x01,   0,   2,   0,  16,   0,
+		/* cbSize,   p   a   d   d   i   n   g */
+		   0,   0,   0,   0,   0,   0,   0,   0,
+		0x64,0x61,0x74,0x61,0xF3,0xAC,0xD3,0x11, /* data GUID */
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		  40,   0,   0,  0 ,   0,   0,   0,   0,
+		   0,   0,   1,   0,   4,   0,   9,   0,
+		  16,   0,  25,   0,  36,   0,  49,   0,
+		0x6A,0x75,0x6E,0x6B,0xF3,0xAC,0xD3,0x11, /* junk GUID */
+		0x8C,0xD1,0x00,0xC0,0x4F,0x8E,0xDB,0x8A,
+		  32,   0,   0,  0 ,   0,   0,   0,   0,
+		 'b', 'l', 'a', 'h', 'b', 'l', 'a', 'h'
+	};
+
+	if(0 == (f = fopen("wacky_cbsize0.w64", "wb")))
+		return false;
+	if(fwrite(wav_cbsize0, 1, wav_cbsize0[16], f) < wav_cbsize0[16]) {
+		fclose(f);
+		return false;
+	}
+
+	fclose(f);
+	return true;
+}
+
 static FLAC__bool generate_wackyrf64s(void)
 {
 	FILE *f;
@@ -1184,6 +1260,43 @@ static FLAC__bool generate_wackyrf64s(void)
 foo:
 	fclose(f);
 	return false;
+}
+
+/* RF64 with cbSize = 0 at the end of the fmt chunk */
+static FLAC__bool generate_wackyrf64_cbsize0(void)
+{
+	FILE *f;
+	FLAC__byte wav_cbsize0[] = {
+		'R', 'F', '6', '4', 255, 255, 255, 255,
+		'W', 'A', 'V', 'E', 'd', 's', '6', '4',
+		 28,   0,   0,   0, 126,   0,   0,   0,
+		  0,   0,   0,   0,  16,   0,   0,   0,
+		  0,   0,   0,   0,   8,   0,   0,   0,
+		  0,   0,   0,   0,   0,   0,   0,   0,
+		                    'j', 'u', 'n', 'k',
+		  4,   0,   0,   0, 'b', 'l', 'a', 'h',
+		'p', 'a', 'd', ' ',   4,   0,   0,   0,
+		'B', 'L', 'A', 'H', 'f', 'm', 't', ' ',
+		 18,   0,   0,   0,   1,   0,   1,   0,
+		0x44,0xAC,  0,   0,0x88,0x58,0x01,   0,
+		                   /* cbSize */
+		  2,   0,  16,   0,   0,   0, 'd', 'a',
+		't', 'a', 255, 255, 255, 255,   0,   0,
+		  1,   0,   4,   0,   9,   0,  16,   0,
+		 25,   0,  36,   0,  49,   0, 'p', 'a',
+		'd', ' ',   4,   0,   0,   0, 'b', 'l',
+		'a', 'h'
+	};
+
+	if(0 == (f = fopen("wacky_cbsize0.rf64", "wb")))
+		return false;
+	if(fwrite(wav_cbsize0, 1, 134, f) < 134) {
+		fclose(f);
+		return false;
+	}
+
+	fclose(f);
+	return true;
 }
 
 static FLAC__bool generate_replaygain_tone (unsigned samplerate)
@@ -1378,8 +1491,11 @@ int main(int argc, char *argv[])
 	if(!generate_noise("noise.raw", 65536 * 8 * 3)) return 1;
 	if(!generate_noise("noise8m32.raw", 32)) return 1;
 	if(!generate_wackywavs()) return 1;
+	if(!generate_wackywav_cbsize0()) return 1;
 	if(!generate_wackywav64s()) return 1;
+	if(!generate_wackywav64_cbsize0()) return 1;
 	if(!generate_wackyrf64s()) return 1;
+	if(!generate_wackyrf64_cbsize0()) return 1;
 	if(!generate_noisy_sine()) return 1;
 	for(channels = 1; channels <= 8; channels *= 2) {
 		unsigned bits_per_sample;

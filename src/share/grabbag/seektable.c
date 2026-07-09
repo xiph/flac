@@ -29,7 +29,6 @@
 
 FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec, FLAC__bool only_explicit_placeholders, FLAC__uint64 total_samples_to_encode, uint32_t sample_rate, FLAC__StreamMetadata *seektable_template, FLAC__bool *spec_has_real_points)
 {
-	uint32_t i;
 	const char *pt;
 
 	FLAC__ASSERT(0 != spec);
@@ -39,7 +38,7 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 	if(0 != spec_has_real_points)
 		*spec_has_real_points = false;
 
-	for(pt = spec, i = 0; pt && *pt; i++) {
+	for(pt = spec; pt && *pt; ) {
 		const char *q = strchr(pt, ';');
 		FLAC__ASSERT(0 != q);
 
