@@ -655,6 +655,8 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 					return false;
 				if(xx == 0x736F7774) /* "sowt" */
 					e->info.is_big_endian = false;
+				else if (xx == 0x74776F73) /* "twos" */
+					; /* default to big-endian */
 				else if(xx == 0x4E4F4E45) /* "NONE" */
 					; /* nothing to do, we already default to big-endian */
 				else {
