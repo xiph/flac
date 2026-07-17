@@ -378,17 +378,17 @@ FLAC__uint16 FLAC__bitreader_get_read_crc16(FLAC__BitReader *br)
 	return br->read_crc16;
 }
 
-static inline FLAC__bool __FLAC__bitreader_is_consumed_byte_aligned(const FLAC__BitReader *br)
+FLAC__bool FLAC__bitreader_is_consumed_byte_aligned(const FLAC__BitReader *br)
 {
 	return ((br->consumed_bits & 7) == 0);
 }
 
-static inline uint32_t __FLAC__bitreader_bits_left_for_byte_alignment(const FLAC__BitReader *br)
+uint32_t FLAC__bitreader_bits_left_for_byte_alignment(const FLAC__BitReader *br)
 {
 	return 8 - (br->consumed_bits & 7);
 }
 
-static inline uint32_t __FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader *br)
+uint32_t FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader *br)
 {
 	return (br->words-br->consumed_words)*FLAC__BITS_PER_WORD + br->bytes*8 - br->consumed_bits;
 }
@@ -552,7 +552,7 @@ FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val,
 	return true;
 }
 
-static inline FLAC__bool __FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val)
+FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val)
 {
 	FLAC__uint32 x8, x32 = 0;
 
@@ -618,7 +618,7 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 
 	FLAC__ASSERT(0 != br);
 	FLAC__ASSERT(0 != br->buffer);
-	FLAC__ASSERT(__FLAC__bitreader_is_consumed_byte_aligned(br));
+	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
 
 	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
 		if(br->read_limit < nvals*8){
@@ -663,7 +663,7 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 
 	FLAC__ASSERT(0 != br);
 	FLAC__ASSERT(0 != br->buffer);
-	FLAC__ASSERT(__FLAC__bitreader_is_consumed_byte_aligned(br));
+	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
 
 	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
 		if(br->read_limit < nvals*8){
@@ -1036,24 +1036,4 @@ FLAC__bool FLAC__bitreader_read_utf8_uint64(FLAC__BitReader *br, FLAC__uint64 *v
 	}
 	*val = v;
 	return true;
-}
-
-FLAC__bool FLAC__bitreader_is_consumed_byte_aligned(const FLAC__BitReader *br)
-{
-	return __FLAC__bitreader_is_consumed_byte_aligned(br);
-}
-
-uint32_t FLAC__bitreader_bits_left_for_byte_alignment(const FLAC__BitReader *br)
-{
-	return __FLAC__bitreader_bits_left_for_byte_alignment(br);
-}
-
-uint32_t FLAC__bitreader_get_input_bits_unconsumed(const FLAC__BitReader *br)
-{
-	return __FLAC__bitreader_get_input_bits_unconsumed(br);
-}
-
-FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val)
-{
-	return __FLAC__bitreader_read_uint32_little_endian(br, val);
 }
