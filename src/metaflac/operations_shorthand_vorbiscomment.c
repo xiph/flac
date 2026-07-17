@@ -232,7 +232,7 @@ FLAC__bool remove_vc_firstfield(const char *filename, FLAC__StreamMetadata *bloc
 FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw)
 {
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
-	char *converted;
+	char *converted = NULL;
 
 	FLAC__ASSERT(0 != block);
 	FLAC__ASSERT(block->type == FLAC__METADATA_TYPE_VORBIS_COMMENT);
@@ -270,6 +270,9 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 		}
 
 		/* move 'data' into 'converted', converting to UTF-8 if necessary */
+#if defined _WIN32
+		converted = data;
+#else
 		if(raw) {
 			converted = data;
 		}
@@ -281,6 +284,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			flac_fprintf(stderr, "%s: ERROR: converting file '%s' contents to UTF-8 for tag value\n", filename, field->field_value);
 			return false;
 		}
+#endif
 
 		/* create and entry and append it */
 		if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, field->field_name, converted)) {
@@ -300,6 +304,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 	else {
 		FLAC__bool needs_free = false;
 		entry.entry = (FLAC__byte *)field->field;
+#if !defined _WIN32
 		if(raw) {
 			entry.entry = (FLAC__byte *)field->field;
 		}
@@ -311,6 +316,7 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 			flac_fprintf(stderr, "%s: ERROR: converting comment '%s' to UTF-8\n", filename, field->field);
 			return false;
 		}
+#endif
 		entry.length = strlen((const char *)entry.entry);
 		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
 			if(needs_free)
@@ -340,7 +346,8 @@ FLAC__bool set_vc_field(const char *filename, FLAC__StreamMetadata *block, const
 FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, const Argument_String *vc_filename, FLAC__bool *needs_write, FLAC__bool raw)
 {
 	FILE *f;
-	char line[65536];
+	char* line = NULL;
+	grabbag__file_input_reader input_reader[1];
 	FLAC__bool ret;
 
 	if(0 == vc_filename->value || strlen(vc_filename->value) == 0) {
@@ -348,7 +355,7 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 		return false;
 	}
 	if(0 == strcmp(vc_filename->value, "-"))
-		f = stdin;
+		f = grabbag__file_get_binary_stdin();
 	else
 		f = flac_fopen(vc_filename->value, "r");
 
@@ -358,42 +365,38 @@ FLAC__bool import_vc_from(const char *filename, FLAC__StreamMetadata *block, con
 	}
 
 	ret = true;
-	while(ret && !feof(f) && fgets(line, sizeof(line), f) != NULL) {
-		char *p = strpbrk(line, "\r\n");
-		if(0 == p) {
-			const size_t len = strlen(line);
-			if(len < (sizeof(line) - 1)) {
-				/* Likely missing newline in the last line, allow this */
-				p = &line[len];
-			}
-			else {
-				flac_fprintf(stderr, "%s: ERROR: line too long, aborting\n", vc_filename->value);
-				ret = false;
-			}
-		}
 
-		if(ret) {
-			const char *violation;
-			Argument_VcField field;
-			*p = '\0';
-			memset(&field, 0, sizeof(Argument_VcField));
-			field.field_value_from_file = false;
-			if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
-				FLAC__ASSERT(0 != violation);
-				flac_fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", vc_filename->value, line, violation);
-				ret = false;
-			}
-			else {
-				ret = set_vc_field(filename, block, &field, needs_write, raw);
-			}
-			if(0 != field.field)
-				free(field.field);
-			if(0 != field.field_name)
-				free(field.field_name);
-			if(0 != field.field_value)
-				free(field.field_value);
+	grabbag__file_input_reader_open(input_reader, f);
+	input_reader->force_utf8 = raw;
+
+	while(grabbag__file_input_reader_next_line(input_reader, &line)) {
+		const char *violation;
+		Argument_VcField field;
+		memset(&field, 0, sizeof(Argument_VcField));
+		field.field_value_from_file = false;
+		if(!parse_vorbis_comment_field(line, &field.field, &field.field_name, &field.field_value, &field.field_value_length, &violation)) {
+			FLAC__ASSERT(0 != violation);
+			flac_fprintf(stderr, "%s: ERROR: malformed vorbis comment field \"%s\",\n       %s\n", vc_filename->value, line, violation);
+			ret = false;
 		}
-	};
+		else {
+			ret = set_vc_field(filename, block, &field, needs_write, raw);
+		}
+		if(0 != field.field)
+			free(field.field);
+		if(0 != field.field_name)
+			free(field.field_name);
+		if(0 != field.field_value)
+			free(field.field_value);
+	}
+
+	if(input_reader->error)
+	{
+		flac_fprintf(stderr, "%s: ERROR: line too long, aborting\n", vc_filename->value);
+		ret = false;
+	}
+
+	grabbag__file_input_reader_close(input_reader);
 
 	if(f != stdin)
 		fclose(f);
