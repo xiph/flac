@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
 
+permissions: read-all
+
 jobs:
   build:
     strategy:
@@ -28,7 +30,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Install dependencies
         run: |
@@ -45,7 +47,7 @@ jobs:
           make check
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs

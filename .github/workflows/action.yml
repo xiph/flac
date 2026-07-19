@@ -4,6 +4,8 @@ on:
   push:
   pull_request:
 
+permissions: read-all
+
 jobs:
   build:
     strategy:
@@ -67,9 +69,9 @@ jobs:
     runs-on: ${{ matrix.os }}
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         if: startsWith(matrix.build-system,'cmake')
         with:
           repository: xiph/ogg
@@ -135,7 +137,7 @@ jobs:
         run: ctest -V -C Release
 
       - name: Upload logs on failure
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         if: failure()
         with:
           name: flac-${{ github.sha }}-${{ github.run_id }}-logs
