@@ -54,7 +54,6 @@
 #include "local_string_utils.h" /* for flac__strlcat() and flac__strlcpy() */
 #include "utils.h"
 #include "vorbiscomment.h"
-#include "foreign_metadata.h"
 
 #if 0
 /*[JEC] was:#if HAVE_GETOPT_LONG*/
@@ -1525,8 +1524,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			if(!memcmp(lookahead, "ID3", 3)) {
 				/* we need to use an internal if to skip the other else if conditions */
 				/* this will assume the type based upon file extension when ID3v2 tags are present */
+				flac__utils_printf(stderr, 1, "ERROR: input file %s has an ID3v2 tag\n", infilename);
 				if(!option_values.continue_through_decode_errors) {
-					flac__utils_printf(stderr, 1, "ERROR: input file %s has an ID3v2 tag\n", infilename);
 					conditional_fclose(encode_infile);
 					return 1;
 				}

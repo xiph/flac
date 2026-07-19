@@ -1307,7 +1307,11 @@ flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # Try to work with a flac file that has ID3v2 tag
 # without decoding through errors
 
-if run_flac -o out.flac -f "$testdatadir/input-id3v2.flac" ; then
+echo $ECHO_N "Testing re-encoding of FLAC with ID3v2... " $ECHO_C
+
+cat "$testdatadir/id3v2.bin" "$testdatadir/input-VA.flac" > "input-id3v2.flac"
+
+if run_flac -o out.flac -f "input-id3v2.flac" ; then
         die "ERROR: it should have failed but didn't"
 else
         echo "OK, it failed as it should"
@@ -1316,15 +1320,14 @@ fi
 # Decode though errors to seek past IDv3 tag
 # and make sure the file metadata matches
 # We just added an ID3v2 tag to input-VA.flac,
-# So we refrenece it's metadata to ensure the operation wa sucessfull
+# So we compare to input file to ensure the operation was sucessfull
 
-if flac2flac input-id3v2.flac case04c "-F --no-padding" ; then
+echo $ECHO_N "Testing re-encoding of FLAC with ID3v2 with --decode-through-errors... " $ECHO_C
+
+if run_flac -o out.flac --decode-through-errors -f "input-id3v2.flac" ; then
         # Test to see if ID3v2 errors are gone
-        if run_flac -t "out.flac" ; then
-                echo "Ok, it suceeded and bad tags are gone"
-        else
-                die "ID3v2 tags still present in files"
-        fi
+	$CMP "$testdatadir/input-VA.flac" out.flac || die "ERROR: ID3v2 tags still present in file"
+        echo "OK, it succeeded and ID3v2 is gone"
 else
         echo $?
         die "ERROR: it should have succeeded but didn't"
