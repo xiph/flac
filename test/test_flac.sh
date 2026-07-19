@@ -1333,6 +1333,8 @@ else
         die "ERROR: it should have succeeded but didn't"
 fi
 
+rm -f input-id3v2.flac out.flac
+
 ############################################################################
 # test limiting minimum bitrate
 ############################################################################
