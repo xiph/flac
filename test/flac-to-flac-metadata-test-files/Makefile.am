@@ -26,6 +26,7 @@ EXTRA_DIST = \
 	case02a-expect.meta \
 	case02b-expect.meta \
 	case02c-expect.meta \
+	case02d-expect.meta \
 	case03a-expect.meta \
 	case03b-expect.meta \
 	case03c-expect.meta \
