@@ -38,4 +38,5 @@ man_MANS = flac.1 metaflac.1
 endif
 endif
 
-EXTRA_DIST = flac.1 metaflac.1 flac.md metaflac.md flac.html metaflac.html
+EXTRA_DIST = flac.1 metaflac.1 flac.md metaflac.md flac.html metaflac.html \
+	header.inc footer.inc style.css
