@@ -36,6 +36,7 @@
 #if defined _WIN32 && !defined __CYGWIN__
 #else
 #include <unistd.h> /* for unlink() */
+#include <fcntl.h> /* for open(), used to fstat()/fchmod() a single fd and avoid a TOCTOU race */
 #endif
 #include <stdio.h>
 #include <stdlib.h>
@@ -58,13 +59,28 @@ void grabbag__file_copy_metadata(const char *srcpath, const char *destpath)
 		struct timespec srctime[2] = {};
 		srctime[0].tv_sec = srcstat.st_atime;
 		srctime[1].tv_sec = srcstat.st_mtime;
+
+		/* Apply the mode and the timestamps through one open descriptor
+		 * on destpath instead of two calls keyed on the pathname, so
+		 * destpath can't be replaced with a symlink in between and
+		 * redirect either call onto some other file. O_NOFOLLOW also
+		 * refuses destpath outright when it is (or has just been
+		 * swapped for) a symlink, since falling back to the old
+		 * path-based calls whenever open() hits ELOOP would just
+		 * recreate the same race under a different name. */
+		int fd = open(destpath, O_RDONLY | O_NOFOLLOW);
+		if(fd >= 0) {
+			(void)fchmod(fd, srcstat.st_mode);
+			(void)futimens(fd, srctime);
+			close(fd);
+		}
 #else
 		struct utimbuf srctime;
 		srctime.actime = srcstat.st_atime;
 		srctime.modtime = srcstat.st_mtime;
-#endif
 		(void)flac_chmod(destpath, srcstat.st_mode);
 		(void)flac_utime(destpath, &srctime);
+#endif
 	}
 }
 
@@ -97,22 +113,50 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 {
 	struct flac_stat_s stats;
 
-	if(0 == flac_stat(filename, &stats)) {
 #if !defined _MSC_VER && !defined __MINGW32__
-		if(read_only) {
-			stats.st_mode &= ~S_IWUSR;
-			stats.st_mode &= ~S_IWGRP;
-			stats.st_mode &= ~S_IWOTH;
-		}
-		else {
-			stats.st_mode |= S_IWUSR;
-		}
+	/* Read the current mode and apply the new one through a single open
+	 * file descriptor instead of two calls keyed on the pathname. Doing
+	 * stat(filename) and chmod(filename) separately leaves a window
+	 * where filename can be replaced with a symlink in between, which
+	 * makes chmod() operate on whatever that symlink now points to
+	 * instead of the file this function actually meant to touch.
+	 * O_NOFOLLOW additionally refuses filename outright when it is (or
+	 * has just been swapped for) a symlink, rather than following it:
+	 * a fallback that still followed the symlink whenever open() hit
+	 * ELOOP would just recreate the same race, since a symlink placed
+	 * there a moment earlier by an attacker looks identical to one a
+	 * caller put there on purpose.
+	 */
+	int fd = open(filename, O_RDONLY | O_NOFOLLOW);
+	if(fd < 0)
+		return false;
+
+	if(0 != flac_fstat(fd, &stats)) {
+		close(fd);
+		return false;
+	}
+
+	if(read_only) {
+		stats.st_mode &= ~S_IWUSR;
+		stats.st_mode &= ~S_IWGRP;
+		stats.st_mode &= ~S_IWOTH;
+	}
+	else {
+		stats.st_mode |= S_IWUSR;
+	}
+
+	if(0 != fchmod(fd, stats.st_mode)) {
+		close(fd);
+		return false;
+	}
+	close(fd);
+	return true;
 #else
+	if(0 == flac_stat(filename, &stats)) {
 		if(read_only)
 			stats.st_mode &= ~S_IWRITE;
 		else
 			stats.st_mode |= S_IWRITE;
-#endif
 		if(0 != flac_chmod(filename, stats.st_mode))
 			return false;
 	}
@@ -120,6 +164,7 @@ FLAC__bool grabbag__file_change_stats(const char *filename, FLAC__bool read_only
 		return false;
 
 	return true;
+#endif
 }
 
 FLAC__bool grabbag__file_are_same(const char *f1, const char *f2)
