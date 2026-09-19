@@ -96,6 +96,50 @@ void FLAC__split_f32_buffer_to_subframe_signals(FLAC__int32 *exp_signal, FLAC__i
 }
 
 /*
+ * Splits interleaved 32-bit IEEE 754 floating-point samples into two integer subframe signals per channel:
+ *  - Exponent (8 bits: raw exponent in bits 23-30) -> integer_signals[2 * ch]
+ *  - Sign + Significand (24 bits: sign at bit 23, significand fraction at bits 0-22) -> integer_signals[2 * ch + 1]
+ */
+void FLAC__split_f32_interleaved_to_subframe_signals(FLAC__int32 * const integer_signals[], uint32_t channels, uint32_t current_sample_number, const uint32_t *src, size_t n)
+{
+	size_t s, k = 0;
+	uint32_t ch;
+	for (s = 0; s < n; s++) {
+		for (ch = 0; ch < channels; ch++) {
+			const uint32_t x = src[k++];
+			const uint32_t exp = (x >> 23) & 0xFF;
+			const uint32_t sign = (x >> 31) & 1;
+			const uint32_t mant = x & 0x7FFFFF;
+			const uint32_t sign_mant = (sign << 23) | mant;
+			integer_signals[2 * ch][current_sample_number + s] = (FLAC__int32)exp;
+			integer_signals[2 * ch + 1][current_sample_number + s] = (FLAC__int32)(sign_mant << 8) >> 8;
+		}
+	}
+}
+
+/*
+ * Computes base exponent per channel for 1-subframe lossless float encoding.
+ */
+void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[])
+{
+	uint32_t ch;
+	for (ch = 0; ch < channels; ch++) {
+		uint32_t max_exp = 0, s;
+		for (s = 0; s < blocksize; s++) {
+			uint32_t exp = (uint32_t)split_signals[2 * ch][s] & 0xFF;
+			uint32_t sign_mant = (uint32_t)split_signals[2 * ch + 1][s] & 0xFFFFFF;
+			if (exp != 0 || (sign_mant & 0x7FFFFF) != 0) {
+				if (exp > max_exp)
+					max_exp = exp;
+			}
+		}
+		if (max_exp == 0)
+			max_exp = 127;
+		channel_base_exp[ch] = (max_exp >= 22) ? (max_exp - 22) : 0;
+	}
+}
+
+/*
  * Recombines integer subframe signal(s) into standard 32-bit IEEE 754 floating-point raw words:
  *  - When is_fallback == true: 2 subframes per channel (raw 8-bit exponent and 24-bit two's complement significand)
  *  - When is_fallback == false: 1 subframe per channel (24-bit preprocessed two's complement integer reconstructed via base_exp)

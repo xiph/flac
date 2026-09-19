@@ -748,13 +748,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	if(encoder->protected_->channels == 0 || encoder->protected_->channels > FLAC__MAX_CHANNELS)
 		return FLAC__STREAM_ENCODER_INIT_STATUS_INVALID_NUMBER_OF_CHANNELS;
 
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
-		encoder->protected_->do_mid_side_stereo = false;
-		encoder->protected_->loose_mid_side_stereo = false;
-	}
-	else
-#endif
 	if(encoder->protected_->channels != 2) {
 		encoder->protected_->do_mid_side_stereo = false;
 		encoder->protected_->loose_mid_side_stereo = false;
@@ -2771,25 +2764,29 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 
 	j = k = 0;
 	do {
+		const uint32_t n = flac_min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j);
+
 		if(encoder->protected_->verify)
-			append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, flac_min(blocksize+OVERREAD_-encoder->private_->current_sample_number, samples-j));
-		/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
-		for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
-			for(channel = 0; channel < channels; channel++) {
+			append_to_verify_fifo_interleaved_(&encoder->private_->verify.input_fifo, buffer, j, channels, n);
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-				if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
-					const uint32_t raw_val = (uint32_t)buffer[k++];
-					const uint32_t exp = (raw_val >> 23) & 0xFF;
-					const uint32_t sign = (raw_val >> 31) & 1;
-					const uint32_t significand = raw_val & 0x7FFFFF;
-					int32_t val24 = (int32_t)(((sign & 1) << 23) | significand);
-					val24 = (val24 << 8) >> 8;
-					encoder->private_->threadtask[0]->integer_signal[2*channel][i] = (int32_t)(int8_t)exp;
-					encoder->private_->threadtask[0]->integer_signal[2*channel+1][i] = val24;
-				}
-				else
+		if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+			FLAC__split_f32_interleaved_to_subframe_signals(
+				encoder->private_->threadtask[0]->integer_signal,
+				channels,
+				encoder->private_->current_sample_number,
+				(const uint32_t*)&buffer[k],
+				n
+			);
+			k += n * channels;
+			j += n;
+			encoder->private_->current_sample_number += n;
+		}
+		else
 #endif
-				{
+		{
+			/* "i <= blocksize" to overread 1 sample; see comment in OVERREAD_ decl */
+			for(i = encoder->private_->current_sample_number; i <= blocksize && j < samples; i++, j++) {
+				for(channel = 0; channel < channels; channel++) {
 					if(buffer[k] < sample_min || buffer[k] > sample_max){
 						encoder->protected_->state = FLAC__STREAM_ENCODER_CLIENT_ERROR;
 						return false;
@@ -2797,15 +2794,15 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder
 					encoder->private_->threadtask[0]->integer_signal[channel][i] = buffer[k++];
 				}
 			}
+			encoder->private_->current_sample_number = i;
 		}
-		encoder->private_->current_sample_number = i;
 		/* we only process if we have a full block + 1 extra sample; final block is always handled by FLAC__stream_encoder_finish() */
-		if(i > blocksize) {
+		if(encoder->private_->current_sample_number > blocksize) {
+			FLAC__ASSERT(encoder->private_->current_sample_number == blocksize+OVERREAD_);
+			FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
 			if(!process_frame_(encoder, /*is_last_block=*/false))
 				return false;
 			/* move unprocessed overread samples to beginnings of arrays */
-			FLAC__ASSERT(i == blocksize+OVERREAD_);
-			FLAC__ASSERT(OVERREAD_ == 1); /* assert we only overread 1 sample which simplifies the rest of the code below */
 			{
 				uint32_t sf, num_sf = channels;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
@@ -3688,19 +3685,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 			frame_lossless = false;
 		}
 		else if(encoder->private_->force_1subframe_float_mode) {
-			uint32_t ch;
-			for(ch = 0; ch < encoder->protected_->channels; ch++) {
-				uint32_t max_exp = 0, s;
-				for(s = 0; s < encoder->protected_->blocksize; s++) {
-					uint32_t exp = (uint32_t)encoder->private_->threadtask[0]->integer_signal[2 * ch][s] & 0xFF;
-					uint32_t sign_mant = (uint32_t)encoder->private_->threadtask[0]->integer_signal[2 * ch + 1][s] & 0xFFFFFF;
-					if(exp != 0 || (sign_mant & 0x7FFFFF) != 0) {
-						if(exp > max_exp) max_exp = exp;
-					}
-				}
-				if(max_exp == 0) max_exp = 127;
-				channel_base_exp[ch] = (max_exp >= 22) ? (max_exp - 22) : 0;
-			}
+			FLAC__compute_channel_base_exp_float((const FLAC__int32 * const *)encoder->private_->threadtask[0]->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_base_exp);
 			frame_lossless = true;
 		}
 		else {
@@ -4111,26 +4096,33 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 		num_subframes = (frame_header.is_fallback) ? (encoder->protected_->channels * 2) : encoder->protected_->channels;
 #endif
 
-	if(encoder->protected_->do_mid_side_stereo && encoder->protected_->channels == 2
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-		&& encoder->protected_->sample_type != FLAC__SAMPLE_TYPE_FLOAT
-#endif
-	) {
+	if(encoder->protected_->do_mid_side_stereo && encoder->protected_->channels == 2) {
 		if(encoder->protected_->loose_mid_side_stereo) {
 			uint64_t sumAbsLR = 0, sumAbsMS = 0;
 			uint32_t i;
-			if(encoder->protected_->bits_per_sample < 25) {
+			uint32_t bps = encoder->protected_->bits_per_sample;
+			const uint32_t ch0 = 0;
+			const uint32_t ch1 = (
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT && frame_header.is_fallback) ? 2 :
+#endif
+				1);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+				bps = (frame_header.is_fallback) ? 8 : 24;
+#endif
+			if(bps < 25) {
 				for(i = 1; i < encoder->protected_->blocksize; i++) {
-					int32_t predictionLeft = threadtask->integer_signal[0][i] - threadtask->integer_signal[0][i-1];
-					int32_t predictionRight = threadtask->integer_signal[1][i] - threadtask->integer_signal[1][i-1];
+					int32_t predictionLeft = threadtask->integer_signal[ch0][i] - threadtask->integer_signal[ch0][i-1];
+					int32_t predictionRight = threadtask->integer_signal[ch1][i] - threadtask->integer_signal[ch1][i-1];
 					sumAbsLR += abs(predictionLeft) + abs(predictionRight);
 					sumAbsMS += abs((predictionLeft + predictionRight) >> 1) + abs(predictionLeft - predictionRight);
 				}
 			}
 			else { /* bps 25 or higher */
 				for(i = 1; i < encoder->protected_->blocksize; i++) {
-					int64_t predictionLeft = (int64_t)threadtask->integer_signal[0][i] - (int64_t)threadtask->integer_signal[0][i-1];
-					int64_t predictionRight = (int64_t)threadtask->integer_signal[1][i] - (int64_t)threadtask->integer_signal[1][i-1];
+					int64_t predictionLeft = (int64_t)threadtask->integer_signal[ch0][i] - (int64_t)threadtask->integer_signal[ch0][i-1];
+					int64_t predictionRight = (int64_t)threadtask->integer_signal[ch1][i] - (int64_t)threadtask->integer_signal[ch1][i-1];
 					sumAbsLR += local_abs64(predictionLeft) + local_abs64(predictionRight);
 					sumAbsMS += local_abs64((predictionLeft + predictionRight) >> 1) + local_abs64(predictionLeft - predictionRight);
 				}
@@ -4163,16 +4155,27 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	 */
 	if(do_mid_side) {
 		uint32_t i;
+		uint32_t bps = encoder->protected_->bits_per_sample;
+		const uint32_t ch0 = 0;
+		const uint32_t ch1 = (
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT && frame_header.is_fallback) ? 2 :
+#endif
+			1);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+			bps = (frame_header.is_fallback) ? 8 : 24;
+#endif
 		FLAC__ASSERT(encoder->protected_->channels == 2);
-		if(encoder->protected_->bits_per_sample < 32)
+		if(bps < 32)
 			for(i = 0; i < encoder->protected_->blocksize; i++) {
-				threadtask->integer_signal_mid_side[1][i] = threadtask->integer_signal[0][i] - threadtask->integer_signal[1][i];
-				threadtask->integer_signal_mid_side[0][i] = (threadtask->integer_signal[0][i] + threadtask->integer_signal[1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
+				threadtask->integer_signal_mid_side[1][i] = threadtask->integer_signal[ch0][i] - threadtask->integer_signal[ch1][i];
+				threadtask->integer_signal_mid_side[0][i] = (threadtask->integer_signal[ch0][i] + threadtask->integer_signal[ch1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
 			}
 		else
 			for(i = 0; i <= encoder->protected_->blocksize; i++) {
-				threadtask->integer_signal_33bit_side[i] = (FLAC__int64)threadtask->integer_signal[0][i] - (FLAC__int64)threadtask->integer_signal[1][i];
-				threadtask->integer_signal_mid_side[0][i] = ((FLAC__int64)threadtask->integer_signal[0][i] + (FLAC__int64)threadtask->integer_signal[1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
+				threadtask->integer_signal_33bit_side[i] = (FLAC__int64)threadtask->integer_signal[ch0][i] - (FLAC__int64)threadtask->integer_signal[ch1][i];
+				threadtask->integer_signal_mid_side[0][i] = ((FLAC__int64)threadtask->integer_signal[ch0][i] + (FLAC__int64)threadtask->integer_signal[ch1][i]) >> 1; /* NOTE: not the same as 'mid = (signal[0][j] + signal[1][j]) / 2' ! */
 			}
 	}
 
@@ -4180,10 +4183,19 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	/*
 	 * Check for wasted bits; set effective bps for each subframe
 	 */
-	if(do_independent) {
+	if(do_independent
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		|| (encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT && frame_header.is_fallback)
+#endif
+	) {
 		for(channel = 0; channel < num_subframes; channel++) {
-			uint32_t subframe_bps = encoder->protected_->bits_per_sample;
+			uint32_t subframe_bps;
 			uint32_t w;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(!do_independent && (channel % 2 == 0))
+				continue; /* Exponents handled in do_mid_side */
+#endif
+			subframe_bps = encoder->protected_->bits_per_sample;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 			if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
 				if(frame_header.is_fallback) {
@@ -4204,24 +4216,37 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	if(do_mid_side) {
 		FLAC__ASSERT(encoder->protected_->channels == 2);
 		for(channel = 0; channel < 2; channel++) {
+			uint32_t subframe_bps = encoder->protected_->bits_per_sample;
 			uint32_t w;
-			if(encoder->protected_->bits_per_sample < 32 || channel == 0)				w = get_wasted_bits_(threadtask->integer_signal_mid_side[channel], encoder->protected_->blocksize);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+				subframe_bps = (frame_header.is_fallback) ? 8 : 24;
+#endif
+			if(subframe_bps < 32 || channel == 0)				w = get_wasted_bits_(threadtask->integer_signal_mid_side[channel], encoder->protected_->blocksize);
 			else
 				w = get_wasted_bits_wide_(threadtask->integer_signal_33bit_side, threadtask->integer_signal_mid_side[channel], encoder->protected_->blocksize);
 
-			if (w > encoder->protected_->bits_per_sample) {
-				w = encoder->protected_->bits_per_sample;
+			if (w > subframe_bps) {
+				w = subframe_bps;
 			}
 			threadtask->subframe_workspace_mid_side[channel][0].wasted_bits = threadtask->subframe_workspace_mid_side[channel][1].wasted_bits = w;
-			threadtask->subframe_bps_mid_side[channel] = encoder->protected_->bits_per_sample - w + (channel==0? 0:1);
+			threadtask->subframe_bps_mid_side[channel] = subframe_bps - w + (channel==0? 0:1);
 		}
 	}
 
 	/*
 	 * First do a normal encoding pass of each independent channel
 	 */
-	if(do_independent) {
+	if(do_independent
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		|| (encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT && frame_header.is_fallback)
+#endif
+	) {
 		for(channel = 0; channel < num_subframes; channel++) {
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(!do_independent && (channel % 2 == 0))
+				continue; /* Exponents handled in do_mid_side */
+#endif
 			if(encoder->protected_->limit_min_bitrate && all_subframes_constant && (channel + 1) == num_subframes){
 				/* This frame contains only constant subframes at this point.
 				 * To prevent the frame from becoming too small, make sure
@@ -4296,6 +4321,12 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			uint32_t bits[4]; /* WATCHOUT - indexed by FLAC__ChannelAssignment */
 			uint32_t min_bits;
 			int ca;
+			const uint32_t ch0 = 0;
+			const uint32_t ch1 = (
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT && frame_header.is_fallback) ? 2 :
+#endif
+				1);
 
 			FLAC__ASSERT(FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT == 0);
 			FLAC__ASSERT(FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE   == 1);
@@ -4303,10 +4334,10 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			FLAC__ASSERT(FLAC__CHANNEL_ASSIGNMENT_MID_SIDE    == 3);
 
 			/* We have to figure out which channel assignent results in the smallest frame */
-			bits[FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT] = threadtask->best_subframe_bits         [0] + threadtask->best_subframe_bits         [1];
-			bits[FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE  ] = threadtask->best_subframe_bits         [0] + threadtask->best_subframe_bits_mid_side[1];
-			bits[FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE ] = threadtask->best_subframe_bits         [1] + threadtask->best_subframe_bits_mid_side[1];
-			bits[FLAC__CHANNEL_ASSIGNMENT_MID_SIDE   ] = threadtask->best_subframe_bits_mid_side[0] + threadtask->best_subframe_bits_mid_side[1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT] = threadtask->best_subframe_bits         [ch0] + threadtask->best_subframe_bits         [ch1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE  ] = threadtask->best_subframe_bits         [ch0] + threadtask->best_subframe_bits_mid_side[1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE ] = threadtask->best_subframe_bits         [ch1] + threadtask->best_subframe_bits_mid_side[1];
+			bits[FLAC__CHANNEL_ASSIGNMENT_MID_SIDE   ] = threadtask->best_subframe_bits_mid_side[0]   + threadtask->best_subframe_bits_mid_side[1];
 
 			channel_assignment = FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT;
 			min_bits = bits[channel_assignment];
@@ -4327,53 +4358,102 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			return false;
 		}
 
-		switch(frame_header.channel_assignment) {
-			case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
-				left_subframe  = &threadtask->subframe_workspace         [0][threadtask->best_subframe         [0]];
-				right_subframe = &threadtask->subframe_workspace         [1][threadtask->best_subframe         [1]];
-				break;
-			case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-				left_subframe  = &threadtask->subframe_workspace         [0][threadtask->best_subframe         [0]];
-				right_subframe = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
-				break;
-			case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-				left_subframe  = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
-				right_subframe = &threadtask->subframe_workspace         [1][threadtask->best_subframe         [1]];
-				break;
-			case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-				left_subframe  = &threadtask->subframe_workspace_mid_side[0][threadtask->best_subframe_mid_side[0]];
-				right_subframe = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
-				break;
-			default:
-				FLAC__ASSERT(0);
-		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT && frame_header.is_fallback) {
+			FLAC__Subframe *subframes[4];
+			uint32_t sf_bps[4];
 
-		switch(frame_header.channel_assignment) {
-			case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
-				left_bps  = threadtask->subframe_bps         [0];
-				right_bps = threadtask->subframe_bps         [1];
-				break;
-			case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
-				left_bps  = threadtask->subframe_bps         [0];
-				right_bps = threadtask->subframe_bps_mid_side[1];
-				break;
-			case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
-				left_bps  = threadtask->subframe_bps_mid_side[1];
-				right_bps = threadtask->subframe_bps         [1];
-				break;
-			case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
-				left_bps  = threadtask->subframe_bps_mid_side[0];
-				right_bps = threadtask->subframe_bps_mid_side[1];
-				break;
-			default:
-				FLAC__ASSERT(0);
-		}
+			switch(frame_header.channel_assignment) {
+				case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
+					subframes[0] = &threadtask->subframe_workspace[0][threadtask->best_subframe[0]];
+					subframes[2] = &threadtask->subframe_workspace[2][threadtask->best_subframe[2]];
+					sf_bps[0] = threadtask->subframe_bps[0];
+					sf_bps[2] = threadtask->subframe_bps[2];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
+					subframes[0] = &threadtask->subframe_workspace[0][threadtask->best_subframe[0]];
+					subframes[2] = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
+					sf_bps[0] = threadtask->subframe_bps[0];
+					sf_bps[2] = threadtask->subframe_bps_mid_side[1];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
+					subframes[0] = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
+					subframes[2] = &threadtask->subframe_workspace[2][threadtask->best_subframe[2]];
+					sf_bps[0] = threadtask->subframe_bps_mid_side[1];
+					sf_bps[2] = threadtask->subframe_bps[2];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
+					subframes[0] = &threadtask->subframe_workspace_mid_side[0][threadtask->best_subframe_mid_side[0]];
+					subframes[2] = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
+					sf_bps[0] = threadtask->subframe_bps_mid_side[0];
+					sf_bps[2] = threadtask->subframe_bps_mid_side[1];
+					break;
+				default:
+					FLAC__ASSERT(0);
+			}
 
-		/* note that encoder_add_subframe_ sets the state for us in case of an error */
-		if(!add_subframe_(encoder, frame_header.blocksize, left_bps , left_subframe , threadtask->frame))
-			return false;
-		if(!add_subframe_(encoder, frame_header.blocksize, right_bps, right_subframe, threadtask->frame))
-			return false;
+			/* Mantissa subframes (1 and 3) are always independent */
+			subframes[1] = &threadtask->subframe_workspace[1][threadtask->best_subframe[1]];
+			subframes[3] = &threadtask->subframe_workspace[3][threadtask->best_subframe[3]];
+			sf_bps[1] = threadtask->subframe_bps[1];
+			sf_bps[3] = threadtask->subframe_bps[3];
+
+			for(channel = 0; channel < 4; channel++) {
+				if(!add_subframe_(encoder, frame_header.blocksize, sf_bps[channel], subframes[channel], threadtask->frame))
+					return false;
+			}
+		}
+		else
+#endif
+		{
+			switch(frame_header.channel_assignment) {
+				case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
+					left_subframe  = &threadtask->subframe_workspace         [0][threadtask->best_subframe         [0]];
+					right_subframe = &threadtask->subframe_workspace         [1][threadtask->best_subframe         [1]];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
+					left_subframe  = &threadtask->subframe_workspace         [0][threadtask->best_subframe         [0]];
+					right_subframe = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
+					left_subframe  = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
+					right_subframe = &threadtask->subframe_workspace         [1][threadtask->best_subframe         [1]];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
+					left_subframe  = &threadtask->subframe_workspace_mid_side[0][threadtask->best_subframe_mid_side[0]];
+					right_subframe = &threadtask->subframe_workspace_mid_side[1][threadtask->best_subframe_mid_side[1]];
+					break;
+				default:
+					FLAC__ASSERT(0);
+			}
+
+			switch(frame_header.channel_assignment) {
+				case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
+					left_bps  = threadtask->subframe_bps         [0];
+					right_bps = threadtask->subframe_bps         [1];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_LEFT_SIDE:
+					left_bps  = threadtask->subframe_bps         [0];
+					right_bps = threadtask->subframe_bps_mid_side[1];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_RIGHT_SIDE:
+					left_bps  = threadtask->subframe_bps_mid_side[1];
+					right_bps = threadtask->subframe_bps         [1];
+					break;
+				case FLAC__CHANNEL_ASSIGNMENT_MID_SIDE:
+					left_bps  = threadtask->subframe_bps_mid_side[0];
+					right_bps = threadtask->subframe_bps_mid_side[1];
+					break;
+				default:
+					FLAC__ASSERT(0);
+			}
+
+			/* note that encoder_add_subframe_ sets the state for us in case of an error */
+			if(!add_subframe_(encoder, frame_header.blocksize, left_bps , left_subframe , threadtask->frame))
+				return false;
+			if(!add_subframe_(encoder, frame_header.blocksize, right_bps, right_subframe, threadtask->frame))
+				return false;
+		}
 	}
 	else {
 		FLAC__ASSERT(do_independent);

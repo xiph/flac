@@ -941,13 +941,6 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_S
 		return false;
 	}
 
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	// if(iterator->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
-	// 	iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT;
-	// 	return false;
-	// }
-#endif
-
 	if(use_padding) {
 		FLAC__StreamMetadata *padding = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
 		if(0 == padding) {

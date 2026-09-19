@@ -493,10 +493,6 @@ static void format_input_(FLAC__multibyte *mbuf, const FLAC__int32 * const signa
 
 /*
  * Convert the incoming audio signal to a byte stream and FLAC__MD5Update it.
- * Note: For floating-point audio streams (when ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING is active),
- * MD5 checksum calculation is performed on the lossless transformed 32-bit integer signal domain
- * before converting back to float, ensuring byte-exact cross-platform consistency and bit-for-bit
- * stream verification without architecture-specific float serialization differences.
  */
 FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
 {
