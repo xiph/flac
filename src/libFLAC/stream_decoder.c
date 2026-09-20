@@ -2540,7 +2540,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 			if(decoder->private_->frame.header.is_fallback) {
 				bps = (channel % 2 == 0) ? 8 : 24;
 			} else {
-				bps = 24;
+				bps = decoder->private_->frame.header.bits_per_sample;
 			}
 		}
 #endif
@@ -2619,7 +2619,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 			if(decoder->private_->frame.header.sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
 				for(channel = 0; channel < num_subframes; channel++) {
-					uint32_t sub_bps = 24;
+					uint32_t sub_bps = decoder->private_->frame.header.bits_per_sample;
 					uint32_t sf_c = 0, c;
 					int shift_bits, lower_limit, upper_limit;
 					for(c = 0; c < decoder->private_->frame.header.channels; c++) {
@@ -2629,7 +2629,7 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 							sf_c += 2;
 						}
 						else {
-							if(channel == sf_c) { sub_bps = 24; break; }
+							if(channel == sf_c) { sub_bps = decoder->private_->frame.header.bits_per_sample; break; }
 							sf_c += 1;
 						}
 					}
@@ -3870,7 +3870,7 @@ __attribute__((no_sanitize("signed-integer-overflow")))
 void undo_channel_coding(FLAC__StreamDecoder *decoder) {
 	uint32_t i;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	const uint32_t header_bps = (decoder->private_->frame.header.sample_type == FLAC__SAMPLE_TYPE_FLOAT) ? ((decoder->private_->frame.header.is_fallback) ? 8 : 24) : decoder->private_->frame.header.bits_per_sample;
+	const uint32_t header_bps = (decoder->private_->frame.header.sample_type == FLAC__SAMPLE_TYPE_FLOAT) ? ((decoder->private_->frame.header.is_fallback) ? 8 : decoder->private_->frame.header.bits_per_sample) : decoder->private_->frame.header.bits_per_sample;
 	const uint32_t ch0 = 0;
 	const uint32_t ch1 = (decoder->private_->frame.header.sample_type == FLAC__SAMPLE_TYPE_FLOAT && decoder->private_->frame.header.is_fallback) ? 2 : 1;
 #else
