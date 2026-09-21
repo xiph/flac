@@ -33,16 +33,16 @@
 #define FLAC__PRIVATE__TRANSFORM_FLOAT_H
 
 #include <stddef.h>
-#include "FLAC/assert.h"
+#include <stdint.h>
 #include "FLAC/ordinals.h"
 #include "FLAC/format.h"
 #include "private/md5.h"
 
 void FLAC__split_f32_buffer_to_subframe_signals(FLAC__int32 *exp_signal, FLAC__int32 *sign_mant_signal, const uint32_t *src, size_t n);
 void FLAC__split_f32_interleaved_to_subframe_signals(FLAC__int32 * const integer_signals[], uint32_t channels, uint32_t current_sample_number, const uint32_t *src, size_t n);
-void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[], uint32_t *frame_bps);
+void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[]);
 void FLAC__combine_subframe_signals_to_f32_buffer(uint32_t *dest, const FLAC__int32 *subframe0, const FLAC__int32 *subframe1, size_t n, FLAC__byte base_exp, FLAC__bool is_fallback);
-FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[], uint32_t *frame_bps);
+FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[]);
 void FLAC__transform_frame_fallback_float(FLAC__int32 *signals[], uint32_t channels, uint32_t blocksize);
 void FLAC__transform_frame_lossless_1subframe_float(FLAC__int32 *signals[], const uint32_t channel_base_exp[], FLAC__byte exponent_zero_offsets[], uint32_t channels, uint32_t blocksize);
 FLAC__bool FLAC__MD5Accumulate_split_float(FLAC__MD5Context *ctx, const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t samples);

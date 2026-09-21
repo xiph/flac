@@ -1491,6 +1491,10 @@ void show_help(void)
 	printf("      --tag-from-file=FIELD=FILENAME     Like --tag but gets value from file\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}        Add seek point(s)\n");
 	printf("  -P, --padding=#                    Write a PADDING block of length # bytes\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	printf("      --force-1subframe-mode-which-is-not-lossless Force 1-subframe float encoding mode\n");
+	printf("      --force-fallback-mode          Force 2-subframe fallback float encoding mode\n");
+#endif
 	printf("\n");
 	printf("Format options (encoding defaults to FLAC not OGG; decoding defaults to WAVE, \n");
 	printf("             chunks found by --keep-foreign-metadata-if-present will override):\n");

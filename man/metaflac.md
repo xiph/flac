@@ -256,7 +256,7 @@ modification time is set to the current time):
 **\--except-block-type=type\[,type\[...\]\]**
 :	An optional comma-separated list of block types to be included or
 	ignored with this option. Use only one of \--block-type or
-	\--except-block-type. The valid block types are: STREAMINFO, PADDING,
+	\--except-block-type. The valid block types are: STREAMINFO, STREAMINFO_EXTENSION, PADDING,
 	APPLICATION, SEEKTABLE, VORBIS_COMMENT, PICTURE. You may narrow down
 	the types of APPLICATION blocks selected by appending APPLICATION 
 	with a colon and the ID of the APPLICATION block in either ASCII

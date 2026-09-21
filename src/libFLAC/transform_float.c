@@ -62,12 +62,12 @@ Possible design choices are listed below. The further we go, the higher the leve
    3. splitting the "exponent" (8 bit) and "sign+significand" (24 bit) parts of floats into two subframes.
 		my tests resulted in about ~68% ratio, even with no bit manipulation
    4. splitting + some bit manipulation + subtracting an (automatically recognised) DC offset from the
-		"exponents" channel and	storing the offset in each frame header (current approach).
+		"exponents" channel and storing the offset in each frame header (current approach).
 		my tests resulted in about ~45% ratio
 */
 
 /*
-Dynamic Bit-Depth Binary Positional Notation Transformation (1-subframe mode):
+Binary Positional Notation Transformation (1-subframe mode):
    In binary positional notation, each normalized float sample (+/- 1.mant * 2^(exp - 127)) has:
      - highest active bit position = exp
      - lowest active bit position = exp - 23 + ctz(explicit_mant)
@@ -78,14 +78,14 @@ Dynamic Bit-Depth Binary Positional Notation Transformation (1-subframe mode):
      bps = highest_pos - lowest_pos + 2
    Setting base_exp = lowest_pos, each sample's explicit mantissa is shifted by:
      shift = (exp_i - 23) - lowest_pos >= 0
-   into an exact two's complement signed integer of width bps without losing any bit.
+   into an exact two's complement signed integer of width 32 bits without losing any bit.
    When bps <= 32 (and no special NaN/Inf/-0.0f conditions exist), the frame is encoded
-   losslessly in 1 subframe per channel at the dynamically computed bps.
+   losslessly in 1 subframe per channel at 32 bps.
    The per-channel base exponent (base_exp) is stored in the frame header (in exponent_zero_offsets).
 
 Frame Mode Selection & Fallback Two's Complement Conversion:
    - Mode flag: A 1-bit fallback flag is stored in one of the reserved bits of the frame header
-     extension (0 = lossless 1-subframe mode with dynamic bps, 1 = fallback 2-subframe mode).
+     extension (0 = lossless 1-subframe mode at 32 bps, 1 = fallback 2-subframe mode).
    - Fallback mode: When a frame has bps > 32 or contains special float conditions (NaN, Inf,
      subnormals, or -0.0f), it falls back to 2 subframes per channel (exponent + significand):
        * Exponent channel (8 bits): stored with a -128 DC offset ([-128, 127]).
@@ -146,14 +146,12 @@ void FLAC__split_f32_interleaved_to_subframe_signals(FLAC__int32 * const integer
 }
 
 /*
- * Computes base exponent and required bit depth per channel for 1-subframe lossless float encoding.
+ * Computes base exponent per channel for 1-subframe lossless float encoding (32 bps).
  */
-void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[], uint32_t *frame_bps)
+void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[])
 {
 	uint32_t ch;
-	uint32_t max_frame_bps = 0;
 	for (ch = 0; ch < channels; ch++) {
-		int highest_pos = -1;
 		int lowest_pos = 1000;
 		uint32_t s;
 		for (s = 0; s < blocksize; s++) {
@@ -162,35 +160,22 @@ void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signal
 			if (exp != 0 || (sign_mant & 0x7FFFFF) != 0) {
 				uint32_t explicit_mant = (1u << 23) | (sign_mant & 0x7FFFFF);
 				int tz = __builtin_ctz(explicit_mant);
-				int pos_high = (int)exp;
 				int pos_low = (int)exp - 23 + tz;
-				if (pos_high > highest_pos)
-					highest_pos = pos_high;
 				if (pos_low < lowest_pos)
 					lowest_pos = pos_low;
 			}
 		}
-		if (highest_pos == -1) {
+		if (lowest_pos == 1000)
 			channel_base_exp[ch] = 127;
-		} else {
+		else
 			channel_base_exp[ch] = (uint32_t)lowest_pos;
-			{
-				uint32_t ch_bps = (uint32_t)(highest_pos - lowest_pos + 2);
-				if (ch_bps > max_frame_bps)
-					max_frame_bps = ch_bps;
-			}
-		}
 	}
-	if (max_frame_bps < 4)
-		max_frame_bps = 4;
-	if (frame_bps != NULL)
-		*frame_bps = max_frame_bps;
 }
 
 /*
  * Recombines integer subframe signal(s) into standard 32-bit IEEE 754 floating-point raw words:
  *  - When is_fallback == true: 2 subframes per channel (raw 8-bit exponent and 24-bit two's complement significand)
- *  - When is_fallback == false: 1 subframe per channel (preprocessed two's complement integer reconstructed via base_exp = lowest_pos)
+ *  - When is_fallback == false: 1 subframe per channel (preprocessed 32-bit two's complement integer reconstructed via base_exp = lowest_pos)
  */
 void FLAC__combine_subframe_signals_to_f32_buffer(uint32_t *dest, const FLAC__int32 *subframe0, const FLAC__int32 *subframe1, size_t n, FLAC__byte base_exp, FLAC__bool is_fallback)
 {
@@ -215,7 +200,7 @@ void FLAC__combine_subframe_signals_to_f32_buffer(uint32_t *dest, const FLAC__in
 			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
 		}
 	} else {
-		/* Single dynamic-bps preprocessed significand+sign subframe */
+		/* Single 32-bit preprocessed significand+sign subframe */
 		const FLAC__int32 *sig_signal = subframe0;
 		for (i = 0; i < n; i++) {
 			FLAC__int32 val = sig_signal[i];
@@ -237,12 +222,11 @@ void FLAC__combine_subframe_signals_to_f32_buffer(uint32_t *dest, const FLAC__in
 
 /*
  * Analyzes split float subframes across all channels to verify if the entire frame can be
- * losslessly represented using 1 subframe per channel (dynamic integer bit depth <= 32).
+ * losslessly represented using 1 subframe per channel (bps <= 32).
  */
-FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[], uint32_t *frame_bps)
+FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[])
 {
 	uint32_t ch;
-	uint32_t max_frame_bps = 0;
 	for (ch = 0; ch < channels; ch++) {
 		int highest_pos = -1;
 		int lowest_pos = 1000;
@@ -272,21 +256,13 @@ FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_sign
 		if (highest_pos == -1) {
 			channel_base_exp[ch] = 127;
 		} else {
-			uint32_t ch_bps;
 			if (lowest_pos < 0 || highest_pos > 254)
 				return false;
-			ch_bps = (uint32_t)(highest_pos - lowest_pos + 2);
-			if (ch_bps > 32)
+			if ((highest_pos - lowest_pos + 2) > 32)
 				return false;
 			channel_base_exp[ch] = (uint32_t)lowest_pos;
-			if (ch_bps > max_frame_bps)
-				max_frame_bps = ch_bps;
 		}
 	}
-	if (max_frame_bps < 4)
-		max_frame_bps = 4;
-	if (frame_bps != NULL)
-		*frame_bps = max_frame_bps;
 	return true;
 }
 
@@ -320,8 +296,8 @@ void FLAC__transform_frame_fallback_float(FLAC__int32 *signals[], uint32_t chann
 }
 
 /*
- * Transforms signals for Lossless 1-subframe mode:
- *  - converts signals[2*ch] / signals[2*ch+1] into preprocessed dynamic two's complement integer in signals[ch]
+ * Transforms signals for Lossless 1-subframe mode (32 bps):
+ *  - converts signals[2*ch] / signals[2*ch+1] into preprocessed 32-bit two's complement integer in signals[ch]
  */
 void FLAC__transform_frame_lossless_1subframe_float(FLAC__int32 *signals[], const uint32_t channel_base_exp[], FLAC__byte exponent_zero_offsets[], uint32_t channels, uint32_t blocksize)
 {

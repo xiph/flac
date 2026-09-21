@@ -19,7 +19,7 @@
 
 /*
  * This example shows how to use libFLAC to decode a FLAC file to a WAVE
- * file.  It only supports 16-bit stereo files.
+ * file.  It supports 16-bit stereo integer files and 32-bit stereo float files.
  *
  * Complete API documentation can be found at:
  *   http://xiph.org/flac/api/
@@ -42,6 +42,9 @@ static FLAC__uint64 total_samples = 0;
 static unsigned sample_rate = 0;
 static unsigned channels = 0;
 static unsigned bps = 0;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+static FLAC__SampleType sample_type = FLAC__SAMPLE_TYPE_INT;
+#endif
 
 static FLAC__bool write_little_endian_uint16(FILE *f, FLAC__uint16 x)
 {
@@ -115,16 +118,25 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	const FLAC__uint32 total_size = (FLAC__uint32)(total_samples * channels * (bps/8));
 	size_t i;
 
-	(void)decoder;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	sample_type = FLAC__stream_decoder_get_sample_type(decoder);
+#endif
 
 	if(total_samples == 0) {
 		fprintf(stderr, "ERROR: this example only works for FLAC files that have a total_samples count in STREAMINFO\n");
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(channels != 2 || (sample_type == FLAC__SAMPLE_TYPE_INT && bps != 16) || (sample_type == FLAC__SAMPLE_TYPE_FLOAT && bps != 32)) {
+		fprintf(stderr, "ERROR: this example only supports 16bit stereo integer or 32bit stereo float streams\n");
+		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	}
+#else
 	if(channels != 2 || bps != 16) {
 		fprintf(stderr, "ERROR: this example only supports 16bit stereo streams\n");
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 	}
+#endif
 	if(frame->header.channels != 2) {
 		fprintf(stderr, "ERROR: This frame contains %u channels (should be 2)\n", frame->header.channels);
 		return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
@@ -140,12 +152,17 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 
 	/* write WAVE header before we write the first frame */
 	if(frame->header.number.sample_number == 0) {
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		const FLAC__uint16 format_tag = (sample_type == FLAC__SAMPLE_TYPE_FLOAT) ? 3 : 1;
+#else
+		const FLAC__uint16 format_tag = 1;
+#endif
 		if(
 			fwrite("RIFF", 1, 4, f) < 4 ||
 			!write_little_endian_uint32(f, total_size + 36) ||
 			fwrite("WAVEfmt ", 1, 8, f) < 8 ||
 			!write_little_endian_uint32(f, 16) ||
-			!write_little_endian_uint16(f, 1) ||
+			!write_little_endian_uint16(f, format_tag) ||
 			!write_little_endian_uint16(f, (FLAC__uint16)channels) ||
 			!write_little_endian_uint32(f, sample_rate) ||
 			!write_little_endian_uint32(f, sample_rate * channels * (bps/8)) ||
@@ -159,14 +176,29 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 		}
 	}
 
-	/* write decoded PCM samples */
-	for(i = 0; i < frame->header.blocksize; i++) {
-		if(
-			!write_little_endian_int16(f, (FLAC__int16)buffer[0][i]) ||  /* left channel */
-			!write_little_endian_int16(f, (FLAC__int16)buffer[1][i])     /* right channel */
-		) {
-			fprintf(stderr, "ERROR: write error\n");
-			return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+	/* write decoded samples */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+		for(i = 0; i < frame->header.blocksize; i++) {
+			if(
+				!write_little_endian_uint32(f, (FLAC__uint32)buffer[0][i]) ||  /* left channel */
+				!write_little_endian_uint32(f, (FLAC__uint32)buffer[1][i])     /* right channel */
+			) {
+				fprintf(stderr, "ERROR: write error\n");
+				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			}
+		}
+	} else
+#endif
+	{
+		for(i = 0; i < frame->header.blocksize; i++) {
+			if(
+				!write_little_endian_int16(f, (FLAC__int16)buffer[0][i]) ||  /* left channel */
+				!write_little_endian_int16(f, (FLAC__int16)buffer[1][i])     /* right channel */
+			) {
+				fprintf(stderr, "ERROR: write error\n");
+				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
+			}
 		}
 	}
 
@@ -193,6 +225,11 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	else if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
 		/* save for later */
+		sample_rate = (unsigned)metadata->data.stream_info_extension.sample_rate;
+		bps = metadata->data.stream_info_extension.bits_per_sample;
+		channels = metadata->data.stream_info_extension.channels;
+		sample_type = metadata->data.stream_info_extension.sample_type;
+
 		fprintf(stderr, "sample rate    : %f Hz\n", metadata->data.stream_info_extension.sample_rate);
 		fprintf(stderr, "bits per sample: %u\n", metadata->data.stream_info_extension.bits_per_sample);
 		fprintf(stderr, "sample type    : %s\n", FLAC__get_sample_type_string(metadata->data.stream_info_extension.sample_type));

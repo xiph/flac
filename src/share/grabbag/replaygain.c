@@ -327,11 +327,7 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder 
 	if(
 		!instance->error &&
 		(channels == 2 || channels == 1) &&
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-		(instance->sample_type == FLAC__SAMPLE_TYPE_FLOAT || bits_per_sample == instance->bits_per_sample) &&
-#else
 		bits_per_sample == instance->bits_per_sample &&
-#endif
 		channels == instance->channels &&
 		sample_rate == instance->sample_rate
 	) {

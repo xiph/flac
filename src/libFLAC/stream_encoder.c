@@ -201,7 +201,6 @@ typedef struct FLAC__StreamEncoderThreadTask {
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	FLAC__byte exponent_zero_offsets[FLAC__MAX_CHANNELS];
 	FLAC__bool is_fallback;
-	uint32_t frame_bps;
 #endif
 #ifdef FLAC__USE_THREADS
 	FLAC__mtx_t mutex_this_task;      /* To lock whole threadtask */
@@ -3686,11 +3685,11 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 			frame_lossless = false;
 		}
 		else if(encoder->private_->force_1subframe_float_mode) {
-			FLAC__compute_channel_base_exp_float((const FLAC__int32 * const *)encoder->private_->threadtask[0]->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_base_exp, &encoder->private_->threadtask[0]->frame_bps);
+			FLAC__compute_channel_base_exp_float((const FLAC__int32 * const *)encoder->private_->threadtask[0]->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_base_exp);
 			frame_lossless = true;
 		}
 		else {
-			frame_lossless = FLAC__check_frame_lossless_float((const FLAC__int32 * const *)encoder->private_->threadtask[0]->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_base_exp, &encoder->private_->threadtask[0]->frame_bps);
+			frame_lossless = FLAC__check_frame_lossless_float((const FLAC__int32 * const *)encoder->private_->threadtask[0]->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_base_exp);
 		}
 
 		encoder->private_->threadtask[0]->is_fallback = !frame_lossless;
@@ -3700,7 +3699,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 			FLAC__transform_frame_fallback_float(encoder->private_->threadtask[0]->integer_signal, encoder->protected_->channels, encoder->protected_->blocksize);
 		}
 		else {
-			/* Lossless 1-subframe mode per channel: preprocessed two's complement 24-bit integer into integer_signal[ch] */
+			/* Lossless 1-subframe mode per channel: preprocessed two's complement 32-bit integer into integer_signal[ch] */
 			FLAC__transform_frame_lossless_1subframe_float(encoder->private_->threadtask[0]->integer_signal, channel_base_exp, encoder->private_->threadtask[0]->exponent_zero_offsets, encoder->protected_->channels, encoder->protected_->blocksize);
 		}
 	}
@@ -3880,7 +3879,6 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 		if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
 			encoder->private_->threadtask[encoder->private_->next_thread]->is_fallback = encoder->private_->threadtask[0]->is_fallback;
-			encoder->private_->threadtask[encoder->private_->next_thread]->frame_bps = encoder->private_->threadtask[0]->frame_bps;
 			memcpy(encoder->private_->threadtask[encoder->private_->next_thread]->exponent_zero_offsets, encoder->private_->threadtask[0]->exponent_zero_offsets, sizeof(encoder->private_->threadtask[0]->exponent_zero_offsets));
 		}
 #endif
@@ -4077,7 +4075,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	frame_header.number.frame_number = threadtask->current_frame_number;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	frame_header.has_extension = (encoder->private_->streaminfo.data.stream_info.bits_per_sample == 1);
-	frame_header.extension_mode = FLAC__FRAME_HEADER_EXTENSION_MODE_FULL;
+	frame_header.extension_mode = FLAC__FRAME_HEADER_EXTENSION_MODE_COMPACT;
 	frame_header.sample_rate_extension = encoder->protected_->sample_rate_extension;
 	frame_header.channel_mask = encoder->protected_->channel_mask;
 	frame_header.sample_type = encoder->protected_->sample_type;
@@ -4086,8 +4084,6 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			frame_header.exponent_zero_offsets[channel] = threadtask->exponent_zero_offsets[channel];
 		}
 		frame_header.is_fallback = threadtask->is_fallback;
-		if(!frame_header.is_fallback)
-			frame_header.bits_per_sample = threadtask->frame_bps;
 	}
 #endif
 
@@ -4113,7 +4109,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 				1);
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 			if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
-				bps = (frame_header.is_fallback) ? 8 : threadtask->frame_bps;
+				bps = (frame_header.is_fallback) ? 8 : 32;
 #endif
 			if(bps < 25) {
 				for(i = 1; i < encoder->protected_->blocksize; i++) {
@@ -4168,7 +4164,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			1);
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 		if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
-			bps = (frame_header.is_fallback) ? 8 : threadtask->frame_bps;
+			bps = (frame_header.is_fallback) ? 8 : 32;
 #endif
 		FLAC__ASSERT(encoder->protected_->channels == 2);
 		if(bps < 32)
@@ -4205,7 +4201,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 				if(frame_header.is_fallback) {
 					subframe_bps = (channel % 2 == 0) ? 8 : 24;
 				} else {
-					subframe_bps = threadtask->frame_bps;
+					subframe_bps = 32;
 				}
 			}
 #endif
@@ -4224,7 +4220,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			uint32_t w;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 			if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
-				subframe_bps = (frame_header.is_fallback) ? 8 : threadtask->frame_bps;
+				subframe_bps = (frame_header.is_fallback) ? 8 : 32;
 #endif
 			if(subframe_bps < 32 || channel == 0)				w = get_wasted_bits_(threadtask->integer_signal_mid_side[channel], encoder->protected_->blocksize);
 			else

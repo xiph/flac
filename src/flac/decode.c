@@ -1480,7 +1480,6 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 	if(decoder_session->bps) {
 		if(bps != decoder_session->bps
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-			&& decoder_session->sample_type != FLAC__SAMPLE_TYPE_FLOAT
 			&& decoder_session->bps <= (1U << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN)
 #endif
 		) {
@@ -1671,35 +1670,23 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 			flac__analyze_frame(frame, decoder_session->frame_counter-1, decoder_session->decode_position_valid, decoder_session->decode_position_valid?(decoder_session->decode_position-frame_bytes):0, frame_bytes, decoder_session->aopts, fout);
 		}
 		else if(!decoder_session->test_only) {
-			if(shift && !decoder_session->replaygain.apply
-#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-				&& decoder_session->sample_type != FLAC__SAMPLE_TYPE_FLOAT
-#endif
-			) {
+			if(shift && !decoder_session->replaygain.apply) {
 				for(wide_sample = 0; wide_sample < wide_samples; wide_sample++)
 					for(channel = 0; channel < channels; channel++)
 						((uint32_t **)buffer)[channel][wide_sample] <<= shift;/*@@@@@@un-const'ing the buffer is hacky but safe*/
 			}
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-			if(decoder_session->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+			if(decoder_session->replaygain.apply && decoder_session->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
 				const float scale = (float)decoder_session->replaygain.scale;
-				if(decoder_session->replaygain.apply) {
-					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
-						for(channel = 0; channel < channels; channel++, sample++) {
-							union {
-								FLAC__int32 i;
-								float f;
-							} u;
-							u.i = buffer[channel][wide_sample];
-							u.f *= scale;
-							ubuf.s32buffer[sample] = u.i;
-						}
-					}
-				} else {
-					for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
-						for(channel = 0; channel < channels; channel++, sample++) {
-							ubuf.s32buffer[sample] = buffer[channel][wide_sample];
-						}
+				for(sample = wide_sample = 0; wide_sample < wide_samples; wide_sample++) {
+					for(channel = 0; channel < channels; channel++, sample++) {
+						union {
+							FLAC__int32 i;
+							float f;
+						} u;
+						u.i = buffer[channel][wide_sample];
+						u.f *= scale;
+						ubuf.s32buffer[sample] = u.i;
 					}
 				}
 				if(is_big_endian != is_big_endian_host_) {
