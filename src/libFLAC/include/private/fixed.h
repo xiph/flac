@@ -66,16 +66,22 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_128bit(const FLAC__in
 #  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
 #   ifdef FLAC__SSE2_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_intrin_sse2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER + 1]);
+void FLAC__fixed_compute_residual_wide_64bit_intrin_sse2(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
+void FLAC__fixed_restore_signal_wide_64bit_intrin_sse2(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[]);
 #   endif
 #   ifdef FLAC__SSSE3_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_intrin_ssse3(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #   endif
 #   ifdef FLAC__SSE4_2_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_sse42(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit_intrin_sse42(const FLAC__int64 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 #   endif
 #   ifdef FLAC__AVX2_SUPPORTED
 uint32_t FLAC__fixed_compute_best_predictor_wide_intrin_avx2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit_intrin_avx2(const FLAC__int64 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
+void FLAC__fixed_restore_signal_wide_64bit_intrin_avx2(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[]);
 #   endif
 #  endif
 # endif
