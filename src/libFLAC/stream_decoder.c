@@ -3692,7 +3692,13 @@ FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, uint32_t channel, 
 	FLAC__uint32 u32;
 	uint32_t u;
 
-#if !FLAC__HAS_INT128
+#if FLAC__HAS_INT128
+	if(bps > 107) {
+		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return true;
+	}
+#else
 	if(bps > 43) {
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
@@ -3824,7 +3830,13 @@ FLAC__bool read_subframe_lpc_(FLAC__StreamDecoder *decoder, uint32_t channel, ui
 	FLAC__uint32 u32;
 	uint32_t u;
 
-#if !FLAC__HAS_INT128
+#if FLAC__HAS_INT128
+	if(bps > 107) {
+		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+		return true;
+	}
+#else
 	if(bps > 43) {
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
@@ -4514,10 +4526,38 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 				uint32_t channel;
 				const FLAC__int32 *newbuffer[FLAC__MAX_CHANNELS];
 				for(channel = 0; channel < frame->header.channels; channel++) {
-					newbuffer[channel] = buffer[channel] + delta;
-					decoder->private_->last_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_VERBATIM;
-					decoder->private_->last_frame.subframes[channel].data.verbatim.data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32;
-					decoder->private_->last_frame.subframes[channel].data.verbatim.data.int32 = newbuffer[channel];
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+					if(frame->header.sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+						newbuffer[channel] = buffer[channel] + delta;
+						decoder->private_->last_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_VERBATIM;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data.int32 = newbuffer[channel];
+					}
+					else
+#endif
+#if FLAC__HAS_INT128
+					if(frame->header.bits_per_sample > 64) {
+						const FLAC__int128 *buf128 = (const FLAC__int128 *)decoder->private_->output128[channel] + delta;
+						newbuffer[channel] = (const FLAC__int32 *)buf128;
+						decoder->private_->last_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_VERBATIM;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT128;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data.int128 = buf128;
+					}
+					else
+#endif
+					if(frame->header.bits_per_sample > 32) {
+						const FLAC__int64 *buf64 = (const FLAC__int64 *)decoder->private_->output64[channel] + delta;
+						newbuffer[channel] = (const FLAC__int32 *)buf64;
+						decoder->private_->last_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_VERBATIM;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data.int64 = buf64;
+					}
+					else {
+						newbuffer[channel] = buffer[channel] + delta;
+						decoder->private_->last_frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_VERBATIM;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data_type = FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32;
+						decoder->private_->last_frame.subframes[channel].data.verbatim.data.int32 = newbuffer[channel];
+					}
 				}
 				decoder->private_->last_frame.header.blocksize -= delta;
 				decoder->private_->last_frame.header.number.sample_number += (FLAC__uint64)delta;

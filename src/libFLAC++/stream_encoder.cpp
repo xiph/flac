@@ -426,6 +426,32 @@ namespace FLAC {
 			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples));
 		}
 
+		bool Stream::process(const FLAC__int64 * const buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_int64(encoder_, buffer, samples));
+		}
+
+		bool Stream::process_interleaved(const FLAC__int64 buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved_int64(encoder_, buffer, samples));
+		}
+
+#if FLAC__HAS_INT128
+		bool Stream::process(const FLAC__int128 * const buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_int128(encoder_, buffer, samples));
+		}
+
+		bool Stream::process_interleaved(const FLAC__int128 buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved_int128(encoder_, buffer, samples));
+		}
+#endif
+
 		::FLAC__StreamEncoderReadStatus Stream::read_callback(FLAC__byte buffer[], size_t *bytes)
 		{
 			(void)buffer, (void)bytes;

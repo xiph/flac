@@ -1885,8 +1885,7 @@ FLAC__StreamDecoderWriteStatus write_callback(const FLAC__StreamDecoder *decoder
 				bytes_to_write = 4 * sample;
 			}
 			else {
-				FLAC__ASSERT(0);
-				/* double protection */
+				flac__utils_printf_clear_stats(stderr, 1, "%s: ERROR: output writing for %u bits-per-sample is not supported by the frontend (use -t to test/verify)\n", decoder_session->inbasefilename, bps);
 				decoder_session->abort_flag = true;
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 			}
@@ -2179,6 +2178,14 @@ void metadata_callback(const FLAC__StreamDecoder *decoder, const FLAC__StreamMet
 			/* Bounds just to make sure calculations don't overflow */
 			else if(gain > 90 || gain < -90) {
 				flac__utils_printf(stderr, 1, "%s: WARNING: can't apply ReplayGain, found gain value doesn't make sense\n", decoder_session->inbasefilename);
+				if(decoder_session->treat_warnings_as_errors) {
+					decoder_session->abort_flag = true;
+					return;
+				}
+				decoder_session->replaygain.apply = false;
+			}
+			else if(decoder_session->bps > 32 && decoder_session->sample_type != FLAC__SAMPLE_TYPE_FLOAT) {
+				flac__utils_printf(stderr, 1, "%s: WARNING: can't apply ReplayGain to streams with %u bits per sample\n", decoder_session->inbasefilename, decoder_session->bps);
 				if(decoder_session->treat_warnings_as_errors) {
 					decoder_session->abort_flag = true;
 					return;

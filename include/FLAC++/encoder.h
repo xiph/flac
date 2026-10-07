@@ -192,6 +192,12 @@ namespace FLAC {
 
 			virtual bool process(const FLAC__int32 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process()
 			virtual bool process_interleaved(const FLAC__int32 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved()
+			virtual bool process(const FLAC__int64 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process_int64()
+			virtual bool process_interleaved(const FLAC__int64 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved_int64()
+#if FLAC__HAS_INT128
+			virtual bool process(const FLAC__int128 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process_int128()
+			virtual bool process_interleaved(const FLAC__int128 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved_int128()
+#endif
 		protected:
 			/// See FLAC__StreamEncoderReadCallback
 			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);

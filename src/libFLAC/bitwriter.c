@@ -1030,8 +1030,10 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block_128(FLAC__BitWriter *bw, cons
 
 	while(nvals) {
 		FLAC__int128 val = *vals;
-		FLAC__uint128 uval128 = (val < 0) ? (FLAC__uint128)(-val) * 2 - 1 : (FLAC__uint128)val * 2;
-		uint32_t msbits = (parameter >= 128) ? 0 : (uint32_t)(uval128 >> parameter);
+		FLAC__uint128 uval128 = (FLAC__uint128)val << 1;
+		uint32_t msbits;
+		uval128 ^= (FLAC__uint128)(val >> 127);
+		msbits = (uint32_t)(uval128 >> parameter);
 		if(msbits) {
 			if(!FLAC__bitwriter_write_zeroes(bw, msbits))
 				return false;

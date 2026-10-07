@@ -52,7 +52,13 @@ typedef uint16_t FLAC__uint16;
 typedef uint32_t FLAC__uint32;
 typedef uint64_t FLAC__uint64;
 
+#if defined(__SIZEOF_INT128__) || (defined(__GNUC__) && (defined(__x86_64__) || defined(__aarch64__)))
+typedef __int128_t FLAC__int128;
+typedef __uint128_t FLAC__uint128;
+#define FLAC__HAS_INT128 1
+#else
 #define FLAC__HAS_INT128 0
+#endif
 
 typedef int FLAC__bool;
 

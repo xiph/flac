@@ -583,6 +583,18 @@ static void format_input_int128_(FLAC__multibyte *mbuf, const FLAC__int128 * con
 	FLAC__byte *buf_ = mbuf->p8;
 	uint32_t channel, sample, b;
 
+	if (bytes_per_sample == 16) {
+		FLAC__int64 *buf64 = mbuf->p64;
+		for (sample = 0; sample < samples; sample++) {
+			for (channel = 0; channel < channels; channel++) {
+				FLAC__int128 a_word = signal[channel][sample];
+				*buf64++ = H2LE_64((FLAC__uint64)a_word);
+				*buf64++ = H2LE_64((FLAC__uint64)(a_word >> 64));
+			}
+		}
+		return;
+	}
+
 	for (sample = 0; sample < samples; sample++) {
 		for (channel = 0; channel < channels; channel++) {
 			FLAC__int128 a_word = signal[channel][sample];

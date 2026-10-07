@@ -100,6 +100,7 @@ Frame Mode Selection & Fallback Two's Complement Conversion:
 
 #include <stddef.h>
 #include <stdint.h>
+#include "private/macros.h"
 #include "private/transform_float.h"
 #include "private/bitmath.h"
 #include "private/md5.h"
@@ -167,6 +168,8 @@ void FLAC__split_f32_interleaved_to_subframe_signals(FLAC__int32 * const integer
 void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[])
 {
 	uint32_t ch;
+	int ch_highest[FLAC__MAX_CHANNELS];
+	int ch_lowest[FLAC__MAX_CHANNELS];
 	for (ch = 0; ch < channels; ch++) {
 		int highest_pos = -1;
 		int lowest_pos = 1000;
@@ -185,10 +188,28 @@ void FLAC__compute_channel_base_exp_float(const FLAC__int32 * const split_signal
 					lowest_pos = pos_low;
 			}
 		}
+		ch_highest[ch] = highest_pos;
+		ch_lowest[ch] = lowest_pos;
 		if (highest_pos == -1 || lowest_pos < 0) {
 			channel_base_exp[ch] = 127;
 		} else {
 			channel_base_exp[ch] = (uint32_t)lowest_pos;
+		}
+	}
+	if (channels == 2 && ch_highest[0] != -1 && ch_highest[1] != -1) {
+		int max_h = flac_max(ch_highest[0], ch_highest[1]);
+		int min_l = flac_min(ch_lowest[0], ch_lowest[1]);
+		if (min_l >= 0 && max_h <= 254) {
+			uint32_t combined_bps = (uint32_t)(max_h - min_l + 2);
+#if FLAC__HAS_INT128
+			if (combined_bps <= 63) {
+				channel_base_exp[0] = channel_base_exp[1] = (uint32_t)min_l;
+			}
+#else
+			if (combined_bps <= 32) {
+				channel_base_exp[0] = channel_base_exp[1] = (uint32_t)min_l;
+			}
+#endif
 		}
 	}
 }
@@ -218,10 +239,6 @@ void FLAC__combine_subframe_signals_fallback_to_f32_buffer(uint32_t *dest, const
 	}
 }
 
-/*
- * Recombines 1 subframe preprocessed two's complement integer signal (63 bps) into standard 32-bit IEEE 754
- * floating-point raw words via base_exp = lowest_pos.
- */
 /*
  * Recombines 1 subframe preprocessed two's complement integer signal (32 bps) into standard 32-bit IEEE 754
  * floating-point raw words via base_exp = lowest_pos.
@@ -273,6 +290,8 @@ void FLAC__combine_subframe_signals_lossless_to_f32_buffer(uint32_t *dest, const
 FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_base_exp[])
 {
 	uint32_t ch;
+	int ch_highest[FLAC__MAX_CHANNELS];
+	int ch_lowest[FLAC__MAX_CHANNELS];
 	for (ch = 0; ch < channels; ch++) {
 		int highest_pos = -1;
 		int lowest_pos = 1000;
@@ -299,6 +318,8 @@ FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_sign
 					lowest_pos = pos_low;
 			}
 		}
+		ch_highest[ch] = highest_pos;
+		ch_lowest[ch] = lowest_pos;
 		if (highest_pos == -1) {
 			channel_base_exp[ch] = 127;
 		} else {
@@ -314,6 +335,22 @@ FLAC__bool FLAC__check_frame_lossless_float(const FLAC__int32 * const split_sign
 				return false;
 #endif
 			channel_base_exp[ch] = (uint32_t)lowest_pos;
+		}
+	}
+	if (channels == 2 && ch_highest[0] != -1 && ch_highest[1] != -1) {
+		int max_h = flac_max(ch_highest[0], ch_highest[1]);
+		int min_l = flac_min(ch_lowest[0], ch_lowest[1]);
+		if (min_l >= 0 && max_h <= 254) {
+			uint32_t combined_bps = (uint32_t)(max_h - min_l + 2);
+#if FLAC__HAS_INT128
+			if (combined_bps <= 63) {
+				channel_base_exp[0] = channel_base_exp[1] = (uint32_t)min_l;
+			}
+#else
+			if (combined_bps <= 32) {
+				channel_base_exp[0] = channel_base_exp[1] = (uint32_t)min_l;
+			}
+#endif
 		}
 	}
 	return true;
@@ -349,20 +386,19 @@ void FLAC__transform_frame_fallback_float(FLAC__int32 *signals[], uint32_t chann
 }
 
 /*
- * Transforms signals for Lossless 1-subframe mode (63 bps):
- *  - converts signals[2*ch] / signals[2*ch+1] into preprocessed 64-bit two's complement integer in signals[ch]
+ * Transforms signals into dedicated 64-bit destination for Lossless 1-subframe mode (63 bps):
+ *  - converts split_signals[2*ch] / split_signals[2*ch+1] into preprocessed 64-bit two's complement integer in dest_signals[ch]
  */
-void FLAC__transform_frame_lossless_1subframe_float(FLAC__int32 *signals[], const uint32_t channel_base_exp[], FLAC__byte exponent_zero_offsets[], uint32_t channels, uint32_t blocksize)
+void FLAC__transform_frame_lossless_1subframe_float(FLAC__int64 *dest_signals[], const FLAC__int32 * const split_signals[], const uint32_t channel_base_exp[], FLAC__byte exponent_zero_offsets[], uint32_t channels, uint32_t blocksize)
 {
 	uint32_t ch;
 	for (ch = 0; ch < channels; ch++) {
 		uint32_t base_exp = channel_base_exp[ch];
-#if FLAC__HAS_INT128
-		FLAC__int64 *sig64 = (FLAC__int64 *)signals[ch];
-		const FLAC__int32 *exp_in = signals[2 * ch];
-		const FLAC__int32 *sm_in = signals[2 * ch + 1];
-		int s;
-		for (s = (int)blocksize - 1; s >= 0; s--) {
+		FLAC__int64 *sig64 = dest_signals[ch];
+		const FLAC__int32 *exp_in = split_signals[2 * ch];
+		const FLAC__int32 *sm_in = split_signals[2 * ch + 1];
+		uint32_t s;
+		for (s = 0; s < blocksize; s++) {
 			uint32_t exp = (uint32_t)exp_in[s] & 0xFF;
 			uint32_t sign_mant = (uint32_t)sm_in[s] & 0xFFFFFF;
 			if (exp == 0 && (sign_mant & 0x7FFFFF) == 0) {
@@ -376,23 +412,6 @@ void FLAC__transform_frame_lossless_1subframe_float(FLAC__int32 *signals[], cons
 				sig64[s] = signed_val;
 			}
 		}
-#else
-		uint32_t s;
-		for (s = 0; s < blocksize; s++) {
-			uint32_t exp = (uint32_t)signals[2 * ch][s] & 0xFF;
-			uint32_t sign_mant = (uint32_t)signals[2 * ch + 1][s] & 0xFFFFFF;
-			if (exp == 0 && (sign_mant & 0x7FFFFF) == 0) {
-				signals[ch][s] = 0;
-			} else {
-				int shift = ((int)exp - 23) - (int)base_exp;
-				uint32_t explicit_mant = (1u << 23) | (sign_mant & 0x7FFFFF);
-				uint32_t val = (shift >= 0) ? (explicit_mant << shift) : (explicit_mant >> (-shift));
-				uint32_t sign = (sign_mant >> 23) & 1;
-				FLAC__int32 signed_val = sign ? -(FLAC__int32)val : (FLAC__int32)val;
-				signals[ch][s] = signed_val;
-			}
-		}
-#endif
 		exponent_zero_offsets[ch] = (FLAC__byte)base_exp;
 	}
 }
