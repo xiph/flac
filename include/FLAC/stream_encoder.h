@@ -1966,6 +1966,20 @@ FLAC_API FLAC__bool FLAC__stream_encoder_process(FLAC__StreamEncoder *encoder, c
  */
 FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved(FLAC__StreamEncoder *encoder, const FLAC__int32 buffer[], uint32_t samples);
 
+/** Submit 64-bit data for encoding (channel-separated). */
+FLAC_API FLAC__bool FLAC__stream_encoder_process_int64(FLAC__StreamEncoder *encoder, const FLAC__int64 * const buffer[], uint32_t samples);
+
+/** Submit 64-bit data for encoding (channel-interleaved). */
+FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved_int64(FLAC__StreamEncoder *encoder, const FLAC__int64 buffer[], uint32_t samples);
+
+#if FLAC__HAS_INT128
+/** Submit 128-bit data for encoding (channel-separated). */
+FLAC_API FLAC__bool FLAC__stream_encoder_process_int128(FLAC__StreamEncoder *encoder, const FLAC__int128 * const buffer[], uint32_t samples);
+
+/** Submit 128-bit data for encoding (channel-interleaved). */
+FLAC_API FLAC__bool FLAC__stream_encoder_process_interleaved_int128(FLAC__StreamEncoder *encoder, const FLAC__int128 buffer[], uint32_t samples);
+#endif
+
 /** \} */
 
 #ifdef __cplusplus

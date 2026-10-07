@@ -65,7 +65,7 @@ static inline unsigned short __builtin_bswap16(unsigned short a)
 
 #define	ENDSWAP_16(x)		((((x) >> 8) & 0xFF) | (((x) & 0xFF) << 8))
 #define	ENDSWAP_32(x)		((((x) >> 24) & 0xFF) | (((x) >> 8) & 0xFF00) | (((x) & 0xFF00) << 8) | (((x) & 0xFF) << 24))
-#define	ENDSWAP_64(x)		((ENDSWAP_32(((x) >> 32) & 0xFFFFFFFF)) | (ENDSWAP_32((x) & 0xFFFFFFFF) << 32))
+#define	ENDSWAP_64(x)		((((uint64_t)ENDSWAP_32((uint32_t)((x) >> 32)))) | (((uint64_t)ENDSWAP_32((uint32_t)(x))) << 32))
 
 #endif
 
@@ -75,10 +75,12 @@ static inline unsigned short __builtin_bswap16(unsigned short a)
 
 #define H2LE_16(x)		ENDSWAP_16 (x)
 #define H2LE_32(x)		ENDSWAP_32 (x)
+#define H2LE_64(x)		ENDSWAP_64 (x)
 
 #else
 
 #define H2LE_16(x)		(x)
 #define H2LE_32(x)		(x)
+#define H2LE_64(x)		(x)
 
 #endif

@@ -76,16 +76,25 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 		fprintf(fout, "frame=%u\toffset=?\tbits=?\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 	for(channel = 0; channel < channels; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
-		const FLAC__bool is_rice2 = subframe->data.fixed.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2;
-		const uint32_t pesc = is_rice2? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+		const FLAC__EntropyCodingMethodType ec_type = (subframe->type == FLAC__SUBFRAME_TYPE_FIXED) ? subframe->data.fixed.entropy_coding_method.type : ((subframe->type == FLAC__SUBFRAME_TYPE_LPC) ? subframe->data.lpc.entropy_coding_method.type : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
+		const char *res_type_str = ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 ? "RICE3" : (ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 ? "RICE2" : "RICE");
+		const uint32_t pesc = ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER : (ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
 		fprintf(fout, "\tsubframe=%u\twasted_bits=%u\ttype=%s", channel, subframe->wasted_bits, FLAC__SubframeTypeString[subframe->type]);
 		switch(subframe->type) {
 			case FLAC__SUBFRAME_TYPE_CONSTANT:
+#if FLAC__HAS_INT128
+				if(frame->header.bits_per_sample > 64) {
+					FLAC__uint64 hi = (FLAC__uint64)(subframe->data.constant.value128 >> 64);
+					FLAC__uint64 lo = (FLAC__uint64)subframe->data.constant.value128;
+					fprintf(fout, "\tvalue=0x%" PRIx64 "%016" PRIx64 "\n", hi, lo);
+				}
+				else
+#endif
 				fprintf(fout, "\tvalue=%" PRId64 "\n", subframe->data.constant.value);
 				break;
 			case FLAC__SUBFRAME_TYPE_FIXED:
-				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2);
-				fprintf(fout, "\torder=%u\tresidual_type=%s\tpartition_order=%u\n", subframe->data.fixed.order, is_rice2? "RICE2":"RICE", subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
+				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3);
+				fprintf(fout, "\torder=%u\tresidual_type=%s\tpartition_order=%u\n", subframe->data.fixed.order, res_type_str, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < subframe->data.fixed.order; i++)
 					fprintf(fout, "\t\twarmup[%u]=%" PRId64 "\n", i, subframe->data.fixed.warmup[i]);
 				partitions = (1u << subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
@@ -102,8 +111,8 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 				}
 				break;
 			case FLAC__SUBFRAME_TYPE_LPC:
-				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2);
-				fprintf(fout, "\torder=%u\tqlp_coeff_precision=%u\tquantization_level=%d\tresidual_type=%s\tpartition_order=%u\n", subframe->data.lpc.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level, is_rice2? "RICE2":"RICE", subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
+				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3);
+				fprintf(fout, "\torder=%u\tqlp_coeff_precision=%u\tquantization_level=%d\tresidual_type=%s\tpartition_order=%u\n", subframe->data.lpc.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level, res_type_str, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\tqlp_coeff[%u]=%d\n", i, subframe->data.lpc.qlp_coeff[i]);
 				for(i = 0; i < subframe->data.lpc.order; i++)

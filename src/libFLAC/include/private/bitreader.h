@@ -81,6 +81,10 @@ FLAC__bool FLAC__bitreader_read_raw_uint32(FLAC__BitReader *br, FLAC__uint32 *va
 FLAC__bool FLAC__bitreader_read_raw_int32(FLAC__BitReader *br, FLAC__int32 *val, uint32_t bits);
 FLAC__bool FLAC__bitreader_read_raw_uint64(FLAC__BitReader *br, FLAC__uint64 *val, uint32_t bits);
 FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val, uint32_t bits);
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__bitreader_read_raw_uint128(FLAC__BitReader *br, FLAC__uint128 *val, uint32_t bits);
+FLAC__bool FLAC__bitreader_read_raw_int128(FLAC__BitReader *br, FLAC__int128 *val, uint32_t bits);
+#endif
 FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val); /*only for bits=32*/
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 FLAC__bool FLAC__bitreader_read_raw_float64(FLAC__BitReader *br, FLAC__float64 *val);
@@ -91,6 +95,10 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, uint32_t *val);
 FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint32_t parameter);
 FLAC__bool FLAC__bitreader_read_rice_signed_block(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
+FLAC__bool FLAC__bitreader_read_rice_signed_block_64(FLAC__BitReader *br, FLAC__int64 vals[], uint32_t nvals, uint32_t parameter);
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__bitreader_read_rice_signed_block_128(FLAC__BitReader *br, FLAC__int128 vals[], uint32_t nvals, uint32_t parameter);
+#endif
 #ifdef FLAC__BMI2_SUPPORTED
 FLAC__bool FLAC__bitreader_read_rice_signed_block_bmi2(FLAC__BitReader *br, int vals[], uint32_t nvals, uint32_t parameter);
 #endif

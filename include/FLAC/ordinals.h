@@ -33,8 +33,8 @@
 #ifndef FLAC__ORDINALS_H
 #define FLAC__ORDINALS_H
 
-#ifdef HAVE_CONFIG_H
-#  include <config.h>
+#if defined(_MSC_VER) && !defined(__cplusplus) && !defined(inline)
+#define inline __inline
 #endif
 
 /* This of course assumes C99 headers */
@@ -51,6 +51,8 @@ typedef int64_t FLAC__int64;
 typedef uint16_t FLAC__uint16;
 typedef uint32_t FLAC__uint32;
 typedef uint64_t FLAC__uint64;
+
+#define FLAC__HAS_INT128 0
 
 typedef int FLAC__bool;
 

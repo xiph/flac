@@ -393,6 +393,27 @@ FLAC__bool FLAC__bitwriter_write_raw_int64(FLAC__BitWriter *bw, FLAC__int64 val,
 	return FLAC__bitwriter_write_raw_uint64(bw, uval, bits);
 }
 
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__bitwriter_write_raw_uint128(FLAC__BitWriter *bw, FLAC__uint128 val, uint32_t bits)
+{
+	if(bits > 64) {
+		return
+			FLAC__bitwriter_write_raw_uint64(bw, (FLAC__uint64)(val>>64), bits-64) &&
+			FLAC__bitwriter_write_raw_uint64(bw, (FLAC__uint64)val, 64);
+	}
+	else
+		return FLAC__bitwriter_write_raw_uint64(bw, (FLAC__uint64)val, bits);
+}
+
+FLAC__bool FLAC__bitwriter_write_raw_int128(FLAC__BitWriter *bw, FLAC__int128 val, uint32_t bits)
+{
+	FLAC__uint128 uval = (FLAC__uint128)val;
+	if(bits > 0 && bits < 128)
+		uval &= (~(((FLAC__uint128)0 - 1) << bits));
+	return FLAC__bitwriter_write_raw_uint128(bw, uval, bits);
+}
+#endif
+
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 FLAC__bool FLAC__bitwriter_write_raw_float64(FLAC__BitWriter *bw, FLAC__float64 val)
 {
@@ -586,8 +607,8 @@ FLAC__bool FLAC__bitwriter_write_rice_signed(FLAC__BitWriter *bw, FLAC__int32 va
 
 FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FLAC__int32 *vals, uint32_t nvals, uint32_t parameter)
 {
-	const FLAC__uint32 mask1 = (FLAC__uint32)0xffffffff << parameter; /* we val|=mask1 to set the stop bit above it... */
-	const FLAC__uint32 mask2 = (FLAC__uint32)0xffffffff >> (31-parameter); /* ...then mask off the bits above the stop bit with val&=mask2 */
+	const FLAC__uint32 mask1 = parameter < 31 ? (FLAC__uint32)0xffffffff << parameter : 0; /* we val|=mask1 to set the stop bit above it... */
+	const FLAC__uint32 mask2 = parameter < 31 ? (FLAC__uint32)0xffffffff >> (31-parameter) : 0; /* ...then mask off the bits above the stop bit with val&=mask2 */
 	FLAC__uint32 uval;
 	const uint32_t lsbits = 1 + parameter;
 	uint32_t msbits, total_bits;
@@ -596,7 +617,28 @@ FLAC__bool FLAC__bitwriter_write_rice_signed_block(FLAC__BitWriter *bw, const FL
 
 	FLAC__ASSERT(0 != bw);
 	FLAC__ASSERT(0 != bw->buffer);
-	FLAC__ASSERT(parameter < 31);
+	FLAC__ASSERT(parameter < 63);
+
+	if(parameter >= 31) {
+		while(nvals) {
+			FLAC__uint64 uval64;
+			FLAC__uint32 uval32 = *vals;
+			uval32 <<= 1;
+			uval32 ^= (*vals >> 31);
+			uval64 = uval32;
+			msbits = (uint32_t)(uval64 >> parameter);
+			if(msbits) {
+				if(!FLAC__bitwriter_write_zeroes(bw, msbits))
+					return false;
+			}
+			if(!FLAC__bitwriter_write_raw_uint64(bw, (FLAC__U64L(1) << parameter) | (uval64 & ((FLAC__U64L(1) << parameter) - 1)), 1 + parameter))
+				return false;
+			vals++;
+			nvals--;
+		}
+		return true;
+	}
+
 	/* WATCHOUT: code does not work with <32bit words; we can make things much faster with this assertion */
 	FLAC__ASSERT(FLAC__BITS_PER_WORD >= 32);
 #if (ENABLE_64_BIT_WORDS == 0)
@@ -953,3 +995,52 @@ FLAC__bool FLAC__bitwriter_zero_pad_to_byte_boundary(FLAC__BitWriter *bw)
 		return true;
 }
 
+
+FLAC__bool FLAC__bitwriter_write_rice_signed_block_64(FLAC__BitWriter *bw, const FLAC__int64 *vals, uint32_t nvals, uint32_t parameter)
+{
+	FLAC__ASSERT(0 != bw);
+	FLAC__ASSERT(0 != bw->buffer);
+	FLAC__ASSERT(parameter < 64);
+
+	while(nvals) {
+		FLAC__int64 val = *vals;
+		FLAC__uint64 uval64 = (FLAC__uint64)val << 1;
+		uint32_t msbits;
+		uval64 ^= (FLAC__uint64)(val >> 63);
+		msbits = (uint32_t)(uval64 >> parameter);
+
+		if(msbits) {
+			if(!FLAC__bitwriter_write_zeroes(bw, msbits))
+				return false;
+		}
+		if(!FLAC__bitwriter_write_raw_uint64(bw, (FLAC__U64L(1) << parameter) | (uval64 & (parameter == 63 ? FLAC__U64L(0x7fffffffffffffff) : ((FLAC__U64L(1) << parameter) - 1))), 1 + parameter))
+			return false;
+		vals++;
+		nvals--;
+	}
+	return true;
+}
+
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__bitwriter_write_rice_signed_block_128(FLAC__BitWriter *bw, const FLAC__int128 *vals, uint32_t nvals, uint32_t parameter)
+{
+	FLAC__ASSERT(0 != bw);
+	FLAC__ASSERT(0 != bw->buffer);
+	FLAC__ASSERT(parameter < 127);
+
+	while(nvals) {
+		FLAC__int128 val = *vals;
+		FLAC__uint128 uval128 = (val < 0) ? (FLAC__uint128)(-val) * 2 - 1 : (FLAC__uint128)val * 2;
+		uint32_t msbits = (parameter >= 128) ? 0 : (uint32_t)(uval128 >> parameter);
+		if(msbits) {
+			if(!FLAC__bitwriter_write_zeroes(bw, msbits))
+				return false;
+		}
+		if(!FLAC__bitwriter_write_raw_uint128(bw, (((FLAC__uint128)1) << parameter) | (uval128 & ((((FLAC__uint128)1) << parameter) - 1)), 1 + parameter))
+			return false;
+		vals++;
+		nvals--;
+	}
+	return true;
+}
+#endif

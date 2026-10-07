@@ -138,7 +138,11 @@ extern "C" {
  * the reference encoder/decoder used to be limited to 24 bits. This
  * value was used to signal that limit.
  */
-#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (32u)
+#if FLAC__HAS_INT128
+#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (107u)
+#else
+#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (43u)
+#endif
 
 /** The maximum sample rate permitted by the format.  The value is
  *  ((2 ^ 20) - 1)
@@ -217,9 +221,13 @@ typedef enum {
 	/**< Residual is coded by partitioning into contexts, each with it's own
 	 * 4-bit Rice parameter. */
 
-	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1
+	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1,
 	/**< Residual is coded by partitioning into contexts, each with it's own
 	 * 5-bit Rice parameter. */
+
+	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 = 2
+	/**< Residual is coded by partitioning into contexts, each with it's own
+	 * 7-bit Rice parameter. */
 } FLAC__EntropyCodingMethodType;
 
 /** Maps a FLAC__EntropyCodingMethodType to a C string.
@@ -264,12 +272,16 @@ typedef struct {
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN; /**< == 4 (bits) */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN; /**< == 5 (bits) */
+extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN; /**< == 7 (bits) */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /**< == 5 (bits) */
+extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_RAW_LEN; /**< == 7 (bits) */
 
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN)-1 */
+extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER;
+/**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN)-1 */
 
 /** Header for the entropy coding method.  (c.f. <A HREF="https://xiph.org/flac/format.html#residual">format specification</A>)
  */
@@ -304,12 +316,18 @@ extern FLAC_API const char * const FLAC__SubframeTypeString[];
  */
 typedef struct {
 	FLAC__int64 value; /**< The constant signal value. */
+#if FLAC__HAS_INT128
+	FLAC__int128 value128;
+#endif
 } FLAC__Subframe_Constant;
 
 /** An enumeration of the possible verbatim subframe data types. */
 typedef enum {
 	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32, /**< verbatim subframe has 32-bit int */
-	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64 /**< verbatim subframe has 64-bit int */
+	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64, /**< verbatim subframe has 64-bit int */
+#if FLAC__HAS_INT128
+	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT128
+#endif
 } FLAC__VerbatimSubframeDataType;
 
 
@@ -319,6 +337,9 @@ typedef struct {
 	union {
 		const FLAC__int32 *int32; /**< A FLAC__int32 pointer to verbatim signal. */
 		const FLAC__int64 *int64; /**< A FLAC__int64 pointer to verbatim signal. */
+#if FLAC__HAS_INT128
+		const FLAC__int128 *int128;
+#endif
 	} data;
 	FLAC__VerbatimSubframeDataType data_type;
 } FLAC__Subframe_Verbatim;
@@ -326,6 +347,14 @@ typedef struct {
 
 /** FIXED subframe.  (c.f. <A HREF="https://xiph.org/flac/format.html#subframe_fixed">format specification</A>)
  */
+typedef enum {
+	FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT32 = 0, /**< residual has 32-bit int */
+	FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64 = 1, /**< residual has 64-bit int */
+#if FLAC__HAS_INT128
+	FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT128 = 2 /**< residual has 128-bit int */
+#endif
+} FLAC__SubframeResidualDataType;
+
 typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
 	/**< The residual coding method. */
@@ -335,9 +364,25 @@ typedef struct {
 
 	FLAC__int64 warmup[FLAC__MAX_FIXED_ORDER];
 	/**< Warmup samples to prime the predictor, length == order. */
+#if FLAC__HAS_INT128
+	FLAC__int128 warmup128[FLAC__MAX_FIXED_ORDER];
+	/**< 128-bit warmup samples when bps > 64. */
+#endif
 
 	const FLAC__int32 *residual;
-	/**< The residual signal, length == (blocksize minus order) samples. */
+	/**< The 32-bit residual signal (for backward compatibility). */
+
+	FLAC__SubframeResidualDataType residual_type;
+	/**< The data type of the residual signal. */
+
+	union {
+		const FLAC__int32 *int32;
+		const FLAC__int64 *int64;
+#if FLAC__HAS_INT128
+		const FLAC__int128 *int128;
+#endif
+	} residual_data;
+	/**< Pointer to residual signal buffer. */
 } FLAC__Subframe_Fixed;
 
 
@@ -361,9 +406,25 @@ typedef struct {
 
 	FLAC__int64 warmup[FLAC__MAX_LPC_ORDER];
 	/**< Warmup samples to prime the predictor, length == order. */
+#if FLAC__HAS_INT128
+	FLAC__int128 warmup128[FLAC__MAX_LPC_ORDER];
+	/**< 128-bit warmup samples when bps > 64. */
+#endif
 
 	const FLAC__int32 *residual;
-	/**< The residual signal, length == (blocksize minus order) samples. */
+	/**< The 32-bit residual signal (for backward compatibility). */
+
+	FLAC__SubframeResidualDataType residual_type;
+	/**< The data type of the residual signal. */
+
+	union {
+		const FLAC__int32 *int32;
+		const FLAC__int64 *int64;
+#if FLAC__HAS_INT128
+		const FLAC__int128 *int128;
+#endif
+	} residual_data;
+	/**< Pointer to residual signal buffer. */
 } FLAC__Subframe_LPC;
 
 extern FLAC_API const uint32_t FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /**< == 4 (bits) */

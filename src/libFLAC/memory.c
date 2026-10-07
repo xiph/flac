@@ -176,6 +176,37 @@ FLAC__bool FLAC__memory_alloc_aligned_uint64_array(size_t elements, FLAC__uint64
 	}
 }
 
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__memory_alloc_aligned_int128_array(size_t elements, FLAC__int128 **unaligned_pointer, FLAC__int128 **aligned_pointer)
+{
+	FLAC__int128 *pu; /* unaligned pointer */
+	union { /* union needed to comply with C99 pointer aliasing rules */
+		FLAC__int128 *pa; /* aligned pointer */
+		void         *pv; /* aligned pointer alias */
+	} u;
+
+	FLAC__ASSERT(elements > 0);
+	FLAC__ASSERT(0 != unaligned_pointer);
+	FLAC__ASSERT(0 != aligned_pointer);
+	FLAC__ASSERT(unaligned_pointer != aligned_pointer);
+
+	if(elements > SIZE_MAX / sizeof(*pu)) /* overflow check */
+		return false;
+
+	pu = FLAC__memory_alloc_aligned(sizeof(*pu) * elements, &u.pv);
+	if(0 == pu) {
+		return false;
+	}
+	else {
+		if(*unaligned_pointer != 0)
+			free(*unaligned_pointer);
+		*unaligned_pointer = pu;
+		*aligned_pointer = u.pa;
+		return true;
+	}
+}
+#endif
+
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 
 FLAC__bool FLAC__memory_alloc_aligned_real_array(size_t elements, FLAC__real **unaligned_pointer, FLAC__real **aligned_pointer)

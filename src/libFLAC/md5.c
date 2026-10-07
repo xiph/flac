@@ -496,13 +496,15 @@ static void format_input_(FLAC__multibyte *mbuf, const FLAC__int32 * const signa
  */
 FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
 {
-	const size_t bytes_needed = (size_t)channels * (size_t)samples * (size_t)bytes_per_sample;
+	size_t bytes_needed;
 
 	/* overflow check */
 	if ((size_t)channels > SIZE_MAX / (size_t)bytes_per_sample)
 		return false;
 	if ((size_t)channels * (size_t)bytes_per_sample > SIZE_MAX / (size_t)samples)
 		return false;
+
+	bytes_needed = (size_t)channels * (size_t)samples * (size_t)bytes_per_sample;
 
 	if (ctx->capacity < bytes_needed) {
 		if (0 == (ctx->internal_buf.p8 = safe_realloc_(ctx->internal_buf.p8, bytes_needed))) {
@@ -520,3 +522,104 @@ FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const 
 
 	return true;
 }
+
+static void format_input_int64_(FLAC__multibyte *mbuf, const FLAC__int64 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
+{
+	FLAC__byte *buf_ = mbuf->p8;
+	FLAC__int64 a_word;
+	uint32_t channel, sample, b;
+
+	if (bytes_per_sample == 8) {
+		FLAC__int64 *buf64 = mbuf->p64;
+		for (sample = 0; sample < samples; sample++)
+			for (channel = 0; channel < channels; channel++)
+				*buf64++ = H2LE_64(signal[channel][sample]);
+		return;
+	}
+
+	for (sample = 0; sample < samples; sample++) {
+		for (channel = 0; channel < channels; channel++) {
+			a_word = signal[channel][sample];
+			for (b = 0; b < bytes_per_sample; b++) {
+				*buf_++ = (FLAC__byte)a_word;
+				a_word >>= 8;
+			}
+		}
+	}
+}
+
+FLAC__bool FLAC__MD5Accumulate_int64(FLAC__MD5Context *ctx, const FLAC__int64 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
+{
+	size_t bytes_needed;
+
+	/* overflow check */
+	if ((size_t)channels > SIZE_MAX / (size_t)bytes_per_sample)
+		return false;
+	if ((size_t)channels * (size_t)bytes_per_sample > SIZE_MAX / (size_t)samples)
+		return false;
+
+	bytes_needed = (size_t)channels * (size_t)samples * (size_t)bytes_per_sample;
+
+	if (ctx->capacity < bytes_needed) {
+		if (0 == (ctx->internal_buf.p8 = safe_realloc_(ctx->internal_buf.p8, bytes_needed))) {
+			if (0 == (ctx->internal_buf.p8 = safe_malloc_(bytes_needed))) {
+				ctx->capacity = 0;
+				return false;
+			}
+		}
+		ctx->capacity = bytes_needed;
+	}
+
+	format_input_int64_(&ctx->internal_buf, signal, channels, samples, bytes_per_sample);
+
+	FLAC__MD5Update(ctx, ctx->internal_buf.p8, bytes_needed);
+
+	return true;
+}
+
+#if FLAC__HAS_INT128
+static void format_input_int128_(FLAC__multibyte *mbuf, const FLAC__int128 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
+{
+	FLAC__byte *buf_ = mbuf->p8;
+	uint32_t channel, sample, b;
+
+	for (sample = 0; sample < samples; sample++) {
+		for (channel = 0; channel < channels; channel++) {
+			FLAC__int128 a_word = signal[channel][sample];
+			for (b = 0; b < bytes_per_sample; b++) {
+				*buf_++ = (FLAC__byte)a_word;
+				a_word >>= 8;
+			}
+		}
+	}
+}
+
+FLAC__bool FLAC__MD5Accumulate_int128(FLAC__MD5Context *ctx, const FLAC__int128 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample)
+{
+	size_t bytes_needed;
+
+	/* overflow check */
+	if ((size_t)channels > SIZE_MAX / (size_t)bytes_per_sample)
+		return false;
+	if ((size_t)channels * (size_t)bytes_per_sample > SIZE_MAX / (size_t)samples)
+		return false;
+
+	bytes_needed = (size_t)channels * (size_t)samples * (size_t)bytes_per_sample;
+
+	if (ctx->capacity < bytes_needed) {
+		if (0 == (ctx->internal_buf.p8 = safe_realloc_(ctx->internal_buf.p8, bytes_needed))) {
+			if (0 == (ctx->internal_buf.p8 = safe_malloc_(bytes_needed))) {
+				ctx->capacity = 0;
+				return false;
+			}
+		}
+		ctx->capacity = bytes_needed;
+	}
+
+	format_input_int128_(&ctx->internal_buf, signal, channels, samples, bytes_per_sample);
+
+	FLAC__MD5Update(ctx, ctx->internal_buf.p8, bytes_needed);
+
+	return true;
+}
+#endif

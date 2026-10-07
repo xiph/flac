@@ -57,7 +57,11 @@
 uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int64 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit(const FLAC__int64 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit_res64(const FLAC__int64 data[], uint32_t data_len, uint32_t subframe_bps, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#if FLAC__HAS_INT128
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_128bit(const FLAC__int128 data[], uint32_t data_len, uint32_t subframe_bps, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#endif
 # ifndef FLAC__NO_ASM
 #  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN
 #   ifdef FLAC__SSE2_SUPPORTED
@@ -79,7 +83,11 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2(const FLA
 uint32_t FLAC__fixed_compute_best_predictor(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 uint32_t FLAC__fixed_compute_best_predictor_wide(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 uint32_t FLAC__fixed_compute_best_predictor_limit_residual(const FLAC__int32 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
-uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int64 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit(const FLAC__int64 data[], uint32_t data_len, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit_res64(const FLAC__int64 data[], uint32_t data_len, uint32_t subframe_bps, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#if FLAC__HAS_INT128
+uint32_t FLAC__fixed_compute_best_predictor_limit_residual_128bit(const FLAC__int128 data[], uint32_t data_len, uint32_t subframe_bps, FLAC__fixedpoint residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
+#endif
 #endif
 
 /*
@@ -95,7 +103,11 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_33bit(const FLAC__int
  */
 void FLAC__fixed_compute_residual(const FLAC__int32 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
 void FLAC__fixed_compute_residual_wide(const FLAC__int32 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
-void FLAC__fixed_compute_residual_wide_33bit(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
+void FLAC__fixed_compute_residual_wide_64bit(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
+void FLAC__fixed_compute_residual_64bit(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int64 residual[]);
+#if FLAC__HAS_INT128
+void FLAC__fixed_compute_residual_128bit(const FLAC__int128 data[], uint32_t data_len, uint32_t order, FLAC__int128 residual[]);
+#endif
 
 /*
  *	FLAC__fixed_restore_signal()
@@ -112,6 +124,10 @@ void FLAC__fixed_compute_residual_wide_33bit(const FLAC__int64 data[], uint32_t 
  */
 void FLAC__fixed_restore_signal(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int32 data[]);
 void FLAC__fixed_restore_signal_wide(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int32 data[]);
-void FLAC__fixed_restore_signal_wide_33bit(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[]);
+void FLAC__fixed_restore_signal_wide_64bit(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[]);
+void FLAC__fixed_restore_signal_64bit(const FLAC__int64 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[]);
+#if FLAC__HAS_INT128
+void FLAC__fixed_restore_signal_wide_128bit(const FLAC__int128 residual[], uint32_t data_len, uint32_t order, FLAC__int128 data[]);
+#endif
 
 #endif
