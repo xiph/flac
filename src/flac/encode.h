@@ -116,8 +116,8 @@ typedef struct {
 		FLAC__bool disable_verbatim_subframes;
 		FLAC__bool do_md5;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-		FLAC__bool force_1subframe_float_mode;
-		FLAC__bool force_fallback_float_mode;
+		FLAC__FloatMode float_mode;
+		FLAC__bool force_empty_packed_subframe_which_is_not_lossless;
 #endif
 	} debug;
 } encode_options_t;

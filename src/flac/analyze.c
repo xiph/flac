@@ -67,14 +67,19 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 	const uint32_t channels = frame->header.channels;
 	char outfilename[1024];
 	subframe_stats_t stats;
-	uint32_t i, channel, partitions;
+	uint32_t i, channel, partitions, num_subframes;
 
 	/* do the human-readable part first */
 	if(decode_position_valid)
 		fprintf(fout, "frame=%u\toffset=%" PRIu64 "\tbits=%" PRIu64 "\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame_offset, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 	else
 		fprintf(fout, "frame=%u\toffset=?\tbits=?\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
-	for(channel = 0; channel < channels; channel++) {
+	num_subframes = channels;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(frame->header.sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+		num_subframes = channels * 2;
+#endif
+	for(channel = 0; channel < num_subframes; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
 		const FLAC__EntropyCodingMethodType ec_type = (subframe->type == FLAC__SUBFRAME_TYPE_FIXED) ? subframe->data.fixed.entropy_coding_method.type : ((subframe->type == FLAC__SUBFRAME_TYPE_LPC) ? subframe->data.lpc.entropy_coding_method.type : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
 		const char *res_type_str = ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 ? "RICE3" : (ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 ? "RICE2" : "RICE");
@@ -177,6 +182,9 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 				}
 				break;
 			case FLAC__SUBFRAME_TYPE_VERBATIM:
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			case FLAC__SUBFRAME_TYPE_PACKED:
+#endif
 				fprintf(fout, "\n");
 				break;
 		}

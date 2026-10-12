@@ -559,8 +559,8 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	of having to rewrite the entire file. Note that a block header 
 	of 4 bytes will come on top of the length specified.
 
-**\--force-1subframe-mode-which-is-not-lossless**
-:	(Float encoding only) Force encoding float frames using single-subframe
+**\--force-dpa-mode-which-is-not-lossless**
+:	(Float encoding only) Force encoding float frames using DPA
 	mode. WARNING: This mode is NOT guaranteed to be lossless if samples
 	exceed the dynamic window or contain special float values (such as
 	subnormals, NaN, or infinity).
@@ -568,6 +568,11 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 **\--force-fallback-mode**
 :	(Float encoding only) Force encoding float frames using 2-subframe
 	fallback mode (splitting exponent/sign and mantissa) for all frames.
+
+**\--force-empty-packed-subframe-which-is-not-lossless**
+:	(Float encoding only) Force PACKED subframes to store total_width=0
+	and omit sample contents, keeping only the 2-byte metadata.
+	WARNING: This mode is NOT lossless.
 
 
 ## FORMAT OPTIONS

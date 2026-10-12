@@ -235,8 +235,9 @@ static struct share__option long_options_[] = {
 	{ "disable-verbatim-subframes", share__no_argument, 0, 0 },
 	{ "no-md5-sum"                , share__no_argument, 0, 0 },
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	{ "force-1subframe-mode-which-is-not-lossless", share__no_argument, 0, 0 },
+	{ "force-dpa-mode-which-is-not-lossless", share__no_argument, 0, 0 },
 	{ "force-fallback-mode"      , share__no_argument, 0, 0 },
+	{ "force-empty-packed-subframe-which-is-not-lossless", share__no_argument, 0, 0 },
 #endif
 
 	{0, 0, 0, 0}
@@ -325,8 +326,8 @@ static struct {
 		FLAC__bool disable_verbatim_subframes;
 		FLAC__bool do_md5;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-		FLAC__bool force_1subframe_float_mode;
-		FLAC__bool force_fallback_float_mode;
+		FLAC__FloatMode float_mode;
+		FLAC__bool force_empty_packed_subframe_which_is_not_lossless;
 #endif
 	} debug;
 } option_values;
@@ -714,8 +715,8 @@ FLAC__bool init_options(void)
 	option_values.debug.disable_verbatim_subframes = false;
 	option_values.debug.do_md5 = true;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	option_values.debug.force_1subframe_float_mode = false;
-	option_values.debug.force_fallback_float_mode = false;
+	option_values.debug.float_mode = FLAC__FLOAT_MODE_UNKNOWN;
+	option_values.debug.force_empty_packed_subframe_which_is_not_lossless = false;
 #endif
 
 	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
@@ -1075,11 +1076,14 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			option_values.debug.do_md5 = false;
 		}
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-		else if(0 == strcmp(long_option, "force-1subframe-mode-which-is-not-lossless")) {
-			option_values.debug.force_1subframe_float_mode = true;
+		else if(0 == strcmp(long_option, "force-dpa-mode-which-is-not-lossless")) {
+			option_values.debug.float_mode = FLAC__FLOAT_MODE_DPA;
 		}
 		else if(0 == strcmp(long_option, "force-fallback-mode")) {
-			option_values.debug.force_fallback_float_mode = true;
+			option_values.debug.float_mode = FLAC__FLOAT_MODE_FALLBACK;
+		}
+		else if(0 == strcmp(long_option, "force-empty-packed-subframe-which-is-not-lossless")) {
+			option_values.debug.force_empty_packed_subframe_which_is_not_lossless = true;
 		}
 #endif
 		else if(0 == strcmp(long_option, "no-error-on-compression-fail")) {
@@ -1492,8 +1496,9 @@ void show_help(void)
 	printf("  -S, --seekpoint={#|X|#x|#s}        Add seek point(s)\n");
 	printf("  -P, --padding=#                    Write a PADDING block of length # bytes\n");
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	printf("      --force-1subframe-mode-which-is-not-lossless Force 1-subframe float encoding mode\n");
+	printf("      --force-dpa-mode-which-is-not-lossless Force DPA float encoding mode\n");
 	printf("      --force-fallback-mode          Force 2-subframe fallback float encoding mode\n");
+	printf("      --force-empty-packed-subframe-which-is-not-lossless Force packed subframe total_width=0\n");
 #endif
 	printf("\n");
 	printf("Format options (encoding defaults to FLAC not OGG; decoding defaults to WAVE, \n");
@@ -1855,8 +1860,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
 	encode_options.debug.do_md5 = option_values.debug.do_md5;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	encode_options.debug.force_1subframe_float_mode = option_values.debug.force_1subframe_float_mode;
-	encode_options.debug.force_fallback_float_mode = option_values.debug.force_fallback_float_mode;
+	encode_options.debug.float_mode = option_values.debug.float_mode;
+	encode_options.debug.force_empty_packed_subframe_which_is_not_lossless = option_values.debug.force_empty_packed_subframe_which_is_not_lossless;
 #endif
 	encode_options.error_on_compression_fail = option_values.error_on_compression_fail;
 	encode_options.limit_min_bitrate = option_values.limit_min_bitrate;

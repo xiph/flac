@@ -38,6 +38,7 @@
 #include <string.h> /* for strlen() */
 #include "private/stream_encoder_framing.h"
 #include "private/crc.h"
+#include "private/bitmath.h"
 #include "FLAC/assert.h"
 #include "share/compat.h"
 
@@ -428,7 +429,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	if(header->has_extension) {
-		uint32_t fallback_bit = header->is_fallback ? 1 : 0;
+		uint32_t fallback_bit = (header->float_mode == FLAC__FLOAT_MODE_FALLBACK) ? 1 : 0;
 		if(header->extension_mode == FLAC__FRAME_HEADER_EXTENSION_MODE_COMPACT) {
 			/* Compact Mode: 8 bits (3 bits decorrelation ID + 1 bit fallback + 4 bits reserved 0) */
 			uint32_t decorr = (uint32_t)header->channel_assignment & 0x07;
@@ -458,13 +459,6 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 			/* 8. 4 bits remaining reserved (0) + 9. 4-bit sample format */
 			if(!FLAC__bitwriter_write_raw_uint32(bw, sample_format, 8))
 				return false;
-		}
-		if(header->sample_type == FLAC__SAMPLE_TYPE_FLOAT && !header->is_fallback) {
-			uint32_t ch;
-			for(ch = 0; ch < header->channels; ch++) {
-				if(!FLAC__bitwriter_write_raw_uint32(bw, header->exponent_zero_offsets[ch], 8))
-					return false;
-			}
 		}
 	}
 #endif
@@ -713,6 +707,64 @@ FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, 
 
 	return true;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__bool FLAC__subframe_add_packed(const FLAC__Subframe_Packed *subframe, uint32_t samples, uint32_t wasted_bits, FLAC__BitWriter *bw)
+{
+	uint32_t i;
+	uint32_t stored_width;
+	const FLAC__int32 *upper32 = subframe->upper_is_64 ? NULL : (const FLAC__int32 *)subframe->upper_signal;
+	const FLAC__int64 *upper64 = subframe->upper_is_64 ? (const FLAC__int64 *)subframe->upper_signal : NULL;
+	const FLAC__int32 *low32 = subframe->lower_is_64 ? NULL : (const FLAC__int32 *)subframe->lower_signal;
+	const FLAC__int64 *low64 = subframe->lower_is_64 ? (const FLAC__int64 *)subframe->lower_signal : NULL;
+	uint32_t shift_split = subframe->shift_split;
+
+	(void)wasted_bits;
+
+	/* Subframe header: PACKED (0b000010), 0 wasted bits */
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_PACKED_BYTE_ALIGNED_MASK, FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+		return false;
+
+	/* 1. 8 bits exponent zero offset */
+	if(!FLAC__bitwriter_write_raw_uint32(bw, subframe->exponent_zero_offset, 8))
+		return false;
+
+	/* 2. 7 bits total alignment width + 1 bit reserved (0) */
+	stored_width = subframe->empty_subframe ? 0 : subframe->total_width;
+	if(!FLAC__bitwriter_write_raw_uint32(bw, (stored_width << 1), 8))
+		return false;
+
+	if(!subframe->empty_subframe && samples > 0) {
+		for(i = 0; i < samples; i++) {
+			FLAC__int64 up = subframe->upper_is_64 ? upper64[i] : (FLAC__int64)upper32[i];
+			uint32_t d;
+			uint32_t width;
+			if(up == 0 || up == -1) {
+				d = 0;
+			} else if(up > 0) {
+				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
+				uint32_t lead_full = lead_u + shift_split;
+				d = (lead_full > 23) ? (lead_full - 23) : 0;
+			} else {
+				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
+				uint32_t lead_full = lead_u + shift_split;
+				d = (lead_full > 23) ? (lead_full - 23) : 0;
+			}
+			width = (shift_split > d) ? (shift_split - d) : 0;
+			if(width > 0) {
+				uint64_t val64 = subframe->lower_is_64 ? (uint64_t)low64[i] : (uint64_t)(uint32_t)low32[i];
+				uint64_t val = (val64 >> d);
+				if(width < 64)
+					val &= (((uint64_t)1 << width) - 1);
+				if(!FLAC__bitwriter_write_raw_uint64(bw, val, width))
+					return false;
+			}
+		}
+	}
+
+	return true;
+}
+#endif
 
 FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method)
 {

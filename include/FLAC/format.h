@@ -207,6 +207,13 @@ typedef enum { FLAC__SAMPLE_TYPE_NOT_SPECIFIED = -1,
 			   FLAC__SAMPLE_TYPE_INT = 0,
 			   FLAC__SAMPLE_TYPE_FLOAT = 1 } FLAC__SampleType; // TODO: merge with endian & unsigned
 
+/** An enumeration of the float coding modes. */
+typedef enum {
+	FLAC__FLOAT_MODE_UNKNOWN = -1,
+	FLAC__FLOAT_MODE_FALLBACK = 0,
+	FLAC__FLOAT_MODE_DPA = 1
+} FLAC__FloatMode;
+
 /*****************************************************************************
  *
  * Subframe structures
@@ -301,7 +308,10 @@ typedef enum {
 	FLAC__SUBFRAME_TYPE_CONSTANT = 0, /**< constant signal */
 	FLAC__SUBFRAME_TYPE_VERBATIM = 1, /**< uncompressed signal */
 	FLAC__SUBFRAME_TYPE_FIXED = 2, /**< fixed polynomial prediction */
-	FLAC__SUBFRAME_TYPE_LPC = 3 /**< linear prediction */
+	FLAC__SUBFRAME_TYPE_LPC = 3, /**< linear prediction */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SUBFRAME_TYPE_PACKED = 4 /**< variable-width bit-packed subframe (type 0b000010) */
+#endif
 } FLAC__SubframeType;
 
 /** Maps a FLAC__SubframeType to a C string.
@@ -343,6 +353,21 @@ typedef struct {
 	} data;
 	FLAC__VerbatimSubframeDataType data_type;
 } FLAC__Subframe_Verbatim;
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** PACKED subframe for DPA float sample coding.
+ */
+typedef struct {
+	uint32_t shift_split;
+	FLAC__byte exponent_zero_offset;
+	uint32_t total_width;
+	FLAC__bool empty_subframe;
+	FLAC__bool upper_is_64;
+	const void *upper_signal;
+	FLAC__bool lower_is_64;
+	const void *lower_signal;
+} FLAC__Subframe_Packed;
+#endif
 
 
 /** FIXED subframe.  (c.f. <A HREF="https://xiph.org/flac/format.html#subframe_fixed">format specification</A>)
@@ -440,6 +465,9 @@ typedef struct {
 		FLAC__Subframe_Fixed fixed;
 		FLAC__Subframe_LPC lpc;
 		FLAC__Subframe_Verbatim verbatim;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLAC__Subframe_Packed packed;
+#endif
 	} data;
 	uint32_t wasted_bits;
 } FLAC__Subframe;
@@ -457,6 +485,9 @@ extern FLAC_API const uint32_t FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /**< == 1 (b
 
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /**< = 0x00 */
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /**< = 0x02 */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_PACKED_BYTE_ALIGNED_MASK; /**< = 0x04 (type 0b000010) */
+#endif
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /**< = 0x10 */
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /**< = 0x40 */
 
@@ -554,9 +585,13 @@ typedef struct {
 	FLAC__SampleType sample_type;
 	/**< The sample format enum (PCM integer or PCM float). */
 	FLAC__byte exponent_zero_offsets[FLAC__MAX_CHANNELS];
-	/**< Base exponent (DC offset) per channel for float samples. */
-	FLAC__bool is_fallback;
-	/**< Frame-wide fallback flag: true = 2 subframes per channel (raw exp + cyclic mantissa), false = 1 subframe per channel. */
+	/**< Highest exponent per channel for float samples (decoded from PACKED subframe in DPA mode). */
+	FLAC__byte shift_split[FLAC__MAX_CHANNELS];
+	/**< Shift split per channel for 2-way DPA float samples (derived from PACKED subframe total width and split point). */
+	FLAC__byte total_width[FLAC__MAX_CHANNELS];
+	/**< Total alignment width per channel for 2-way DPA float samples (decoded from PACKED subframe in DPA mode). */
+	FLAC__FloatMode float_mode;
+	/**< Float coding mode: FLAC__FLOAT_MODE_DPA (2-subframe DPA mode: Upper Rice + Lower PACKED) or FLAC__FLOAT_MODE_FALLBACK (2-subframe fallback mode: 8-bit exp + 24-bit mantissa). */
 #endif
 } FLAC__FrameHeader;
 
@@ -1071,6 +1106,15 @@ FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid_extension(FLAC__float64 sa
  *    if it's FLAC__SAMPLE_TYPE_INT, else \c "not_specified".
  */
 FLAC_API const char* FLAC__get_sample_type_string(FLAC__SampleType sample_type);
+
+/** Returns the corresponding string to the float mode.
+ *
+ * \param float_mode     The float mode.
+ * \retval const char*
+ *    \c "fallback" if FLAC__FLOAT_MODE_FALLBACK, \c "dpa" if
+ *    \c FLAC__FLOAT_MODE_DPA, else \c "unknown".
+ */
+FLAC_API const char* FLAC__get_float_mode_string(FLAC__FloatMode float_mode);
 #endif
 
 /** Tests that a blocksize at the given sample rate is valid for the FLAC

@@ -42,5 +42,8 @@ FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, 
 FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, uint32_t residual_samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
 FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, uint32_t residual_samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
 FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, uint32_t samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__bool FLAC__subframe_add_packed(const FLAC__Subframe_Packed *subframe, uint32_t samples, uint32_t wasted_bits, FLAC__BitWriter *bw);
+#endif
 
 #endif

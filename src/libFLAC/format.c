@@ -183,6 +183,9 @@ FLAC_API const uint32_t FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN = 1; /* bits */
 
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK = 0x00;
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK = 0x02;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_PACKED_BYTE_ALIGNED_MASK = 0x04;
+#endif
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK = 0x10;
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK = 0x40;
 
@@ -190,7 +193,10 @@ FLAC_API const char * const FLAC__SubframeTypeString[] = {
 	"CONSTANT",
 	"VERBATIM",
 	"FIXED",
-	"LPC"
+	"LPC",
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	"PACKED"
+#endif
 };
 
 FLAC_API const char * const FLAC__ChannelAssignmentString[] = {
@@ -281,6 +287,15 @@ const char* FLAC__get_sample_type_string(FLAC__SampleType sample_type) {
         return "int";
     else
         return "not_specified";
+}
+
+const char* FLAC__get_float_mode_string(FLAC__FloatMode float_mode) {
+    if(float_mode == FLAC__FLOAT_MODE_FALLBACK)
+        return "fallback";
+    else if(float_mode == FLAC__FLOAT_MODE_DPA)
+        return "dpa";
+    else
+        return "unknown";
 }
 #endif
 

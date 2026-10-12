@@ -2219,8 +2219,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_disable_fixed_subframes(e->encoder, options.debug.disable_fixed_subframes);
 	FLAC__stream_encoder_disable_verbatim_subframes(e->encoder, options.debug.disable_verbatim_subframes);
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
-	FLAC__stream_encoder_set_force_1subframe_float_mode(e->encoder, options.debug.force_1subframe_float_mode);
-	FLAC__stream_encoder_set_force_fallback_float_mode(e->encoder, options.debug.force_fallback_float_mode);
+	FLAC__stream_encoder_set_float_mode(e->encoder, options.debug.float_mode);
+	if(options.debug.force_empty_packed_subframe_which_is_not_lossless) {
+		FLAC__stream_encoder_set_force_empty_packed_subframe_which_is_not_lossless(e->encoder, true);
+		FLAC__stream_encoder_set_do_md5(e->encoder, false);
+	}
 #endif
 	if(!options.debug.do_md5) {
 		flac__utils_printf(stderr, 1, "%s: WARNING, MD5 computation disabled, resulting file will not have MD5 sum\n", e->inbasefilename);
