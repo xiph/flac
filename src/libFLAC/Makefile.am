@@ -64,7 +64,10 @@ EXTRA_DIST = \
 
 if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 float_sample_encoding_sources = \
-	transform_float.c
+	transform_float.c \
+	transform_float_intrin_sse2.c \
+	transform_float_intrin_sse41.c \
+	transform_float_intrin_avx2.c
 endif
 
 if OS_IS_WINDOWS

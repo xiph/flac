@@ -208,6 +208,10 @@ typedef struct FLAC__StreamDecoderPrivate {
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 	uint32_t fuzzing_rewind_count; /* To stop excessive rewinding, as it causes timeouts */
 #endif
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	void (*local_combine_subframe_signals_fallback_to_f32_buffer)(uint32_t *dest, const FLAC__int32 *exp_signal, const FLAC__int32 *sign_mant_signal, size_t n);
+	void (*local_combine_subframe_signals_dpa_to_f32_buffer)(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t shift_split, size_t n, FLAC__byte highest_exp, uint32_t total_width, uint32_t split_point);
+#endif
 } FLAC__StreamDecoderPrivate;
 
 /***********************************************************************
@@ -435,6 +439,26 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 	if (decoder->private_->cpuinfo.x86.bmi2) {
 		decoder->private_->local_bitreader_read_rice_signed_block = FLAC__bitreader_read_rice_signed_block_bmi2;
 	}
+#endif
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	decoder->private_->local_combine_subframe_signals_fallback_to_f32_buffer = FLAC__combine_subframe_signals_fallback_to_f32_buffer;
+	decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer = FLAC__combine_subframe_signals_dpa_to_f32_buffer;
+# if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
+	if (decoder->private_->cpuinfo.use_asm) {
+#  ifdef FLAC__SSE2_SUPPORTED
+		if (decoder->private_->cpuinfo.x86.sse2) {
+			decoder->private_->local_combine_subframe_signals_fallback_to_f32_buffer = FLAC__combine_subframe_signals_fallback_to_f32_buffer_intrin_sse2;
+		}
+#  endif
+#  ifdef FLAC__AVX2_SUPPORTED
+		if (decoder->private_->cpuinfo.x86.avx2) {
+			decoder->private_->local_combine_subframe_signals_fallback_to_f32_buffer = FLAC__combine_subframe_signals_fallback_to_f32_buffer_intrin_avx2;
+			decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer = FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2;
+		}
+#  endif
+	}
+# endif
 #endif
 
 	/* from here on, errors are fatal */
@@ -4602,7 +4626,7 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 				uint32_t channel;
 				for(channel = 0; channel < frame->header.channels; channel++) {
 					if(frame->header.float_mode == FLAC__FLOAT_MODE_FALLBACK) {
-						FLAC__combine_subframe_signals_fallback_to_f32_buffer((uint32_t *)decoder->private_->output[channel], decoder->private_->output[2*channel], decoder->private_->output[2*channel+1], frame->header.blocksize);
+						decoder->private_->local_combine_subframe_signals_fallback_to_f32_buffer((uint32_t *)decoder->private_->output[channel], decoder->private_->output[2*channel], decoder->private_->output[2*channel+1], frame->header.blocksize);
 					}
 					else {
 						const FLAC__int32 *upper32 = decoder->private_->output[2 * channel];
@@ -4611,7 +4635,7 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 						const FLAC__int32 *lower32 = decoder->private_->output[2 * channel + 1];
 						const FLAC__int64 *lower64 = decoder->private_->output64[2 * channel + 1];
 						uint32_t shift_split = frame->header.shift_split[channel];
-						FLAC__combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (shift_split <= 32) ? (const void *)lower32 : (const void *)lower64, (shift_split <= 32) ? false : true, shift_split, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.total_width[channel], frame->header.bits_per_sample);
+						decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (shift_split <= 32) ? (const void *)lower32 : (const void *)lower64, (shift_split <= 32) ? false : true, shift_split, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.total_width[channel], frame->header.bits_per_sample);
 					}
 				}
 			}
@@ -4682,7 +4706,7 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 			uint32_t channel;
 			for(channel = 0; channel < frame->header.channels; channel++) {
 				if(frame->header.float_mode == FLAC__FLOAT_MODE_FALLBACK) {
-					FLAC__combine_subframe_signals_fallback_to_f32_buffer((uint32_t *)decoder->private_->output[channel], decoder->private_->output[2*channel], decoder->private_->output[2*channel+1], frame->header.blocksize);
+					decoder->private_->local_combine_subframe_signals_fallback_to_f32_buffer((uint32_t *)decoder->private_->output[channel], decoder->private_->output[2*channel], decoder->private_->output[2*channel+1], frame->header.blocksize);
 				}
 				else {
 					const FLAC__int32 *upper32 = decoder->private_->output[2 * channel];
@@ -4691,7 +4715,7 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 					const FLAC__int32 *lower32 = decoder->private_->output[2 * channel + 1];
 					const FLAC__int64 *lower64 = decoder->private_->output64[2 * channel + 1];
 					uint32_t shift_split = frame->header.shift_split[channel];
-					FLAC__combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (shift_split <= 32) ? (const void *)lower32 : (const void *)lower64, (shift_split <= 32) ? false : true, shift_split, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.total_width[channel], frame->header.bits_per_sample);
+					decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (shift_split <= 32) ? (const void *)lower32 : (const void *)lower64, (shift_split <= 32) ? false : true, shift_split, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.total_width[channel], frame->header.bits_per_sample);
 				}
 			}
 		}

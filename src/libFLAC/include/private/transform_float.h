@@ -37,6 +37,7 @@
 #include "FLAC/ordinals.h"
 #include "FLAC/format.h"
 #include "private/md5.h"
+#include "private/cpu.h"
 
 void FLAC__compute_channel_base_exp_float(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
 void FLAC__combine_subframe_signals_fallback_to_f32_buffer(uint32_t *dest, const FLAC__int32 *exp_signal, const FLAC__int32 *sign_mant_signal, size_t n);
@@ -45,5 +46,29 @@ void FLAC__transform_frame_fallback_float(FLAC__int32 *dest_signals[], const uin
 void FLAC__transform_frame_dpa_float(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte shift_split[], uint32_t channel_bps_out[], uint32_t *split_point_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize);
 void FLAC__combine_subframe_signals_dpa_to_f32_buffer(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t shift_split, size_t n, FLAC__byte highest_exp, uint32_t total_width, uint32_t split_point);
 FLAC__bool FLAC__MD5Accumulate_float(FLAC__MD5Context *ctx, const uint32_t * const float_signals[], uint32_t channels, uint32_t samples);
+
+
+#if FLAC__HAS_X86INTRIN
+
+#ifdef FLAC__SSE2_SUPPORTED
+void FLAC__transform_frame_fallback_float_intrin_sse2(FLAC__int32 *dest_signals[], const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize);
+void FLAC__combine_subframe_signals_fallback_to_f32_buffer_intrin_sse2(uint32_t *dest, const FLAC__int32 *exp_signal, const FLAC__int32 *sign_mant_signal, size_t n);
+#endif
+
+#ifdef FLAC__SSE4_1_SUPPORTED
+void FLAC__compute_channel_base_exp_float_intrin_sse41(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
+FLAC__bool FLAC__check_frame_lossless_float_intrin_sse41(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
+#endif
+
+#ifdef FLAC__AVX2_SUPPORTED
+void FLAC__compute_channel_base_exp_float_intrin_avx2(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
+FLAC__bool FLAC__check_frame_lossless_float_intrin_avx2(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
+void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte shift_split[], uint32_t channel_bps_out[], uint32_t *split_point_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize);
+void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t shift_split, size_t n, FLAC__byte highest_exp, uint32_t total_width, uint32_t split_point);
+void FLAC__transform_frame_fallback_float_intrin_avx2(FLAC__int32 *dest_signals[], const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize);
+void FLAC__combine_subframe_signals_fallback_to_f32_buffer_intrin_avx2(uint32_t *dest, const FLAC__int32 *exp_signal, const FLAC__int32 *sign_mant_signal, size_t n);
+#endif
+
+#endif
 
 #endif

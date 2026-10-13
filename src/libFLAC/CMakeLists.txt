@@ -19,7 +19,7 @@ if(FLAC__CPU_X86_64 OR FLAC__CPU_IA32)
     set(FLAC__ALIGN_MALLOC_DATA 1)
     option(WITH_AVX "Enable AVX, AVX2 optimizations (with runtime detection, resulting binary does not require AVX2, so only necessary when a compiler doesn't know about AVX)" ON)
     if(WITH_AVX AND MSVC)
-        set_source_files_properties(fixed_intrin_avx2.c lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
+        set_source_files_properties(fixed_intrin_avx2.c lpc_intrin_avx2.c stream_encoder_intrin_avx2.c lpc_intrin_fma.c transform_float_intrin_avx2.c PROPERTIES COMPILE_FLAGS /arch:AVX2)
     endif()
 else()
     check_cpu_arch_arm64(FLAC__CPU_ARM64)
@@ -66,6 +66,9 @@ add_library(FLAC
     version.rc
     window.c
     $<$<BOOL:${ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING}>:transform_float.c>
+    $<$<BOOL:${ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING}>:transform_float_intrin_sse2.c>
+    $<$<BOOL:${ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING}>:transform_float_intrin_sse41.c>
+    $<$<BOOL:${ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING}>:transform_float_intrin_avx2.c>
     $<$<BOOL:${WIN32}>:../../include/share/win_utf8_io.h>
     $<$<BOOL:${WIN32}>:../share/win_utf8_io/win_utf8_io.c>
     $<$<BOOL:${OGG_FOUND}>:ogg_decoder_aspect.c>

@@ -565,6 +565,10 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__FloatMode float_mode;
 	uint32_t compression_level;
 	FLAC__bool force_empty_packed_subframe_which_is_not_lossless;
+	void (*local_compute_channel_base_exp_float)(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
+	FLAC__bool (*local_check_frame_lossless_float)(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
+	void (*local_transform_frame_fallback_float)(FLAC__int32 *dest_signals[], const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize);
+	void (*local_transform_frame_dpa_float)(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte shift_split[], uint32_t channel_bps_out[], uint32_t *split_point_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize);
 #endif
 	FLAC__bool is_ogg;
 	FLAC__StreamEncoderReadCallback read_callback; /* currently only needed for Ogg FLAC */
@@ -1073,6 +1077,12 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual;
 	encoder->private_->local_fixed_compute_best_predictor_limit_residual_64bit = FLAC__fixed_compute_best_predictor_limit_residual_64bit;
 	encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float;
+	encoder->private_->local_check_frame_lossless_float = FLAC__check_frame_lossless_float;
+	encoder->private_->local_transform_frame_fallback_float = FLAC__transform_frame_fallback_float;
+	encoder->private_->local_transform_frame_dpa_float = FLAC__transform_frame_dpa_float;
+#endif
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide;
@@ -1252,6 +1262,34 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 # endif /* FLAC__CPU_... */
 	}
 #endif /* !FLAC__NO_ASM && FLAC__HAS_X86INTRIN */
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+# if !defined FLAC__NO_ASM && FLAC__HAS_X86INTRIN
+	if(encoder->private_->cpuinfo.use_asm) {
+#  if (defined FLAC__CPU_IA32 || defined FLAC__CPU_X86_64)
+#   ifdef FLAC__SSE2_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.sse2) {
+			encoder->private_->local_transform_frame_fallback_float = FLAC__transform_frame_fallback_float_intrin_sse2;
+		}
+#   endif
+#   ifdef FLAC__SSE4_1_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.sse41) {
+			encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float_intrin_sse41;
+			encoder->private_->local_check_frame_lossless_float = FLAC__check_frame_lossless_float_intrin_sse41;
+		}
+#   endif
+#   ifdef FLAC__AVX2_SUPPORTED
+		if (encoder->private_->cpuinfo.x86.avx2) {
+			encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float_intrin_avx2;
+			encoder->private_->local_check_frame_lossless_float = FLAC__check_frame_lossless_float_intrin_avx2;
+			encoder->private_->local_transform_frame_fallback_float = FLAC__transform_frame_fallback_float_intrin_avx2;
+			encoder->private_->local_transform_frame_dpa_float = FLAC__transform_frame_dpa_float_intrin_avx2;
+		}
+#   endif
+#  endif /* FLAC__CPU_... */
+	}
+# endif /* !FLAC__NO_ASM && FLAC__HAS_X86INTRIN */
+#endif /* ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING */
 
 	/* set state to OK; from here on, errors are fatal and we'll override the state then */
 	encoder->protected_->state = FLAC__STREAM_ENCODER_OK;
@@ -4269,12 +4307,12 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 		if(encoder->private_->float_mode == FLAC__FLOAT_MODE_FALLBACK) {
 			frame_lossless = false;
 		}
-		else if(encoder->private_->float_mode == FLAC__FLOAT_MODE_DPA || encoder->private_->force_empty_packed_subframe_which_is_not_lossless) {
-			FLAC__compute_channel_base_exp_float((const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_highest_exp, channel_lowest_exp);
+		else if(encoder->private_->force_empty_packed_subframe_which_is_not_lossless) {
+			encoder->private_->local_compute_channel_base_exp_float((const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_highest_exp, channel_lowest_exp);
 			frame_lossless = true;
 		}
 		else {
-			frame_lossless = FLAC__check_frame_lossless_float((const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_highest_exp, channel_lowest_exp);
+			frame_lossless = encoder->private_->local_check_frame_lossless_float((const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_highest_exp, channel_lowest_exp);
 		}
 
 		encoder->private_->threadtask[0]->force_empty_packed_subframe_which_is_not_lossless = encoder->private_->force_empty_packed_subframe_which_is_not_lossless;
@@ -4287,7 +4325,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 
 		if(!frame_lossless) {
 			/* Fallback 2-subframe mode per channel: raw 8-bit exponent + 24-bit significand (two's complement) */
-			FLAC__transform_frame_fallback_float(
+			encoder->private_->local_transform_frame_fallback_float(
 				encoder->private_->threadtask[0]->integer_signal,
 				(const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal,
 				encoder->protected_->channels,
@@ -4296,7 +4334,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 		}
 		else {
 			/* DPA mode: 2 subframes per channel (Upper, Lower) */
-			FLAC__transform_frame_dpa_float(
+			encoder->private_->local_transform_frame_dpa_float(
 				encoder->private_->threadtask[0]->integer_signal,
 				encoder->private_->threadtask[0]->integer_signal64,
 				(const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal,
@@ -4795,6 +4833,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	if(encoder->protected_->do_mid_side_stereo && encoder->protected_->channels == 2
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	   && (encoder->protected_->bits_per_sample <= 63 || encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+	   && (encoder->protected_->sample_type != FLAC__SAMPLE_TYPE_FLOAT || frame_header.float_mode == FLAC__FLOAT_MODE_FALLBACK)
 #else
 	   && encoder->protected_->bits_per_sample <= 63
 #endif
@@ -5141,7 +5180,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 			/* Compressed ratio is not better than 75%: fallback mode */
 			frame_header.float_mode = FLAC__FLOAT_MODE_FALLBACK;
 			threadtask->float_mode = FLAC__FLOAT_MODE_FALLBACK;
-			FLAC__transform_frame_fallback_float(threadtask->integer_signal, (const uint32_t * const *)threadtask->raw_float_signal, encoder->protected_->channels, frame_header.blocksize);
+			encoder->private_->local_transform_frame_fallback_float(threadtask->integer_signal, (const uint32_t * const *)threadtask->raw_float_signal, encoder->protected_->channels, frame_header.blocksize);
 
 			for(channel = 0; channel < num_subframes; channel++) {
 				uint32_t sf_bps = (channel % 2 == 0) ? 8 : 24;
