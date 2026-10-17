@@ -169,14 +169,14 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
  *  file.  This function will try to skip any ID3v2 tag at the head
  *  of the file.
  *
- * \param filename    The path to the FLAC or Ogg FLAC file to read.
- * \param streaminfo  A pointer to space for the STREAMINFO_EXTENSION block.  Since
- *                    FLAC__StreamMetadata is a simple structure with no
- *                    memory allocation involved, you pass the address of
- *                    an existing structure.  It need not be initialized.
+ * \param filename              The path to the FLAC or Ogg FLAC file to read.
+ * \param streaminfo_extension  A pointer to space for the STREAMINFO_EXTENSION block.  Since
+ *                              FLAC__StreamMetadata is a simple structure with no
+ *                              memory allocation involved, you pass the address of
+ *                              an existing structure.  It need not be initialized.
  * \assert
  *    \code filename != NULL \endcode
- *    \code streaminfo != NULL \endcode
+ *    \code streaminfo_extension != NULL \endcode
  * \retval FLAC__bool
  *    \c true if a valid STREAMINFO_EXTENSION block was read from \a filename.  Returns
  *    \c false if there was a memory allocation error, a file decoder error,

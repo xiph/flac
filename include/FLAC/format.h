@@ -109,9 +109,11 @@ extern "C" {
 /** The maximum number of channels permitted by the format. */
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 #define FLAC__MAX_CHANNELS (256u)
+/** The maximum number of subframes permitted by the format. */
 #define FLAC__MAX_SUBFRAMES (512u)
 #else
 #define FLAC__MAX_CHANNELS (8u)
+/** The maximum number of subframes permitted by the format. */
 #define FLAC__MAX_SUBFRAMES (8u)
 #endif
 
@@ -203,9 +205,12 @@ extern FLAC_API const uint32_t FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 /** The length of the FLAC signature in bytes. */
 #define FLAC__STREAM_SYNC_LENGTH (4u)
 
-typedef enum { FLAC__SAMPLE_TYPE_NOT_SPECIFIED = -1,
-			   FLAC__SAMPLE_TYPE_INT = 0,
-			   FLAC__SAMPLE_TYPE_FLOAT = 1 } FLAC__SampleType; // TODO: merge with endian & unsigned
+/** An enumeration of the available sample data types. */
+typedef enum {
+	FLAC__SAMPLE_TYPE_NOT_SPECIFIED = -1, /**< Sample type is not specified */
+	FLAC__SAMPLE_TYPE_INT = 0,            /**< Integer PCM samples */
+	FLAC__SAMPLE_TYPE_FLOAT = 1           /**< 32-bit IEEE 754 floating-point samples */
+} FLAC__SampleType; // TODO: merge with endian & unsigned
 
 /** An enumeration of the float coding modes. */
 typedef enum {
@@ -359,12 +364,19 @@ typedef struct {
  */
 typedef struct {
 	uint32_t lower_bits;
+	/**< Number of lower bits per sample stored in the packed subframe. */
 	FLAC__byte exponent_zero_offset;
+	/**< Exponent zero-offset value for exponent reconstruction. */
 	FLAC__bool empty_subframe;
+	/**< Whether this packed subframe is empty. */
 	FLAC__bool upper_is_64;
+	/**< True if upper signal samples are 64-bit integers. */
 	const void *upper_signal;
+	/**< Pointer to the upper signal buffer. */
 	FLAC__bool lower_is_64;
+	/**< True if lower signal samples are 64-bit integers. */
 	const void *lower_signal;
+	/**< Pointer to the lower signal buffer. */
 } FLAC__Subframe_Packed;
 #endif
 
@@ -607,6 +619,7 @@ extern FLAC_API const uint32_t FLAC__FRAME_HEADER_CRC_LEN; /**< == 8 (bits) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_DECORRELATION_LEN; /**< == 3 (bits) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_FLOAT_FALLBACK_MODE_LEN; /**< == 1 (bit) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_RESERVED_LEN; /**< == 4 (bits) */
+/** The total length of the compact frame header extension in bytes. */
 #define FLAC__FRAME_HEADER_EXTENSION_COMPACT_LENGTH (1u)
 
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SAMPLE_RATE_LEN; /**< == 64 (bits) */
@@ -619,6 +632,7 @@ extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_BITS_PER_SAMPLE
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_FLOAT_FALLBACK_MODE_LEN; /**< == 1 (bit) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_RESERVED_LEN; /**< == 4 (bits) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SAMPLE_FORMAT_LEN; /**< == 4 (bits) */
+/** The total length of the full frame header extension in bytes. */
 #define FLAC__FRAME_HEADER_EXTENSION_FULL_LENGTH (16u)
 #endif
 
@@ -730,10 +744,15 @@ extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /**<
  */
 typedef struct {
 	FLAC__float64 sample_rate;
+	/**< Sample rate in Hz (supports non-integer and double precision rates). */
 	uint32_t channels;
+	/**< Number of channels (supports up to 256 channels). */
 	uint32_t channel_mask;
+	/**< WAVEFORMATEXTENSIBLE channel mask. */
 	uint32_t bits_per_sample;
+	/**< Bits per sample (sample resolution). */
 	FLAC__SampleType sample_type;
+	/**< Sample type (integer or IEEE 754 float). */
 } FLAC__StreamMetadata_StreamInfo_Extension;
 
 extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SAMPLE_RATE_LEN; /**< == 64 (bits) */
