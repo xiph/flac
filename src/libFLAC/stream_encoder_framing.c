@@ -712,12 +712,12 @@ FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, 
 FLAC__bool FLAC__subframe_add_packed(const FLAC__Subframe_Packed *subframe, uint32_t samples, uint32_t wasted_bits, FLAC__BitWriter *bw)
 {
 	uint32_t i;
-	uint32_t stored_width;
+	uint32_t stored_lower_bits;
 	const FLAC__int32 *upper32 = subframe->upper_is_64 ? NULL : (const FLAC__int32 *)subframe->upper_signal;
 	const FLAC__int64 *upper64 = subframe->upper_is_64 ? (const FLAC__int64 *)subframe->upper_signal : NULL;
 	const FLAC__int32 *low32 = subframe->lower_is_64 ? NULL : (const FLAC__int32 *)subframe->lower_signal;
 	const FLAC__int64 *low64 = subframe->lower_is_64 ? (const FLAC__int64 *)subframe->lower_signal : NULL;
-	uint32_t shift_split = subframe->shift_split;
+	uint32_t lower_bits = subframe->lower_bits;
 
 	(void)wasted_bits;
 
@@ -729,9 +729,9 @@ FLAC__bool FLAC__subframe_add_packed(const FLAC__Subframe_Packed *subframe, uint
 	if(!FLAC__bitwriter_write_raw_uint32(bw, subframe->exponent_zero_offset, 8))
 		return false;
 
-	/* 2. 7 bits total alignment width + 1 bit reserved (0) */
-	stored_width = subframe->empty_subframe ? 0 : subframe->total_width;
-	if(!FLAC__bitwriter_write_raw_uint32(bw, (stored_width << 1), 8))
+	/* 2. 5 bits lower_bits (0..31) + 3 bits reserved (000) */
+	stored_lower_bits = subframe->empty_subframe ? 0 : lower_bits;
+	if(!FLAC__bitwriter_write_raw_uint32(bw, (stored_lower_bits << 3), 8))
 		return false;
 
 	if(!subframe->empty_subframe && samples > 0) {
@@ -739,25 +739,31 @@ FLAC__bool FLAC__subframe_add_packed(const FLAC__Subframe_Packed *subframe, uint
 			FLAC__int64 up = subframe->upper_is_64 ? upper64[i] : (FLAC__int64)upper32[i];
 			uint32_t d;
 			uint32_t width;
-			if(up == 0 || up == -1) {
-				d = 0;
-			} else if(up > 0) {
-				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
-				uint32_t lead_full = lead_u + shift_split;
-				d = (lead_full > 23) ? (lead_full - 23) : 0;
-			} else {
-				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
-				uint32_t lead_full = lead_u + shift_split;
-				d = (lead_full > 23) ? (lead_full - 23) : 0;
-			}
-			width = (shift_split > d) ? (shift_split - d) : 0;
-			if(width > 0) {
-				uint64_t val64 = subframe->lower_is_64 ? (uint64_t)low64[i] : (uint64_t)(uint32_t)low32[i];
-				uint64_t val = (val64 >> d);
-				if(width < 64)
-					val &= (((uint64_t)1 << width) - 1);
-				if(!FLAC__bitwriter_write_raw_uint64(bw, val, width))
+			if(up == 0) {
+				uint32_t val32 = subframe->lower_is_64 ? (uint32_t)low64[i] : (uint32_t)low32[i];
+				if(!FLAC__bitwriter_write_raw_uint32(bw, val32, 32))
 					return false;
+			} else if(lower_bits > 0) {
+				if(up == -1) {
+					d = 0;
+				} else if(up > 0) {
+					uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
+					uint32_t lead_full = lead_u + lower_bits;
+					d = (lead_full > 23) ? (lead_full - 23) : 0;
+				} else {
+					uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
+					uint32_t lead_full = lead_u + lower_bits;
+					d = (lead_full > 23) ? (lead_full - 23) : 0;
+				}
+				width = (lower_bits > d) ? (lower_bits - d) : 0;
+				if(width > 0) {
+					uint64_t val64 = subframe->lower_is_64 ? (uint64_t)low64[i] : (uint64_t)(uint32_t)low32[i];
+					uint64_t val = (val64 >> d);
+					if(width < 64)
+						val &= (((uint64_t)1 << width) - 1);
+					if(!FLAC__bitwriter_write_raw_uint64(bw, val, width))
+						return false;
+				}
 			}
 		}
 	}

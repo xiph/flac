@@ -141,7 +141,7 @@ void FLAC__compute_channel_base_exp_float(const uint32_t * const raw_signals[], 
 			uint32_t raw = raw_signals[ch][s];
 			uint32_t exp = (raw >> 23) & 0xFF;
 			uint32_t mant = raw & 0x7FFFFF;
-			if (exp != 0 || mant != 0) {
+			if (exp > 0 && exp < 255) {
 				uint32_t explicit_mant = (1u << 23) | mant;
 				int tz = flac_ctz32(explicit_mant);
 				int pos_high = (int)exp;
@@ -211,15 +211,15 @@ void FLAC__combine_subframe_signals_fallback_to_f32_buffer(uint32_t *dest, const
  * Recombines 2-way DPA integer subframes (Upper, Lower) into standard 32-bit IEEE 754
  * floating-point raw words.
  */
-void FLAC__combine_subframe_signals_dpa_to_f32_buffer(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t shift_split, size_t n, FLAC__byte highest_exp, uint32_t total_width, uint32_t split_point)
+void FLAC__combine_subframe_signals_dpa_to_f32_buffer(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t lower_bits, size_t n, FLAC__byte highest_exp, uint32_t upper_bits)
 {
 	size_t i;
-	const uint64_t mask = (shift_split >= 64) ? (~(uint64_t)0) : ((shift_split > 0) ? (((uint64_t)1 << shift_split) - 1) : 0);
+	const uint64_t mask = (lower_bits > 0) ? (((uint64_t)1 << lower_bits) - 1) : 0;
 	const FLAC__int32 *up32 = upper_is_64 ? NULL : (const FLAC__int32 *)upper_signal;
 	const FLAC__int64 *up64 = upper_is_64 ? (const FLAC__int64 *)upper_signal : NULL;
 	const FLAC__int32 *low32 = lower_is_64 ? NULL : (const FLAC__int32 *)lower_signal;
 	const FLAC__int64 *low64 = lower_is_64 ? (const FLAC__int64 *)lower_signal : NULL;
-	const uint32_t eff_width = (total_width > 0) ? total_width : split_point;
+	const uint32_t eff_width = upper_bits + lower_bits;
 	const int base_exp = (int)highest_exp - (int)(eff_width - 2);
 
 	for (i = 0; i < n; i++) {
@@ -228,99 +228,33 @@ void FLAC__combine_subframe_signals_dpa_to_f32_buffer(uint32_t *dest, const void
 		uint64_t low_u = (uint64_t)low_val & mask;
 		FLAC__int64 full_x;
 
-		if (shift_split == 0)
-			full_x = up;
-		else
-			full_x = (FLAC__int64)(((uint64_t)up << shift_split) | low_u);
-
-		if (full_x == 0) {
-			dest[i] = 0;
-		} else {
-			uint32_t sign = (full_x < 0) ? 1 : 0;
-			uint64_t uval = (full_x < 0) ? (uint64_t)(-full_x) : (uint64_t)full_x;
+		if (up == 0) {
+			dest[i] = (uint32_t)low_val;
+		} else if (lower_bits == 0) {
+			uint32_t sign = (up < 0) ? 1 : 0;
+			uint64_t uval = (up < 0) ? (uint64_t)(-up) : (uint64_t)up;
 			int leading_bit_pos = (int)FLAC__bitmath_ilog2_wide(uval);
 			int shift = leading_bit_pos - 23;
 			uint32_t orig_exp = (uint32_t)(base_exp + leading_bit_pos);
 			uint32_t explicit_mant = (shift >= 0) ? (uint32_t)(uval >> shift) : (uint32_t)(uval << (-shift));
 			uint32_t orig_mant = explicit_mant & 0x7FFFFF;
 			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
-		}
-	}
-}
-
-FLAC__bool FLAC__check_frame_lossless_float(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[])
-{
-	uint32_t ch;
-	int ch_highest[FLAC__MAX_CHANNELS];
-	int ch_lowest[FLAC__MAX_CHANNELS];
-	for (ch = 0; ch < channels; ch++) {
-		int highest_pos = -1;
-		int lowest_pos = 1000;
-		uint32_t s;
-		for (s = 0; s < blocksize; s++) {
-			uint32_t raw = raw_signals[ch][s];
-			uint32_t exp = (raw >> 23) & 0xFF;
-			uint32_t sign = (raw >> 31) & 1;
-			uint32_t mant = raw & 0x7FFFFF;
-			if (exp == 0 && mant == 0) {
-				if (sign != 0) {
-					/* -0.0f cannot be distinguished from +0.0f in two's complement 0 */
-					return false;
-				}
-			} else if (exp == 0 || exp == 255) {
-				/* Subnormal numbers, Infinity, and NaN require 2-subframe fallback mode */
-				return false;
-			} else {
-				uint32_t explicit_mant = (1u << 23) | mant;
-				int tz = flac_ctz32(explicit_mant);
-				int pos_high = (int)exp;
-				int pos_low = (int)exp - 23 + tz;
-				if (pos_high > highest_pos)
-					highest_pos = pos_high;
-				if (pos_low < lowest_pos)
-					lowest_pos = pos_low;
-			}
-		}
-		ch_highest[ch] = highest_pos;
-		ch_lowest[ch] = lowest_pos;
-		if (highest_pos == -1) {
-			channel_highest_exp[ch] = 127;
-			channel_lowest_exp[ch] = 127;
 		} else {
-			uint32_t ch_bps;
-			if (highest_pos > 254)
-				return false;
-			ch_bps = (uint32_t)(highest_pos - lowest_pos + 2);
-#if FLAC__HAS_INT128
-			if (ch_bps > 63)
-				return false;
-#else
-			if (ch_bps > 32)
-				return false;
-#endif
-			channel_highest_exp[ch] = (uint32_t)highest_pos;
-			channel_lowest_exp[ch] = (uint32_t)lowest_pos;
+			uint32_t sign;
+			uint64_t uval;
+			int leading_bit_pos, shift;
+			uint32_t orig_exp, explicit_mant, orig_mant;
+			full_x = (FLAC__int64)(((uint64_t)up << lower_bits) | low_u);
+			sign = (full_x < 0) ? 1 : 0;
+			uval = (full_x < 0) ? (uint64_t)(-full_x) : (uint64_t)full_x;
+			leading_bit_pos = (int)FLAC__bitmath_ilog2_wide(uval);
+			shift = leading_bit_pos - 23;
+			orig_exp = (uint32_t)(base_exp + leading_bit_pos);
+			explicit_mant = (shift >= 0) ? (uint32_t)(uval >> shift) : (uint32_t)(uval << (-shift));
+			orig_mant = explicit_mant & 0x7FFFFF;
+			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
 		}
 	}
-	if (channels == 2 && ch_highest[0] != -1 && ch_highest[1] != -1) {
-		int max_h = flac_max(ch_highest[0], ch_highest[1]);
-		int min_l = flac_min(ch_lowest[0], ch_lowest[1]);
-		if (max_h <= 254) {
-			uint32_t combined_bps = (uint32_t)(max_h - min_l + 2);
-#if FLAC__HAS_INT128
-			if (combined_bps <= 63) {
-				channel_highest_exp[0] = channel_highest_exp[1] = (uint32_t)max_h;
-				channel_lowest_exp[0] = channel_lowest_exp[1] = (uint32_t)min_l;
-			}
-#else
-			if (combined_bps <= 32) {
-				channel_highest_exp[0] = channel_highest_exp[1] = (uint32_t)max_h;
-				channel_lowest_exp[0] = channel_lowest_exp[1] = (uint32_t)min_l;
-			}
-#endif
-		}
-	}
-	return true;
 }
 
 /*
@@ -354,88 +288,108 @@ void FLAC__transform_frame_fallback_float(FLAC__int32 *dest_signals[], const uin
 
 /*
  * Transforms signals into 2-way DPA mode:
- *  - dest_signals32[2*ch + 0]: Upper stream x_upper[i] = x[i] >> shift_split
- *  - dest_signals32[2*ch + 1]: Lower stream x_lower[i] (32-bit if shift_split <= 32)
+ *  - dest_signals32[2*ch + 0]: Upper stream x_upper[i] = x[i] >> lower_bits
+ *  - dest_signals32[2*ch + 1]: Lower stream x_lower[i]
  *  - dest_signals64[2*ch + 1]: Lower stream x_lower[i] (64-bit)
  */
-void FLAC__transform_frame_dpa_float(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte shift_split_out[], uint32_t channel_bps_out[], uint32_t *split_point_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize)
+void FLAC__transform_frame_dpa_float(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte lower_bits_out[], uint32_t *upper_bits_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize)
 {
 	uint32_t ch, s;
-	uint32_t channel_bps[FLAC__MAX_CHANNELS];
-	uint32_t split_point = 24;
-	const char *env_sp;
+	uint32_t channel_span[FLAC__MAX_CHANNELS];
+	uint32_t upper_bits = 24;
+	const char *env_up;
 
 	for (ch = 0; ch < channels; ch++) {
-		FLAC__int64 *lower_out64 = dest_signals64[2 * ch + 1];
-		uint32_t highest_exp = channel_highest_exp[ch];
-		uint32_t lowest_exp = channel_lowest_exp[ch];
-		uint32_t bps = (highest_exp >= lowest_exp) ? (highest_exp - lowest_exp + 2) : 1;
-		if (bps > 63)
-			bps = 63;
-
-		/* First pass: compute full positionally aligned 64-bit integer into lower_out64 */
-		for (s = 0; s < blocksize; s++) {
-			uint32_t raw = raw_signals[ch][s];
-			uint32_t exp = (raw >> 23) & 0xFF;
-			uint32_t sign = (raw >> 31) & 1;
-			uint32_t mant = raw & 0x7FFFFF;
-			if (exp == 0 && mant == 0) {
-				lower_out64[s] = 0;
-			} else {
-				int shift = ((int)exp - 23) - (int)lowest_exp;
-				uint64_t explicit_mant = (1ULL << 23) | (uint64_t)mant;
-				uint64_t val = (shift >= 0) ? (explicit_mant << shift) : (explicit_mant >> (-shift));
-				FLAC__int64 signed_val = sign ? -(FLAC__int64)val : (FLAC__int64)val;
-				lower_out64[s] = signed_val;
-			}
-		}
-
-		channel_bps[ch] = bps;
-		exponent_zero_offsets[ch] = (FLAC__byte)highest_exp;
+		uint32_t highest_pos = channel_highest_exp[ch];
+		uint32_t lowest_pos = channel_lowest_exp[ch];
+		uint32_t span = (highest_pos >= lowest_pos) ? (highest_pos - lowest_pos + 2) : 1;
+		channel_span[ch] = span;
+		exponent_zero_offsets[ch] = (FLAC__byte)highest_pos;
 	}
 
-	/* Split point selection */
-	env_sp = getenv("FLAC_DPA_SPLIT_POINT");
-	if (env_sp) {
-		int v = atoi(env_sp);
-		if (v >= 8 && v <= 64)
-			split_point = (uint32_t)v;
+	/* Upper bits selection */
+	env_up = getenv("FLAC_DPA_UPPER_BITS");
+	if (env_up) {
+		int v = atoi(env_up);
+		if (v >= 8 && v <= 32)
+			upper_bits = (uint32_t)v;
 	} else if (compression_level == 8) {
-		static const uint32_t candidates[5] = { 16, 24, 32, 48, 64 };
+		static const uint32_t candidate_upper_bits[3] = { 16, 24, 32 };
 		uint64_t best_total_bits = (uint64_t)-1;
 		uint32_t cand_idx;
 
-		for (cand_idx = 0; cand_idx < 5; cand_idx++) {
-			uint32_t cand_sp = candidates[cand_idx];
+		for (cand_idx = 0; cand_idx < 3; cand_idx++) {
+			uint32_t cand_upper = candidate_upper_bits[cand_idx];
 			uint64_t cand_total_bits = 0;
 
 			for (ch = 0; ch < channels; ch++) {
-				uint32_t ch_bps = channel_bps[ch];
-				uint32_t shift = (ch_bps > cand_sp) ? (ch_bps - cand_sp) : 0;
-				const FLAC__int64 *low64 = dest_signals64[2 * ch + 1];
-				uint64_t lower_bits = 0;
+				uint32_t span = channel_span[ch];
+				uint32_t lower_bits = (span > cand_upper) ? (span - cand_upper) : 0;
+				uint32_t eff_width;
+				int base_pos;
+				uint64_t lower_bits_sum = 0;
 				uint64_t sum_abs_r = 0;
 				FLAC__int64 prev_up = 0;
 
-				for (s = 0; s < blocksize; s++) {
-					FLAC__int64 signed_val = low64[s];
-					FLAC__int64 up = (shift > 0) ? (signed_val >> shift) : signed_val;
-					uint32_t d;
-					uint32_t width;
+				if (lower_bits > 23) lower_bits = 23;
+				eff_width = cand_upper + lower_bits;
+				base_pos = (int)channel_highest_exp[ch] - (int)(eff_width - 2);
 
-					if (up == 0 || up == -1) {
-						d = 0;
-					} else if (up > 0) {
-						uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
-						uint32_t lead_full = lead_u + shift;
-						d = (lead_full > 23) ? (lead_full - 23) : 0;
+				for (s = 0; s < blocksize; s++) {
+					uint32_t raw = raw_signals[ch][s];
+					uint32_t exp = (raw >> 23) & 0xFF;
+					uint32_t sign = (raw >> 31) & 1;
+					uint32_t mant = raw & 0x7FFFFF;
+					FLAC__int64 up = 0;
+					uint32_t width = 0;
+
+					if (exp == 0 || exp == 255) {
+						up = 0;
+						width = 32;
 					} else {
-						uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
-						uint32_t lead_full = lead_u + shift;
-						d = (lead_full > 23) ? (lead_full - 23) : 0;
+						uint32_t explicit_mant = (1u << 23) | mant;
+						int tz = flac_ctz32(explicit_mant);
+						int pos_low = (int)exp - 23 + tz;
+						if (pos_low < base_pos) {
+							up = 0;
+							width = 32;
+						} else {
+							int shift = ((int)exp - 23) - base_pos;
+							uint64_t val = (shift >= 0) ? ((uint64_t)explicit_mant << shift) : ((uint64_t)explicit_mant >> (-shift));
+							FLAC__int64 signed_val = sign ? -(FLAC__int64)val : (FLAC__int64)val;
+							if (lower_bits == 0) {
+								if (signed_val == 0) {
+									up = 0;
+									width = 32;
+								} else {
+									up = signed_val;
+									width = 0;
+								}
+							} else {
+								uint64_t abs_signed = (signed_val < 0) ? (uint64_t)(-signed_val) : (uint64_t)signed_val;
+								if (abs_signed < ((uint64_t)1 << lower_bits)) {
+									up = 0;
+									width = 32;
+								} else {
+									uint32_t d;
+									up = signed_val >> lower_bits;
+									if (up == -1) {
+										d = 0;
+									} else if (up > 0) {
+										uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
+										uint32_t lead_full = lead_u + lower_bits;
+										d = (lead_full > 23) ? (lead_full - 23) : 0;
+									} else {
+										uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
+										uint32_t lead_full = lead_u + lower_bits;
+										d = (lead_full > 23) ? (lead_full - 23) : 0;
+									}
+									width = (lower_bits > d) ? (lower_bits - d) : 0;
+								}
+							}
+						}
 					}
-					width = (shift > d) ? (shift - d) : 0;
-					lower_bits += width;
+					lower_bits_sum += width;
 
 					if (s > 0) {
 						FLAC__int64 diff = up - prev_up;
@@ -448,55 +402,90 @@ void FLAC__transform_frame_dpa_float(FLAC__int32 *dest_signals32[], FLAC__int64 
 					uint64_t mean_abs = sum_abs_r / (blocksize - 1);
 					uint32_t k = (mean_abs > 0) ? FLAC__bitmath_ilog2_wide((mean_abs * 7) / 10) : 0;
 					uint64_t est_upper_bits = (sum_abs_r >> k) + (uint64_t)(blocksize - 1) * (k + 1);
-					cand_total_bits += lower_bits + est_upper_bits;
+					cand_total_bits += lower_bits_sum + est_upper_bits;
 				} else {
-					cand_total_bits += lower_bits + (blocksize * 2);
+					cand_total_bits += lower_bits_sum + (blocksize * 2);
 				}
 			}
 
 			if (cand_total_bits < best_total_bits) {
 				best_total_bits = cand_total_bits;
-				split_point = cand_sp;
+				upper_bits = cand_upper;
 			}
 		}
 	} else {
-		split_point = 24;
+		upper_bits = 24;
 	}
 
-	*split_point_out = split_point;
+	*upper_bits_out = upper_bits;
 
-	/* Second pass: split into Upper and Lower */
+	/* Output pass: split into Upper and Lower */
 	for (ch = 0; ch < channels; ch++) {
 		FLAC__int32 *upper_out32 = dest_signals32[2 * ch];
 		FLAC__int64 *upper_out64 = dest_signals64 ? dest_signals64[2 * ch] : NULL;
 		FLAC__int32 *lower_out32 = dest_signals32[2 * ch + 1];
-		FLAC__int64 *lower_out64 = dest_signals64[2 * ch + 1];
-		uint32_t ch_bps = channel_bps[ch];
-		uint32_t shift_split = (ch_bps > split_point) ? (ch_bps - split_point) : 0;
-		uint64_t mask = (shift_split >= 64) ? (~(uint64_t)0) : ((shift_split > 0) ? (((uint64_t)1 << shift_split) - 1) : 0);
+		FLAC__int64 *lower_out64 = dest_signals64 ? dest_signals64[2 * ch + 1] : NULL;
+		uint32_t span = channel_span[ch];
+		uint32_t lower_bits = (span > upper_bits) ? (span - upper_bits) : 0;
+		uint32_t eff_width;
+		int base_pos;
+		uint64_t mask;
+
+		if (lower_bits > 23) lower_bits = 23;
+		lower_bits_out[ch] = (FLAC__byte)lower_bits;
+		eff_width = upper_bits + lower_bits;
+		base_pos = (int)channel_highest_exp[ch] - (int)(eff_width - 2);
+		mask = (lower_bits > 0) ? (((uint64_t)1 << lower_bits) - 1) : 0;
 
 		for (s = 0; s < blocksize; s++) {
-			FLAC__int64 signed_val = lower_out64[s];
-			if (shift_split == 0) {
-				if (upper_out32) upper_out32[s] = (FLAC__int32)signed_val;
-				if (upper_out64) upper_out64[s] = signed_val;
-				lower_out32[s] = 0;
-				lower_out64[s] = 0;
+			uint32_t raw = raw_signals[ch][s];
+			uint32_t exp = (raw >> 23) & 0xFF;
+			uint32_t sign = (raw >> 31) & 1;
+			uint32_t mant = raw & 0x7FFFFF;
+			FLAC__int64 up = 0;
+			uint64_t low_u = 0;
+
+			if (exp == 0 || exp == 255) {
+				up = 0;
+				low_u = (uint64_t)raw;
 			} else {
-				FLAC__int64 up = signed_val >> shift_split;
-				uint64_t low_u = (uint64_t)signed_val & mask;
-				if (upper_out32) upper_out32[s] = (FLAC__int32)up;
-				if (upper_out64) upper_out64[s] = up;
-				lower_out32[s] = (FLAC__int32)low_u;
-				lower_out64[s] = (FLAC__int64)low_u;
+				uint32_t explicit_mant = (1u << 23) | mant;
+				int tz = flac_ctz32(explicit_mant);
+				int pos_low = (int)exp - 23 + tz;
+				if (pos_low < base_pos) {
+					up = 0;
+					low_u = (uint64_t)raw;
+				} else {
+					int shift = ((int)exp - 23) - base_pos;
+					uint64_t val = (shift >= 0) ? ((uint64_t)explicit_mant << shift) : ((uint64_t)explicit_mant >> (-shift));
+					FLAC__int64 signed_val = sign ? -(FLAC__int64)val : (FLAC__int64)val;
+					if (lower_bits == 0) {
+						if (signed_val == 0) {
+							up = 0;
+							low_u = (uint64_t)raw;
+						} else {
+							up = signed_val;
+							low_u = 0;
+						}
+					} else {
+						uint64_t abs_signed = (signed_val < 0) ? (uint64_t)(-signed_val) : (uint64_t)signed_val;
+						if (abs_signed < ((uint64_t)1 << lower_bits)) {
+							up = 0;
+							low_u = (uint64_t)raw;
+						} else {
+							up = signed_val >> lower_bits;
+							low_u = (uint64_t)signed_val & mask;
+						}
+					}
+				}
 			}
+			if (upper_out32) upper_out32[s] = (FLAC__int32)up;
+			if (upper_out64) upper_out64[s] = up;
+			if (lower_out32) lower_out32[s] = (FLAC__int32)low_u;
+			if (lower_out64) lower_out64[s] = (FLAC__int64)low_u;
 		}
-		shift_split_out[ch] = (FLAC__byte)shift_split;
-		if (channel_bps_out)
-			channel_bps_out[ch] = ch_bps;
 	}
 }
-
 
 FLAC__bool FLAC__MD5Accumulate_float(FLAC__MD5Context *ctx, const uint32_t * const float_signals[], uint32_t channels, uint32_t samples)
 {

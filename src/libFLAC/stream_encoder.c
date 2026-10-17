@@ -228,11 +228,10 @@ typedef struct FLAC__StreamEncoderThreadTask {
 	FLAC__bool disable_constant_subframes;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	FLAC__byte exponent_zero_offsets[FLAC__MAX_CHANNELS];
-	FLAC__byte shift_split[FLAC__MAX_CHANNELS];
-	uint32_t channel_bps[FLAC__MAX_CHANNELS];
+	FLAC__byte lower_bits[FLAC__MAX_CHANNELS];
 	FLAC__FloatMode float_mode;
 	uint32_t frame_bps;
-	uint32_t split_point;
+	uint32_t upper_bits;
 	FLAC__int32 *raw_float_signal[FLAC__MAX_CHANNELS];
 	FLAC__int32 *raw_float_signal_unaligned[FLAC__MAX_CHANNELS];
 	FLAC__bool force_empty_packed_subframe_which_is_not_lossless;
@@ -566,9 +565,8 @@ typedef struct FLAC__StreamEncoderPrivate {
 	uint32_t compression_level;
 	FLAC__bool force_empty_packed_subframe_which_is_not_lossless;
 	void (*local_compute_channel_base_exp_float)(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
-	FLAC__bool (*local_check_frame_lossless_float)(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[]);
 	void (*local_transform_frame_fallback_float)(FLAC__int32 *dest_signals[], const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize);
-	void (*local_transform_frame_dpa_float)(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte shift_split[], uint32_t channel_bps_out[], uint32_t *split_point_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize);
+	void (*local_transform_frame_dpa_float)(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte lower_bits_out[], uint32_t *upper_bits_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize);
 #endif
 	FLAC__bool is_ogg;
 	FLAC__StreamEncoderReadCallback read_callback; /* currently only needed for Ogg FLAC */
@@ -1079,7 +1077,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float;
-	encoder->private_->local_check_frame_lossless_float = FLAC__check_frame_lossless_float;
 	encoder->private_->local_transform_frame_fallback_float = FLAC__transform_frame_fallback_float;
 	encoder->private_->local_transform_frame_dpa_float = FLAC__transform_frame_dpa_float;
 #endif
@@ -1275,13 +1272,11 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #   ifdef FLAC__SSE4_1_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.sse41) {
 			encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float_intrin_sse41;
-			encoder->private_->local_check_frame_lossless_float = FLAC__check_frame_lossless_float_intrin_sse41;
 		}
 #   endif
 #   ifdef FLAC__AVX2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.avx2) {
 			encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float_intrin_avx2;
-			encoder->private_->local_check_frame_lossless_float = FLAC__check_frame_lossless_float_intrin_avx2;
 			encoder->private_->local_transform_frame_fallback_float = FLAC__transform_frame_fallback_float_intrin_avx2;
 			encoder->private_->local_transform_frame_dpa_float = FLAC__transform_frame_dpa_float_intrin_avx2;
 		}
@@ -4307,21 +4302,14 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 		if(encoder->private_->float_mode == FLAC__FLOAT_MODE_FALLBACK) {
 			frame_lossless = false;
 		}
-		else if(encoder->private_->force_empty_packed_subframe_which_is_not_lossless) {
+		else {
 			encoder->private_->local_compute_channel_base_exp_float((const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_highest_exp, channel_lowest_exp);
 			frame_lossless = true;
-		}
-		else {
-			frame_lossless = encoder->private_->local_check_frame_lossless_float((const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, channel_highest_exp, channel_lowest_exp);
 		}
 
 		encoder->private_->threadtask[0]->force_empty_packed_subframe_which_is_not_lossless = encoder->private_->force_empty_packed_subframe_which_is_not_lossless;
 		encoder->private_->threadtask[0]->float_mode = (!frame_lossless) ? FLAC__FLOAT_MODE_FALLBACK : FLAC__FLOAT_MODE_DPA;
-#if FLAC__HAS_INT128
-		encoder->private_->threadtask[0]->frame_bps = 63;
-#else
 		encoder->private_->threadtask[0]->frame_bps = 32;
-#endif
 
 		if(!frame_lossless) {
 			/* Fallback 2-subframe mode per channel: raw 8-bit exponent + 24-bit significand (two's complement) */
@@ -4341,9 +4329,8 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 				channel_highest_exp,
 				channel_lowest_exp,
 				encoder->private_->threadtask[0]->exponent_zero_offsets,
-				encoder->private_->threadtask[0]->shift_split,
-				encoder->private_->threadtask[0]->channel_bps,
-				&encoder->private_->threadtask[0]->split_point,
+				encoder->private_->threadtask[0]->lower_bits,
+				&encoder->private_->threadtask[0]->upper_bits,
 				encoder->private_->compression_level,
 				encoder->protected_->channels,
 				encoder->protected_->blocksize
@@ -4575,9 +4562,8 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 			encoder->private_->threadtask[encoder->private_->next_thread]->float_mode = encoder->private_->threadtask[0]->float_mode;
 			encoder->private_->threadtask[encoder->private_->next_thread]->frame_bps = encoder->private_->threadtask[0]->frame_bps;
 			memcpy(encoder->private_->threadtask[encoder->private_->next_thread]->exponent_zero_offsets, encoder->private_->threadtask[0]->exponent_zero_offsets, sizeof(encoder->private_->threadtask[0]->exponent_zero_offsets));
-			memcpy(encoder->private_->threadtask[encoder->private_->next_thread]->shift_split, encoder->private_->threadtask[0]->shift_split, sizeof(encoder->private_->threadtask[0]->shift_split));
-			memcpy(encoder->private_->threadtask[encoder->private_->next_thread]->channel_bps, encoder->private_->threadtask[0]->channel_bps, sizeof(encoder->private_->threadtask[0]->channel_bps));
-			encoder->private_->threadtask[encoder->private_->next_thread]->split_point = encoder->private_->threadtask[0]->split_point;
+			memcpy(encoder->private_->threadtask[encoder->private_->next_thread]->lower_bits, encoder->private_->threadtask[0]->lower_bits, sizeof(encoder->private_->threadtask[0]->lower_bits));
+			encoder->private_->threadtask[encoder->private_->next_thread]->upper_bits = encoder->private_->threadtask[0]->upper_bits;
 			encoder->private_->threadtask[encoder->private_->next_thread]->force_empty_packed_subframe_which_is_not_lossless = encoder->private_->force_empty_packed_subframe_which_is_not_lossless;
 		}
 #endif
@@ -4811,12 +4797,11 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 	if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
 		for(channel = 0; channel < encoder->protected_->channels; channel++) {
 			frame_header.exponent_zero_offsets[channel] = threadtask->exponent_zero_offsets[channel];
-			frame_header.shift_split[channel] = threadtask->shift_split[channel];
-			frame_header.total_width[channel] = (FLAC__byte)threadtask->channel_bps[channel];
+			frame_header.lower_bits[channel] = threadtask->lower_bits[channel];
 		}
 		frame_header.float_mode = threadtask->float_mode;
 		if(frame_header.float_mode != FLAC__FLOAT_MODE_FALLBACK) {
-			frame_header.bits_per_sample = threadtask->split_point;
+			frame_header.bits_per_sample = threadtask->upper_bits;
 		}
 	}
 #endif
@@ -4978,7 +4963,7 @@ FLAC__bool process_subframes_(FLAC__StreamEncoder *encoder, FLAC__StreamEncoderT
 					if(sf == 0)
 						subframe_bps = frame_header.bits_per_sample;
 					else
-						subframe_bps = threadtask->shift_split[ch];
+						subframe_bps = threadtask->lower_bits[ch];
 				}
 			}
 #endif
@@ -6289,7 +6274,7 @@ static uint32_t evaluate_packed_subframe_(
 )
 {
 	uint32_t ch = channel / 2;
-	uint32_t shift_split = (uint32_t)threadtask->shift_split[ch];
+	uint32_t lower_bits = (uint32_t)threadtask->lower_bits[ch];
 	const FLAC__int32 *upper32 = threadtask->integer_signal[channel - 1];
 	const FLAC__int64 *upper64 = threadtask->integer_signal64[channel - 1];
 	FLAC__bool upper_is_64 = (frame_header->bits_per_sample > 32);
@@ -6299,9 +6284,8 @@ static uint32_t evaluate_packed_subframe_(
 
 	subframe->type = FLAC__SUBFRAME_TYPE_PACKED;
 	subframe->wasted_bits = 0;
-	subframe->data.packed.shift_split = shift_split;
+	subframe->data.packed.lower_bits = lower_bits;
 	subframe->data.packed.exponent_zero_offset = threadtask->exponent_zero_offsets[ch];
-	subframe->data.packed.total_width = threadtask->channel_bps[ch];
 	subframe->data.packed.empty_subframe = threadtask->force_empty_packed_subframe_which_is_not_lossless;
 	subframe->data.packed.upper_is_64 = upper_is_64;
 	subframe->data.packed.upper_signal = upper_is_64 ? (const void *)upper64 : (const void *)upper32;
@@ -6313,18 +6297,24 @@ static uint32_t evaluate_packed_subframe_(
 			FLAC__int64 up = upper_is_64 ? upper64[i] : (FLAC__int64)upper32[i];
 			uint32_t d;
 			uint32_t width;
-			if(up == 0 || up == -1) {
-				d = 0;
-			} else if(up > 0) {
-				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
-				uint32_t lead_full = lead_u + shift_split;
-				d = (lead_full > 23) ? (lead_full - 23) : 0;
+			if(up == 0) {
+				width = 32;
+			} else if(lower_bits > 0) {
+				if(up == -1) {
+					d = 0;
+				} else if(up > 0) {
+					uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
+					uint32_t lead_full = lead_u + lower_bits;
+					d = (lead_full > 23) ? (lead_full - 23) : 0;
+				} else {
+					uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
+					uint32_t lead_full = lead_u + lower_bits;
+					d = (lead_full > 23) ? (lead_full - 23) : 0;
+				}
+				width = (lower_bits > d) ? (lower_bits - d) : 0;
 			} else {
-				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
-				uint32_t lead_full = lead_u + shift_split;
-				d = (lead_full > 23) ? (lead_full - 23) : 0;
+				width = 0;
 			}
-			width = (shift_split > d) ? (shift_split - d) : 0;
 			total_bits += width;
 		}
 	}

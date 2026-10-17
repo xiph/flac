@@ -165,139 +165,6 @@ void FLAC__compute_channel_base_exp_float_intrin_avx2(const uint32_t * const raw
 }
 
 FLAC__SSE_TARGET("avx2")
-FLAC__bool FLAC__check_frame_lossless_float_intrin_avx2(const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize, uint32_t channel_highest_exp[], uint32_t channel_lowest_exp[])
-{
-	uint32_t ch;
-	int ch_highest[FLAC__MAX_CHANNELS];
-	int ch_lowest[FLAC__MAX_CHANNELS];
-
-	const __m256i v_0xff = _mm256_set1_epi32(0xFF);
-	const __m256i v_0x7fffff = _mm256_set1_epi32(0x7FFFFF);
-	const __m256i v_0x7fffffff = _mm256_set1_epi32(0x7FFFFFFF);
-	const __m256i v_neg_zero = _mm256_set1_epi32((int)0x80000000);
-	const __m256i v_implicit_bit = _mm256_set1_epi32(1 << 23);
-	const __m256i v_zero = _mm256_setzero_si256();
-	const __m256i v_127 = _mm256_set1_epi32(127);
-	const __m256i v_23 = _mm256_set1_epi32(23);
-	const __m256i v_neg1 = _mm256_set1_epi32(-1);
-	const __m256i v_1000 = _mm256_set1_epi32(1000);
-
-	for (ch = 0; ch < channels; ch++) {
-		int highest_pos = -1;
-		int lowest_pos = 1000;
-		uint32_t s = 0;
-		const uint32_t *raw_ch = raw_signals[ch];
-
-		__m256i v_max = _mm256_set1_epi32(-1);
-		__m256i v_min = _mm256_set1_epi32(1000);
-		__m256i v_bad = _mm256_setzero_si256();
-
-		for (; s + 7 < blocksize; s += 8) {
-			__m256i v_raw = _mm256_loadu_si256((const __m256i*)(const void*)(raw_ch + s));
-			__m256i v_exp = _mm256_and_si256(_mm256_srli_epi32(v_raw, 23), v_0xff);
-			__m256i v_mant = _mm256_and_si256(v_raw, v_0x7fffff);
-			__m256i v_is_zero = _mm256_cmpeq_epi32(_mm256_and_si256(v_raw, v_0x7fffffff), v_zero);
-
-			__m256i v_is_neg_zero = _mm256_cmpeq_epi32(v_raw, v_neg_zero);
-			__m256i v_is_subnormal = _mm256_andnot_si256(v_is_zero, _mm256_cmpeq_epi32(v_exp, v_zero));
-			__m256i v_is_inf_nan = _mm256_cmpeq_epi32(v_exp, v_0xff);
-
-			__m256i v_explicit_mant = _mm256_or_si256(v_mant, v_implicit_bit);
-			__m256i v_lsb = _mm256_and_si256(v_explicit_mant, _mm256_sub_epi32(v_zero, v_explicit_mant));
-			__m256 v_flt = _mm256_cvtepi32_ps(v_lsb);
-			__m256i v_tz = _mm256_sub_epi32(_mm256_srli_epi32(_mm256_castps_si256(v_flt), 23), v_127);
-			__m256i v_pos_high = v_exp;
-			__m256i v_pos_low = _mm256_add_epi32(_mm256_sub_epi32(v_exp, v_23), v_tz);
-
-			v_bad = _mm256_or_si256(v_bad, _mm256_or_si256(v_is_neg_zero, _mm256_or_si256(v_is_subnormal, v_is_inf_nan)));
-
-			v_pos_high = _mm256_blendv_epi8(v_pos_high, v_neg1, v_is_zero);
-			v_pos_low  = _mm256_blendv_epi8(v_pos_low,  v_1000, v_is_zero);
-
-			v_max = _mm256_max_epi32(v_max, v_pos_high);
-			v_min = _mm256_min_epi32(v_min, v_pos_low);
-		}
-
-		if (!_mm256_testz_si256(v_bad, v_bad))
-			return false;
-
-		highest_pos = hmax_avx2(v_max);
-		lowest_pos = hmin_avx2(v_min);
-
-		for (; s < blocksize; s++) {
-			uint32_t raw = raw_ch[s];
-			uint32_t exp = (raw >> 23) & 0xFF;
-			uint32_t sign = (raw >> 31) & 1;
-			uint32_t mant = raw & 0x7FFFFF;
-			if (exp == 0 && mant == 0) {
-				if (sign != 0)
-					return false;
-			} else if (exp == 0 || exp == 255) {
-				return false;
-			} else {
-				uint32_t explicit_mant = (1u << 23) | mant;
-				uint32_t lsb = explicit_mant & (0u - explicit_mant);
-				union { float f; uint32_t u; } u_flt;
-				int tz;
-				int pos_high;
-				int pos_low;
-
-				u_flt.f = (float)lsb;
-				tz = (int)((u_flt.u >> 23) & 0xFF) - 127;
-				pos_high = (int)exp;
-				pos_low = (int)exp - 23 + tz;
-				if (pos_high > highest_pos)
-					highest_pos = pos_high;
-				if (pos_low < lowest_pos)
-					lowest_pos = pos_low;
-			}
-		}
-
-		ch_highest[ch] = highest_pos;
-		ch_lowest[ch] = lowest_pos;
-		if (highest_pos == -1) {
-			channel_highest_exp[ch] = 127;
-			channel_lowest_exp[ch] = 127;
-		} else {
-			uint32_t ch_bps;
-			if (highest_pos > 254)
-				return false;
-			ch_bps = (uint32_t)(highest_pos - lowest_pos + 2);
-#if FLAC__HAS_INT128
-			if (ch_bps > 63)
-				return false;
-#else
-			if (ch_bps > 32)
-				return false;
-#endif
-			channel_highest_exp[ch] = (uint32_t)highest_pos;
-			channel_lowest_exp[ch] = (uint32_t)lowest_pos;
-		}
-	}
-
-	if (channels == 2 && ch_highest[0] != -1 && ch_highest[1] != -1) {
-		int max_h = flac_max(ch_highest[0], ch_highest[1]);
-		int min_l = flac_min(ch_lowest[0], ch_lowest[1]);
-		if (max_h <= 254) {
-			uint32_t combined_bps = (uint32_t)(max_h - min_l + 2);
-#if FLAC__HAS_INT128
-			if (combined_bps <= 63) {
-				channel_highest_exp[0] = channel_highest_exp[1] = (uint32_t)max_h;
-				channel_lowest_exp[0] = channel_lowest_exp[1] = (uint32_t)min_l;
-			}
-#else
-			if (combined_bps <= 32) {
-				channel_highest_exp[0] = channel_highest_exp[1] = (uint32_t)max_h;
-				channel_lowest_exp[0] = channel_lowest_exp[1] = (uint32_t)min_l;
-			}
-#endif
-		}
-	}
-
-	return true;
-}
-
-FLAC__SSE_TARGET("avx2")
 void FLAC__transform_frame_fallback_float_intrin_avx2(FLAC__int32 *dest_signals[], const uint32_t * const raw_signals[], uint32_t channels, uint32_t blocksize)
 {
 	uint32_t ch, s;
@@ -389,43 +256,42 @@ void FLAC__combine_subframe_signals_fallback_to_f32_buffer_intrin_avx2(uint32_t 
 }
 
 FLAC__SSE_TARGET("avx2")
-void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte shift_split_out[], uint32_t channel_bps_out[], uint32_t *split_point_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize)
+void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], FLAC__int64 *dest_signals64[], const uint32_t * const raw_signals[], const uint32_t channel_highest_exp[], const uint32_t channel_lowest_exp[], FLAC__byte exponent_zero_offsets[], FLAC__byte lower_bits_out[], uint32_t *upper_bits_out, uint32_t compression_level, uint32_t channels, uint32_t blocksize)
 {
 	uint32_t ch, s;
-	uint32_t channel_bps[FLAC__MAX_CHANNELS];
-	uint32_t split_point = 24;
+	uint32_t upper_bits = 24;
+	const char *env_up = getenv("FLAC_DPA_UPPER_BITS");
+	if (!env_up) env_up = getenv("FLAC_DPA_SPLIT_POINT");
 
-	if (compression_level >= 8 || getenv("FLAC_DPA_SPLIT_POINT")) {
-		FLAC__transform_frame_dpa_float(dest_signals32, dest_signals64, raw_signals, channel_highest_exp, channel_lowest_exp, exponent_zero_offsets, shift_split_out, channel_bps_out, split_point_out, compression_level, channels, blocksize);
+	if (compression_level >= 8 || env_up) {
+		FLAC__transform_frame_dpa_float(dest_signals32, dest_signals64, raw_signals, channel_highest_exp, channel_lowest_exp, exponent_zero_offsets, lower_bits_out, upper_bits_out, compression_level, channels, blocksize);
 		return;
 	}
 
 	for (ch = 0; ch < channels; ch++) {
 		uint32_t highest_exp = channel_highest_exp[ch];
-		uint32_t lowest_exp = channel_lowest_exp[ch];
-		uint32_t bps = (highest_exp >= lowest_exp) ? (highest_exp - lowest_exp + 2) : 1;
-		if (bps > 63)
-			bps = 63;
-		channel_bps[ch] = bps;
 		exponent_zero_offsets[ch] = (FLAC__byte)highest_exp;
 	}
 
-	*split_point_out = split_point;
+	*upper_bits_out = upper_bits;
 
 	for (ch = 0; ch < channels; ch++) {
 		FLAC__int32 *upper_out32 = dest_signals32[2 * ch];
 		FLAC__int64 *upper_out64 = dest_signals64 ? dest_signals64[2 * ch] : NULL;
 		FLAC__int32 *lower_out32 = dest_signals32[2 * ch + 1];
 		FLAC__int64 *lower_out64 = dest_signals64 ? dest_signals64[2 * ch + 1] : NULL;
-		uint32_t ch_bps = channel_bps[ch];
-		uint32_t shift_split = (ch_bps > split_point) ? (ch_bps - split_point) : 0;
 		uint32_t highest_exp = channel_highest_exp[ch];
 		uint32_t lowest_exp = channel_lowest_exp[ch];
+		uint32_t ch_bps = (highest_exp >= lowest_exp) ? (highest_exp - lowest_exp + 2) : 1;
+		uint32_t lower_bits = (ch_bps > upper_bits) ? (ch_bps - upper_bits) : 0;
 		const uint32_t *raw_ch = raw_signals[ch];
 
+		if (lower_bits > 23) lower_bits = 23;
+
 		s = 0;
-		if (shift_split == 0) {
-			const __m256i v_base_shift = _mm256_set1_epi32(23 + (int)lowest_exp);
+		if (lower_bits == 0) {
+			const __m256i v_highest_exp = _mm256_set1_epi32(highest_exp);
+			const __m256i v_one = _mm256_set1_epi32(1);
 			const __m256i v_exp_mask = _mm256_set1_epi32(0xFF);
 			const __m256i v_mant_mask = _mm256_set1_epi32(0x7FFFFF);
 			const __m256i v_implicit_bit = _mm256_set1_epi32(1 << 23);
@@ -437,21 +303,28 @@ void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], 
 				__m256i v_sign_mask = _mm256_srai_epi32(v_raw, 31);
 				__m256i v_mant = _mm256_or_si256(_mm256_and_si256(v_raw, v_mant_mask), v_implicit_bit);
 				__m256i v_is_zero = _mm256_cmpeq_epi32(_mm256_and_si256(v_raw, _mm256_set1_epi32(0x7FFFFFFF)), v_zero);
+				__m256i v_is_special = _mm256_or_si256(_mm256_cmpeq_epi32(v_exp, v_zero), _mm256_cmpeq_epi32(v_exp, v_exp_mask));
+				__m256i v_raw_mask = _mm256_or_si256(v_is_zero, v_is_special);
 
-				__m256i v_shift_right = _mm256_sub_epi32(v_base_shift, v_exp);
-				__m256i v_val = _mm256_srlv_epi32(v_mant, v_shift_right);
+				__m256i v_delta = _mm256_sub_epi32(v_highest_exp, v_exp);
+				__m256i v_shift_down = _mm256_add_epi32(v_one, v_delta);
+				__m256i v_val = _mm256_srlv_epi32(v_mant, v_shift_down);
+				__m256i v_recovered = _mm256_sllv_epi32(v_val, v_shift_down);
+				__m256i v_lost = _mm256_andnot_si256(_mm256_cmpeq_epi32(v_recovered, v_mant), _mm256_set1_epi32(-1));
+				__m256i v_raw_all = _mm256_or_si256(v_raw_mask, _mm256_or_si256(_mm256_cmpeq_epi32(v_val, v_zero), v_lost));
 				__m256i v_upper = _mm256_sub_epi32(_mm256_xor_si256(v_val, v_sign_mask), v_sign_mask);
-				v_upper = _mm256_andnot_si256(v_is_zero, v_upper);
+				__m256i v_lower = _mm256_blendv_epi8(v_zero, v_raw, v_raw_all);
+				v_upper = _mm256_andnot_si256(v_raw_all, v_upper);
 
 				if (upper_out32) _mm256_storeu_si256((__m256i*)(void*)(upper_out32 + s), v_upper);
-				if (lower_out32) _mm256_storeu_si256((__m256i*)(void*)(lower_out32 + s), v_zero);
+				if (lower_out32) _mm256_storeu_si256((__m256i*)(void*)(lower_out32 + s), v_lower);
 				if (upper_out64) {
 					_mm256_storeu_si256((__m256i*)(void*)(upper_out64 + s), _mm256_cvtepi32_epi64(_mm256_castsi256_si128(v_upper)));
 					_mm256_storeu_si256((__m256i*)(void*)(upper_out64 + s + 4), _mm256_cvtepi32_epi64(_mm256_extracti128_si256(v_upper, 1)));
 				}
 				if (lower_out64) {
-					_mm256_storeu_si256((__m256i*)(void*)(lower_out64 + s), v_zero);
-					_mm256_storeu_si256((__m256i*)(void*)(lower_out64 + s + 4), v_zero);
+					_mm256_storeu_si256((__m256i*)(void*)(lower_out64 + s), _mm256_cvtepu32_epi64(_mm256_castsi256_si128(v_lower)));
+					_mm256_storeu_si256((__m256i*)(void*)(lower_out64 + s + 4), _mm256_cvtepu32_epi64(_mm256_extracti128_si256(v_lower, 1)));
 				}
 			}
 
@@ -461,27 +334,36 @@ void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], 
 				uint32_t sign = (r >> 31) & 1;
 				uint32_t mant = r & 0x7FFFFF;
 
-				if ((r & 0x7FFFFFFF) == 0) {
-				if (upper_out32) upper_out32[s] = 0;
-				if (upper_out64) upper_out64[s] = 0;
-				if (lower_out32) lower_out32[s] = 0;
-				if (lower_out64) lower_out64[s] = 0;
+				if (exp == 0 || exp == 255) {
+					if (upper_out32) upper_out32[s] = 0;
+					if (upper_out64) upper_out64[s] = 0;
+					if (lower_out32) lower_out32[s] = (int32_t)r;
+					if (lower_out64) lower_out64[s] = (FLAC__int64)(uint64_t)r;
 				} else {
-					int shift = ((int)exp - 23) - (int)lowest_exp;
 					uint32_t explicit_mant = (1u << 23) | mant;
-					uint32_t val = (shift >= 0) ? (explicit_mant << shift) : (explicit_mant >> (-shift));
-					int32_t signed_val = sign ? -(int32_t)val : (int32_t)val;
-					if (upper_out32) upper_out32[s] = signed_val;
-					if (upper_out64) upper_out64[s] = (FLAC__int64)signed_val;
-					if (lower_out32) lower_out32[s] = 0;
-					if (lower_out64) lower_out64[s] = 0;
+					uint32_t delta = highest_exp - exp;
+					uint32_t shift_down = 1 + delta;
+					uint32_t val = (shift_down < 32) ? (explicit_mant >> shift_down) : 0;
+					int bits_lost = (shift_down >= 32) || ((val << shift_down) != explicit_mant);
+					if (val == 0 || bits_lost) {
+						if (upper_out32) upper_out32[s] = 0;
+						if (upper_out64) upper_out64[s] = 0;
+						if (lower_out32) lower_out32[s] = (int32_t)r;
+						if (lower_out64) lower_out64[s] = (FLAC__int64)(uint64_t)r;
+					} else {
+						int32_t signed_val = sign ? -(int32_t)val : (int32_t)val;
+						if (upper_out32) upper_out32[s] = signed_val;
+						if (upper_out64) upper_out64[s] = (FLAC__int64)signed_val;
+						if (lower_out32) lower_out32[s] = 0;
+						if (lower_out64) lower_out64[s] = 0;
+					}
 				}
 			}
 		} else {
-			uint32_t mask_val = (shift_split >= 32) ? 0xFFFFFFFFu : ((shift_split > 0) ? ((1u << shift_split) - 1) : 0);
+			uint32_t mask_val = (lower_bits > 0) ? ((1u << lower_bits) - 1) : 0;
 			__m256i v_mask = _mm256_set1_epi32(mask_val);
 			__m256i v_highest_exp = _mm256_set1_epi32(highest_exp);
-			__m256i v_H = _mm256_set1_epi32(shift_split);
+			__m256i v_H = _mm256_set1_epi32(lower_bits);
 			__m256i v_one = _mm256_set1_epi32(1);
 			__m256i v_zero = _mm256_setzero_si256();
 			__m256i v_exp_mask = _mm256_set1_epi32(0xFF);
@@ -505,17 +387,21 @@ void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], 
 				__m256i v_low_pos = _mm256_and_si256(_mm256_blendv_epi8(v_low_left, v_low_right, v_gt), v_mask);
 
 				__m256i v_is_zero = _mm256_cmpeq_epi32(_mm256_and_si256(v_raw, _mm256_set1_epi32(0x7FFFFFFF)), v_zero);
+				__m256i v_is_special = _mm256_or_si256(_mm256_cmpeq_epi32(v_exp, v_zero), _mm256_cmpeq_epi32(v_exp, v_exp_mask));
 				__m256i v_has_borrow = _mm256_cmpgt_epi32(v_low_pos, v_zero);
 				__m256i v_borrow_int = _mm256_and_si256(v_has_borrow, v_one);
 
 				__m256i v_up_neg = _mm256_sub_epi32(_mm256_sub_epi32(v_zero, v_up_pos), v_borrow_int);
 				__m256i v_low_neg = _mm256_and_si256(_mm256_sub_epi32(v_zero, v_low_pos), v_mask);
 
+				__m256i v_recovered = _mm256_sllv_epi32(v_low_right, v_shift_right);
+				__m256i v_lost = _mm256_and_si256(v_gt, _mm256_andnot_si256(_mm256_cmpeq_epi32(v_recovered, v_mant), _mm256_set1_epi32(-1)));
 				__m256i v_upper = _mm256_blendv_epi8(v_up_pos, v_up_neg, v_sign_mask);
 				__m256i v_lower = _mm256_blendv_epi8(v_low_pos, v_low_neg, v_sign_mask);
+				__m256i v_is_small = _mm256_or_si256(_mm256_or_si256(_mm256_or_si256(_mm256_cmpeq_epi32(v_up_pos, v_zero), v_is_zero), v_is_special), v_lost);
 
-				v_upper = _mm256_andnot_si256(v_is_zero, v_upper);
-			v_lower = _mm256_andnot_si256(v_is_zero, v_lower);
+			v_upper = _mm256_andnot_si256(v_is_small, v_upper);
+			v_lower = _mm256_blendv_epi8(v_lower, v_raw, v_is_small);
 
 				if (upper_out32) _mm256_storeu_si256((__m256i*)(void*)(upper_out32 + s), v_upper);
 				if (lower_out32) _mm256_storeu_si256((__m256i*)(void*)(lower_out32 + s), v_lower);
@@ -538,43 +424,49 @@ void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], 
 				if ((r & 0x7FFFFFFF) == 0) {
 					if (upper_out32) upper_out32[s] = 0;
 					if (upper_out64) upper_out64[s] = 0;
-					if (lower_out32) lower_out32[s] = 0;
-					if (lower_out64) lower_out64[s] = 0;
+					if (lower_out32) lower_out32[s] = (int32_t)r;
+					if (lower_out64) lower_out64[s] = (FLAC__int64)(uint64_t)r;
 				} else {
 					uint32_t explicit_mant = (1u << 23) | mant;
 					uint32_t delta = highest_exp - exp;
 					uint32_t shift_down = 1 + delta;
 					uint32_t up_pos = (shift_down < 32) ? (explicit_mant >> shift_down) : 0;
-					uint32_t shift_up = shift_split - shift_down;
-					uint32_t low_pos = (shift_split >= shift_down) ? ((explicit_mant << shift_up) & mask_val) : ((explicit_mant >> (shift_down - shift_split)) & mask_val);
-					int borrow = (shift_split > 0 && low_pos != 0);
+					int bits_lost = (shift_down > lower_bits) && (shift_down - lower_bits >= 32 || ((explicit_mant >> (shift_down - lower_bits)) << (shift_down - lower_bits)) != explicit_mant);
+					if (up_pos == 0 || bits_lost) {
+						if (upper_out32) upper_out32[s] = 0;
+						if (upper_out64) upper_out64[s] = 0;
+						if (lower_out32) lower_out32[s] = (int32_t)r;
+						if (lower_out64) lower_out64[s] = (FLAC__int64)(uint64_t)r;
+					} else {
+						uint32_t shift_up = lower_bits - shift_down;
+						uint32_t low_pos = (lower_bits >= shift_down) ? ((explicit_mant << shift_up) & mask_val) : ((explicit_mant >> (shift_down - lower_bits)) & mask_val);
+					int borrow = (lower_bits > 0 && low_pos != 0);
 					int32_t up = sign ? (-(int32_t)up_pos - borrow) : (int32_t)up_pos;
 					uint32_t low = sign ? ((-(int32_t)low_pos) & mask_val) : low_pos;
 
-					if (upper_out32) upper_out32[s] = up;
-					if (upper_out64) upper_out64[s] = (FLAC__int64)up;
-					if (lower_out32) lower_out32[s] = (int32_t)low;
-					if (lower_out64) lower_out64[s] = (FLAC__int64)low;
+						if (upper_out32) upper_out32[s] = up;
+						if (upper_out64) upper_out64[s] = (FLAC__int64)up;
+						if (lower_out32) lower_out32[s] = (int32_t)low;
+						if (lower_out64) lower_out64[s] = (FLAC__int64)low;
+					}
 				}
 			}
 		}
 
-		shift_split_out[ch] = (FLAC__byte)shift_split;
-		if (channel_bps_out)
-			channel_bps_out[ch] = ch_bps;
+		lower_bits_out[ch] = (FLAC__byte)lower_bits;
 	}
 }
 
 FLAC__SSE_TARGET("avx2")
-void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t shift_split, size_t n, FLAC__byte highest_exp, uint32_t total_width, uint32_t split_point)
+void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t lower_bits, size_t n, FLAC__byte highest_exp, uint32_t upper_bits)
 {
 	size_t i;
-	const uint64_t mask = (shift_split >= 64) ? (~(uint64_t)0) : ((shift_split > 0) ? (((uint64_t)1 << shift_split) - 1) : 0);
+	const uint64_t mask = (lower_bits > 0) ? (((uint64_t)1 << lower_bits) - 1) : 0;
 	const FLAC__int32 *up32 = upper_is_64 ? NULL : (const FLAC__int32 *)upper_signal;
 	const FLAC__int64 *up64 = upper_is_64 ? (const FLAC__int64 *)upper_signal : NULL;
 	const FLAC__int32 *low32 = lower_is_64 ? NULL : (const FLAC__int32 *)lower_signal;
 	const FLAC__int64 *low64 = lower_is_64 ? (const FLAC__int64 *)lower_signal : NULL;
-	const uint32_t eff_width = (total_width > 0) ? total_width : split_point;
+	const uint32_t eff_width = upper_bits + lower_bits;
 	const int base_exp = (int)highest_exp - (int)(eff_width - 2);
 
 	/* High-speed scalar unrolled loop leveraging bsrq/lzcnt */
@@ -584,26 +476,34 @@ void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest
 		uint64_t low_u = (uint64_t)low_val & mask;
 		FLAC__int64 full_x;
 
-		if (shift_split == 0)
-			full_x = up;
-		else
-			full_x = (FLAC__int64)(((uint64_t)up << shift_split) | low_u);
-
-		if (full_x == 0) {
-			dest[i] = 0;
-		} else {
-			uint32_t sign = (full_x < 0) ? 1 : 0;
-			uint64_t uval = (full_x < 0) ? (uint64_t)(-full_x) : (uint64_t)full_x;
+		if (up == 0) {
+			dest[i] = (uint32_t)low_val;
+		} else if (lower_bits == 0) {
+			uint32_t sign = (up < 0) ? 1 : 0;
+			uint64_t uval = (up < 0) ? (uint64_t)(-up) : (uint64_t)up;
 			int leading_bit_pos = (int)FLAC__bitmath_ilog2_wide(uval);
 			int shift = leading_bit_pos - 23;
 			uint32_t orig_exp = (uint32_t)(base_exp + leading_bit_pos);
 			uint32_t explicit_mant = (shift >= 0) ? (uint32_t)(uval >> shift) : (uint32_t)(uval << (-shift));
 			uint32_t orig_mant = explicit_mant & 0x7FFFFF;
 			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
+		} else {
+			uint32_t sign;
+			uint64_t uval;
+			int leading_bit_pos, shift;
+			uint32_t orig_exp, explicit_mant, orig_mant;
+			full_x = (FLAC__int64)(((uint64_t)up << lower_bits) | low_u);
+			sign = (full_x < 0) ? 1 : 0;
+			uval = (full_x < 0) ? (uint64_t)(-full_x) : (uint64_t)full_x;
+			leading_bit_pos = (int)FLAC__bitmath_ilog2_wide(uval);
+			shift = leading_bit_pos - 23;
+			orig_exp = (uint32_t)(base_exp + leading_bit_pos);
+			explicit_mant = (shift >= 0) ? (uint32_t)(uval >> shift) : (uint32_t)(uval << (-shift));
+			orig_mant = explicit_mant & 0x7FFFFF;
+			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
 		}
 	}
 }
-
 #endif
 #endif
 #endif

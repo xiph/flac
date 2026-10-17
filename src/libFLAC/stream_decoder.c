@@ -210,7 +210,7 @@ typedef struct FLAC__StreamDecoderPrivate {
 #endif
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	void (*local_combine_subframe_signals_fallback_to_f32_buffer)(uint32_t *dest, const FLAC__int32 *exp_signal, const FLAC__int32 *sign_mant_signal, size_t n);
-	void (*local_combine_subframe_signals_dpa_to_f32_buffer)(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t shift_split, size_t n, FLAC__byte highest_exp, uint32_t total_width, uint32_t split_point);
+	void (*local_combine_subframe_signals_dpa_to_f32_buffer)(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t lower_bits, size_t n, FLAC__byte highest_exp, uint32_t upper_bits);
 #endif
 } FLAC__StreamDecoderPrivate;
 
@@ -4114,11 +4114,9 @@ static FLAC__bool read_subframe_packed_(FLAC__StreamDecoder *decoder, uint32_t c
 	FLAC__Subframe_Verbatim *subframe = &decoder->private_->frame.subframes[channel].data.verbatim;
 	uint32_t ch = channel / 2;
 	uint32_t exp_offset = 0;
-	uint32_t width_raw = 0;
-	uint32_t total_width;
+	uint32_t lower_bits_raw = 0;
+	uint32_t lower_bits;
 	uint32_t reserved;
-	uint32_t split_point;
-	uint32_t shift_split;
 	const FLAC__int32 *upper32 = decoder->private_->output[channel - 1];
 	const FLAC__int64 *upper64 = decoder->private_->output64[channel - 1];
 	FLAC__bool upper_is_64 = (decoder->private_->frame.header.bits_per_sample > 32);
@@ -4132,23 +4130,20 @@ static FLAC__bool read_subframe_packed_(FLAC__StreamDecoder *decoder, uint32_t c
 		return false;
 	decoder->private_->frame.header.exponent_zero_offsets[ch] = (FLAC__byte)exp_offset;
 
-	/* 2. 7 bits total alignment width + 1 bit reserved */
-	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &width_raw, 8))
+	/* 2. 5 bits lower_bits + 3 bits reserved */
+	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &lower_bits_raw, 8))
 		return false;
-	total_width = width_raw >> 1;
-	reserved = width_raw & 1;
+	lower_bits = lower_bits_raw >> 3;
+	reserved = lower_bits_raw & 7;
 	if(reserved != 0) {
 		send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_UNPARSEABLE_STREAM);
 		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
 		return true;
 	}
-	split_point = decoder->private_->frame.header.bits_per_sample;
-	shift_split = (total_width > split_point) ? (total_width - split_point) : 0;
-	decoder->private_->frame.header.shift_split[ch] = (FLAC__byte)shift_split;
-	decoder->private_->frame.header.total_width[ch] = (FLAC__byte)total_width;
+	decoder->private_->frame.header.lower_bits[ch] = (FLAC__byte)lower_bits;
 
 	decoder->private_->frame.subframes[channel].type = FLAC__SUBFRAME_TYPE_PACKED;
-	subframe->data_type = (shift_split <= 32) ? FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32 : FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64;
+	subframe->data_type = (lower_bits <= 32) ? FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32 : FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64;
 	subframe->data.int32 = out32;
 	subframe->data.int64 = out64;
 
@@ -4157,28 +4152,47 @@ static FLAC__bool read_subframe_packed_(FLAC__StreamDecoder *decoder, uint32_t c
 		uint32_t d;
 		uint32_t width;
 		FLAC__uint64 read_val = 0;
-		if(up == 0 || up == -1) {
-			d = 0;
-		} else if(up > 0) {
-			uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
-			uint32_t lead_full = lead_u + shift_split;
-			d = (lead_full > 23) ? (lead_full - 23) : 0;
-		} else {
-			uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
-			uint32_t lead_full = lead_u + shift_split;
-			d = (lead_full > 23) ? (lead_full - 23) : 0;
-		}
-		width = (shift_split > d) ? (shift_split - d) : 0;
-		if(width > 0) {
-			if(!FLAC__bitreader_read_raw_uint64(decoder->private_->input, &read_val, width))
+		if(up == 0) {
+			uint32_t val32 = 0;
+			if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &val32, 32))
 				return false;
-		}
-		if(do_full_decode) {
-			FLAC__int64 restored = ((FLAC__int64)read_val) << d;
-			if(out32)
-				out32[i] = (FLAC__int32)restored;
-			if(out64)
-				out64[i] = restored;
+			if(do_full_decode) {
+				if(out32)
+					out32[i] = (FLAC__int32)val32;
+				if(out64)
+					out64[i] = (FLAC__int64)(FLAC__uint64)val32;
+			}
+		} else if(lower_bits > 0) {
+			if(up == -1) {
+				d = 0;
+			} else if(up > 0) {
+				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
+				uint32_t lead_full = lead_u + lower_bits;
+				d = (lead_full > 23) ? (lead_full - 23) : 0;
+			} else {
+				uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
+				uint32_t lead_full = lead_u + lower_bits;
+				d = (lead_full > 23) ? (lead_full - 23) : 0;
+			}
+			width = (lower_bits > d) ? (lower_bits - d) : 0;
+			if(width > 0) {
+				if(!FLAC__bitreader_read_raw_uint64(decoder->private_->input, &read_val, width))
+					return false;
+			}
+			if(do_full_decode) {
+				FLAC__int64 restored = ((FLAC__int64)read_val) << d;
+				if(out32)
+					out32[i] = (FLAC__int32)restored;
+				if(out64)
+					out64[i] = restored;
+			}
+		} else {
+			if(do_full_decode) {
+				if(out32)
+					out32[i] = 0;
+				if(out64)
+					out64[i] = 0;
+			}
 		}
 	}
 	return true;
@@ -4633,9 +4647,8 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 						const FLAC__int64 *upper64 = decoder->private_->output64[2 * channel];
 						FLAC__bool upper_is_64 = (frame->header.bits_per_sample > 32);
 						const FLAC__int32 *lower32 = decoder->private_->output[2 * channel + 1];
-						const FLAC__int64 *lower64 = decoder->private_->output64[2 * channel + 1];
-						uint32_t shift_split = frame->header.shift_split[channel];
-						decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (shift_split <= 32) ? (const void *)lower32 : (const void *)lower64, (shift_split <= 32) ? false : true, shift_split, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.total_width[channel], frame->header.bits_per_sample);
+						uint32_t lower_bits = frame->header.lower_bits[channel];
+						decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (const void *)lower32, false, lower_bits, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.bits_per_sample);
 					}
 				}
 			}
@@ -4713,9 +4726,8 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 					const FLAC__int64 *upper64 = decoder->private_->output64[2 * channel];
 					FLAC__bool upper_is_64 = (frame->header.bits_per_sample > 32);
 					const FLAC__int32 *lower32 = decoder->private_->output[2 * channel + 1];
-					const FLAC__int64 *lower64 = decoder->private_->output64[2 * channel + 1];
-					uint32_t shift_split = frame->header.shift_split[channel];
-					decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (shift_split <= 32) ? (const void *)lower32 : (const void *)lower64, (shift_split <= 32) ? false : true, shift_split, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.total_width[channel], frame->header.bits_per_sample);
+					uint32_t lower_bits = frame->header.lower_bits[channel];
+					decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer((uint32_t *)decoder->private_->output[channel], upper_is_64 ? (const void *)upper64 : (const void *)upper32, upper_is_64, (const void *)lower32, false, lower_bits, frame->header.blocksize, frame->header.exponent_zero_offsets[channel], frame->header.bits_per_sample);
 				}
 			}
 		}

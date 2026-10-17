@@ -1498,7 +1498,7 @@ void show_help(void)
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	printf("      --force-dpa-mode-which-is-not-lossless Force DPA float encoding mode\n");
 	printf("      --force-fallback-mode          Force 2-subframe fallback float encoding mode\n");
-	printf("      --force-empty-packed-subframe-which-is-not-lossless Force packed subframe total_width=0\n");
+	printf("      --force-empty-packed-subframe-which-is-not-lossless Force packed subframe lower_bits=0\n");
 #endif
 	printf("\n");
 	printf("Format options (encoding defaults to FLAC not OGG; decoding defaults to WAVE, \n");

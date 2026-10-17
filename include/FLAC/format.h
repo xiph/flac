@@ -358,9 +358,8 @@ typedef struct {
 /** PACKED subframe for DPA float sample coding.
  */
 typedef struct {
-	uint32_t shift_split;
+	uint32_t lower_bits;
 	FLAC__byte exponent_zero_offset;
-	uint32_t total_width;
 	FLAC__bool empty_subframe;
 	FLAC__bool upper_is_64;
 	const void *upper_signal;
@@ -586,10 +585,8 @@ typedef struct {
 	/**< The sample format enum (PCM integer or PCM float). */
 	FLAC__byte exponent_zero_offsets[FLAC__MAX_CHANNELS];
 	/**< Highest exponent per channel for float samples (decoded from PACKED subframe in DPA mode). */
-	FLAC__byte shift_split[FLAC__MAX_CHANNELS];
-	/**< Shift split per channel for 2-way DPA float samples (derived from PACKED subframe total width and split point). */
-	FLAC__byte total_width[FLAC__MAX_CHANNELS];
-	/**< Total alignment width per channel for 2-way DPA float samples (decoded from PACKED subframe in DPA mode). */
+	FLAC__byte lower_bits[FLAC__MAX_CHANNELS];
+	/**< Lower bits per channel for 2-way DPA float samples (decoded from PACKED subframe in DPA mode). */
 	FLAC__FloatMode float_mode;
 	/**< Float coding mode: FLAC__FLOAT_MODE_DPA (2-subframe DPA mode: Upper Rice + Lower PACKED) or FLAC__FLOAT_MODE_FALLBACK (2-subframe fallback mode: 8-bit exp + 24-bit mantissa). */
 #endif
