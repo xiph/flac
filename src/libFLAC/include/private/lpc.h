@@ -180,12 +180,12 @@ void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse2(const FLAC__in
 #    ifdef FLAC__SSE4_1_SUPPORTED
 void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
+FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_sse41(const FLAC__int64 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int64 residual[], uint32_t subframe_bps);
 #    endif
 #    ifdef FLAC__AVX2_SUPPORTED
 void FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_avx2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 void FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_avx2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 void FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
-FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_intrin_avx2(const FLAC__int64 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 FLAC__bool FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_avx2(const FLAC__int64 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int64 residual[], uint32_t subframe_bps);
 #    endif
 #  endif

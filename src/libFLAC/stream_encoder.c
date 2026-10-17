@@ -530,7 +530,7 @@ typedef struct FLAC__StreamEncoderPrivate {
 	FLAC__MD5Context md5context;
 	FLAC__CPUInfo cpuinfo;
 	void (*local_precompute_partition_info_sums)(const FLAC__int32 residual[], FLAC__uint64 abs_residual_partition_sums[], uint32_t residual_samples, uint32_t predictor_order, uint32_t min_partition_order, uint32_t max_partition_order, uint32_t bps);
-	void (*local_fixed_compute_residual_wide_64bit)(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[]);
+	void (*local_fixed_compute_residual_64bit)(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int64 residual[]);
 #ifndef FLAC__INTEGER_ONLY_LIBRARY
 	uint32_t (*local_fixed_compute_best_predictor)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
 	uint32_t (*local_fixed_compute_best_predictor_wide)(const FLAC__int32 data[], uint32_t data_len, float residual_bits_per_sample[FLAC__MAX_FIXED_ORDER+1]);
@@ -547,7 +547,6 @@ typedef struct FLAC__StreamEncoderPrivate {
 	void (*local_lpc_compute_residual_from_qlp_coefficients)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_64bit)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 	void (*local_lpc_compute_residual_from_qlp_coefficients_16bit)(const FLAC__int32 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
-	FLAC__bool (*local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit)(const FLAC__int64 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int32 residual[]);
 	FLAC__bool (*local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64)(const FLAC__int64 *data, uint32_t data_len, const FLAC__int32 qlp_coeff[], uint32_t order, int lp_quantization, FLAC__int64 residual[], uint32_t subframe_bps);
 #endif
 	FLAC__bool disable_mmx;
@@ -1074,7 +1073,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide;
 	encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual;
 	encoder->private_->local_fixed_compute_best_predictor_limit_residual_64bit = FLAC__fixed_compute_best_predictor_limit_residual_64bit;
-	encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit;
+	encoder->private_->local_fixed_compute_residual_64bit = FLAC__fixed_compute_residual_64bit;
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 	encoder->private_->local_compute_channel_base_exp_float = FLAC__compute_channel_base_exp_float;
 	encoder->private_->local_transform_frame_fallback_float = FLAC__transform_frame_fallback_float;
@@ -1084,7 +1083,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients;
-	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit;
 	encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64;
 #endif
 	/* now override with asm where appropriate */
@@ -1127,6 +1125,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 		if (encoder->private_->cpuinfo.x86.sse41) {
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_sse41;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_sse41;
 		}
 #    endif
 #    ifdef FLAC__AVX2_SUPPORTED
@@ -1134,7 +1133,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2;
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_avx2;
 		}
 #    endif
@@ -1142,7 +1140,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSE2_SUPPORTED
 		if (encoder->private_->cpuinfo.x86.sse2) {
 			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
-			encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit_intrin_sse2;
+			encoder->private_->local_fixed_compute_residual_64bit = FLAC__fixed_compute_residual_64bit_intrin_sse2;
 		}
 #    endif
 #    ifdef FLAC__SSSE3_SUPPORTED
@@ -1161,8 +1159,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_avx2;
 			encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2;
 			encoder->private_->local_fixed_compute_best_predictor_limit_residual_64bit = FLAC__fixed_compute_best_predictor_limit_residual_64bit_intrin_avx2;
-			encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit_intrin_avx2;
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_intrin_avx2;
+			encoder->private_->local_fixed_compute_residual_64bit = FLAC__fixed_compute_residual_64bit_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_avx2;
 		}
 #    endif
@@ -1185,6 +1182,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSE4_1_SUPPORTED
 		if(encoder->private_->cpuinfo.x86.sse41) {
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_sse41;
+			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_sse41;
 		}
 #    endif
 #    ifdef FLAC__AVX2_SUPPORTED
@@ -1192,7 +1190,6 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_16bit = FLAC__lpc_compute_residual_from_qlp_coefficients_16_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients       = FLAC__lpc_compute_residual_from_qlp_coefficients_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_wide_intrin_avx2;
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_avx2;
 		}
 #    endif
@@ -1211,7 +1208,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 #    ifdef FLAC__SSE2_SUPPORTED
 		if(encoder->private_->cpuinfo.x86.sse2) { /* For fuzzing */
 			encoder->private_->local_fixed_compute_best_predictor      = FLAC__fixed_compute_best_predictor_intrin_sse2;
-			encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit_intrin_sse2;
+			encoder->private_->local_fixed_compute_residual_64bit = FLAC__fixed_compute_residual_64bit_intrin_sse2;
 		}
 #    endif
 #    ifdef FLAC__SSSE3_SUPPORTED
@@ -1230,8 +1227,7 @@ static FLAC__StreamEncoderInitStatus init_stream_internal_(
 			encoder->private_->local_fixed_compute_best_predictor_wide = FLAC__fixed_compute_best_predictor_wide_intrin_avx2;
 			encoder->private_->local_fixed_compute_best_predictor_limit_residual = FLAC__fixed_compute_best_predictor_limit_residual_intrin_avx2;
 			encoder->private_->local_fixed_compute_best_predictor_limit_residual_64bit = FLAC__fixed_compute_best_predictor_limit_residual_64bit_intrin_avx2;
-			encoder->private_->local_fixed_compute_residual_wide_64bit = FLAC__fixed_compute_residual_wide_64bit_intrin_avx2;
-			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_intrin_avx2;
+			encoder->private_->local_fixed_compute_residual_64bit = FLAC__fixed_compute_residual_64bit_intrin_avx2;
 			encoder->private_->local_lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64 = FLAC__lpc_compute_residual_from_qlp_coefficients_limit_residual_64bit_res64_intrin_avx2;
 		}
 #    endif
@@ -4294,7 +4290,7 @@ FLAC__bool process_frame_(FLAC__StreamEncoder *encoder, FLAC__bool is_last_block
 		else
 #endif
 		if((encoder->protected_->num_threads < 2 || is_last_block) && encoder->protected_->do_md5) {
-			if(!FLAC__MD5Accumulate_float(&encoder->private_->md5context, (const uint32_t * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize)) {
+			if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->threadtask[0]->raw_float_signal, encoder->protected_->channels, encoder->protected_->blocksize, 4)) {
 				encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 				return false;
 			}
@@ -4649,7 +4645,7 @@ FLAC__thread_return_type process_frame_thread_(void * args) {
 				FLAC__mtx_unlock(&encoder->private_->mutex_work_queue);
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 				if(encoder->protected_->sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
-					if(!FLAC__MD5Accumulate_float(&encoder->private_->md5context, (const uint32_t * const *)encoder->private_->md5_fifo.data, encoder->protected_->channels, length)) {
+					if(!FLAC__MD5Accumulate(&encoder->private_->md5context, (const FLAC__int32 * const *)encoder->private_->md5_fifo.data, encoder->protected_->channels, length, 4)) {
 						encoder->protected_->state = FLAC__STREAM_ENCODER_MEMORY_ALLOCATION_ERROR;
 						return FLAC__thread_default_return_value;
 					}
@@ -5980,7 +5976,7 @@ uint32_t evaluate_fixed_subframe_(
 			subframe->data.fixed.warmup[i] = ((const FLAC__int32 *)signal)[i];
 	}
 	else if(subframe_bps <= 64) {
-		FLAC__fixed_compute_residual_64bit(((const FLAC__int64 *)signal)+order, residual_samples, order, (FLAC__int64 *)residual);
+		encoder->private_->local_fixed_compute_residual_64bit(((const FLAC__int64 *)signal)+order, residual_samples, order, (FLAC__int64 *)residual);
 
 		subframe->data.fixed.residual_type = FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64;
 		subframe->data.fixed.residual = NULL;

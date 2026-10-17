@@ -449,6 +449,12 @@ static FLAC__StreamDecoderInitStatus init_stream_internal_(
 #  ifdef FLAC__SSE2_SUPPORTED
 		if (decoder->private_->cpuinfo.x86.sse2) {
 			decoder->private_->local_combine_subframe_signals_fallback_to_f32_buffer = FLAC__combine_subframe_signals_fallback_to_f32_buffer_intrin_sse2;
+			decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer = FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_sse2;
+		}
+#  endif
+#  ifdef FLAC__SSE4_1_SUPPORTED
+		if (decoder->private_->cpuinfo.x86.sse41) {
+			decoder->private_->local_combine_subframe_signals_dpa_to_f32_buffer = FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_sse41;
 		}
 #  endif
 #  ifdef FLAC__AVX2_SUPPORTED
@@ -4738,7 +4744,7 @@ FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder 
 		if(decoder->private_->do_md5_checking) {
 #if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 		if(frame->header.sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
-			if(!FLAC__MD5Accumulate_float(&decoder->private_->md5context, (const uint32_t * const *)decoder->private_->output, frame->header.channels, frame->header.blocksize))
+			if(!FLAC__MD5Accumulate(&decoder->private_->md5context, (const FLAC__int32 * const *)decoder->private_->output, frame->header.channels, frame->header.blocksize, 4))
 				return FLAC__STREAM_DECODER_WRITE_STATUS_ABORT;
 		}
 		else

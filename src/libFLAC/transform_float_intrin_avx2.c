@@ -460,7 +460,7 @@ void FLAC__transform_frame_dpa_float_intrin_avx2(FLAC__int32 *dest_signals32[], 
 FLAC__SSE_TARGET("avx2")
 void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest, const void *upper_signal, FLAC__bool upper_is_64, const void *lower_signal, FLAC__bool lower_is_64, uint32_t lower_bits, size_t n, FLAC__byte highest_exp, uint32_t upper_bits)
 {
-	size_t i;
+	size_t i = 0;
 	const uint64_t mask = (lower_bits > 0) ? (((uint64_t)1 << lower_bits) - 1) : 0;
 	const FLAC__int32 *up32 = upper_is_64 ? NULL : (const FLAC__int32 *)upper_signal;
 	const FLAC__int64 *up64 = upper_is_64 ? (const FLAC__int64 *)upper_signal : NULL;
@@ -469,8 +469,126 @@ void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest
 	const uint32_t eff_width = upper_bits + lower_bits;
 	const int base_exp = (int)highest_exp - (int)(eff_width - 2);
 
-	/* High-speed scalar unrolled loop leveraging bsrq/lzcnt */
-	for (i = 0; i < n; i++) {
+	if (!upper_is_64 && !lower_is_64) {
+		const __m256i v_mask64 = _mm256_set1_epi64x((int64_t)mask);
+		const int64_t exp_offset = (int64_t)(base_exp - 1023);
+		const __m256i v_exp_offset = _mm256_set1_epi64x(exp_offset);
+		const __m256i v_mant_mask = _mm256_set1_epi64x(0x7FFFFF);
+		const __m256i v_sign_mask_u = _mm256_set1_epi64x((int64_t)0x80000000u);
+
+		for (; i + 7 < n; i += 8) {
+			__m128i up128_0, low128_0, res_lo0, res_hi0, res32_0, is_up_zero_0, final32_0;
+			__m256i up64_0, low64_0, low_u_0, full_x_0, is_neg_0, neg_full_0, uval_0;
+			int64_t u_arr0[4];
+			__m256d v_dbl_0;
+			__m256i d_bits_0, exp_raw_0, orig_exp_0, exp_shifted_0, mant_shifted_0, sign_shifted_0, res64_0;
+
+			__m128i up128_1, low128_1, res_lo1, res_hi1, res32_1, is_up_zero_1, final32_1;
+			__m256i up64_1, low64_1, low_u_1, full_x_1, is_neg_1, neg_full_1, uval_1;
+			int64_t u_arr1[4];
+			__m256d v_dbl_1;
+			__m256i d_bits_1, exp_raw_1, orig_exp_1, exp_shifted_1, mant_shifted_1, sign_shifted_1, res64_1;
+
+			up128_0 = _mm_loadu_si128((const __m128i*)(up32 + i));
+			low128_0 = _mm_loadu_si128((const __m128i*)(low32 + i));
+
+			up64_0 = _mm256_cvtepi32_epi64(up128_0);
+			low64_0 = _mm256_cvtepi32_epi64(low128_0);
+			low_u_0 = _mm256_and_si256(low64_0, v_mask64);
+			full_x_0 = _mm256_or_si256(_mm256_slli_epi64(up64_0, lower_bits), low_u_0);
+			is_neg_0 = _mm256_cmpgt_epi64(_mm256_setzero_si256(), full_x_0);
+			neg_full_0 = _mm256_sub_epi64(_mm256_setzero_si256(), full_x_0);
+			uval_0 = _mm256_blendv_epi8(full_x_0, neg_full_0, is_neg_0);
+
+			_mm256_storeu_si256((__m256i*)u_arr0, uval_0);
+			v_dbl_0 = _mm256_set_pd((double)u_arr0[3], (double)u_arr0[2], (double)u_arr0[1], (double)u_arr0[0]);
+			d_bits_0 = _mm256_castpd_si256(v_dbl_0);
+
+			exp_raw_0 = _mm256_srli_epi64(d_bits_0, 52);
+			orig_exp_0 = _mm256_add_epi64(exp_raw_0, v_exp_offset);
+			exp_shifted_0 = _mm256_slli_epi64(orig_exp_0, 23);
+			mant_shifted_0 = _mm256_and_si256(_mm256_srli_epi64(d_bits_0, 29), v_mant_mask);
+			sign_shifted_0 = _mm256_and_si256(_mm256_srli_epi64(is_neg_0, 32), v_sign_mask_u);
+			res64_0 = _mm256_or_si256(_mm256_or_si256(sign_shifted_0, exp_shifted_0), mant_shifted_0);
+
+			res_lo0 = _mm256_castsi256_si128(res64_0);
+			res_hi0 = _mm256_extracti128_si256(res64_0, 1);
+			res32_0 = (__m128i)_mm_shuffle_ps((__m128)res_lo0, (__m128)res_hi0, _MM_SHUFFLE(2, 0, 2, 0));
+			is_up_zero_0 = _mm_cmpeq_epi32(up128_0, _mm_setzero_si128());
+			final32_0 = _mm_blendv_epi8(res32_0, low128_0, is_up_zero_0);
+			_mm_storeu_si128((__m128i*)(dest + i), final32_0);
+
+			/* Second 4 samples */
+			up128_1 = _mm_loadu_si128((const __m128i*)(up32 + i + 4));
+			low128_1 = _mm_loadu_si128((const __m128i*)(low32 + i + 4));
+
+			up64_1 = _mm256_cvtepi32_epi64(up128_1);
+			low64_1 = _mm256_cvtepi32_epi64(low128_1);
+			low_u_1 = _mm256_and_si256(low64_1, v_mask64);
+			full_x_1 = _mm256_or_si256(_mm256_slli_epi64(up64_1, lower_bits), low_u_1);
+			is_neg_1 = _mm256_cmpgt_epi64(_mm256_setzero_si256(), full_x_1);
+			neg_full_1 = _mm256_sub_epi64(_mm256_setzero_si256(), full_x_1);
+			uval_1 = _mm256_blendv_epi8(full_x_1, neg_full_1, is_neg_1);
+
+			_mm256_storeu_si256((__m256i*)u_arr1, uval_1);
+			v_dbl_1 = _mm256_set_pd((double)u_arr1[3], (double)u_arr1[2], (double)u_arr1[1], (double)u_arr1[0]);
+			d_bits_1 = _mm256_castpd_si256(v_dbl_1);
+
+			exp_raw_1 = _mm256_srli_epi64(d_bits_1, 52);
+			orig_exp_1 = _mm256_add_epi64(exp_raw_1, v_exp_offset);
+			exp_shifted_1 = _mm256_slli_epi64(orig_exp_1, 23);
+			mant_shifted_1 = _mm256_and_si256(_mm256_srli_epi64(d_bits_1, 29), v_mant_mask);
+			sign_shifted_1 = _mm256_and_si256(_mm256_srli_epi64(is_neg_1, 32), v_sign_mask_u);
+			res64_1 = _mm256_or_si256(_mm256_or_si256(sign_shifted_1, exp_shifted_1), mant_shifted_1);
+
+			res_lo1 = _mm256_castsi256_si128(res64_1);
+			res_hi1 = _mm256_extracti128_si256(res64_1, 1);
+			res32_1 = (__m128i)_mm_shuffle_ps((__m128)res_lo1, (__m128)res_hi1, _MM_SHUFFLE(2, 0, 2, 0));
+			is_up_zero_1 = _mm_cmpeq_epi32(up128_1, _mm_setzero_si128());
+			final32_1 = _mm_blendv_epi8(res32_1, low128_1, is_up_zero_1);
+			_mm_storeu_si128((__m128i*)(dest + i + 4), final32_1);
+		}
+
+		for (; i + 3 < n; i += 4) {
+			__m128i up128, low128, res_lo, res_hi, res32, is_up_zero, final32;
+			__m256i up64_t, low64_t, low_u_t, full_x_t, is_neg_t, neg_full_t, uval_t;
+		int64_t u_arr[4];
+			__m256d v_dbl;
+			__m256i d_bits, exp_raw, orig_exp, exp_shifted, mant_shifted, sign_shifted, res64;
+
+			up128 = _mm_loadu_si128((const __m128i*)(up32 + i));
+			low128 = _mm_loadu_si128((const __m128i*)(low32 + i));
+
+			up64_t = _mm256_cvtepi32_epi64(up128);
+			low64_t = _mm256_cvtepi32_epi64(low128);
+			low_u_t = _mm256_and_si256(low64_t, v_mask64);
+			full_x_t = _mm256_or_si256(_mm256_slli_epi64(up64_t, lower_bits), low_u_t);
+			is_neg_t = _mm256_cmpgt_epi64(_mm256_setzero_si256(), full_x_t);
+			neg_full_t = _mm256_sub_epi64(_mm256_setzero_si256(), full_x_t);
+			uval_t = _mm256_blendv_epi8(full_x_t, neg_full_t, is_neg_t);
+
+			_mm256_storeu_si256((__m256i*)u_arr, uval_t);
+			v_dbl = _mm256_set_pd((double)u_arr[3], (double)u_arr[2], (double)u_arr[1], (double)u_arr[0]);
+			d_bits = _mm256_castpd_si256(v_dbl);
+
+			exp_raw = _mm256_srli_epi64(d_bits, 52);
+			orig_exp = _mm256_add_epi64(exp_raw, v_exp_offset);
+			exp_shifted = _mm256_slli_epi64(orig_exp, 23);
+			mant_shifted = _mm256_and_si256(_mm256_srli_epi64(d_bits, 29), v_mant_mask);
+			sign_shifted = _mm256_and_si256(_mm256_srli_epi64(is_neg_t, 32), v_sign_mask_u);
+			res64 = _mm256_or_si256(_mm256_or_si256(sign_shifted, exp_shifted), mant_shifted);
+
+			res_lo = _mm256_castsi256_si128(res64);
+			res_hi = _mm256_extracti128_si256(res64, 1);
+			res32 = (__m128i)_mm_shuffle_ps((__m128)res_lo, (__m128)res_hi, _MM_SHUFFLE(2, 0, 2, 0));
+			is_up_zero = _mm_cmpeq_epi32(up128, _mm_setzero_si128());
+			final32 = _mm_blendv_epi8(res32, low128, is_up_zero);
+			_mm_storeu_si128((__m128i*)(dest + i), final32);
+		}
+	}
+
+	/* Scalar fallback for leftovers or 64-bit signals */
+	for (; i < n; i++) {
 		FLAC__int64 up = upper_is_64 ? up64[i] : (FLAC__int64)up32[i];
 		FLAC__int64 low_val = lower_is_64 ? low64[i] : (FLAC__int64)low32[i];
 		uint64_t low_u = (uint64_t)low_val & mask;
@@ -478,15 +596,6 @@ void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest
 
 		if (up == 0) {
 			dest[i] = (uint32_t)low_val;
-		} else if (lower_bits == 0) {
-			uint32_t sign = (up < 0) ? 1 : 0;
-			uint64_t uval = (up < 0) ? (uint64_t)(-up) : (uint64_t)up;
-			int leading_bit_pos = (int)FLAC__bitmath_ilog2_wide(uval);
-			int shift = leading_bit_pos - 23;
-			uint32_t orig_exp = (uint32_t)(base_exp + leading_bit_pos);
-			uint32_t explicit_mant = (shift >= 0) ? (uint32_t)(uval >> shift) : (uint32_t)(uval << (-shift));
-			uint32_t orig_mant = explicit_mant & 0x7FFFFF;
-			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
 		} else {
 			uint32_t sign;
 			uint64_t uval;
@@ -503,6 +612,7 @@ void FLAC__combine_subframe_signals_dpa_to_f32_buffer_intrin_avx2(uint32_t *dest
 			dest[i] = (sign << 31) | (orig_exp << 23) | orig_mant;
 		}
 	}
+	_mm256_zeroupper();
 }
 #endif
 #endif

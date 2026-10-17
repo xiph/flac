@@ -487,36 +487,3 @@ void FLAC__transform_frame_dpa_float(FLAC__int32 *dest_signals32[], FLAC__int64 
 	}
 }
 
-FLAC__bool FLAC__MD5Accumulate_float(FLAC__MD5Context *ctx, const uint32_t * const float_signals[], uint32_t channels, uint32_t samples)
-{
-	size_t bytes_needed = 0;
-	uint32_t sample, channel;
-	FLAC__byte *buf;
-
-	if (channels > 1024)
-		return false;
-
-	bytes_needed = (size_t)samples * (size_t)channels * sizeof(uint32_t);
-	if (bytes_needed == 0)
-		return true;
-
-	buf = safe_malloc_(bytes_needed);
-	if (!buf)
-		return false;
-
-	{
-		uint32_t *dest = (uint32_t *)buf;
-		size_t k = 0;
-		for (sample = 0; sample < samples; sample++) {
-			for (channel = 0; channel < channels; channel++) {
-				dest[k++] = H2LE_32(float_signals[channel][sample]);
-			}
-		}
-	}
-
-	FLAC__MD5Update(ctx, buf, (uint32_t)bytes_needed);
-	free(buf);
-	return true;
-}
-
-

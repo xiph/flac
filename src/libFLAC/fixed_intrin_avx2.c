@@ -539,7 +539,7 @@ uint32_t FLAC__fixed_compute_best_predictor_limit_residual_64bit_intrin_avx2(con
 }
 
 FLAC__SSE_TARGET("avx2")
-void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int32 residual[])
+void FLAC__fixed_compute_residual_64bit_intrin_avx2(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int64 residual[])
 {
 	const int idata_len = (int)data_len;
 	int i;
@@ -548,26 +548,20 @@ void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[
 		case 0:
 			for(i = 0; i < idata_len - 3; i += 4) {
 				__m256i d = _mm256_loadu_si256((const __m256i*)(const void*)(data + i));
-				__m128i lo = _mm256_castsi256_si128(d);
-				__m128i hi = _mm256_extracti128_si256(d, 1);
-				__m128 shuf = _mm_shuffle_ps((__m128)lo, (__m128)hi, _MM_SHUFFLE(2, 0, 2, 0));
-				_mm_storeu_si128((__m128i*)(void*)(residual + i), (__m128i)shuf);
+				_mm256_storeu_si256((__m256i*)(void*)(residual + i), d);
 			}
 			for(; i < idata_len; i++)
-				residual[i] = (FLAC__int32)data[i];
+				residual[i] = data[i];
 			break;
 		case 1:
 			for(i = 0; i < idata_len - 3; i += 4) {
 				__m256i cur = _mm256_loadu_si256((const __m256i*)(const void*)(data + i));
 				__m256i prev = _mm256_loadu_si256((const __m256i*)(const void*)(data + i - 1));
 				__m256i diff = _mm256_sub_epi64(cur, prev);
-				__m128i lo = _mm256_castsi256_si128(diff);
-				__m128i hi = _mm256_extracti128_si256(diff, 1);
-				__m128 shuf = _mm_shuffle_ps((__m128)lo, (__m128)hi, _MM_SHUFFLE(2, 0, 2, 0));
-				_mm_storeu_si128((__m128i*)(void*)(residual + i), (__m128i)shuf);
+				_mm256_storeu_si256((__m256i*)(void*)(residual + i), diff);
 			}
 			for(; i < idata_len; i++)
-				residual[i] = (FLAC__int32)(data[i] - data[i-1]);
+				residual[i] = data[i] - data[i-1];
 			break;
 		case 2:
 			for(i = 0; i < idata_len - 3; i += 4) {
@@ -575,17 +569,10 @@ void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[
 				__m256i d1 = _mm256_loadu_si256((const __m256i*)(const void*)(data + i - 1));
 				__m256i d2 = _mm256_loadu_si256((const __m256i*)(const void*)(data + i - 2));
 				__m256i diff = _mm256_add_epi64(_mm256_sub_epi64(d0, _mm256_slli_epi64(d1, 1)), d2);
-				__m128i lo = _mm256_castsi256_si128(diff);
-				__m128i hi = _mm256_extracti128_si256(diff, 1);
-				__m128 shuf = _mm_shuffle_ps((__m128)lo, (__m128)hi, _MM_SHUFFLE(2, 0, 2, 0));
-				_mm_storeu_si128((__m128i*)(void*)(residual + i), (__m128i)shuf);
+				_mm256_storeu_si256((__m256i*)(void*)(residual + i), diff);
 			}
 			for(; i < idata_len; i++)
-#if FLAC__HAS_INT128
-				residual[i] = (FLAC__int32)((FLAC__int128)data[i] - 2*(FLAC__int128)data[i-1] + (FLAC__int128)data[i-2]);
-#else
-				residual[i] = (FLAC__int32)((FLAC__int64)((FLAC__uint64)data[i] - 2*(FLAC__uint64)data[i-1] + (FLAC__uint64)data[i-2]));
-#endif
+				residual[i] = data[i] - 2 * data[i-1] + data[i-2];
 			break;
 		case 3:
 			for(i = 0; i < idata_len - 3; i += 4) {
@@ -596,17 +583,10 @@ void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[
 				__m256i d1_3 = _mm256_add_epi64(_mm256_slli_epi64(d1, 1), d1);
 				__m256i d2_3 = _mm256_add_epi64(_mm256_slli_epi64(d2, 1), d2);
 				__m256i diff = _mm256_sub_epi64(_mm256_add_epi64(_mm256_sub_epi64(d0, d1_3), d2_3), d3);
-				__m128i lo = _mm256_castsi256_si128(diff);
-				__m128i hi = _mm256_extracti128_si256(diff, 1);
-				__m128 shuf = _mm_shuffle_ps((__m128)lo, (__m128)hi, _MM_SHUFFLE(2, 0, 2, 0));
-				_mm_storeu_si128((__m128i*)(void*)(residual + i), (__m128i)shuf);
+				_mm256_storeu_si256((__m256i*)(void*)(residual + i), diff);
 			}
 			for(; i < idata_len; i++)
-#if FLAC__HAS_INT128
-				residual[i] = (FLAC__int32)((FLAC__int128)data[i] - 3*(FLAC__int128)data[i-1] + 3*(FLAC__int128)data[i-2] - (FLAC__int128)data[i-3]);
-#else
-				residual[i] = (FLAC__int32)((FLAC__int64)((FLAC__uint64)data[i] - 3*(FLAC__uint64)data[i-1] + 3*(FLAC__uint64)data[i-2] - (FLAC__uint64)data[i-3]));
-#endif
+				residual[i] = data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3];
 			break;
 		case 4:
 			for(i = 0; i < idata_len - 3; i += 4) {
@@ -619,17 +599,10 @@ void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[
 				__m256i d2_6 = _mm256_add_epi64(_mm256_slli_epi64(d2, 2), _mm256_slli_epi64(d2, 1));
 				__m256i d3_4 = _mm256_slli_epi64(d3, 2);
 				__m256i diff = _mm256_add_epi64(_mm256_sub_epi64(_mm256_add_epi64(_mm256_sub_epi64(d0, d1_4), d2_6), d3_4), d4);
-				__m128i lo = _mm256_castsi256_si128(diff);
-				__m128i hi = _mm256_extracti128_si256(diff, 1);
-				__m128 shuf = _mm_shuffle_ps((__m128)lo, (__m128)hi, _MM_SHUFFLE(2, 0, 2, 0));
-				_mm_storeu_si128((__m128i*)(void*)(residual + i), (__m128i)shuf);
+				_mm256_storeu_si256((__m256i*)(void*)(residual + i), diff);
 			}
 			for(; i < idata_len; i++)
-#if FLAC__HAS_INT128
-				residual[i] = (FLAC__int32)((FLAC__int128)data[i] - 4*(FLAC__int128)data[i-1] + 6*(FLAC__int128)data[i-2] - 4*(FLAC__int128)data[i-3] + (FLAC__int128)data[i-4]);
-#else
-				residual[i] = (FLAC__int32)((FLAC__int64)((FLAC__uint64)data[i] - 4*(FLAC__uint64)data[i-1] + 6*(FLAC__uint64)data[i-2] - 4*(FLAC__uint64)data[i-3] + (FLAC__uint64)data[i-4]));
-#endif
+				residual[i] = data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4];
 			break;
 		default:
 			FLAC__ASSERT(0);
@@ -637,53 +610,6 @@ void FLAC__fixed_compute_residual_wide_64bit_intrin_avx2(const FLAC__int64 data[
 	_mm256_zeroupper();
 }
 
-FLAC__SSE_TARGET("avx2")
-void FLAC__fixed_restore_signal_wide_64bit_intrin_avx2(const FLAC__int32 residual[], uint32_t data_len, uint32_t order, FLAC__int64 data[])
-{
-	int i, idata_len = (int)data_len;
-	switch(order) {
-		case 0:
-			for(i = 0; i < idata_len - 3; i += 4) {
-				__m128i r = _mm_loadu_si128((const __m128i*)(const void*)(residual + i));
-				__m256i r64 = _mm256_cvtepi32_epi64(r);
-				_mm256_storeu_si256((__m256i*)(void*)(data + i), r64);
-			}
-			for(; i < idata_len; i++)
-				data[i] = (FLAC__int64)residual[i];
-			break;
-		case 1:
-			for(i = 0; i < idata_len; i++)
-				data[i] = (FLAC__int64)residual[i] + data[i-1];
-			break;
-		case 2:
-			for(i = 0; i < idata_len; i++)
-#if FLAC__HAS_INT128
-				data[i] = (FLAC__int64)((FLAC__int128)residual[i] + 2*(FLAC__int128)data[i-1] - (FLAC__int128)data[i-2]);
-#else
-				data[i] = (FLAC__int64)((FLAC__uint64)residual[i] + 2*(FLAC__uint64)data[i-1] - (FLAC__uint64)data[i-2]);
-#endif
-			break;
-		case 3:
-			for(i = 0; i < idata_len; i++)
-#if FLAC__HAS_INT128
-				data[i] = (FLAC__int64)((FLAC__int128)residual[i] + 3*(FLAC__int128)data[i-1] - 3*(FLAC__int128)data[i-2] + (FLAC__int128)data[i-3]);
-#else
-				data[i] = (FLAC__int64)((FLAC__uint64)residual[i] + 3*(FLAC__uint64)data[i-1] - 3*(FLAC__uint64)data[i-2] + (FLAC__uint64)data[i-3]);
-#endif
-			break;
-		case 4:
-			for(i = 0; i < idata_len; i++)
-#if FLAC__HAS_INT128
-				data[i] = (FLAC__int64)((FLAC__int128)residual[i] + 4*(FLAC__int128)data[i-1] - 6*(FLAC__int128)data[i-2] + 4*(FLAC__int128)data[i-3] - (FLAC__int128)data[i-4]);
-#else
-				data[i] = (FLAC__int64)((FLAC__uint64)residual[i] + 4*(FLAC__uint64)data[i-1] - 6*(FLAC__uint64)data[i-2] + 4*(FLAC__uint64)data[i-3] - (FLAC__uint64)data[i-4]);
-#endif
-			break;
-		default:
-			FLAC__ASSERT(0);
-	}
-	_mm256_zeroupper();
-}
 
 #endif /* FLAC__AVX2_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
