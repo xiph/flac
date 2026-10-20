@@ -333,7 +333,11 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 	 * pages down to libFLAC in such a way that we obey its size
 	 * requirement.  To limit the amount of callbacks, we will always try
 	 * to read in enough pages to return the full number of bytes
-	 * requested.
+	 * requested, except that once we have something to return, we return
+	 * it rather than ask the client for more.  On a live stream that next
+	 * read can wait a long time (near-silence encodes to a few hundred
+	 * bytes a second, so filling an 8 KiB request can take tens of
+	 * seconds), and libFLAC takes partial reads.
 	 */
 	*bytes = 0;
 	while (*bytes < bytes_requested && !aspect->end_of_stream) {
@@ -430,7 +434,11 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 			}
 			else if (ret == 0) {
 				/* need more data */
-				FLAC__OggDecoderAspectReadStatus status = read_more_data_(aspect, read_callback, bytes_requested - *bytes, decoder, client_data);
+				FLAC__OggDecoderAspectReadStatus status;
+				/* but first return what we have, see above */
+				if(*bytes > 0)
+					return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
+				status = read_more_data_(aspect, read_callback, bytes_requested - *bytes, decoder, client_data);
 				if(status != FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK)
 					return status;
 			}
