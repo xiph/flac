@@ -319,18 +319,18 @@ FLAC_API uint32_t FLAC__format_seektable_sort(FLAC__StreamMetadata_SeekTable *se
  * and a more clear explanation at the end of this section:
  *   http://www.cl.cam.ac.uk/~mgk25/unicode.html#utf-8
  */
-static uint32_t utf8len_(const FLAC__byte *utf8)
+static uint32_t utf8len_(const FLAC__byte *utf8, uint32_t remaining)
 {
 	FLAC__ASSERT(0 != utf8);
 	if ((utf8[0] & 0x80) == 0) {
 		return 1;
 	}
-	else if ((utf8[0] & 0xE0) == 0xC0 && (utf8[1] & 0xC0) == 0x80) {
+	else if ((utf8[0] & 0xE0) == 0xC0 && remaining >= 2 && (utf8[1] & 0xC0) == 0x80) {
 		if ((utf8[0] & 0xFE) == 0xC0) /* overlong sequence check */
 			return 0;
 		return 2;
 	}
-	else if ((utf8[0] & 0xF0) == 0xE0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80) {
+	else if ((utf8[0] & 0xF0) == 0xE0 && remaining >= 3 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80) {
 		if (utf8[0] == 0xE0 && (utf8[1] & 0xE0) == 0x80) /* overlong sequence check */
 			return 0;
 		/* illegal surrogates check (U+D800...U+DFFF and U+FFFE...U+FFFF) */
@@ -340,17 +340,17 @@ static uint32_t utf8len_(const FLAC__byte *utf8)
 			return 0;
 		return 3;
 	}
-	else if ((utf8[0] & 0xF8) == 0xF0 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80) {
+	else if ((utf8[0] & 0xF8) == 0xF0 && remaining >= 4 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80) {
 		if (utf8[0] == 0xF0 && (utf8[1] & 0xF0) == 0x80) /* overlong sequence check */
 			return 0;
 		return 4;
 	}
-	else if ((utf8[0] & 0xFC) == 0xF8 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80) {
+	else if ((utf8[0] & 0xFC) == 0xF8 && remaining >= 5 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80) {
 		if (utf8[0] == 0xF8 && (utf8[1] & 0xF8) == 0x80) /* overlong sequence check */
 			return 0;
 		return 5;
 	}
-	else if ((utf8[0] & 0xFE) == 0xFC && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80 && (utf8[5] & 0xC0) == 0x80) {
+	else if ((utf8[0] & 0xFE) == 0xFC && remaining >= 6 && (utf8[1] & 0xC0) == 0x80 && (utf8[2] & 0xC0) == 0x80 && (utf8[3] & 0xC0) == 0x80 && (utf8[4] & 0xC0) == 0x80 && (utf8[5] & 0xC0) == 0x80) {
 		if (utf8[0] == 0xFC && (utf8[1] & 0xFC) == 0x80) /* overlong sequence check */
 			return 0;
 		return 6;
@@ -373,7 +373,7 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_value_is_legal(const FLAC__
 {
 	if(length == (uint32_t)(-1)) {
 		while(*value) {
-			uint32_t n = utf8len_(value);
+			uint32_t n = utf8len_(value, (uint32_t)(-1));
 			if(n == 0)
 				return false;
 			value += n;
@@ -382,7 +382,7 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_value_is_legal(const FLAC__
 	else {
 		const FLAC__byte *end = value + length;
 		while(value < end) {
-			uint32_t n = utf8len_(value);
+			uint32_t n = utf8len_(value, (uint32_t)(end - value));
 			if(n == 0)
 				return false;
 			value += n;
@@ -407,7 +407,7 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_is_legal(const FLAC__byte *
 	s++; /* skip '=' */
 
 	while(s < end) {
-		uint32_t n = utf8len_(s);
+		uint32_t n = utf8len_(s, (uint32_t)(end - s));
 		if(n == 0)
 			return false;
 		s += n;
@@ -511,7 +511,7 @@ FLAC_API FLAC__bool FLAC__format_picture_is_legal(const FLAC__StreamMetadata_Pic
 	}
 
 	for(b = picture->description; *b; ) {
-		uint32_t n = utf8len_(b);
+		uint32_t n = utf8len_(b, (uint32_t)(-1));
 		if(n == 0) {
 			if(violation) *violation = "description string must be valid UTF-8";
 			return false;
