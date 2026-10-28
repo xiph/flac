@@ -25,6 +25,8 @@
 #include "FLAC/format.h"
 #include "format.h"
 #include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 
 static const char *true_false_string_[2] = { "false", "true" };
 
@@ -110,10 +112,12 @@ static struct {
 	{ 2, (const FLAC__byte*)"\xc0\x85"    , false }, /* non-shortest form */
 	{ 2, (const FLAC__byte*)"\xc1\x85"    , false }, /* non-shortest form */
 	{ 2, (const FLAC__byte*)"\xc2\x85"    , true  },
+	{ 1, (const FLAC__byte*)"\xc2\x85"    , false }, /* truncated by length */
 	{ 2, (const FLAC__byte*)"\xe0\x41"    , false },
 	{ 2, (const FLAC__byte*)"\xe1\x41"    , false },
 	{ 2, (const FLAC__byte*)"\xe0\x85"    , false },
 	{ 2, (const FLAC__byte*)"\xe1\x85"    , false },
+	{ 2, (const FLAC__byte*)"\xe1\x85\x80", false }, /* truncated by length */
 	{ 3, (const FLAC__byte*)"\xe0\x85\x41", false },
 	{ 3, (const FLAC__byte*)"\xe1\x85\x41", false },
 	{ 3, (const FLAC__byte*)"\xe0\x85\x80", false }, /* non-shortest form */
@@ -181,6 +185,7 @@ static struct {
 	{ 4, (const FLAC__byte*)"a=\xc0\x85"    , false }, /* non-shortest form */
 	{ 4, (const FLAC__byte*)"a=\xc1\x85"    , false }, /* non-shortest form */
 	{ 4, (const FLAC__byte*)"a=\xc2\x85"    , true  },
+	{ 3, (const FLAC__byte*)"a=\xc2\x85"    , false }, /* truncated by length */
 	{ 4, (const FLAC__byte*)"a=\xe0\x41"    , false },
 	{ 4, (const FLAC__byte*)"a=\xe1\x41"    , false },
 	{ 4, (const FLAC__byte*)"a=\xe0\x85"    , false },
@@ -192,12 +197,24 @@ static struct {
 	{ 5, (const FLAC__byte*)"a=\xe0\xa5\x80", true  },
 	{ 5, (const FLAC__byte*)"a=\xe1\x85\x80", true  },
 	{ 5, (const FLAC__byte*)"a=\xe1\x95\x80", true  },
-	{ 5, (const FLAC__byte*)"a=\xe1\xa5\x80", true  }
+	{ 5, (const FLAC__byte*)"a=\xe1\xa5\x80", true  },
+	{ 4, (const FLAC__byte*)"a=\xe1\xa5\x80", false }  /* truncated by length */
 };
+
+/* exactly sized heap copy, so that reads past 'length' are caught by ASan */
+static FLAC__byte *dup_exact_(const FLAC__byte *string, uint32_t length)
+{
+	FLAC__byte *copy = malloc(length > 0? length : 1);
+	if(0 != copy)
+		memcpy(copy, string, length);
+	return copy;
+}
 
 FLAC__bool test_format(void)
 {
 	uint32_t i;
+	FLAC__byte *copy;
+	FLAC__bool ok;
 
 	printf("\n+++ libFLAC unit test: format\n\n");
 
@@ -230,7 +247,13 @@ FLAC__bool test_format(void)
 
 	for(i = 0; i < sizeof(VCENTRY_VALUES)/sizeof(VCENTRY_VALUES[0]); i++) {
 		printf("testing FLAC__format_vorbiscomment_entry_value_is_legal(\"%s\", %u)... ", VCENTRY_VALUES[i].string, VCENTRY_VALUES[i].length);
-		if(FLAC__format_vorbiscomment_entry_value_is_legal(VCENTRY_VALUES[i].string, VCENTRY_VALUES[i].length) != VCENTRY_VALUES[i].valid) {
+		if(0 == (copy = dup_exact_(VCENTRY_VALUES[i].string, VCENTRY_VALUES[i].length))) {
+			printf("FAILED, malloc error\n");
+			return false;
+		}
+		ok = FLAC__format_vorbiscomment_entry_value_is_legal(copy, VCENTRY_VALUES[i].length) == VCENTRY_VALUES[i].valid;
+		free(copy);
+		if(!ok) {
 			printf("FAILED, expected %s, got %s\n", true_false_string_[VCENTRY_VALUES[i].valid], true_false_string_[!VCENTRY_VALUES[i].valid]);
 			return false;
 		}
@@ -248,7 +271,13 @@ FLAC__bool test_format(void)
 
 	for(i = 0; i < sizeof(VCENTRIES)/sizeof(VCENTRIES[0]); i++) {
 		printf("testing FLAC__format_vorbiscomment_entry_is_legal(\"%s\", %u)... ", VCENTRIES[i].string, VCENTRIES[i].length);
-		if(FLAC__format_vorbiscomment_entry_is_legal(VCENTRIES[i].string, VCENTRIES[i].length) != VCENTRIES[i].valid) {
+		if(0 == (copy = dup_exact_(VCENTRIES[i].string, VCENTRIES[i].length))) {
+			printf("FAILED, malloc error\n");
+			return false;
+		}
+		ok = FLAC__format_vorbiscomment_entry_is_legal(copy, VCENTRIES[i].length) == VCENTRIES[i].valid;
+		free(copy);
+		if(!ok) {
 			printf("FAILED, expected %s, got %s\n", true_false_string_[VCENTRIES[i].valid], true_false_string_[!VCENTRIES[i].valid]);
 			return false;
 		}
