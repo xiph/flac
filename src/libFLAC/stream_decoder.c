@@ -3835,11 +3835,15 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		if(!FLAC__stream_decoder_process_single(decoder) || decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED || 0 == decoder->private_->samples_decoded) {
 			/* No frame could be decoded */
 			if(decoder->protected_->state != FLAC__STREAM_DECODER_ABORTED && decoder->private_->eof_callback(decoder, decoder->private_->client_data) && !seek_from_lower_bound){
-				/* decoder has hit end of stream while processing corrupt
-				 * frame. To remedy this, try decoding a frame at the lower
-				 * bound so the seek after that hopefully ends up somewhere
-				 * else */
-				seek_from_lower_bound = true;
+				/* decoder has hit end of stream without decoding a frame.
+				 * Usually pos landed inside the last frame, so first back
+				 * off further. Once pos can't move back any more, try
+				 * decoding a frame at the lower bound so the seek after
+				 * that hopefully ends up somewhere else */
+				if(pos > (FLAC__int64)lower_bound && approx_bytes_per_frame < (1u << 31))
+					approx_bytes_per_frame = approx_bytes_per_frame? approx_bytes_per_frame * 2 : 16;
+				else
+					seek_from_lower_bound = true;
 				continue;
 			}
 			else {
