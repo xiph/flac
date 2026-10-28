@@ -42,9 +42,15 @@
 #ifdef FLAC__FMA_SUPPORTED
 
 #include "FLAC/assert.h"
+#include "share/compat.h"
+
+#if defined(_MSC_VER)
+// silence MSVC warnings about __restrict modifier
+#pragma warning ( disable : 4028 )
+#endif
 
 FLAC__SSE_TARGET("fma")
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[], uint32_t data_len, uint32_t lag, double * flac_restrict autoc)
 {
 #undef MAX_LAG
 #define MAX_LAG 8
@@ -52,20 +58,24 @@ void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_8(const FLAC__real data[],
 }
 
 FLAC__SSE_TARGET("fma")
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_12(const FLAC__real data[], uint32_t data_len, uint32_t lag, double * flac_restrict autoc)
 {
 #undef MAX_LAG
 #define MAX_LAG 12
 #include "deduplication/lpc_compute_autocorrelation_intrin.c"
 }
 FLAC__SSE_TARGET("fma")
-void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double autoc[])
+void FLAC__lpc_compute_autocorrelation_intrin_fma_lag_16(const FLAC__real data[], uint32_t data_len, uint32_t lag, double * flac_restrict autoc)
 {
 #undef MAX_LAG
 #define MAX_LAG 16
 #include "deduplication/lpc_compute_autocorrelation_intrin.c"
 
 }
+
+#if defined(_MSC_VER)
+#pragma warning ( default : 4028 )
+#endif
 
 #endif /* FLAC__FMA_SUPPORTED */
 #endif /* FLAC__CPU_X86_64 && FLAC__HAS_X86INTRIN */
