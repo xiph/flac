@@ -1300,6 +1300,37 @@ flac2flac input-SCVA.flac case04e "--no-padding -S 5x"
 # case 04f: on file with SEEKTABLE block and size-changing option specified, drop existing SEEKTABLE, new SEEKTABLE with default points
 #(already covered by case03c)
 
+# case 05a: on file with 1024 metadata blocks, --picture adds PICTURE blocks after all of them
+echo $ECHO_N "case05a... " $ECHO_C
+picture=${top_srcdir}/test/pictures/0.gif
+cp "$testdatadir/input-VA.flac" in.flac
+chmod u+w in.flac
+# input-VA.flac has 3 blocks; add 1021 PICTURE blocks, 32 per metaflac call to keep command lines short
+n=0
+args=
+while [ $n -lt 1021 ] ; do
+	args="$args --import-picture-from=$picture"
+	n=$((n + 1))
+	if [ $((n % 32)) -eq 0 ] || [ $n -eq 1021 ] ; then
+		run_metaflac --dont-use-padding $args in.flac || die "ERROR adding PICTURE blocks"
+		args=
+	fi
+done
+run_flac -f -o out.flac --no-padding --no-seektable --picture=$picture --picture=$picture in.flac || die "ERROR encoding FLAC file"
+count=$(run_metaflac --list --block-type=PICTURE out.flac | grep '^METADATA block #' | wc -l)
+[ $count -eq 1023 ] || die "ERROR: expected 1023 PICTURE blocks, got $count"
+echo OK
+
+# case 05b: on file with more than 1024 metadata blocks, keep them all and add SEEKTABLE and PADDING
+echo $ECHO_N "case05b... " $ECHO_C
+run_flac -f -o out2.flac out.flac || die "ERROR encoding FLAC file"
+count=$(run_metaflac --list out2.flac | grep '^METADATA block #' | wc -l)
+[ $count -eq 1028 ] || die "ERROR: expected 1028 metadata blocks, got $count"
+count=$(run_metaflac --list --block-type=SEEKTABLE,PADDING out2.flac | grep '^METADATA block #' | wc -l)
+[ $count -eq 2 ] || die "ERROR: expected SEEKTABLE and PADDING blocks, got $count"
+rm -f in.flac out2.flac
+echo OK
+
 ############################################################################
 # test limiting minimum bitrate
 ############################################################################
