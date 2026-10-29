@@ -32,6 +32,7 @@ typedef union {
 	FLAC__byte *p8;
 	FLAC__int16 *p16;
 	FLAC__int32 *p32;
+	FLAC__int64 *p64;
 } FLAC__multibyte;
 
 typedef struct {
@@ -44,7 +45,12 @@ typedef struct {
 
 void FLAC__MD5Init(FLAC__MD5Context *context);
 void FLAC__MD5Final(FLAC__byte digest[16], FLAC__MD5Context *context);
+void FLAC__MD5Update(FLAC__MD5Context *context, const FLAC__byte *data, uint32_t len);
 
 FLAC__bool FLAC__MD5Accumulate(FLAC__MD5Context *ctx, const FLAC__int32 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample);
+FLAC__bool FLAC__MD5Accumulate_int64(FLAC__MD5Context *ctx, const FLAC__int64 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample);
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__MD5Accumulate_int128(FLAC__MD5Context *ctx, const FLAC__int128 * const signal[], uint32_t channels, uint32_t samples, uint32_t bytes_per_sample);
+#endif
 
 #endif

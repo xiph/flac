@@ -31,6 +31,7 @@
 
 #include <cstdlib>
 #include <cstring> /* for memcpy */
+#include "FLAC/format.h"
 #include "FLAC/stream_encoder.h"
 #include "FLAC/metadata.h"
 extern "C" {
@@ -178,6 +179,14 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 		else
 			num_metadata++;
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(encoder_valid && (metadata_mask & 128)) {
+		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_STREAMINFO_EXTENSION)) == NULL)
+			encoder_valid = false;
+		else
+			num_metadata++;
+	}
+#endif
 	if(encoder_valid && (metadata_mask & 2) && size > 21){
 		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING)) == NULL)
 			encoder_valid = false;
@@ -269,7 +278,11 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 			encoder_valid = false;
 		}
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(encoder_valid && (metadata_mask & 256)){
+#else
 	if(encoder_valid && (metadata_mask & 128)){
+#endif
 		if((metadata[num_metadata] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_UNDEFINED)) != NULL) {
 			metadata[num_metadata]->length = 24;
 			metadata[num_metadata]->data.unknown.data = (FLAC__byte *)calloc(24, 1);
@@ -366,4 +379,3 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	return 0;
 }
-

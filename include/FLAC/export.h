@@ -110,6 +110,6 @@ extern FLAC_API int FLAC_API_SUPPORTS_OGG_FLAC;
 }
 #endif
 
-/* \} */
+/** \} */
 
 #endif

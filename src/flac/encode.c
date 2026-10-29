@@ -17,6 +17,9 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "FLAC/format.h"
+#include "FLAC/ordinals.h"
+#include "FLAC/stream_encoder.h"
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -58,6 +61,10 @@ typedef struct {
 	uint32_t bytes_per_wide_sample; /* for convenience, always == channels*((bps+7)/8), or 0 if N/A to input format (like FLAC) */
 	FLAC__bool is_unsigned_samples;
 	FLAC__bool is_big_endian;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SampleType sample_type;
+	FLAC__float64 sample_rate_extension;
+#endif
 	FLAC__uint32 channel_mask;
 } SampleInfo;
 
@@ -150,7 +157,7 @@ static FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_
 static FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const buffer[], uint32_t samples);
 static FLAC__bool EncoderSession_format_is_iff(const EncoderSession *e);
 static FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int num_requested_seek_points, FLAC__StreamMetadata *cuesheet, EncoderSession *e);
-static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
+static FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, FLAC__float64 sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input);
 static FLAC__bool verify_metadata(const EncoderSession *e, FLAC__StreamMetadata **metadata, uint32_t num_metadata);
 static FLAC__bool format_input(FLAC__int32 *dest[], uint32_t wide_samples, FLAC__bool is_big_endian, FLAC__bool is_unsigned_samples, uint32_t channels, uint32_t bps, uint32_t shift, size_t *channel_map);
 static void encoder_progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 bytes_written, FLAC__uint64 samples_written, uint32_t frames_written, uint32_t total_frames_estimate, void *client_data);
@@ -171,7 +178,11 @@ static FLAC__bool read_bytes(FILE *f, FLAC__byte *buf, size_t n, FLAC__bool eof_
 static FLAC__bool read_uint16(FILE *f, FLAC__bool big_endian, FLAC__uint16 *val, const char *fn);
 static FLAC__bool read_uint32(FILE *f, FLAC__bool big_endian, FLAC__uint32 *val, const char *fn);
 static FLAC__bool read_uint64(FILE *f, FLAC__bool big_endian, FLAC__uint64 *val, const char *fn);
+#if !ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
 static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn);
+#else
+static FLAC__bool read_sane_extended_to_double(FILE *f, FLAC__float64 *val, const char *fn);
+#endif
 static FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset);
 static uint32_t count_channel_mask_bits(FLAC__uint32 mask);
 
@@ -184,7 +195,11 @@ static FLAC__bool get_sample_info_raw(EncoderSession *e, encode_options_t option
 	e->info.bytes_per_wide_sample = options.format_options.raw.channels * ((options.format_options.raw.bps+7)/8);
 	e->info.is_unsigned_samples = options.format_options.raw.is_unsigned_samples;
 	e->info.is_big_endian = options.format_options.raw.is_big_endian;
-	e->info.channel_mask = 0;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = options.format_options.raw.sample_type;
+	e->info.sample_rate_extension = options.format_options.raw.sample_rate_extension;
+	e->info.channel_mask = options.format_options.raw.channel_mask;
+#endif
 
 	return true;
 }
@@ -198,6 +213,9 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 
 	e->info.is_unsigned_samples = false;
 	e->info.is_big_endian = false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = FLAC__SAMPLE_TYPE_INT;
+#endif
 
 	if(e->format == FORMAT_WAVE64) {
 		/*
@@ -285,7 +303,7 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			 *
 			 * WAVEFORMAT is
 			 * 4 byte: chunk size
-			 * 2 byte: format type: 1 for WAVE_FORMAT_PCM, 65534 for WAVE_FORMAT_EXTENSIBLE
+			 * 2 byte: format type: 1 for WAVE_FORMAT_PCM, 3 for WAVE_FORMAT_IEEE_FLOAT, 65534 for WAVE_FORMAT_EXTENSIBLE
 			 * 2 byte: # channels
 			 * 4 byte: sample rate (Hz)
 			 * 4 byte: avg bytes per sec
@@ -343,7 +361,11 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 			/* format code */
 			if(!read_uint16(e->fin, /*big_endian=*/false, &wFormatTag, e->inbasefilename))
 				return false;
-			if(wFormatTag != 1 /*WAVE_FORMAT_PCM*/ && wFormatTag != 65534 /*WAVE_FORMAT_EXTENSIBLE*/) {
+			if(wFormatTag != 1 /*WAVE_FORMAT_PCM*/ &&
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			   wFormatTag != 3 /*WAVE_FORMAT_IEEE_FLOAT*/ &&
+#endif
+			   wFormatTag != 65534 /*WAVE_FORMAT_EXTENSIBLE*/) {
 				flac__utils_printf(stderr, 1, "%s: ERROR: unsupported format type %u\n", e->inbasefilename, (uint32_t)wFormatTag);
 				return false;
 			}
@@ -397,6 +419,25 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				FLAC__ASSERT(data_bytes >= 16);
 				data_bytes -= 16;
 			}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			else if(wFormatTag == 3) {
+				if(bps != 32) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: legacy WAVE file has format type %u but bits-per-sample=%u\n", e->inbasefilename, (uint32_t)wFormatTag, bps);
+					return false;
+				}
+				if(bps / 8 * channels != block_align) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: legacy WAVE file has block alignment=%u, bits-per-sample=%u, channels=%u\n", e->inbasefilename, (uint32_t)wFormatTag, block_align, bps, channels);
+					return false;
+				}
+				if(channels > 2 && !options.channel_map_none) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: WAVE has >2 channels but is not WAVE_FORMAT_EXTENSIBLE; cannot assign channels\n", e->inbasefilename);
+					return false;
+				}
+				FLAC__ASSERT(data_bytes >= 16);
+				data_bytes -= 16;
+				e->info.sample_type = FLAC__SAMPLE_TYPE_FLOAT;
+			}
+#endif
 			else {
 				if(data_bytes < 40) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with size %u\n", e->inbasefilename, (uint32_t)data_bytes);
@@ -429,10 +470,25 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				/* first part of GUID */
 				if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
 					return false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				if(x == 1)
+					e->info.sample_type = FLAC__SAMPLE_TYPE_INT;
+				else if(x == 3) {
+					if(bps != 32) {
+						flac__utils_printf(stderr, 1, "%s: ERROR: WAVEFORMATEXTENSIBLE float format but bits-per-sample=%u (must be 32)\n", e->inbasefilename, bps);
+						return false;
+					}
+					e->info.sample_type = FLAC__SAMPLE_TYPE_FLOAT;
+				} else {
+					flac__utils_printf(stderr, 1, "%s: ERROR: unsupported WAVEFORMATEXTENSIBLE subformat %u\n", e->inbasefilename, (uint32_t)x);
+					return false;
+				}
+#else
 				if(x != 1) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: unsupported WAVEFORMATEXTENSIBLE chunk with non-PCM format %u\n", e->inbasefilename, (uint32_t)x);
 					return false;
 				}
+#endif
 				data_bytes -= 26;
 			}
 
@@ -571,6 +627,11 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 	e->info.bits_per_sample = bps;
 	e->info.shift = shift;
 	e->info.channel_mask = channel_mask;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(e->info.sample_type == FLAC__SAMPLE_TYPE_FLOAT || channels > (1U << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) || channel_mask != 0 || bps > (1U << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN)) {
+		e->info.sample_rate_extension = sample_rate;
+	}
+#endif
 
 	return true;
 }
@@ -579,11 +640,17 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 {
 	FLAC__bool got_comm_chunk = false, got_ssnd_chunk = false;
 	uint32_t sample_rate = 0, channels = 0, bps = 0, shift = 0;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__float64 sample_rate_extension = 0.0;
+#endif
 	FLAC__uint64 sample_frames = 0;
 	FLAC__uint32 channel_mask = 0;
 
 	e->info.is_unsigned_samples = false;
 	e->info.is_big_endian = true;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	e->info.sample_type = FLAC__SAMPLE_TYPE_INT;
+#endif
 
 	/*
 	 * lookahead[] already has "FORMxxxxAIFF", do chunks
@@ -644,10 +711,17 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 			shift = (bps%8)? 8-(bps%8) : 0; /* SSND data is always byte-aligned, left-justified but format_input() will double-check */
 			bps += shift;
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			/* sample rate */
+			if(!read_sane_extended_to_double(e->fin, &sample_rate_extension, e->inbasefilename))
+				return false;
+			sample_rate = rint(sample_rate_extension);
+#else
 			/* sample rate */
 			if(!read_sane_extended(e->fin, &xx, e->inbasefilename))
 				return false;
 			sample_rate = xx;
+#endif
 
 			/* check compression type for AIFF-C */
 			if(is_aifc) {
@@ -657,6 +731,11 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 					e->info.is_big_endian = false;
 				else if(xx == 0x4E4F4E45) /* "NONE" */
 					; /* nothing to do, we already default to big-endian */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				else if(xx == 0x666c3332 || xx == 0x464c3332) { /* "fl32" or "FL32" */
+					e->info.sample_type = FLAC__SAMPLE_TYPE_FLOAT;
+				}
+#endif
 				else {
 					flac__utils_printf(stderr, 1, "%s: ERROR: can't handle AIFF-C compression type \"%c%c%c%c\"\n", e->inbasefilename, (char)(xx>>24), (char)((xx>>16)&8), (char)((xx>>8)&8), (char)(xx&8));
 					return false;
@@ -794,6 +873,10 @@ static FLAC__bool get_sample_info_aiff(EncoderSession *e, encode_options_t optio
 	}
 
 	e->info.sample_rate = sample_rate;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(e->info.sample_type == FLAC__SAMPLE_TYPE_FLOAT || channels > (1U << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) || channel_mask != 0 || bps > (1U << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN) || sample_rate_extension != (FLAC__float64)sample_rate || sample_rate > FLAC__MAX_SAMPLE_RATE)
+		e->info.sample_rate_extension = sample_rate_extension;
+#endif
 	e->info.channels = channels;
 	e->info.bits_per_sample = bps;
 	e->info.shift = shift;
@@ -843,6 +926,12 @@ static FLAC__bool get_sample_info_flac(EncoderSession *e, FLAC__bool do_check_md
 		flac__utils_printf(stderr, 1, "%s: ERROR: FLAC input has STREAMINFO with unknown total samples which is not supported\n", e->inbasefilename);
 		return false;
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	else if (e->fmt.flac.client_data.metadata_blocks[0]->data.stream_info.bits_per_sample == 1 && (e->fmt.flac.client_data.num_metadata_blocks == 1 || e->fmt.flac.client_data.metadata_blocks[1]->type != FLAC__METADATA_TYPE_STREAMINFO_EXTENSION)) {
+		flac__utils_printf(stderr, 1, "%s: ERROR: FLAC input has STREAMINFO with indication of the presence of a STREAMINFO_EXTENSION block, but no STREAMINFO_EXTENSION block was found\n", e->inbasefilename);
+		return false;
+	}
+#endif
 
 	e->info.sample_rate = e->fmt.flac.client_data.metadata_blocks[0]->data.stream_info.sample_rate;
 	e->info.channels = e->fmt.flac.client_data.metadata_blocks[0]->data.stream_info.channels;
@@ -851,6 +940,12 @@ static FLAC__bool get_sample_info_flac(EncoderSession *e, FLAC__bool do_check_md
 	e->info.bytes_per_wide_sample = 0;
 	e->info.is_unsigned_samples = false; /* not applicable for FLAC input */
 	e->info.is_big_endian = false; /* not applicable for FLAC input */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if (e->info.bits_per_sample == 1) {
+		e->info.sample_type = e->fmt.flac.client_data.metadata_blocks[1]->data.stream_info_extension.sample_type;
+		e->info.sample_rate_extension = e->fmt.flac.client_data.metadata_blocks[1]->data.stream_info_extension.sample_rate;
+	}
+#endif
 	e->info.channel_mask = 0;
 
 	return true;
@@ -940,8 +1035,14 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		flac__utils_printf(stderr, 1, "%s: ERROR: unsupported sample rate %u\n", encoder_session.inbasefilename, encoder_session.info.sample_rate);
 		return EncoderSession_finish_error(&encoder_session);
 	}
-	if(encoder_session.info.bits_per_sample-encoder_session.info.shift < 4 || encoder_session.info.bits_per_sample-encoder_session.info.shift > 32) {
-		flac__utils_printf(stderr, 1, "%s: ERROR: unsupported bits-per-sample %u\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(!FLAC__format_sample_rate_is_valid_extension(encoder_session.info.sample_rate_extension) && encoder_session.info.sample_rate_extension != 0.0) {
+		flac__utils_printf(stderr, 1, "%s: ERROR: unsupported sample rate in STREAMINFO_EXTENSION block %f\n", encoder_session.inbasefilename, encoder_session.info.sample_rate_extension);
+		return EncoderSession_finish_error(&encoder_session);
+	}
+#endif
+	if(encoder_session.info.bits_per_sample-encoder_session.info.shift < FLAC__REFERENCE_CODEC_MIN_BITS_PER_SAMPLE || encoder_session.info.bits_per_sample-encoder_session.info.shift > FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE) {
+		flac__utils_printf(stderr, 1, "%s: ERROR: bits-per-sample (%u) is not supported (the reference codec only supports %u-%u bits per sample; bit depths up to %u are defined by the format specification but not yet implemented)\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift, FLAC__REFERENCE_CODEC_MIN_BITS_PER_SAMPLE, FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE, FLAC__MAX_BITS_PER_SAMPLE);
 		return EncoderSession_finish_error(&encoder_session);
 	}
 
@@ -950,6 +1051,11 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		FLAC__uint64 skip;
 		FLAC__uint64 until; /* a value of 0 mean end-of-stream (i.e. --until=-0) */
 		uint32_t consecutive_eos_count = 0;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		const FLAC__float64 effective_sr = FLAC__format_sample_rate_is_valid_extension(encoder_session.info.sample_rate_extension) ? encoder_session.info.sample_rate_extension : (FLAC__float64)encoder_session.info.sample_rate;
+#else
+		const FLAC__float64 effective_sr = (FLAC__float64)encoder_session.info.sample_rate;
+#endif
 
 		switch(options.format) {
 			case FORMAT_RAW:
@@ -1004,7 +1110,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		 * now that we know the sample rate, canonicalize the
 		 * --skip string to an absolute sample number:
 		 */
-		if(!flac__utils_canonicalize_skip_until_specification(&options.skip_specification, encoder_session.info.sample_rate)) {
+		if(!flac__utils_canonicalize_skip_until_specification(&options.skip_specification, effective_sr)) {
 			flac__utils_printf(stderr, 1, "%s: ERROR: value of --skip is too large\n", encoder_session.inbasefilename, encoder_session.info.bits_per_sample-encoder_session.info.shift);
 			return EncoderSession_finish_error(&encoder_session);
 		}
@@ -1015,7 +1121,7 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 		 * now that we possibly know the input size, canonicalize the
 		 * --until string to an absolute sample number:
 		 */
-		if(!canonicalize_until_specification(&options.until_specification, encoder_session.inbasefilename, encoder_session.info.sample_rate, skip, total_samples_in_input))
+		if(!canonicalize_until_specification(&options.until_specification, encoder_session.inbasefilename, effective_sr, skip, total_samples_in_input))
 			return EncoderSession_finish_error(&encoder_session);
 		until = (FLAC__uint64)options.until_specification.value.samples;
 
@@ -1554,7 +1660,7 @@ int EncoderSession_finish_ok(EncoderSession *e, foreign_metadata_t *foreign_meta
 			ret = 1;
 		}
 	}
-	
+
 	if(ret == 0 && (e->format == FORMAT_FLAC || e->format == FORMAT_OGGFLAC) && e->fmt.flac.decoder) {
 		if(!FLAC__stream_decoder_finish(e->fmt.flac.decoder)) {
 			flac__utils_printf(stderr, 1, "%s: ERROR:  MD5sum of input FLAC file mismatched\n", e->inbasefilename);
@@ -1670,7 +1776,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	static_metadata_t static_metadata;
 	uint32_t num_metadata = 0, ic;
 	FLAC__StreamEncoderInitStatus init_status;
+	#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	const FLAC__bool is_cdda = (e->info.sample_type == FLAC__SAMPLE_TYPE_INT) && (channels == 1 || channels == 2) && (bps == 16) && (sample_rate == 44100) && (e->info.sample_rate_extension == 0.0 || e->info.sample_rate_extension == 44100.0);
+#else
 	const FLAC__bool is_cdda = (channels == 1 || channels == 2) && (bps == 16) && (sample_rate == 44100);
+#endif
 	char apodizations[2000];
 
 	FLAC__ASSERT(sizeof(options.pictures)/sizeof(options.pictures[0]) <= 64);
@@ -2032,6 +2142,11 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_set_verify(e->encoder, options.verify);
 	FLAC__stream_encoder_set_streamable_subset(e->encoder, !options.lax);
 	FLAC__stream_encoder_set_channels(e->encoder, channels);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__stream_encoder_set_sample_type(e->encoder, e->info.sample_type);
+	FLAC__stream_encoder_set_sample_rate_extension(e->encoder, e->info.sample_rate_extension);
+	FLAC__stream_encoder_set_channel_mask(e->encoder, e->info.channel_mask);
+#endif
 	FLAC__stream_encoder_set_bits_per_sample(e->encoder, bps);
 	FLAC__stream_encoder_set_sample_rate(e->encoder, sample_rate);
 	for(ic = 0; ic < options.num_compression_settings; ic++) {
@@ -2103,6 +2218,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 	FLAC__stream_encoder_disable_constant_subframes(e->encoder, options.debug.disable_constant_subframes);
 	FLAC__stream_encoder_disable_fixed_subframes(e->encoder, options.debug.disable_fixed_subframes);
 	FLAC__stream_encoder_disable_verbatim_subframes(e->encoder, options.debug.disable_verbatim_subframes);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__stream_encoder_set_float_mode(e->encoder, options.debug.float_mode);
+	if(options.debug.force_empty_packed_subframe_which_is_not_lossless) {
+		FLAC__stream_encoder_set_force_empty_packed_subframe_which_is_not_lossless(e->encoder, true);
+		FLAC__stream_encoder_set_do_md5(e->encoder, false);
+	}
+#endif
 	if(!options.debug.do_md5) {
 		flac__utils_printf(stderr, 1, "%s: WARNING, MD5 computation disabled, resulting file will not have MD5 sum\n", e->inbasefilename);
 		if(e->treat_warnings_as_errors) {
@@ -2184,6 +2306,16 @@ FLAC__bool EncoderSession_process(EncoderSession *e, const FLAC__int32 * const b
 #endif
 
 	if(e->replay_gain) {
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(e->info.sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+			if(!grabbag__replaygain_analyze_float((const float * const *)buffer, e->info.channels==2, samples)) {
+				flac__utils_printf(stderr, 1, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
+				if(e->treat_warnings_as_errors)
+					return false;
+			}
+		}
+		else
+#endif
 		if(!grabbag__replaygain_analyze(buffer, e->info.channels==2, e->info.bits_per_sample, samples)) {
 			flac__utils_printf(stderr, 1, "%s: WARNING, error while calculating ReplayGain\n", e->inbasefilename);
 			if(e->treat_warnings_as_errors)
@@ -2223,7 +2355,11 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 	}
 
 	if(num_requested_seek_points > 0) {
-		if(!grabbag__seektable_convert_specification_to_template(requested_seek_points, only_placeholders, e->total_samples_to_encode, e->info.sample_rate, e->seek_table_template, &has_real_points))
+		if(!grabbag__seektable_convert_specification_to_template(requested_seek_points, only_placeholders, e->total_samples_to_encode,
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			FLAC__format_sample_rate_is_valid_extension(e->info.sample_rate_extension)? e->info.sample_rate_extension :
+#endif
+			e->info.sample_rate, e->seek_table_template, &has_real_points))
 			return false;
 	}
 
@@ -2254,7 +2390,7 @@ FLAC__bool convert_to_seek_table_template(const char *requested_seek_points, int
 	return true;
 }
 
-FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, uint32_t sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
+FLAC__bool canonicalize_until_specification(utils__SkipUntilSpecification *spec, const char *inbasefilename, FLAC__float64 sample_rate, FLAC__uint64 skip, FLAC__uint64 total_samples_in_input)
 {
 	/* convert from mm:ss.sss to sample number if necessary */
 	if(!flac__utils_canonicalize_skip_until_specification(spec, sample_rate)) {
@@ -2902,7 +3038,8 @@ FLAC__bool read_uint64(FILE *f, FLAC__bool big_endian, FLAC__uint64 *val, const 
 	return true;
 }
 
-FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
+#if !ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+static FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
 	/* Read an IEEE 754 80-bit (aka SANE) extended floating point value from 'f',
 	 * convert it into an integral value and store in 'val'.  Return false if only
 	 * between 1 and 9 bytes remain in 'f', if 0 bytes remain in 'f', or if the
@@ -2931,6 +3068,101 @@ FLAC__bool read_sane_extended(FILE *f, FLAC__uint32 *val, const char *fn)
 
 	return true;
 }
+#endif
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__bool read_sane_extended_to_double(FILE *f, FLAC__float64 *val, const char *fn)
+	/* Convert a SANE extended (80‑bit) value read from 'f' to a double and store in '*val'.
+	 * Returns true on success, false on read error.
+	 */
+{
+	uint16_t sane_exponent_and_sign, sane_exponent;
+    uint64_t sane_significand, double_significand, double_bits, round_bit, sticky, half;
+    int sign, double_exponent, shift;
+
+    if (!read_uint16(f, true, &sane_exponent_and_sign, fn))
+        return false;
+    if (!read_uint64(f, true, &sane_significand, fn))
+        return false;
+
+    sign = (sane_exponent_and_sign >> 15) & 1;
+    sane_exponent = sane_exponent_and_sign & 0x7FFF;
+
+    /* Zero or subnormal (underflows to zero for double) */
+    if (sane_exponent == 0) {
+        *val = sign ? -0.0 : 0.0;
+        return true;
+    }
+
+    /* Infinity or NaN */
+    if (sane_exponent == 0x7FFF) {
+        if (sane_significand == 0) {
+            *val = sign ? -INFINITY : INFINITY;
+        } else {
+            /* The integer bit (bit 63) maps to quiet bit of double mantissa */
+            double_significand = sane_significand >> 12;   /* 52 bits */
+            if (double_significand == 0)              /* only low bits set. treat as quiet */
+                double_significand = 1ULL << 51;
+            double_bits = (sign ? 0x8000000000000000ULL : 0ULL) |
+                            (0x7FFULL << 52) |
+                            double_significand;
+            memcpy(val, &double_bits, sizeof(*val));
+        }
+        return true;
+    }
+
+    double_exponent = sane_exponent + 1023 - 16383;
+
+    if (double_exponent >= 1 && double_exponent <= 2046) {
+        /* Normal double */
+        sane_significand &= 0x7FFFFFFFFFFFFFFFULL; // because the MSB (63rd from SANE) is implicit in double
+        double_significand = sane_significand >> 11;
+        /* Round to nearest, ties to even */
+        round_bit = (sane_significand >> 10) & 1;
+        sticky = sane_significand & ((1ULL << 10) - 1); // IEEE‑754 rule: round to the even neighbour
+        if (round_bit && (sticky || (double_significand & 1)))
+            double_significand++;
+        if (double_significand == (1ULL << 52)) { // carry into exponent
+            double_significand = 0;
+            double_exponent++;
+        }
+        double_bits = (sign ? 0x8000000000000000ULL : 0) |
+                        ((uint64_t)double_exponent << 52) |
+                        double_significand;
+        memcpy(val, &double_bits, sizeof(*val));
+        return true;
+    }
+
+    if (double_exponent <= 0) {
+        // Subnormal (or underflow to zero)
+        shift = -double_exponent + 1; // shift needed to fit subnormal
+        if (shift >= 64) {
+            *val = sign ? -0.0 : 0.0;
+            return true;
+        }
+        double_significand = sane_significand >> shift;
+        sane_significand &= ((1ULL << shift) - 1);
+        half = 1ULL << (shift - 1);
+        if (sane_significand > half || (sane_significand == half && (double_significand & 1)))
+            double_significand++;
+        if (double_significand >= (1ULL << 52)) {
+            // Clamp to max subnormal (if rounding would push to normal)
+            double_significand = (1ULL << 52) - 1;
+        }
+        if (double_significand == 0) {
+            *val = sign ? -0.0 : 0.0;
+        } else {
+            double_bits = (sign ? 0x8000000000000000ULL : 0ULL) | double_significand;
+            memcpy(val, &double_bits, sizeof(*val));
+        }
+        return true;
+    }
+
+    // double_exp > 2046 -> overflow to infinity
+    *val = sign ? -INFINITY : INFINITY;
+    return true;
+}
+#endif
 
 FLAC__bool fskip_ahead(FILE *f, FLAC__uint64 offset)
 {
@@ -2964,4 +3196,3 @@ uint32_t count_channel_mask_bits(FLAC__uint32 mask)
 	}
 	return count;
 }
-

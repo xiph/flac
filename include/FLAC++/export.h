@@ -56,7 +56,7 @@
  *
  * \{
  */
- 
+
 /** This \#define is used internally in libFLAC and its headers to make
  * sure the correct symbols are exported when working with shared
  * libraries. On Windows, this \#define is set to __declspec(dllexport)
@@ -95,6 +95,6 @@
 #define FLACPP_API_VERSION_REVISION 0 /**< see above */
 #define FLACPP_API_VERSION_AGE 0 /**< see above */
 
-/* \} */
+/** \} */
 
 #endif

@@ -188,6 +188,115 @@ uint32_t FLAC__fixed_compute_best_predictor_intrin_sse2(const FLAC__int32 data[]
 	return order;
 }
 
+FLAC__SSE_TARGET("sse2")
+void FLAC__fixed_compute_residual_64bit_intrin_sse2(const FLAC__int64 data[], uint32_t data_len, uint32_t order, FLAC__int64 residual[])
+{
+	const int idata_len = (int)data_len;
+	int i;
+
+	switch(order) {
+		case 0:
+			for(i = 0; i < idata_len - 3; i += 4) {
+				__m128i d0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i d1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 2));
+				_mm_storeu_si128((__m128i*)(void*)(residual + i), d0);
+				_mm_storeu_si128((__m128i*)(void*)(residual + i + 2), d1);
+			}
+			for(; i < idata_len; i++)
+				residual[i] = data[i];
+			break;
+		case 1:
+			for(i = 0; i < idata_len - 3; i += 4) {
+				__m128i cur0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i prev0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 1));
+				__m128i diff0 = _mm_sub_epi64(cur0, prev0);
+
+				__m128i cur1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 2));
+				__m128i prev1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 1));
+				__m128i diff1 = _mm_sub_epi64(cur1, prev1);
+
+				_mm_storeu_si128((__m128i*)(void*)(residual + i), diff0);
+				_mm_storeu_si128((__m128i*)(void*)(residual + i + 2), diff1);
+			}
+			for(; i < idata_len; i++)
+				residual[i] = data[i] - data[i-1];
+			break;
+		case 2:
+			for(i = 0; i < idata_len - 3; i += 4) {
+				__m128i cur0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i d1_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 1));
+				__m128i d2_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 2));
+				__m128i diff0 = _mm_add_epi64(_mm_sub_epi64(cur0, _mm_slli_epi64(d1_0, 1)), d2_0);
+
+				__m128i cur1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 2));
+				__m128i d1_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 1));
+				__m128i d2_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i diff1 = _mm_add_epi64(_mm_sub_epi64(cur1, _mm_slli_epi64(d1_1, 1)), d2_1);
+
+				_mm_storeu_si128((__m128i*)(void*)(residual + i), diff0);
+				_mm_storeu_si128((__m128i*)(void*)(residual + i + 2), diff1);
+			}
+			for(; i < idata_len; i++)
+				residual[i] = data[i] - 2 * data[i-1] + data[i-2];
+			break;
+		case 3:
+			for(i = 0; i < idata_len - 3; i += 4) {
+				__m128i cur0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i d1_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 1));
+				__m128i d2_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 2));
+				__m128i d3_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 3));
+				__m128i d1_3_0 = _mm_add_epi64(_mm_slli_epi64(d1_0, 1), d1_0);
+				__m128i d2_3_0 = _mm_add_epi64(_mm_slli_epi64(d2_0, 1), d2_0);
+				__m128i diff0 = _mm_sub_epi64(_mm_add_epi64(_mm_sub_epi64(cur0, d1_3_0), d2_3_0), d3_0);
+
+				__m128i cur1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 2));
+				__m128i d1_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 1));
+				__m128i d2_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i d3_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 1));
+				__m128i d1_3_1 = _mm_add_epi64(_mm_slli_epi64(d1_1, 1), d1_1);
+				__m128i d2_3_1 = _mm_add_epi64(_mm_slli_epi64(d2_1, 1), d2_1);
+				__m128i diff1 = _mm_sub_epi64(_mm_add_epi64(_mm_sub_epi64(cur1, d1_3_1), d2_3_1), d3_1);
+
+				_mm_storeu_si128((__m128i*)(void*)(residual + i), diff0);
+				_mm_storeu_si128((__m128i*)(void*)(residual + i + 2), diff1);
+			}
+			for(; i < idata_len; i++)
+				residual[i] = data[i] - 3 * data[i-1] + 3 * data[i-2] - data[i-3];
+			break;
+		case 4:
+			for(i = 0; i < idata_len - 3; i += 4) {
+				__m128i cur0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i d1_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 1));
+				__m128i d2_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 2));
+				__m128i d3_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 3));
+				__m128i d4_0 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 4));
+				__m128i d1_4_0 = _mm_slli_epi64(d1_0, 2);
+				__m128i d2_6_0 = _mm_add_epi64(_mm_slli_epi64(d2_0, 2), _mm_slli_epi64(d2_0, 1));
+				__m128i d3_4_0 = _mm_slli_epi64(d3_0, 2);
+				__m128i diff0 = _mm_add_epi64(_mm_sub_epi64(_mm_add_epi64(_mm_sub_epi64(cur0, d1_4_0), d2_6_0), d3_4_0), d4_0);
+
+				__m128i cur1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 2));
+				__m128i d1_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i + 1));
+				__m128i d2_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i));
+				__m128i d3_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 1));
+				__m128i d4_1 = _mm_loadu_si128((const __m128i*)(const void*)(data + i - 2));
+				__m128i d1_4_1 = _mm_slli_epi64(d1_1, 2);
+				__m128i d2_6_1 = _mm_add_epi64(_mm_slli_epi64(d2_1, 2), _mm_slli_epi64(d2_1, 1));
+				__m128i d3_4_1 = _mm_slli_epi64(d3_1, 2);
+				__m128i diff1 = _mm_add_epi64(_mm_sub_epi64(_mm_add_epi64(_mm_sub_epi64(cur1, d1_4_1), d2_6_1), d3_4_1), d4_1);
+
+				_mm_storeu_si128((__m128i*)(void*)(residual + i), diff0);
+				_mm_storeu_si128((__m128i*)(void*)(residual + i + 2), diff1);
+			}
+			for(; i < idata_len; i++)
+				residual[i] = data[i] - 4 * data[i-1] + 6 * data[i-2] - 4 * data[i-3] + data[i-4];
+			break;
+		default:
+			FLAC__ASSERT(0);
+	}
+}
+
+
 #endif /* FLAC__SSE2_SUPPORTED */
 #endif /* (FLAC__CPU_IA32 || FLAC__CPU_X86_64) && FLAC__HAS_X86INTRIN */
 #endif /* FLAC__NO_ASM */

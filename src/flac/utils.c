@@ -384,11 +384,11 @@ FLAC__bool flac__utils_check_empty_skip_until_specification(utils__SkipUntilSpec
 	}
 }
 
-FLAC__bool flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, uint32_t sample_rate)
+FLAC__bool flac__utils_canonicalize_skip_until_specification(utils__SkipUntilSpecification *spec, FLAC__float64 sample_rate)
 {
 	FLAC__ASSERT(0 != spec);
 	if(!spec->value_is_samples) {
-		double samples = spec->value.seconds * (double)sample_rate;
+		double samples = rint(spec->value.seconds * sample_rate);
 		if(samples >= (double)INT64_MAX || samples <= (double)INT64_MIN)
 			return false;
 		spec->value.samples = (FLAC__int64)(samples);

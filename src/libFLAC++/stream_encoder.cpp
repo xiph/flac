@@ -30,6 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "FLAC/stream_encoder.h"
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -92,6 +93,26 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_set_channels(encoder_, value));
 		}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		bool Stream::set_sample_type(FLAC__SampleType value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_set_sample_type(encoder_, value));
+		}
+
+		bool Stream::set_channel_mask(uint32_t value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_set_channel_mask(encoder_, value));
+		}
+
+		bool Stream::set_sample_rate_extension(FLAC__float64 value)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_set_sample_rate_extension(encoder_, value));
+		}
+#endif
 
 		bool Stream::set_bits_per_sample(uint32_t value)
 		{
@@ -271,6 +292,26 @@ namespace FLAC {
 			return ::FLAC__stream_encoder_get_channels(encoder_);
 		}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLAC__SampleType Stream::get_sample_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_get_sample_type(encoder_);
+		}
+
+		uint32_t Stream::get_channel_mask() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_get_channel_mask(encoder_);
+		}
+
+		FLAC__float64 Stream::get_sample_rate_extension() const
+		{
+			FLAC__ASSERT(is_valid());
+			return ::FLAC__stream_encoder_get_sample_rate_extension(encoder_);
+		}
+#endif
+
 		uint32_t Stream::get_bits_per_sample() const
 		{
 			FLAC__ASSERT(is_valid());
@@ -384,6 +425,32 @@ namespace FLAC {
 			FLAC__ASSERT(is_valid());
 			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved(encoder_, buffer, samples));
 		}
+
+		bool Stream::process(const FLAC__int64 * const buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_int64(encoder_, buffer, samples));
+		}
+
+		bool Stream::process_interleaved(const FLAC__int64 buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved_int64(encoder_, buffer, samples));
+		}
+
+#if FLAC__HAS_INT128
+		bool Stream::process(const FLAC__int128 * const buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_int128(encoder_, buffer, samples));
+		}
+
+		bool Stream::process_interleaved(const FLAC__int128 buffer[], uint32_t samples)
+		{
+			FLAC__ASSERT(is_valid());
+			return static_cast<bool>(::FLAC__stream_encoder_process_interleaved_int128(encoder_, buffer, samples));
+		}
+#endif
 
 		::FLAC__StreamEncoderReadStatus Stream::read_callback(FLAC__byte buffer[], size_t *bytes)
 		{

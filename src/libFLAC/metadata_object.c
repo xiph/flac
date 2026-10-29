@@ -30,6 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "FLAC/format.h"
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -445,6 +446,11 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_new(FLAC__MetadataType type
 			case FLAC__METADATA_TYPE_STREAMINFO:
 				object->length = FLAC__STREAM_METADATA_STREAMINFO_LENGTH;
 				break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+				object->length = FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH;
+				break;
+#endif
 			case FLAC__METADATA_TYPE_PADDING:
 				/* calloc() took care of this for us:
 				object->length = 0;
@@ -534,6 +540,11 @@ FLAC_API FLAC__StreamMetadata *FLAC__metadata_object_clone(const FLAC__StreamMet
 			case FLAC__METADATA_TYPE_STREAMINFO:
 				memcpy(&to->data.stream_info, &object->data.stream_info, sizeof(FLAC__StreamMetadata_StreamInfo));
 				break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+				memcpy(&to->data.stream_info_extension, &object->data.stream_info_extension, sizeof(FLAC__StreamMetadata_StreamInfo_Extension));
+				break;
+#endif
 			case FLAC__METADATA_TYPE_PADDING:
 				break;
 			case FLAC__METADATA_TYPE_APPLICATION:
@@ -632,6 +643,9 @@ void FLAC__metadata_object_delete_data(FLAC__StreamMetadata *object)
 
 	switch(object->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+#endif
 		case FLAC__METADATA_TYPE_PADDING:
 			break;
 		case FLAC__METADATA_TYPE_APPLICATION:
@@ -716,6 +730,23 @@ static FLAC__bool compare_block_data_streaminfo_(const FLAC__StreamMetadata_Stre
 		return false;
 	return true;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+static FLAC__bool compare_block_data_streaminfo_extension_(const FLAC__StreamMetadata_StreamInfo_Extension *block1, const FLAC__StreamMetadata_StreamInfo_Extension *block2)
+{
+	if (block1->sample_rate != block2->sample_rate)
+		return false;
+	if (block1->channels != block2->channels)
+		return false;
+	if (block1->channel_mask != block2->channel_mask)
+		return false;
+	if(block1->sample_type != block2->sample_type)
+		return false;
+	if (block1->bits_per_sample != block2->bits_per_sample)
+		return false;
+	return true;
+}
+#endif
 
 static FLAC__bool compare_block_data_application_(const FLAC__StreamMetadata_Application *block1, const FLAC__StreamMetadata_Application *block2, uint32_t block_length)
 {
@@ -884,6 +915,10 @@ FLAC_API FLAC__bool FLAC__metadata_object_is_equal(const FLAC__StreamMetadata *b
 	switch(block1->type) {
 		case FLAC__METADATA_TYPE_STREAMINFO:
 			return compare_block_data_streaminfo_(&block1->data.stream_info, &block2->data.stream_info);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+			return compare_block_data_streaminfo_extension_(&block1->data.stream_info_extension, &block2->data.stream_info_extension);
+#endif
 		case FLAC__METADATA_TYPE_PADDING:
 			return true; /* we don't compare the padding guts */
 		case FLAC__METADATA_TYPE_APPLICATION:

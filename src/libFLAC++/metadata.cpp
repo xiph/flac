@@ -30,7 +30,11 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "FLAC/format.h"
+#include "FLAC/ordinals.h"
+#ifndef __STDC_LIMIT_MACROS
 #define __STDC_LIMIT_MACROS 1 /* otherwise SIZE_MAX is not defined for c++ */
+#endif
 #ifdef HAVE_CONFIG_H
 #include "config.h"
 #endif
@@ -63,6 +67,11 @@ namespace FLAC {
 					case FLAC__METADATA_TYPE_STREAMINFO:
 						ret = new StreamInfo(object, /*copy=*/false);
 						break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+					case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+						ret = new StreamInfoExtension(object, /*copy=*/false);
+						break;
+#endif
 					case FLAC__METADATA_TYPE_PADDING:
 						ret = new Padding(object, /*copy=*/false);
 						break;
@@ -95,6 +104,9 @@ namespace FLAC {
 			FLAC__ASSERT(0 != object);
 
 			const StreamInfo *streaminfo = dynamic_cast<const StreamInfo *>(object);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			const StreamInfoExtension *streaminfo_extension = dynamic_cast<const StreamInfoExtension *>(object);
+#endif
 			const Padding *padding = dynamic_cast<const Padding *>(object);
 			const Application *application = dynamic_cast<const Application *>(object);
 			const SeekTable *seektable = dynamic_cast<const SeekTable *>(object);
@@ -105,6 +117,10 @@ namespace FLAC {
 
 			if(0 != streaminfo)
 				return new StreamInfo(*streaminfo);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			if(0 != streaminfo_extension)
+				return new StreamInfoExtension(*streaminfo_extension);
+#endif
 			if(0 != padding)
 				return new Padding(*padding);
 			if(0 != application)
@@ -333,7 +349,7 @@ namespace FLAC {
 		{
 			FLAC__ASSERT(is_valid());
 			FLAC__ASSERT(value > 0);
-			FLAC__ASSERT(value <= FLAC__MAX_CHANNELS);
+			FLAC__ASSERT(value <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN));
 			object_->data.stream_info.channels = value;
 		}
 
@@ -358,6 +374,81 @@ namespace FLAC {
 			FLAC__ASSERT(0 != value);
 			std::memcpy(object_->data.stream_info.md5sum, value, 16);
 		}
+
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		//
+		// StreamInfoExtension
+		//
+
+		StreamInfoExtension::StreamInfoExtension():
+		Prototype(FLAC__metadata_object_new(FLAC__METADATA_TYPE_STREAMINFO_EXTENSION), /*copy=*/false)
+		{ }
+
+		StreamInfoExtension::~StreamInfoExtension()
+		{ }
+
+		FLAC__float64 StreamInfoExtension::get_sample_rate() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.stream_info_extension.sample_rate;
+		}
+
+		uint32_t StreamInfoExtension::get_channels() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.stream_info_extension.channels;
+		}
+
+		uint32_t StreamInfoExtension::get_channel_mask() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.stream_info_extension.channel_mask;
+		}
+
+		FLAC__SampleType StreamInfoExtension::get_sample_type() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.stream_info_extension.sample_type;
+		}
+
+		uint32_t StreamInfoExtension::get_bits_per_sample() const
+		{
+			FLAC__ASSERT(is_valid());
+			return object_->data.stream_info_extension.bits_per_sample;
+		}
+
+		void StreamInfoExtension::set_sample_rate(FLAC__float64 value)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(FLAC__format_sample_rate_is_valid_extension(value));
+			object_->data.stream_info_extension.sample_rate = value;
+		}
+
+		void StreamInfoExtension::set_channels(uint32_t value)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(value > 0);
+			FLAC__ASSERT(value <= FLAC__MAX_CHANNELS);
+			object_->data.stream_info_extension.channels = value;
+		}
+
+		void StreamInfoExtension::set_sample_type(FLAC__SampleType value)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(value >= 0);
+			FLAC__ASSERT(value <= 1);
+			object_->data.stream_info_extension.sample_type = value;
+		}
+
+		void StreamInfoExtension::set_bits_per_sample(uint32_t value)
+		{
+			FLAC__ASSERT(is_valid());
+			FLAC__ASSERT(value >= FLAC__MIN_BITS_PER_SAMPLE);
+			FLAC__ASSERT(value <= FLAC__MAX_BITS_PER_SAMPLE);
+			object_->data.stream_info_extension.bits_per_sample = value;
+		}
+#endif
 
 
 		//
@@ -1344,6 +1435,22 @@ namespace FLAC {
 			else
 				return false;
 		}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLACPP_API bool get_streaminfo_extension(const char *filename, StreamInfoExtension &streaminfo_extension)
+		{
+			FLAC__ASSERT(0 != filename);
+
+			::FLAC__StreamMetadata object;
+
+			if(::FLAC__metadata_get_streaminfo_extension(filename, &object)) {
+				streaminfo_extension = object;
+				return true;
+			}
+			else
+				return false;
+		}
+#endif
 
 		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags)
 		{

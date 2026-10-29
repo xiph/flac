@@ -96,6 +96,16 @@ static FLAC__bool write_little_endian_uint32(FILE *f, FLAC__uint32 x)
 	;
 }
 
+static FLAC__bool write_little_endian_float32(FILE *f, float x)
+{
+	union {
+		float f;
+		FLAC__uint32 u;
+	} val;
+	val.f = x;
+	return write_little_endian_uint32(f, val.u);
+}
+
 static FLAC__bool write_little_endian_int32(FILE *f, FLAC__int32 x)
 {
 	return write_little_endian_uint32(f, (FLAC__uint32)x);
@@ -972,6 +982,118 @@ foo:
 	return false;
 }
 
+static FLAC__bool generate_float_raw(const char *filename, unsigned channels, unsigned samples)
+{
+	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
+	const double delta1 = 2.0 * M_PI / ( 44100.0 / f1 );
+	const double delta2 = 2.0 * M_PI / ( 44100.0 / f2 );
+	double theta1 = 0.0, theta2 = 0.0;
+	FILE *f;
+	unsigned i, j;
+
+	if(0 == (f = fopen(filename, "wb")))
+		return false;
+
+	for(j = 0; j < channels; j++) {
+		if(!write_little_endian_float32(f, 0.0f)) goto foo;
+		if(!write_little_endian_float32(f, -0.0f)) goto foo;
+		if(!write_little_endian_float32(f, 1.0f)) goto foo;
+		if(!write_little_endian_float32(f, -1.0f)) goto foo;
+		if(!write_little_endian_float32(f, 0.5f)) goto foo;
+		if(!write_little_endian_float32(f, -0.5f)) goto foo;
+		if(!write_little_endian_float32(f, 1e-15f)) goto foo;
+		if(!write_little_endian_float32(f, -1e-15f)) goto foo;
+	}
+
+	for(i = 8; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		for(j = 0; j < channels; j++) {
+			double val = a1*sin(theta1 * (1.0 + (double)j*0.2)) + a2*sin(theta2 * (1.0 + (double)j*0.3));
+			if(!write_little_endian_float32(f, (float)val))
+				goto foo;
+		}
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
+static FLAC__bool generate_float_wav(const char *filename, unsigned sample_rate, unsigned channels, unsigned samples, FLAC__bool extensible, FLAC__uint32 channel_mask)
+{
+	const unsigned bytes_per_sample = 4;
+	const FLAC__uint32 true_size = channels * bytes_per_sample * samples;
+	const FLAC__uint32 padded_size = (true_size + 1) & (~1u);
+	const double f1 = 441.0, a1 = 0.61, f2 = 661.5, a2 = 0.37;
+	const double delta1 = 2.0 * M_PI / ( (double)sample_rate / f1 );
+	const double delta2 = 2.0 * M_PI / ( (double)sample_rate / f2 );
+	double theta1 = 0.0, theta2 = 0.0;
+	FILE *f;
+	unsigned i, j;
+
+	if(0 == (f = fopen(filename, "wb")))
+		return false;
+
+	if(fwrite("RIFF", 1, 4, f) < 4) goto foo;
+	if(!write_little_endian_uint32(f, 4 + 8 + (extensible ? 40 : 18) + 8 + padded_size)) goto foo;
+	if(fwrite("WAVE", 1, 4, f) < 4) goto foo;
+
+	/* fmt chunk */
+	if(fwrite("fmt ", 1, 4, f) < 4) goto foo;
+	if(!write_little_endian_uint32(f, extensible ? 40 : 18)) goto foo;
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(extensible ? 65534 : 3))) goto foo; /* 3 = WAVE_FORMAT_IEEE_FLOAT */
+	if(!write_little_endian_uint16(f, (FLAC__uint16)channels)) goto foo;
+	if(!write_little_endian_uint32(f, sample_rate)) goto foo;
+	if(!write_little_endian_uint32(f, sample_rate * channels * bytes_per_sample)) goto foo;
+	if(!write_little_endian_uint16(f, (FLAC__uint16)(channels * bytes_per_sample))) goto foo;
+	if(!write_little_endian_uint16(f, 32)) goto foo; /* bps */
+
+	if(extensible) {
+		if(!write_little_endian_uint16(f, 22)) goto foo; /* cbSize */
+		if(!write_little_endian_uint16(f, 32)) goto foo; /* validBitsPerSample */
+		if(!write_little_endian_uint32(f, channel_mask)) goto foo;
+		/* GUID = {0x00000003, 0x0000, 0x0010, {0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71}} */
+		if(fwrite("\x03\x00\x00\x00\x00\x00\x10\x00\x80\x00\x00\xaa\x00\x38\x9b\x71", 1, 16, f) != 16)
+			goto foo;
+	} else {
+		if(!write_little_endian_uint16(f, 0)) goto foo; /* cbSize = 0 */
+	}
+
+	/* data chunk */
+	if(fwrite("data", 1, 4, f) < 4) goto foo;
+	if(!write_little_endian_uint32(f, true_size)) goto foo;
+
+	for(j = 0; j < channels; j++) {
+		if(!write_little_endian_float32(f, 0.0f)) goto foo;
+		if(!write_little_endian_float32(f, -0.0f)) goto foo;
+		if(!write_little_endian_float32(f, 1.0f)) goto foo;
+		if(!write_little_endian_float32(f, -1.0f)) goto foo;
+		if(!write_little_endian_float32(f, 0.5f)) goto foo;
+		if(!write_little_endian_float32(f, -0.5f)) goto foo;
+		if(!write_little_endian_float32(f, 1e-15f)) goto foo;
+		if(!write_little_endian_float32(f, -1e-15f)) goto foo;
+	}
+
+	for(i = 8; i < samples; i++, theta1 += delta1, theta2 += delta2) {
+		for(j = 0; j < channels; j++) {
+			double val = a1*sin(theta1 * (1.0 + (double)j*0.2)) + a2*sin(theta2 * (1.0 + (double)j*0.3));
+			if(!write_little_endian_float32(f, (float)val))
+				goto foo;
+		}
+	}
+	for(i = true_size; i < padded_size; i++) {
+		if(fputc(0, f) == EOF)
+			goto foo;
+	}
+
+	fclose(f);
+	return true;
+foo:
+	fclose(f);
+	return false;
+}
+
 static FLAC__bool generate_wackywavs(void)
 {
 	FILE *f;
@@ -1541,5 +1663,11 @@ int main(int argc, char *argv[])
 		}
 	}
 
-	return 0;
+		if(!generate_float_raw("sine-f32-1.raw", 1, 10000)) return 1;
+	if(!generate_float_raw("sine-f32-2.raw", 2, 10000)) return 1;
+	if(!generate_float_raw("sine-f32-8.raw", 8, 10000)) return 1;
+	if(!generate_float_wav("sine-f32.wav", 44100, 2, 10000, false, 0)) return 1;
+	if(!generate_float_wav("sine-f32-ext.wav", 48000, 6, 10000, true, 0x3F)) return 1;
+
+return 0;
 }

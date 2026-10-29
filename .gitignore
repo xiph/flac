@@ -102,3 +102,5 @@ CTestTestfile.cmake
 _deps
 
 /.vs*/
+/.cache
+/.direnv

@@ -72,6 +72,18 @@ FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN = 5
 FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_TOTAL_SAMPLES_LEN = 36; /* bits */
 FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN = 128; /* bits */
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SAMPLE_RATE_LEN = 64; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNELS_LEN = 8; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNEL_MASK_LEN = 32; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SPECIAL_MASK_LEN = 3; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_IGNORE_MASK_LEN = 2; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SAMPLE_FORMAT_LEN = 4; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_BITS_PER_SAMPLE_LEN = 7; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_RESERVED_LEN = 8; /* bits */
+FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_MD5SUM_LEN = 128; /* bits */
+#endif
+
 FLAC_API const uint32_t FLAC__STREAM_METADATA_APPLICATION_ID_LEN = 32; /* bits */
 
 FLAC_API const uint32_t FLAC__STREAM_METADATA_SEEKPOINT_SAMPLE_NUMBER_LEN = 64; /* bits */
@@ -125,20 +137,41 @@ FLAC_API const uint32_t FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN = 3; /* bits */
 FLAC_API const uint32_t FLAC__FRAME_HEADER_ZERO_PAD_LEN = 1; /* bits */
 FLAC_API const uint32_t FLAC__FRAME_HEADER_CRC_LEN = 8; /* bits */
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_DECORRELATION_LEN = 3; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_FLOAT_FALLBACK_MODE_LEN = 1; /* bit */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_RESERVED_LEN = 4; /* bits */
+
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SAMPLE_RATE_LEN = 64; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_CHANNELS_LEN = 8; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_CHANNEL_MASK_LEN = 32; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SPECIAL_MASK_LEN = 3; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_IGNORE_MASK_LEN = 2; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_DECORRELATION_LEN = 3; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_BITS_PER_SAMPLE_LEN = 7; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_FLOAT_FALLBACK_MODE_LEN = 1; /* bit */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_RESERVED_LEN = 4; /* bits */
+FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SAMPLE_FORMAT_LEN = 4; /* bits */
+#endif
+
 FLAC_API const uint32_t FLAC__FRAME_FOOTER_CRC_LEN = 16; /* bits */
 
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_TYPE_LEN = 2; /* bits */
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN = 4; /* bits */
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN = 4; /* bits */
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN = 5; /* bits */
+FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN = 7; /* bits */
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN = 5; /* bits */
+FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_RAW_LEN = 7; /* bits */
 
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER = 15; /* == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER = 31; /* == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN)-1 */
+FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER = 127; /* == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN)-1 */
 
 FLAC_API const char * const FLAC__EntropyCodingMethodTypeString[] = {
 	"PARTITIONED_RICE",
-	"PARTITIONED_RICE2"
+	"PARTITIONED_RICE2",
+	"PARTITIONED_RICE3"
 };
 
 FLAC_API const uint32_t FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN = 4; /* bits */
@@ -150,6 +183,9 @@ FLAC_API const uint32_t FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN = 1; /* bits */
 
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK = 0x00;
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK = 0x02;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_PACKED_BYTE_ALIGNED_MASK = 0x04;
+#endif
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK = 0x10;
 FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK = 0x40;
 
@@ -157,7 +193,10 @@ FLAC_API const char * const FLAC__SubframeTypeString[] = {
 	"CONSTANT",
 	"VERBATIM",
 	"FIXED",
-	"LPC"
+	"LPC",
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	"PACKED"
+#endif
 };
 
 FLAC_API const char * const FLAC__ChannelAssignmentString[] = {
@@ -179,7 +218,12 @@ FLAC_API const char * const FLAC__MetadataTypeString[] = {
 	"SEEKTABLE",
 	"VORBIS_COMMENT",
 	"CUESHEET",
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	"PICTURE",
+	"STREAMINFO_EXTENSION"
+#else
 	"PICTURE"
+#endif
 };
 
 FLAC_API const char * const FLAC__StreamMetadata_Picture_TypeString[] = {
@@ -214,6 +258,46 @@ FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(uint32_t sample_rate)
 	else
 		return true;
 }
+
+FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid_extension(FLAC__float64 sample_rate)
+{
+	uint64_t bits;
+	union {
+        FLAC__float64 d;
+        uint64_t u;
+    } pun;
+    pun.d = sample_rate;
+    bits = pun.u;
+
+    if (bits >> 63)
+        return false; // negative
+
+    bits = bits << 1 >> 53;
+    if (bits == 0 || bits == 0x7ff)
+    	return false; // NaN or inf or subnormal or zero
+
+    return true;
+}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+const char* FLAC__get_sample_type_string(FLAC__SampleType sample_type) {
+    if(sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+        return "float";
+    else if(sample_type == FLAC__SAMPLE_TYPE_INT)
+        return "int";
+    else
+        return "not_specified";
+}
+
+const char* FLAC__get_float_mode_string(FLAC__FloatMode float_mode) {
+    if(float_mode == FLAC__FLOAT_MODE_FALLBACK)
+        return "fallback";
+    else if(float_mode == FLAC__FLOAT_MODE_DPA)
+        return "dpa";
+    else
+        return "unknown";
+}
+#endif
 
 FLAC_API FLAC__bool FLAC__format_blocksize_is_subset(uint32_t blocksize, uint32_t sample_rate)
 {

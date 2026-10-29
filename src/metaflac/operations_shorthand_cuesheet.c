@@ -59,6 +59,12 @@ FLAC__bool do_shorthand_operation__cuesheet(const char *filename, FLAC__Metadata
 			sample_rate = block->data.stream_info.sample_rate;
 			is_cdda = (block->data.stream_info.channels == 1 || block->data.stream_info.channels == 2) && (block->data.stream_info.bits_per_sample == 16) && (sample_rate == 44100);
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		else if(block->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
+			if(block->data.stream_info_extension.sample_type == FLAC__SAMPLE_TYPE_FLOAT || block->data.stream_info_extension.bits_per_sample != 16 || (block->data.stream_info_extension.channels != 1 && block->data.stream_info_extension.channels != 2) || block->data.stream_info_extension.sample_rate != 44100.0)
+				is_cdda = false;
+		}
+#endif
 		else if(block->type == FLAC__METADATA_TYPE_CUESHEET)
 			cuesheet = block;
 	} while(FLAC__metadata_iterator_next(iterator));

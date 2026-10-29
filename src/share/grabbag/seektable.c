@@ -1,3 +1,4 @@
+#include <math.h>
 /* grabbag - Convenience lib for various routines common to several tools
  * Copyright (C) 2002-2009  Josh Coalson
  * Copyright (C) 2011-2025  Xiph.Org Foundation
@@ -17,6 +18,8 @@
  * Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA  02110-1301  USA
  */
 
+#include "FLAC/format.h"
+#include "FLAC/ordinals.h"
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -27,7 +30,7 @@
 #include <stdlib.h> /* for atoi() */
 #include <string.h>
 
-FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec, FLAC__bool only_explicit_placeholders, FLAC__uint64 total_samples_to_encode, uint32_t sample_rate, FLAC__StreamMetadata *seektable_template, FLAC__bool *spec_has_real_points)
+FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec, FLAC__bool only_explicit_placeholders, FLAC__uint64 total_samples_to_encode, FLAC__float64 sample_rate, FLAC__StreamMetadata *seektable_template, FLAC__bool *spec_has_real_points)
 {
 	const char *pt;
 
@@ -60,15 +63,15 @@ FLAC__bool grabbag__seektable_convert_specification_to_template(const char *spec
 				}
 			}
 			else if(q[-1] == 's') { /* -S #s */
-				if(total_samples_to_encode > 0 && sample_rate > 0) { /* we can only do these if we know the number of samples and sample rate to encode up front */
+				if(total_samples_to_encode > 0 && FLAC__format_sample_rate_is_valid_extension(sample_rate)) { /* we can only do these if we know the number of samples and sample rate to encode up front */
 					if(0 != spec_has_real_points)
 						*spec_has_real_points = true;
 					if(!only_explicit_placeholders) {
 						const double sec = atof(pt);
 						if(sec > 0.0) {
-							uint32_t samples = (uint32_t)(sec * (double)sample_rate);
-							/* Restrict seekpoints to two per second of audio. */
-							samples = samples < sample_rate / 2 ? sample_rate / 2 : samples;
+							const double calc_samples = rint(sec * sample_rate);
+							const double min_samples = rint(sample_rate / 2.0);
+							uint32_t samples = calc_samples < (min_samples < 1.0 ? 1.0 : min_samples) ? (uint32_t)(min_samples < 1.0 ? 1.0 : min_samples) : (uint32_t)calc_samples;
 							if(samples > 0) {
 								/* +1 for the initial point at sample 0 */
 								if(!FLAC__metadata_object_seektable_template_append_spaced_points_by_samples(seektable_template, samples, total_samples_to_encode))

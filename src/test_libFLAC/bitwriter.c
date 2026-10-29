@@ -675,6 +675,26 @@ FLAC__bool test_bitwriter(void)
 	}
 	printf("capacity = %u\n", bw->capacity);
 
+#if FLAC__HAS_INT128
+	printf("testing raw 128-bit writes... ");
+	FLAC__bitwriter_clear(bw);
+	{
+		FLAC__uint128 val_uint128;
+		FLAC__int128 val_int128;
+		val_uint128 = ((FLAC__uint128)FLAC__U64L(0x0123456789abcdef) << 64) | FLAC__U64L(0xfedcba9876543210);
+		val_int128 = (FLAC__int128)val_uint128;
+		ok =
+			FLAC__bitwriter_write_raw_uint128(bw, val_uint128, 128) &&
+			FLAC__bitwriter_write_raw_int128(bw, val_int128, 100);
+		if(!ok) {
+			printf("FAILED\n");
+			FLAC__bitwriter_dump(bw, stdout);
+			return false;
+		}
+	}
+	printf("OK\n");
+#endif
+
 	printf("testing free... ");
 	FLAC__bitwriter_free(bw);
 	printf("OK\n");

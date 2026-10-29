@@ -48,6 +48,7 @@ FLAC__bool grabbag__replaygain_init(uint32_t sample_frequency);
 
 /* 'bps' must be valid for FLAC, i.e. >=4 and <= 32 */
 FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__bool is_stereo, uint32_t bps, uint32_t samples);
+FLAC__bool grabbag__replaygain_analyze_float(const float * const input[], FLAC__bool is_stereo, uint32_t samples);
 
 void grabbag__replaygain_get_album(float *gain, float *peak);
 void grabbag__replaygain_get_title(float *gain, float *peak);

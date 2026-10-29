@@ -98,6 +98,14 @@ void FLAC__precompute_partition_info_sums_intrin_avx2(const FLAC__int32 residual
 				__m128i sum128;
 				end += default_partition_samples;
 
+				for( ; (int)residual_sample < (int)end-7; residual_sample+=8) {
+					__m256i res256 = _mm256_abs_epi32(_mm256_loadu_si256((const __m256i*)(const void*)(residual+residual_sample)));
+					__m128i lo128 = _mm256_castsi256_si128(res256);
+					__m128i hi128 = _mm256_extracti128_si256(res256, 1);
+					sum256 = _mm256_add_epi64(sum256, _mm256_cvtepu32_epi64(lo128));
+					sum256 = _mm256_add_epi64(sum256, _mm256_cvtepu32_epi64(hi128));
+				}
+
 				for( ; (int)residual_sample < (int)end-3; residual_sample+=4) {
 					__m128i res128 = _mm_abs_epi32(_mm_loadu_si128((const __m128i*)(const void*)(residual+residual_sample)));
 					__m256i res256 = _mm256_cvtepu32_epi64(res128);

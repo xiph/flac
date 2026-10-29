@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "FLAC/format.h"
+#include "FLAC/ordinals.h"
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -36,7 +38,7 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 	FLAC__StreamMetadata *block = 0;
 	FLAC__Metadata_Iterator *iterator = FLAC__metadata_iterator_new();
 	FLAC__uint64 total_samples = 0;
-	unsigned sample_rate = 0;
+	FLAC__float64 sample_rate = 0;
 
 	if(0 == iterator)
 		die("out of memory allocating iterator");
@@ -49,6 +51,11 @@ FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, FLAC__Me
 			sample_rate = block->data.stream_info.sample_rate;
 			total_samples = block->data.stream_info.total_samples;
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		else if(block->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
+			sample_rate = block->data.stream_info_extension.sample_rate;
+		}
+#endif
 		else if(block->type == FLAC__METADATA_TYPE_SEEKTABLE)
 			found_seektable_block = true;
 	} while(!found_seektable_block && FLAC__metadata_iterator_next(iterator));

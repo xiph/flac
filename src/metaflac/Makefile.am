@@ -39,6 +39,7 @@ metaflac_SOURCES = \
 	operations_shorthand_picture.c \
 	operations_shorthand_seektable.c \
 	operations_shorthand_streaminfo.c \
+	operations_shorthand_streaminfo_extension.c \
 	operations_shorthand_vorbiscomment.c \
 	options.c \
 	usage.c \

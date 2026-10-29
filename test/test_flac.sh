@@ -68,7 +68,7 @@ else
 fi
 
 echo "Generating streams..."
-if [ ! -f wacky1.wav ] ; then
+if [ ! -f wacky1.wav ] || [ ! -f sine-f32-1.raw ] ; then
 	test_streams || die "ERROR during test_streams"
 fi
 
@@ -1388,5 +1388,82 @@ fi
 rm -f out.flac out.meta out1.meta
 
 #@@@ when metaflac handles ogg flac, duplicate flac2flac tests here
+
+
+############################################################################
+# test float sample coding (if enabled)
+############################################################################
+
+echo "Checking for float sample coding in flac..."
+if flac${EXE} --help | grep -q -- "--sample-type=" ; then
+	has_float=yes
+	echo "flac float sample coding supported"
+else
+	has_float=no
+	echo "flac float sample coding not supported"
+fi
+
+if [ "$has_float" = "yes" ] ; then
+	echo "Testing float sample coding..."
+
+	test_float_raw ()
+	{
+		channels=$1
+		src="sine-f32-${channels}.raw"
+		for cl in 0 5 8 ; do
+			echo $ECHO_N "Testing float raw roundtrip (${channels}ch, -$cl)... " $ECHO_C
+			run_flac -f --force-raw-format --sample-type=float --channels=$channels --sample-rate=48000 -$cl --verify $src -o tmp_f32.flac || die "ERROR encoding $src at -$cl"
+			run_flac -d -f --force-raw-format --endian=little --sign=signed tmp_f32.flac -o tmp_f32.raw || die "ERROR decoding tmp_f32.flac"
+			cmp $src tmp_f32.raw || die "ERROR: decoded float raw does not match original"
+			echo "OK"
+		done
+		rm -f tmp_f32.flac tmp_f32.raw
+	}
+
+	test_float_wav ()
+	{
+		src=$1
+		for cl in 0 5 8 ; do
+			echo $ECHO_N "Testing float wav roundtrip ($src, -$cl)... " $ECHO_C
+			run_flac -f -$cl --verify $src -o tmp_f32.flac || die "ERROR encoding $src at -$cl"
+			run_flac -d -f tmp_f32.flac -o tmp_f32.wav || die "ERROR decoding tmp_f32.flac"
+			run_flac -f -$cl --verify tmp_f32.wav -o tmp_f32_re.flac || die "ERROR re-encoding tmp_f32.wav"
+			md5cmp tmp_f32.flac tmp_f32_re.flac || die "ERROR: audio md5 mismatch in float wav roundtrip"
+			echo "OK"
+		done
+		rm -f tmp_f32.flac tmp_f32.wav tmp_f32_re.flac
+	}
+
+	test_float_raw 1
+	test_float_raw 2
+	test_float_raw 8
+
+	test_float_wav sine-f32.wav
+	test_float_wav sine-f32-ext.wav
+
+	# Test seekpoint creation with float audio
+	echo $ECHO_N "Testing float seektable creation... " $ECHO_C
+	run_flac -f --force-raw-format --sample-type=float --channels=2 --sample-rate=48000 --seekpoint=100s sine-f32-2.raw -o tmp_f32_seek.flac || die "ERROR creating float seektable"
+	run_flac -t tmp_f32_seek.flac || die "ERROR verifying float file with seektable"
+	rm -f tmp_f32_seek.flac
+	echo "OK"
+
+	# Test error cases / invalid argument combinations
+	echo $ECHO_N "Testing float invalid parameter rejections... " $ECHO_C
+	if run_flac -f --force-raw-format --sample-type=float --bps=16 --channels=2 --sample-rate=48000 sine-f32-2.raw -o tmp_err.flac 2>/dev/null ; then
+		die "ERROR: --sample-type=float --bps=16 succeeded but should have failed"
+	fi
+	if run_flac -f --force-raw-format --sample-type=float --endian=big --channels=2 --sample-rate=48000 sine-f32-2.raw -o tmp_err.flac 2>/dev/null ; then
+		die "ERROR: --sample-type=float --endian=big succeeded but should have failed"
+	fi
+	if run_flac -f --force-raw-format --sample-type=float --sign=unsigned --channels=2 --sample-rate=48000 sine-f32-2.raw -o tmp_err.flac 2>/dev/null ; then
+		die "ERROR: --sample-type=float --sign=unsigned succeeded but should have failed"
+	fi
+	if run_flac -f --force-raw-format --bps=33 --channels=2 --sample-rate=48000 sine-f32-2.raw -o tmp_err.flac 2>/dev/null ; then
+		die "ERROR: --bps=33 succeeded but should have failed"
+	fi
+	rm -f tmp_err.flac
+	echo "OK"
+fi
 
 cd ..

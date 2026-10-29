@@ -17,6 +17,7 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "FLAC/format.h"
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -56,6 +57,14 @@ extern FLAC__bool do_shorthand_operation__add_seekpoints(const char *filename, F
 
 /* from operations_shorthand_streaminfo.c */
 extern FLAC__bool do_shorthand_operation__streaminfo(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/* from operations_shorthand_streaminfo_extension.c */
+extern FLAC__bool check_extension(FLAC__Metadata_Chain *chain);
+
+/* from operations_shorthand_streaminfo_extension.c */
+extern FLAC__bool do_shorthand_operation__streaminfo_extension(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write);
+#endif
 
 /* from operations_shorthand_vorbiscomment.c */
 extern FLAC__bool do_shorthand_operation__vorbis_comment(const char *filename, FLAC__bool prefix_with_filename, FLAC__Metadata_Chain *chain, const Operation *operation, FLAC__bool *needs_write, FLAC__bool raw);
@@ -321,6 +330,15 @@ FLAC__bool do_major_operation__append(FLAC__Metadata_Chain *chain, const Command
 			return false;
 		}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(object->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
+			flac_fprintf(stderr, "ERROR: can't add streaminfo extension to file\n");
+			FLAC__metadata_object_delete(object);
+			FLAC__metadata_iterator_delete(iterator);
+			return false;
+		}
+#endif
+
 		if(object->type == FLAC__METADATA_TYPE_SEEKTABLE) {
 			flac_fprintf(stderr, "ERROR: can't add seektable to file, please use --add-seekpoint instead\n");
 			FLAC__metadata_object_delete(object);
@@ -500,9 +518,6 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__SHOW_MAX_BLOCKSIZE:
 		case OP__SHOW_MIN_FRAMESIZE:
 		case OP__SHOW_MAX_FRAMESIZE:
-		case OP__SHOW_SAMPLE_RATE:
-		case OP__SHOW_CHANNELS:
-		case OP__SHOW_BPS:
 		case OP__SHOW_TOTAL_SAMPLES:
 		case OP__SET_MD5SUM:
 		case OP__SET_MIN_BLOCKSIZE:
@@ -510,11 +525,46 @@ FLAC__bool do_shorthand_operation(const char *filename, FLAC__bool prefix_with_f
 		case OP__SET_MIN_FRAMESIZE:
 		case OP__SET_MAX_FRAMESIZE:
 		case OP__SET_SAMPLE_RATE:
-		case OP__SET_CHANNELS:
-		case OP__SET_BPS:
 		case OP__SET_TOTAL_SAMPLES:
 			ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
 			break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case OP__SHOW_SAMPLE_RATE:
+		case OP__SHOW_CHANNELS:
+		case OP__SHOW_BPS:
+			if(check_extension(chain))
+				ok = do_shorthand_operation__streaminfo_extension(filename, prefix_with_filename, chain, operation, needs_write);
+			else
+				ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
+			break;
+		case OP__SET_CHANNELS:
+			if(operation->argument.streaminfo_uint32.value > 8)
+				ok = do_shorthand_operation__streaminfo_extension(filename, prefix_with_filename, chain, operation, needs_write);
+			else
+				ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
+			break;
+		case OP__SET_BPS:
+			if(operation->argument.streaminfo_uint32.value > 32)
+				ok = do_shorthand_operation__streaminfo_extension(filename, prefix_with_filename, chain, operation, needs_write);
+			else
+				ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
+			break;
+		case OP__SHOW_CHANNEL_MASK:
+		case OP__SHOW_SAMPLE_TYPE:
+		case OP__SET_CHANNEL_MASK:
+		case OP__SET_SAMPLE_TYPE:
+		case OP__SET_SAMPLE_RATE_EXTENSION:
+			ok = do_shorthand_operation__streaminfo_extension(filename, prefix_with_filename, chain, operation, needs_write);
+			break;
+#else
+		case OP__SHOW_SAMPLE_RATE:
+		case OP__SHOW_CHANNELS:
+		case OP__SHOW_BPS:
+		case OP__SET_CHANNELS:
+		case OP__SET_BPS:
+			ok = do_shorthand_operation__streaminfo(filename, prefix_with_filename, chain, operation, needs_write);
+			break;
+#endif
 		case OP__SHOW_VC_VENDOR:
 		case OP__SHOW_VC_FIELD:
 		case OP__REMOVE_VC_ALL:
@@ -574,6 +624,19 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 			flac_fprintf(stderr, "%s: ERROR: can't open file or get STREAMINFO block\n", filenames[i]);
 			return false;
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		{
+			FLAC__StreamMetadata ext_block;
+			if(FLAC__metadata_get_streaminfo_extension(filenames[i], &ext_block)) {
+				if(FLAC__format_sample_rate_is_valid_extension(ext_block.data.stream_info_extension.sample_rate))
+					streaminfo.data.stream_info.sample_rate = (unsigned)ext_block.data.stream_info_extension.sample_rate;
+				if(ext_block.data.stream_info_extension.bits_per_sample > 0)
+					streaminfo.data.stream_info.bits_per_sample = ext_block.data.stream_info_extension.bits_per_sample;
+				if(ext_block.data.stream_info_extension.channels > 0)
+					streaminfo.data.stream_info.channels = ext_block.data.stream_info_extension.channels;
+			}
+		}
+#endif
 		if(first) {
 			first = false;
 			sample_rate = streaminfo.data.stream_info.sample_rate;
@@ -602,8 +665,8 @@ FLAC__bool do_shorthand_operation__add_replay_gain(char **filenames, unsigned nu
 			flac_fprintf(stderr, "%s: ERROR: # of channels (%u) is not supported, must be 1 or 2\n", filenames[i], channels);
 			return false;
 		}
-		if(bits_per_sample < FLAC__MIN_BITS_PER_SAMPLE || bits_per_sample > FLAC__MAX_BITS_PER_SAMPLE) {
-			flac_fprintf(stderr, "%s: ERROR: resolution (%u) is not supported, must be between %u and %u\n", filenames[i], bits_per_sample, FLAC__MIN_BITS_PER_SAMPLE, FLAC__MAX_BITS_PER_SAMPLE);
+		if(bits_per_sample < FLAC__REFERENCE_CODEC_MIN_BITS_PER_SAMPLE || bits_per_sample > FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE) {
+			flac_fprintf(stderr, "%s: ERROR: resolution (%u) is not supported, must be between %u and %u\n", filenames[i], bits_per_sample, FLAC__REFERENCE_CODEC_MIN_BITS_PER_SAMPLE, FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE);
 			return false;
 		}
 	}
@@ -751,6 +814,19 @@ void write_metadata(const char *filename, FLAC__StreamMetadata *block, unsigned 
 			else
 				flac_printf("\n");
 			break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+			PPR; flac_printf("  sample_rate: %f Hz\n", block->data.stream_info_extension.sample_rate);
+			PPR; flac_printf("  channels: %u\n", block->data.stream_info_extension.channels);
+			PPR; flac_printf("  bits-per-sample: %u\n", block->data.stream_info_extension.bits_per_sample);
+			PPR; flac_printf("  sample type: %s\n", FLAC__get_sample_type_string(block->data.stream_info_extension.sample_type));
+			PPR; flac_printf("  channel mask: %u\n", block->data.stream_info_extension.channel_mask);
+			if(raw)
+				printf("\n");
+			else
+				flac_printf("\n");
+			break;
+#endif
 		case FLAC__METADATA_TYPE_PADDING:
 			/* nothing to print */
 			break;

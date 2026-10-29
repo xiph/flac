@@ -1,0 +1,26 @@
+[
+	{
+		"label": "Build FLAC",
+		"command": "ninja",
+		"args": ["-C", "build"],
+		"reveal": "always",
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+	},
+	{
+		"label": "Run Tests",
+		"command": "ninja",
+		"args": ["-C", "build", "test"],
+		"reveal": "always",
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+	},
+	{
+		"label": "Run Tests (Verbose on failure)",
+		"command": "ctest",
+		"args": ["--test-dir", "build", "--output-on-failure"],
+		"reveal": "always",
+		"use_new_terminal": false,
+		"allow_concurrent_runs": false,
+	},
+]

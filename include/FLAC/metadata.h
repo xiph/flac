@@ -164,6 +164,28 @@ extern "C" {
  */
 FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__StreamMetadata *streaminfo);
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** Read the STREAMINFO_EXTENSION metadata block of the given FLAC or Ogg FLAC
+ *  file.  This function will try to skip any ID3v2 tag at the head
+ *  of the file.
+ *
+ * \param filename              The path to the FLAC or Ogg FLAC file to read.
+ * \param streaminfo_extension  A pointer to space for the STREAMINFO_EXTENSION block.  Since
+ *                              FLAC__StreamMetadata is a simple structure with no
+ *                              memory allocation involved, you pass the address of
+ *                              an existing structure.  It need not be initialized.
+ * \assert
+ *    \code filename != NULL \endcode
+ *    \code streaminfo_extension != NULL \endcode
+ * \retval FLAC__bool
+ *    \c true if a valid STREAMINFO_EXTENSION block was read from \a filename.  Returns
+ *    \c false if there was a memory allocation error, a file decoder error,
+ *    or the file contained no STREAMINFO_EXTENSION block.  (A memory allocation error
+ *    is possible because this function must set up a file decoder.)
+ */
+FLAC_API FLAC__bool FLAC__metadata_get_streaminfo_extension(const char *filename, FLAC__StreamMetadata *streaminfo_extension);
+#endif
+
 /** Read the VORBIS_COMMENT metadata block of the given FLAC or Ogg FLAC
  *  file.  This function will try to skip any ID3v2 tag at the head
  *  of the file.
@@ -245,7 +267,7 @@ FLAC_API FLAC__bool FLAC__metadata_get_cuesheet(const char *filename, FLAC__Stre
  */
 FLAC_API FLAC__bool FLAC__metadata_get_picture(const char *filename, FLAC__StreamMetadata **picture, FLAC__StreamMetadata_Picture_Type type, const char *mime_type, const FLAC__byte *description, uint32_t max_width, uint32_t max_height, uint32_t max_depth, uint32_t max_colors);
 
-/* \} */
+/** \} */
 
 
 /** \defgroup flac_metadata_level1 FLAC/metadata.h: metadata level 1 interface
@@ -662,7 +684,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Meta
  */
 FLAC_API FLAC__bool FLAC__metadata_simple_iterator_delete_block(FLAC__Metadata_SimpleIterator *iterator, FLAC__bool use_padding);
 
-/* \} */
+/** \} */
 
 
 /** \defgroup flac_metadata_level2 FLAC/metadata.h: metadata level 2 interface
@@ -1284,7 +1306,7 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_I
  */
 FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_Iterator *iterator, FLAC__StreamMetadata *block);
 
-/* \} */
+/** \} */
 
 
 /** \defgroup flac_metadata_object FLAC/metadata.h: metadata object methods
@@ -2247,7 +2269,7 @@ FLAC_API FLAC__byte * FLAC__metadata_object_get_raw(const FLAC__StreamMetadata *
  */
 
 FLAC_API FLAC__StreamMetadata * FLAC__metadata_object_set_raw(FLAC__byte *buffer, FLAC__uint32 length);
-/* \} */
+/** \} */
 
 #ifdef __cplusplus
 }

@@ -11,10 +11,10 @@
 	FLAC__ASSERT(0 != br->buffer);
 	/* WATCHOUT: code does not work with <32bit words; we can make things much faster with this assertion */
 	FLAC__ASSERT(FLAC__BITS_PER_WORD >= 32);
-	FLAC__ASSERT(parameter < 32);
+	FLAC__ASSERT(parameter < 127);
 	/* the above two asserts also guarantee that the binary part never straddles more than 2 words, so we don't have to loop to read it */
 
-	limit = UINT32_MAX >> parameter; /* Maximal msbs that can occur with residual bounded to int32_t */
+	limit = UINT32_MAX >> flac_min(parameter, 31u); /* Maximal msbs that can occur with residual bounded to int32_t */
 
 	val = vals;
 	end = vals + nvals;
@@ -32,7 +32,57 @@
 		return true;
 	}
 
-	FLAC__ASSERT(parameter > 0);
+	if(parameter >= 31 && parameter < 43) {
+		while(val < end) {
+			FLAC__uint64 lsbs64 = 0;
+			FLAC__uint64 x64;
+			/* read the unary MSBs and end bit */
+			if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
+				return false;
+			if(msbs > limit)
+				return false;
+			/* read the binary LSBs */
+			if(!FLAC__bitreader_read_raw_uint64(br, &lsbs64, parameter))
+				return false;
+			x64 = (((FLAC__uint64)msbs) << parameter) | lsbs64;
+			*val++ = (FLAC__int32)((x64 >> 1) ^ -(FLAC__int64)(x64 & 1));
+		}
+
+		return true;
+	}
+	else if(parameter >= 43) {
+#if FLAC__HAS_INT128
+		while(val < end) {
+			FLAC__uint128 lsbs128 = 0;
+			FLAC__uint128 x128;
+			/* read the unary MSBs and end bit */
+			if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
+				return false;
+			if(msbs > limit)
+				return false;
+			/* read the binary LSBs */
+			if(parameter > 64) {
+				if(!FLAC__bitreader_read_raw_uint128(br, &lsbs128, parameter))
+					return false;
+			}
+			else {
+				FLAC__uint64 lsbs64;
+				if(!FLAC__bitreader_read_raw_uint64(br, &lsbs64, parameter))
+					return false;
+				lsbs128 = lsbs64;
+			}
+			x128 = (((FLAC__uint128)msbs) << parameter) | lsbs128;
+			*val++ = (FLAC__int32)((x128 >> 1) ^ -(FLAC__int128)(x128 & 1));
+		}
+
+		return true;
+#else
+		(void)limit;
+		return false;
+#endif
+	}
+
+	FLAC__ASSERT(parameter > 0 && parameter < 31);
 
 	cwords = br->consumed_words;
 	words = br->words;

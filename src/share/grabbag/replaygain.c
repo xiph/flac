@@ -139,8 +139,7 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 	FLAC__int32 block_peak = 0, s;
 	uint32_t i, j;
 
-	FLAC__ASSERT(bps > 0 && bps <= FLAC__MAX_BITS_PER_SAMPLE);
-	FLAC__ASSERT(FLAC__MAX_BITS_PER_SAMPLE == 32);
+	FLAC__ASSERT(bps > 0 && bps <= 32);
 
 	if(bps == 16) {
 		if(is_stereo) {
@@ -235,6 +234,61 @@ FLAC__bool grabbag__replaygain_analyze(const FLAC__int32 * const input[], FLAC__
 	return true;
 }
 
+
+FLAC__bool grabbag__replaygain_analyze_float(const float * const input[], FLAC__bool is_stereo, uint32_t samples)
+{
+	static flac_float_t lbuffer[2048], rbuffer[2048];
+	static const uint32_t nbuffer = sizeof(lbuffer) / sizeof(lbuffer[0]);
+	float block_peak = 0.0f, s;
+	uint32_t i, j;
+
+	if(is_stereo) {
+		j = 0;
+		while(samples > 0) {
+			const uint32_t n = local_min(samples, nbuffer);
+			for(i = 0; i < n; i++, j++) {
+				s = input[0][j];
+				lbuffer[i] = (flac_float_t)(s * 32768.0f);
+				s = fabsf(s);
+				if(s > block_peak) block_peak = s;
+
+				s = input[1][j];
+				rbuffer[i] = (flac_float_t)(s * 32768.0f);
+				s = fabsf(s);
+				if(s > block_peak) block_peak = s;
+			}
+			samples -= n;
+			if(AnalyzeSamples(lbuffer, rbuffer, n, 2) != GAIN_ANALYSIS_OK)
+				return false;
+		}
+	}
+	else {
+		j = 0;
+		while(samples > 0) {
+			const uint32_t n = local_min(samples, nbuffer);
+			for(i = 0; i < n; i++, j++) {
+				s = input[0][j];
+				lbuffer[i] = (flac_float_t)(s * 32768.0f);
+				s = fabsf(s);
+				if(s > block_peak) block_peak = s;
+			}
+			samples -= n;
+			if(AnalyzeSamples(lbuffer, 0, n, 1) != GAIN_ANALYSIS_OK)
+				return false;
+		}
+	}
+
+	{
+		double peak = (double)block_peak;
+		if(peak > title_peak_)
+			title_peak_ = peak;
+		if(peak > album_peak_)
+			album_peak_ = peak;
+	}
+
+	return true;
+}
+
 void grabbag__replaygain_get_album(float *gain, float *peak)
 {
 	*gain = (float)GetAlbumGain();
@@ -254,6 +308,9 @@ typedef struct {
 	uint32_t channels;
 	uint32_t bits_per_sample;
 	uint32_t sample_rate;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SampleType sample_type;
+#endif
 	FLAC__bool error;
 } DecoderInstance;
 
@@ -270,11 +327,20 @@ static FLAC__StreamDecoderWriteStatus write_callback_(const FLAC__StreamDecoder 
 	if(
 		!instance->error &&
 		(channels == 2 || channels == 1) &&
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		(instance->sample_type == FLAC__SAMPLE_TYPE_FLOAT || bits_per_sample == instance->bits_per_sample) &&
+#else
 		bits_per_sample == instance->bits_per_sample &&
+#endif
 		channels == instance->channels &&
 		sample_rate == instance->sample_rate
 	) {
-		instance->error = !grabbag__replaygain_analyze(buffer, channels==2, bits_per_sample, samples);
+		#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(instance->sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+			instance->error = !grabbag__replaygain_analyze_float((const float * const *)buffer, channels==2, samples);
+		else
+#endif
+			instance->error = !grabbag__replaygain_analyze(buffer, channels==2, bits_per_sample, samples);
 	}
 	else {
 		instance->error = true;
@@ -307,6 +373,17 @@ static void metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__S
 			return;
 		}
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	else if(metadata->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
+		if(FLAC__format_sample_rate_is_valid_extension(metadata->data.stream_info_extension.sample_rate))
+			instance->sample_rate = (uint32_t)metadata->data.stream_info_extension.sample_rate;
+		if(metadata->data.stream_info_extension.bits_per_sample > 0)
+			instance->bits_per_sample = metadata->data.stream_info_extension.bits_per_sample;
+		if(metadata->data.stream_info_extension.channels > 0)
+			instance->channels = metadata->data.stream_info_extension.channels;
+		instance->sample_type = metadata->data.stream_info_extension.sample_type;
+	}
+#endif
 }
 
 static void error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
@@ -327,11 +404,17 @@ const char *grabbag__replaygain_analyze_file(const char *filename, float *title_
 		return "memory allocation error";
 
 	instance.error = false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	instance.sample_type = FLAC__SAMPLE_TYPE_INT;
+#endif
 
 	/* It does these three by default but lets be explicit: */
 	FLAC__stream_decoder_set_md5_checking(decoder, false);
 	FLAC__stream_decoder_set_metadata_ignore_all(decoder);
 	FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__stream_decoder_set_metadata_respond(decoder, FLAC__METADATA_TYPE_STREAMINFO_EXTENSION);
+#endif
 
 	if(FLAC__stream_decoder_init_file(decoder, filename, write_callback_, metadata_callback_, error_callback_, &instance) != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
 		FLAC__stream_decoder_delete(decoder);

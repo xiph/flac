@@ -133,6 +133,7 @@ FLAC__StreamEncoderWriteStatus FLAC__ogg_encoder_aspect_write_callback_wrapper(F
 			FLAC__STREAM_SYNC_LENGTH +
 			FLAC__STREAM_METADATA_HEADER_LENGTH +
 			FLAC__STREAM_METADATA_STREAMINFO_LENGTH
+			// TODO: Maybe we should add STREAMINFO_EXTENSION here, instead of separate ogg packets?
 		];
 
 		memset(&packet, 0, sizeof(packet));

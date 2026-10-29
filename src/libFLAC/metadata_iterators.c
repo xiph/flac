@@ -67,12 +67,19 @@ static void pack_uint64_(FLAC__uint64 val, FLAC__byte *b, uint32_t bytes);
 static FLAC__uint32 unpack_uint32_(FLAC__byte *b, uint32_t bytes);
 static FLAC__uint32 unpack_uint32_little_endian_(FLAC__byte *b, uint32_t bytes);
 static FLAC__uint64 unpack_uint64_(FLAC__byte *b, uint32_t bytes);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+static void pack_float64_(FLAC__float64 val, FLAC__byte *b, uint32_t bytes);
+static FLAC__float64 unpack_float64_(FLAC__byte *b, uint32_t bytes);
+#endif
 
 static FLAC__bool read_metadata_block_header_(FLAC__Metadata_SimpleIterator *iterator);
 static FLAC__bool read_metadata_block_data_(FLAC__Metadata_SimpleIterator *iterator, FLAC__StreamMetadata *block);
 static FLAC__bool read_metadata_block_header_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__bool *is_last, FLAC__MetadataType *type, uint32_t *length);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__IOCallback_Seek seek_cb, FLAC__StreamMetadata *block);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_StreamInfo *block);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_extension_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_StreamInfo_Extension *block);
+#endif
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Seek seek_cb, FLAC__StreamMetadata_Padding *block, uint32_t block_length);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_application_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_Application *block, uint32_t block_length);
 static FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_seektable_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_SeekTable *block, uint32_t block_length);
@@ -88,6 +95,9 @@ static FLAC__bool write_metadata_block_data_(FILE *file, FLAC__Metadata_SimpleIt
 static FLAC__bool write_metadata_block_header_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata *block);
 static FLAC__bool write_metadata_block_data_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata *block);
 static FLAC__bool write_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_StreamInfo *block);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+static FLAC__bool write_metadata_block_data_streaminfo_extension_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_StreamInfo_Extension *block);
+#endif
 static FLAC__bool write_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Padding *block, uint32_t block_length);
 static FLAC__bool write_metadata_block_data_application_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Application *block, uint32_t block_length);
 static FLAC__bool write_metadata_block_data_seektable_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_SeekTable *block);
@@ -233,6 +243,28 @@ FLAC_API FLAC__bool FLAC__metadata_get_streaminfo(const char *filename, FLAC__St
 		return false;
 	}
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC_API FLAC__bool FLAC__metadata_get_streaminfo_extension(const char *filename, FLAC__StreamMetadata *streaminfo_extension)
+{
+	FLAC__StreamMetadata *object;
+
+	FLAC__ASSERT(0 != filename);
+	FLAC__ASSERT(0 != streaminfo_extension);
+
+	object = get_one_metadata_block_(filename, FLAC__METADATA_TYPE_STREAMINFO_EXTENSION);
+
+	if (object) {
+		/* can just copy the contents since STREAMINFO_EXTENSION has no internal structure */
+		*streaminfo_extension = *object;
+		FLAC__metadata_object_delete(object);
+		return true;
+	}
+	else {
+		return false;
+	}
+}
+#endif
 
 FLAC_API FLAC__bool FLAC__metadata_get_tags(const char *filename, FLAC__StreamMetadata **tags)
 {
@@ -476,6 +508,7 @@ static FLAC__bool simple_iterator_prime_input_(FLAC__Metadata_SimpleIterator *it
 				iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_BAD_METADATA;
 				return false;
 			}
+			// TODO: we better check for FLAC__METADATA_TYPE_STREAMINFO_EXTENSION here too, but level 2 is easier
 			return ret;
 		case 1:
 			iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
@@ -823,6 +856,13 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_insert_block_after(FLAC__Meta
 		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT;
 		return false;
 	}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(block->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION && iterator->type != FLAC__METADATA_TYPE_STREAMINFO) {
+		iterator->status = FLAC__METADATA_SIMPLE_ITERATOR_STATUS_ILLEGAL_INPUT;
+		return false;
+	}
+#endif
 
 	block->is_last = iterator->is_last;
 
@@ -1331,6 +1371,13 @@ static FLAC__bool chain_read_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle han
 		return false;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(chain->head->data->data.stream_info.bits_per_sample == 1 && (chain->head->data->is_last || chain->head->next->data->type != FLAC__METADATA_TYPE_STREAMINFO_EXTENSION)) {
+		chain->status = FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
+		return false;
+	}
+#endif
+
 	chain->initial_length = chain_calculate_length_(chain);
 
 	return true;
@@ -1423,7 +1470,11 @@ static FLAC__bool chain_read_ogg_cb_(FLAC__Metadata_Chain *chain, FLAC__IOHandle
 
 	chain->initial_length = chain_calculate_length_(chain);
 
-	if(chain->initial_length == 0 || chain->head->data->type != FLAC__METADATA_TYPE_STREAMINFO) {
+	if(chain->initial_length == 0 || chain->head->data->type != FLAC__METADATA_TYPE_STREAMINFO
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		|| (chain->head->data->data.stream_info.bits_per_sample == 1 && (chain->head->data->is_last || chain->head->next->data->type != FLAC__METADATA_TYPE_STREAMINFO_EXTENSION))
+#endif
+	) {
 		/* Ogg FLAC file must have at least streaminfo and vorbis comment */
 		chain->status = FLAC__METADATA_CHAIN_STATUS_BAD_METADATA;
 		return false;
@@ -2119,6 +2170,12 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_delete_block(FLAC__Metadata_Iterator
 		return false;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(iterator->current->data->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION && iterator->current->prev->data->type == FLAC__METADATA_TYPE_STREAMINFO && iterator->current->prev->data->data.stream_info.bits_per_sample == 1) {
+		return false;
+	}
+#endif
+
 	save = iterator->current->prev;
 
 	if(replace_with_padding) {
@@ -2149,6 +2206,13 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_before(FLAC__Metadata_I
 		return false;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(block->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION) {
+		FLAC__ASSERT(iterator->current->prev->data->type == FLAC__METADATA_TYPE_STREAMINFO);
+		return false;
+	}
+#endif
+
 	if(0 == (node = node_new_()))
 		return false;
 
@@ -2168,6 +2232,11 @@ FLAC_API FLAC__bool FLAC__metadata_iterator_insert_block_after(FLAC__Metadata_It
 
 	if(block->type == FLAC__METADATA_TYPE_STREAMINFO)
 		return false;
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(block->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION && iterator->current->data->type != FLAC__METADATA_TYPE_STREAMINFO)
+		return false;
+#endif
 
 	if(0 == (node = node_new_()))
 		return false;
@@ -2254,6 +2323,23 @@ FLAC__uint64 unpack_uint64_(FLAC__byte *b, uint32_t bytes)
 	return ret;
 }
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+void pack_float64_(FLAC__float64 val, FLAC__byte *b, uint32_t bytes)
+{
+	FLAC__uint64 uval;
+	memcpy(&uval, &val, 8);
+	pack_uint64_(uval, b, bytes);
+}
+
+FLAC__float64 unpack_float64_(FLAC__byte *b, uint32_t bytes)
+{
+	FLAC__float64 val;
+	FLAC__uint64 uval = unpack_uint64_(b, bytes);
+	memcpy(&val, &uval, 8);
+	return val;
+}
+#endif
+
 FLAC__bool read_metadata_block_header_(FLAC__Metadata_SimpleIterator *iterator)
 {
 	FLAC__ASSERT(0 != iterator);
@@ -2313,6 +2399,10 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_cb_(FLAC__IOHandle 
 			return read_metadata_block_data_cuesheet_cb_(handle, read_cb, &block->data.cue_sheet);
 		case FLAC__METADATA_TYPE_PICTURE:
 			return read_metadata_block_data_picture_cb_(handle, read_cb, &block->data.picture);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+			return read_metadata_block_data_streaminfo_extension_cb_(handle, read_cb, &block->data.stream_info_extension);
+#endif
 		default:
 			return read_metadata_block_data_unknown_cb_(handle, read_cb, &block->data.unknown, block->length);
 	}
@@ -2343,6 +2433,34 @@ FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_cb_(FLAC
 
 	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_streaminfo_extension_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Read read_cb, FLAC__StreamMetadata_StreamInfo_Extension *block)
+{
+	FLAC__byte buffer[FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH], *b;
+
+	if(read_cb(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH, handle) != FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH)
+		return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_READ_ERROR;
+
+	b = buffer;
+
+	/* we are using hardcoded numbers for simplicity but we should
+	 * probably eventually write a bit-level unpacker and use the
+	 * _STREAMINFO_EXTENSION_ constants.
+	 */
+	block->sample_rate = unpack_float64_(b, 8); b += 8;
+	block->channels = unpack_uint32_(b, 1) + 1; b += 1;
+	block->channel_mask = unpack_uint32_(b, 4); b += 4;
+	// block->special_mask    = (unpack_uint32_(b, 2) & 0b1110000000000000) >> 13;
+	// block->ignore_mask     = (unpack_uint32_(b, 2) & 0b0001100000000000) >> 11;
+	block->sample_type   = (unpack_uint32_(b, 2) & 0b0000011110000000) >> 7;
+	block->bits_per_sample = (unpack_uint32_(b, 2) & 0b0000000001111111) + 1; b += 2;
+	// block->reserved = unpack_uint32_(b, 1);
+	b += 1;
+
+	return FLAC__METADATA_SIMPLE_ITERATOR_STATUS_OK;
+}
+#endif
 
 FLAC__Metadata_SimpleIteratorStatus read_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Seek seek_cb, FLAC__StreamMetadata_Padding *block, uint32_t block_length)
 {
@@ -2782,6 +2900,10 @@ FLAC__bool write_metadata_block_data_cb_(FLAC__IOHandle handle, FLAC__IOCallback
 			return write_metadata_block_data_cuesheet_cb_(handle, write_cb, &block->data.cue_sheet);
 		case FLAC__METADATA_TYPE_PICTURE:
 			return write_metadata_block_data_picture_cb_(handle, write_cb, &block->data.picture);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+			return write_metadata_block_data_streaminfo_extension_cb_(handle, write_cb, &block->data.stream_info_extension);
+#endif
 		default:
 			return write_metadata_block_data_unknown_cb_(handle, write_cb, &block->data.unknown, block->length);
 	}
@@ -2813,6 +2935,33 @@ FLAC__bool write_metadata_block_data_streaminfo_cb_(FLAC__IOHandle handle, FLAC_
 
 	return true;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__bool write_metadata_block_data_streaminfo_extension_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_StreamInfo_Extension *block)
+{
+	FLAC__byte buffer[FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH], *b;
+	const uint32_t special_mask = 0;
+	const uint32_t ignore_mask = 0;
+	const uint32_t reserved = 0;
+
+	b = buffer;
+
+	/* we are using hardcoded numbers for simplicity but we should
+	 * probably eventually write a bit-level packer and use the
+	 * _STREAMINFO_ constants.
+	 */
+	pack_float64_(block->sample_rate, b, 8); b += 8;
+	pack_uint32_(block->channels - 1, b, 1); b += 1;
+	pack_uint32_(block->channel_mask, b, 4); b += 4;
+	pack_uint32_((special_mask << 13) | (ignore_mask << 11) | (block->sample_type << 7) | (block->bits_per_sample - 1), b, 2); b += 2;
+	pack_uint32_(reserved, b, 1);
+
+	if(write_cb(buffer, 1, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH, handle) != FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH)
+		return false;
+
+	return true;
+}
+#endif
 
 FLAC__bool write_metadata_block_data_padding_cb_(FLAC__IOHandle handle, FLAC__IOCallback_Write write_cb, const FLAC__StreamMetadata_Padding *block, uint32_t block_length)
 {

@@ -33,6 +33,7 @@
 #ifndef FLACPP__ENCODER_H
 #define FLACPP__ENCODER_H
 
+#include "FLAC/ordinals.h"
 #include "export.h"
 
 #include "FLAC/stream_encoder.h"
@@ -129,6 +130,11 @@ namespace FLAC {
 			virtual bool set_verify(bool value);                            ///< See FLAC__stream_encoder_set_verify()
 			virtual bool set_streamable_subset(bool value);                 ///< See FLAC__stream_encoder_set_streamable_subset()
 			virtual bool set_channels(uint32_t value);                      ///< See FLAC__stream_encoder_set_channels()
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			virtual bool set_sample_type(FLAC__SampleType value);           ///< See FLAC__stream_encoder_set_sample_type()
+			virtual bool set_channel_mask(uint32_t value);                  ///< See FLAC__stream_encoder_set_channel_mask()
+			virtual bool set_sample_rate_extension(FLAC__float64 value);    ///< See FLAC__stream_encoder_set_sample_rate_extension()
+#endif
 			virtual bool set_bits_per_sample(uint32_t value);               ///< See FLAC__stream_encoder_set_bits_per_sample()
 			virtual bool set_sample_rate(uint32_t value);                   ///< See FLAC__stream_encoder_set_sample_rate()
 			virtual bool set_compression_level(uint32_t value);             ///< See FLAC__stream_encoder_set_compression_level()
@@ -159,6 +165,11 @@ namespace FLAC {
 			virtual bool     get_do_mid_side_stereo() const;           ///< See FLAC__stream_encoder_get_do_mid_side_stereo()
 			virtual bool     get_loose_mid_side_stereo() const;        ///< See FLAC__stream_encoder_get_loose_mid_side_stereo()
 			virtual uint32_t get_channels() const;                     ///< See FLAC__stream_encoder_get_channels()
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			virtual FLAC__SampleType get_sample_type() const;          ///< See FLAC__stream_encoder_get_is_float_samples()
+			virtual uint32_t get_channel_mask() const;                 ///< See FLAC__stream_encoder_set_channel_mask()
+			virtual FLAC__float64 get_sample_rate_extension() const;   ///< See FLAC__stream_encoder_set_sample_rate_extension()
+#endif
 			virtual uint32_t get_bits_per_sample() const;              ///< See FLAC__stream_encoder_get_bits_per_sample()
 			virtual uint32_t get_sample_rate() const;                  ///< See FLAC__stream_encoder_get_sample_rate()
 			virtual uint32_t get_blocksize() const;                    ///< See FLAC__stream_encoder_get_blocksize()
@@ -181,6 +192,12 @@ namespace FLAC {
 
 			virtual bool process(const FLAC__int32 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process()
 			virtual bool process_interleaved(const FLAC__int32 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved()
+			virtual bool process(const FLAC__int64 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process_int64()
+			virtual bool process_interleaved(const FLAC__int64 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved_int64()
+#if FLAC__HAS_INT128
+			virtual bool process(const FLAC__int128 * const buffer[], uint32_t samples);     ///< See FLAC__stream_encoder_process_int128()
+			virtual bool process_interleaved(const FLAC__int128 buffer[], uint32_t samples); ///< See FLAC__stream_encoder_process_interleaved_int128()
+#endif
 		protected:
 			/// See FLAC__StreamEncoderReadCallback
 			virtual ::FLAC__StreamEncoderReadStatus read_callback(FLAC__byte buffer[], size_t *bytes);

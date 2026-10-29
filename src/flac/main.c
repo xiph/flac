@@ -17,6 +17,8 @@
  * 51 Franklin Street, Fifth Floor, Boston, MA 02110-1301 USA.
  */
 
+#include "FLAC/ordinals.h"
+#include <stdint.h>
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -154,6 +156,10 @@ static struct share__option long_options_[] = {
 	{ "force-extensible-wave-format",share__no_argument,0, 0 },
 	{ "force-aiff-c-none-format"  , share__no_argument, 0, 0 },
 	{ "force-aiff-c-sowt-format"  , share__no_argument, 0, 0 },
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	{ "force-aiff-c-fl32-format"  , share__no_argument, 0, 0 },
+	{ "force-aiff-c-FL32-format"  , share__no_argument, 0, 0 },
+#endif
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
 	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
@@ -176,6 +182,11 @@ static struct share__option long_options_[] = {
 	{ "threads"                   , share__required_argument, 0, 'j' },
 	{ "endian"                    , share__required_argument, 0, 0 },
 	{ "channels"                  , share__required_argument, 0, 0 },
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	{ "sample-type"               , share__required_argument, 0, 0 },
+	{ "sample-rate-extension"     , share__required_argument, 0, 0 },
+	{ "channel-mask"              , share__required_argument, 0, 0 },
+#endif
 	{ "bps"                       , share__required_argument, 0, 0 },
 	{ "sample-rate"               , share__required_argument, 0, 0 },
 	{ "sign"                      , share__required_argument, 0, 0 },
@@ -223,6 +234,11 @@ static struct share__option long_options_[] = {
 	{ "disable-fixed-subframes"   , share__no_argument, 0, 0 },
 	{ "disable-verbatim-subframes", share__no_argument, 0, 0 },
 	{ "no-md5-sum"                , share__no_argument, 0, 0 },
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	{ "force-dpa-mode-which-is-not-lossless", share__no_argument, 0, 0 },
+	{ "force-fallback-mode"      , share__no_argument, 0, 0 },
+	{ "force-empty-packed-subframe-which-is-not-lossless", share__no_argument, 0, 0 },
+#endif
 
 	{0, 0, 0, 0}
 };
@@ -257,6 +273,10 @@ static struct {
 	FLAC__bool force_extensible_wave_format;
 	FLAC__bool force_aiff_c_none_format;
 	FLAC__bool force_aiff_c_sowt_format;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__bool force_aiff_c_fl32_format;
+	FLAC__bool force_aiff_c_FL32_format;
+#endif
 	FLAC__bool delete_input;
 	FLAC__bool preserve_modtime;
 	FLAC__bool keep_foreign_metadata;
@@ -277,6 +297,11 @@ static struct {
 	int format_is_big_endian;
 	int format_is_unsigned_samples;
 	int format_channels;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	int format_sample_type;
+	FLAC__float64 format_sample_rate_extension;
+	FLAC__uint32 format_channel_mask;
+#endif
 	int format_bps;
 	int format_sample_rate;
 	FLAC__off_t format_input_size;
@@ -300,6 +325,10 @@ static struct {
 		FLAC__bool disable_fixed_subframes;
 		FLAC__bool disable_verbatim_subframes;
 		FLAC__bool do_md5;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLAC__FloatMode float_mode;
+		FLAC__bool force_empty_packed_subframe_which_is_not_lossless;
+#endif
 	} debug;
 } option_values;
 
@@ -451,6 +480,10 @@ int do_it(void)
 		   (option_values.force_extensible_wave_format?1:0) +
 		   (option_values.force_aiff_c_none_format?1:0) +
 		   (option_values.force_aiff_c_sowt_format?1:0)
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		   + (option_values.force_aiff_c_fl32_format?1:0)
+		   + (option_values.force_aiff_c_FL32_format?1:0)
+#endif
 		    > 1)
 			return usage_error("ERROR: only one of force format options allowed\n");
 		if(option_values.mode_decode) {
@@ -459,6 +492,14 @@ int do_it(void)
 					return usage_error("ERROR: --endian only allowed with --force-raw-format\n");
 				if(option_values.format_is_unsigned_samples >= 0)
 					return usage_error("ERROR: --sign only allowed with --force-raw-format\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				if(option_values.format_sample_type >= 0)
+					return usage_error("ERROR: --sample-type only allowed with --force-raw-format\n");
+				if(option_values.format_sample_rate_extension != 0.0)
+					return usage_error("ERROR: --sample-rate-extension only allowed with --force-raw-format\n");
+				if(option_values.format_channel_mask > 0)
+					return usage_error("ERROR: --channel-mask only allowed with --force-raw-format\n");
+#endif
 			}
 			if(option_values.format_channels >= 0)
 				return usage_error("ERROR: --channels not allowed with --decode\n");
@@ -623,6 +664,10 @@ FLAC__bool init_options(void)
 	option_values.force_extensible_wave_format = false;
 	option_values.force_aiff_c_none_format = false;
 	option_values.force_aiff_c_sowt_format = false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	option_values.force_aiff_c_fl32_format = false;
+	option_values.force_aiff_c_FL32_format = false;
+#endif
 	option_values.delete_input = false;
 	option_values.preserve_modtime = true;
 	option_values.keep_foreign_metadata = false;
@@ -644,6 +689,11 @@ FLAC__bool init_options(void)
 	option_values.cue_specification = 0;
 	option_values.format_is_big_endian = -1;
 	option_values.format_is_unsigned_samples = -1;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	option_values.format_sample_type = FLAC__SAMPLE_TYPE_NOT_SPECIFIED;
+	option_values.format_sample_rate_extension = 0.0;
+	option_values.format_channel_mask = 0;
+#endif
 	option_values.format_channels = -1;
 	option_values.format_bps = -1;
 	option_values.format_sample_rate = -1;
@@ -664,6 +714,10 @@ FLAC__bool init_options(void)
 	option_values.debug.disable_fixed_subframes = false;
 	option_values.debug.disable_verbatim_subframes = false;
 	option_values.debug.do_md5 = true;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	option_values.debug.float_mode = FLAC__FLOAT_MODE_UNKNOWN;
+	option_values.debug.force_empty_packed_subframe_which_is_not_lossless = false;
+#endif
 
 	if(0 == (option_values.vorbis_comment = FLAC__metadata_object_new(FLAC__METADATA_TYPE_VORBIS_COMMENT)))
 		return false;
@@ -839,6 +893,14 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "force-aiff-c-sowt-format")) {
 			option_values.force_aiff_c_sowt_format = true;
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		else if(0 == strcmp(long_option, "force-aiff-c-fl32-format")) {
+			option_values.force_aiff_c_fl32_format = true;
+		}
+		else if(0 == strcmp(long_option, "force-aiff-c-FL32-format")) {
+			option_values.force_aiff_c_FL32_format = true;
+		}
+#endif
 		else if(0 == strcmp(long_option, "lax")) {
 			option_values.lax = true;
 		}
@@ -869,6 +931,34 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 			else
 				return usage_error("ERROR: argument to --endian must be \"big\" or \"little\"\n");
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		else if(0 == strcmp(long_option, "sample-type")) {
+			FLAC__ASSERT(0 != option_argument);
+			if(0 == strcmp(option_argument, "float"))
+				option_values.format_sample_type = FLAC__SAMPLE_TYPE_FLOAT;
+			else if(0 == strcmp(option_argument, "int"))
+				option_values.format_sample_type = FLAC__SAMPLE_TYPE_INT;
+			else
+				return usage_error("ERROR: argument to --sample-type must be \"float\" or \"int\"\n");
+		}
+		else if(0 == strcmp(long_option, "sample-rate-extension")) {
+			double tmp;
+			FLAC__ASSERT(0 != option_argument);
+			tmp = atof(option_argument);
+			if(FLAC__format_sample_rate_is_valid_extension(tmp))
+				option_values.format_sample_rate_extension = tmp;
+			else
+				return usage_error("ERROR: argument to --sample-rate-extension must be a normal positive number\n");
+		}
+		else if(0 == strcmp(long_option, "channel-mask")) {
+			uint32_t tmp;
+			FLAC__ASSERT(0 != option_argument);
+			tmp = strtoul(option_argument, NULL, 0);
+			if(0 == tmp)
+				return usage_error("ERROR: argument to --channel-mask was 0\n");
+			option_values.format_channel_mask = tmp;
+		}
+#endif
 		else if(0 == strcmp(long_option, "channels")) {
 			FLAC__ASSERT(0 != option_argument);
 			option_values.format_channels = atoi(option_argument);
@@ -985,6 +1075,17 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		else if(0 == strcmp(long_option, "no-md5-sum")) {
 			option_values.debug.do_md5 = false;
 		}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		else if(0 == strcmp(long_option, "force-dpa-mode-which-is-not-lossless")) {
+			option_values.debug.float_mode = FLAC__FLOAT_MODE_DPA;
+		}
+		else if(0 == strcmp(long_option, "force-fallback-mode")) {
+			option_values.debug.float_mode = FLAC__FLOAT_MODE_FALLBACK;
+		}
+		else if(0 == strcmp(long_option, "force-empty-packed-subframe-which-is-not-lossless")) {
+			option_values.debug.force_empty_packed_subframe_which_is_not_lossless = true;
+		}
+#endif
 		else if(0 == strcmp(long_option, "no-error-on-compression-fail")) {
 			option_values.error_on_compression_fail = false;
 		}
@@ -1394,6 +1495,11 @@ void show_help(void)
 	printf("      --tag-from-file=FIELD=FILENAME     Like --tag but gets value from file\n");
 	printf("  -S, --seekpoint={#|X|#x|#s}        Add seek point(s)\n");
 	printf("  -P, --padding=#                    Write a PADDING block of length # bytes\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	printf("      --force-dpa-mode-which-is-not-lossless Force DPA float encoding mode\n");
+	printf("      --force-fallback-mode          Force 2-subframe fallback float encoding mode\n");
+	printf("      --force-empty-packed-subframe-which-is-not-lossless Force packed subframe lower_bits=0\n");
+#endif
 	printf("\n");
 	printf("Format options (encoding defaults to FLAC not OGG; decoding defaults to WAVE, \n");
 	printf("             chunks found by --keep-foreign-metadata-if-present will override):\n");
@@ -1409,11 +1515,21 @@ void show_help(void)
 	printf("      --force-extensible-wave-format Decode to extensible wave format\n");
 	printf("      --force-aiff-c-none-format     Decode to AIFF-C NONE format\n");
 	printf("      --force-aiff-c-sowt-format     Decode to AIFF-C sowt format\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	printf("      --force-aiff-c-fl32-format     Decode to AIFF-C fl32 format\n");
+	printf("      --force-aiff-c-FL32-format     Decode to AIFF-C FL32 format\n");
+#endif
 	printf("      --force-raw-format             Treat input or output as raw samples\n");
 	printf("raw format options:\n");
 	printf("      --sign={signed|unsigned}       Sign of samples (input/output) \n");
 	printf("      --endian={big|little}          Byte order for samples (input/output)\n");
 	printf("      --channels=#                   Number of channels in raw input\n");
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	printf("      --sample-type={int|float}      If raw input samples are in PCM integer format\n");
+	printf("                                     or PCM floating point (experimental)\n");
+	printf("      --sample-rate-extension=#      Sample rate in Hz in raw input (experimental, floats and bigger numbers are acceptable)\n");
+	printf("      --channel-mask=#               Channel mask in raw input (experimental)\n");
+#endif
 	printf("      --bps=#                        Number of bits per sample in raw input\n");
 	printf("      --sample-rate=#                Sample rate in Hz in raw input\n");
 	printf("      --input-size=#                 Size in bytes of raw input from stdin\n");
@@ -1633,15 +1749,49 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	}
 
 	if(input_format == FORMAT_RAW) {
-		if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		if(option_values.format_sample_type == FLAC__SAMPLE_TYPE_NOT_SPECIFIED) {
+			option_values.format_sample_type = FLAC__SAMPLE_TYPE_INT; // for backwards compatibility
+			// TODO: maybe an error would be better in future versions
+		}
+		if(option_values.format_sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+			if(option_values.format_channels < 0 || option_values.format_sample_rate < 0) {
+				conditional_fclose(encode_infile);
+				return usage_error("ERROR: for encoding a raw file with float samples, you must specify a value for --channels and --sample-rate\n");
+			}
+			else if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_bps >= 0) {
+				conditional_fclose(encode_infile);
+				return usage_error("ERROR: when encoding a raw file with float samples, --endian, --sign, and --bps are not allowed.\n");
+			}
+			else {
+#if WORDS_BIGENDIAN
+				option_values.format_is_big_endian = true;
+#else
+				option_values.format_is_big_endian = false;
+#endif
+				option_values.format_is_unsigned_samples = false;
+				option_values.format_bps = 32;
+			}
+		}
+		else
+#endif
+			if(option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0 || option_values.format_channels < 0 || option_values.format_bps < 0 || option_values.format_sample_rate < 0) {
 			conditional_fclose(encode_infile);
 			return usage_error("ERROR: for encoding a raw file you must specify a value for --endian, --sign, --channels, --bps, and --sample-rate\n");
 		}
 	}
 	else {
-		if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_channels >= 0 || option_values.format_bps >= 0 || option_values.format_sample_rate >= 0) {
+		if(option_values.format_is_big_endian >= 0 || option_values.format_is_unsigned_samples >= 0 || option_values.format_channels >= 0 ||
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		   option_values.format_sample_type >= 0 ||
+#endif
+		   option_values.format_bps >= 0 || option_values.format_sample_rate >= 0) {
 			conditional_fclose(encode_infile);
-			return usage_error("ERROR: raw format options (--endian, --sign, --channels, --bps, and --sample-rate) are not allowed for non-raw input\n");
+			return usage_error("ERROR: raw format options (--endian, --sign, --channels, "
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+							   "--sample-type, --sample-rate-extension, --channel-mask, "
+#endif
+							   "--bps, and --sample-rate) are not allowed for non-raw input\n");
 		}
 	}
 
@@ -1709,6 +1859,10 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	encode_options.debug.disable_fixed_subframes = option_values.debug.disable_fixed_subframes;
 	encode_options.debug.disable_verbatim_subframes = option_values.debug.disable_verbatim_subframes;
 	encode_options.debug.do_md5 = option_values.debug.do_md5;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	encode_options.debug.float_mode = option_values.debug.float_mode;
+	encode_options.debug.force_empty_packed_subframe_which_is_not_lossless = option_values.debug.force_empty_packed_subframe_which_is_not_lossless;
+#endif
 	encode_options.error_on_compression_fail = option_values.error_on_compression_fail;
 	encode_options.limit_min_bitrate = option_values.limit_min_bitrate;
 	encode_options.relaxed_foreign_metadata_handling = option_values.keep_foreign_metadata_if_present;
@@ -1729,6 +1883,11 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 	if(input_format == FORMAT_RAW) {
 		encode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
 		encode_options.format_options.raw.is_unsigned_samples = option_values.format_is_unsigned_samples;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		encode_options.format_options.raw.sample_type = option_values.format_sample_type;
+		encode_options.format_options.raw.sample_rate_extension = option_values.format_sample_rate_extension;
+		encode_options.format_options.raw.channel_mask = option_values.format_channel_mask;
+#endif
 		encode_options.format_options.raw.channels = option_values.format_channels;
 		encode_options.format_options.raw.bps = option_values.format_bps;
 		encode_options.format_options.raw.sample_rate = option_values.format_sample_rate;
@@ -1922,6 +2081,16 @@ int decode_file(const char *infilename)
 		output_format = FORMAT_AIFF_C;
 		output_subformat = SUBFORMAT_AIFF_C_SOWT;
 	}
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	else if(option_values.force_aiff_c_fl32_format) {
+		output_format = FORMAT_AIFF_C;
+		output_subformat = SUBFORMAT_AIFF_C_fl32;
+	}
+	else if(option_values.force_aiff_c_FL32_format) {
+		output_format = FORMAT_AIFF_C;
+		output_subformat = SUBFORMAT_AIFF_C_FL32;
+	}
+#endif
 	else if(foreign_metadata != NULL) {
 		if(foreign_metadata->is_wavefmtex)
 			output_subformat = SUBFORMAT_WAVE_EXTENSIBLE;
@@ -1965,8 +2134,24 @@ int decode_file(const char *infilename)
 		return 1;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(option_values.format_sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+		#if WORDS_BIGENDIAN
+		option_values.format_is_big_endian = true;
+		#else
+		option_values.format_is_big_endian = false;
+		#endif
+		option_values.format_is_unsigned_samples = false;
+		option_values.format_bps = 32;
+	}
+#endif
+
 	if(!option_values.test_only && !option_values.analyze) {
-		if(output_format == FORMAT_RAW && (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0)) {
+		if(output_format == FORMAT_RAW
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			&& option_values.format_sample_type != FLAC__SAMPLE_TYPE_FLOAT
+#endif
+			&& (option_values.format_is_big_endian < 0 || option_values.format_is_unsigned_samples < 0)) {
 			flac__foreign_metadata_delete(foreign_metadata);
 			return usage_error("ERROR: for decoding to a raw file you must specify a value for --endian and --sign\n");
 		}
@@ -2030,6 +2215,9 @@ int decode_file(const char *infilename)
 	if(output_format == FORMAT_RAW) {
 		decode_options.format_options.raw.is_big_endian = option_values.format_is_big_endian;
 		decode_options.format_options.raw.is_unsigned_samples = option_values.format_is_unsigned_samples;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		decode_options.format_options.raw.sample_type = option_values.format_sample_type;
+#endif
 
 		retval = flac__decode_file(infilename, option_values.test_only? 0 : outfilename, option_values.analyze, option_values.aopts, decode_options);
 	}

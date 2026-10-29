@@ -29,6 +29,7 @@
 
 #include "FLAC++/decoder.h"
 #include "FLAC++/metadata.h"
+#include "FLAC/format.h"
 #include "common.h"
 
 template <> FLAC__MetadataType fuzzing::datasource::Base::Get<FLAC__MetadataType>(const uint64_t id) {
@@ -48,10 +49,19 @@ template <> FLAC__MetadataType fuzzing::datasource::Base::Get<FLAC__MetadataType
             return FLAC__METADATA_TYPE_CUESHEET;
         case 6:
             return FLAC__METADATA_TYPE_PICTURE;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
         case 7:
-            return FLAC__METADATA_TYPE_UNDEFINED;
+            return FLAC__METADATA_TYPE_STREAMINFO_EXTENSION;
         case 8:
+            return FLAC__METADATA_TYPE_UNDEFINED;
+        case 9:
             return FLAC__MAX_METADATA_TYPE;
+#else
+		case 7:
+		    return FLAC__METADATA_TYPE_UNDEFINED;
+		case 8:
+		    return FLAC__MAX_METADATA_TYPE;
+#endif
         default:
             return FLAC__METADATA_TYPE_STREAMINFO;
     }
@@ -125,6 +135,10 @@ namespace FLAC {
                     fuzzing::memory::memory_test(metadata->data);
                     if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO)
                         cloned_object = new Metadata::StreamInfo(metadata);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+                    else if (metadata->type == FLAC__METADATA_TYPE_STREAMINFO_EXTENSION)
+                        cloned_object = new Metadata::StreamInfoExtension(metadata);
+#endif
                     else if (metadata->type == FLAC__METADATA_TYPE_PADDING)
                         cloned_object = new Metadata::Padding(metadata);
                     else if (metadata->type == FLAC__METADATA_TYPE_APPLICATION)

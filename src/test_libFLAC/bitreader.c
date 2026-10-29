@@ -330,6 +330,24 @@ FLAC__bool test_bitreader(void)
 	printf("OK\n");
 	FLAC__bitreader_dump(br, stdout);
 
+#if FLAC__HAS_INT128
+	printf("testing raw 128-bit reads... ");
+	FLAC__bitreader_clear(br);
+	{
+		FLAC__uint128 val_uint128;
+		FLAC__int128 val_int128;
+		ok =
+			FLAC__bitreader_read_raw_uint128(br, &val_uint128, 128) &&
+			FLAC__bitreader_read_raw_int128(br, &val_int128, 100);
+		if(!ok) {
+			printf("FAILED\n");
+			FLAC__bitreader_dump(br, stdout);
+			return false;
+		}
+	}
+	printf("OK\n");
+#endif
+
 	printf("testing free... ");
 	FLAC__bitreader_free(br);
 	printf("OK\n");

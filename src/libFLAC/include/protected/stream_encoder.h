@@ -33,7 +33,9 @@
 #ifndef FLAC__PROTECTED__STREAM_ENCODER_H
 #define FLAC__PROTECTED__STREAM_ENCODER_H
 
+#include "FLAC/ordinals.h"
 #include "FLAC/stream_encoder.h"
+#include <stdint.h>
 #if FLAC__HAS_OGG
 #include "private/ogg_encoder_aspect.h"
 #endif
@@ -95,6 +97,11 @@ typedef struct FLAC__StreamEncoderProtected {
 	FLAC__bool do_md5;
 	FLAC__bool do_mid_side_stereo;
 	FLAC__bool loose_mid_side_stereo;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SampleType sample_type;
+	FLAC__float64 sample_rate_extension;
+	uint32_t channel_mask;
+#endif
 	uint32_t channels;
 	uint32_t bits_per_sample;
 	uint32_t sample_rate;

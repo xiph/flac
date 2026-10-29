@@ -31,6 +31,7 @@
 
 static FLAC__bool test_md5_clear_context(void);
 static FLAC__bool test_md5_codec(void);
+static FLAC__bool test_md5_accumulate_64_128(void);
 static FLAC__bool test_md5_accumulate(const FLAC__int32 * const * signal,uint32_t channels, uint32_t samples, uint32_t bytes_per_sample, const FLAC__byte target_digest [16]);
 
 FLAC__bool test_md5(void)
@@ -41,6 +42,9 @@ FLAC__bool test_md5(void)
 		return false;
 
 	if (! test_md5_codec())
+		return false;
+
+	if (! test_md5_accumulate_64_128())
 		return false;
 
 	printf("\nPASSED!\n");
@@ -187,6 +191,130 @@ static FLAC__bool test_md5_codec(void)
 		}
 	}
 
+	return true;
+}
+
+static FLAC__bool test_md5_accumulate_64_128(void)
+{
+	FLAC__int32 arrays32[MAX_CHANNEL_COUNT][MD5_SAMPLE_COUNT], *pointer32[MAX_CHANNEL_COUNT];
+	FLAC__int64 arrays64[MAX_CHANNEL_COUNT][MD5_SAMPLE_COUNT], *pointer64[MAX_CHANNEL_COUNT];
+#if FLAC__HAS_INT128
+	FLAC__int128 arrays128[MAX_CHANNEL_COUNT][MD5_SAMPLE_COUNT], *pointer128[MAX_CHANNEL_COUNT];
+#endif
+	uint32_t chan, byte_size, seed = 0x12345679;
+	FLAC__int64 val64;
+
+	for (chan = 0 ; chan < MAX_CHANNEL_COUNT ; chan ++) {
+		uint32_t k;
+		pointer32[chan] = arrays32[chan];
+		pointer64[chan] = arrays64[chan];
+#if FLAC__HAS_INT128
+		pointer128[chan] = arrays128[chan];
+#endif
+		for (k = 0 ; k < MD5_SAMPLE_COUNT ; k++) {
+			seed = seed * 1103515245 + 12345;
+			arrays32[chan][k] = seed;
+			arrays64[chan][k] = seed;
+#if FLAC__HAS_INT128
+			arrays128[chan][k] = (FLAC__int128)seed;
+#endif
+		}
+	}
+
+	for (chan = 1 ; chan <= MAX_CHANNEL_COUNT ; chan ++) {
+		for (byte_size = 1 ; byte_size <= 4 ; byte_size ++) {
+			FLAC__MD5Context ctx32, ctx64;
+			FLAC__byte digest32[16], digest64[16];
+
+			FLAC__MD5Init(&ctx32);
+			FLAC__MD5Accumulate(&ctx32, (const FLAC__int32 * const *)pointer32, chan, MD5_SAMPLE_COUNT, byte_size);
+			FLAC__MD5Final(digest32, &ctx32);
+
+			FLAC__MD5Init(&ctx64);
+			FLAC__MD5Accumulate_int64(&ctx64, (const FLAC__int64 * const *)pointer64, chan, MD5_SAMPLE_COUNT, byte_size);
+			FLAC__MD5Final(digest64, &ctx64);
+
+			if (memcmp(digest32, digest64, 16) != 0) {
+				printf("FAILED: FLAC__MD5Accumulate_int64 digest mismatch with FLAC__MD5Accumulate\n");
+				return false;
+			}
+
+#if FLAC__HAS_INT128
+			{
+				FLAC__MD5Context ctx128;
+				FLAC__byte digest128[16];
+
+				FLAC__MD5Init(&ctx128);
+				FLAC__MD5Accumulate_int128(&ctx128, (const FLAC__int128 * const *)pointer128, chan, MD5_SAMPLE_COUNT, byte_size);
+				FLAC__MD5Final(digest128, &ctx128);
+
+				if (memcmp(digest32, digest128, 16) != 0) {
+					printf("FAILED: FLAC__MD5Accumulate_int128 digest mismatch with FLAC__MD5Accumulate\n");
+					return false;
+				}
+			}
+#endif
+		}
+	}
+
+	/* Now test 5..8 bytes per sample between 64 and 128 */
+	for (chan = 0 ; chan < MAX_CHANNEL_COUNT ; chan ++) {
+		uint32_t k;
+		for (k = 0 ; k < MD5_SAMPLE_COUNT ; k++) {
+			seed = seed * 1103515245 + 12345;
+			val64 = ((FLAC__int64)seed << 32) | (seed ^ 0x5a5a5a5a);
+			arrays64[chan][k] = val64;
+#if FLAC__HAS_INT128
+			arrays128[chan][k] = (FLAC__int128)val64;
+#endif
+		}
+	}
+
+	for (chan = 1 ; chan <= MAX_CHANNEL_COUNT ; chan ++) {
+		for (byte_size = 5 ; byte_size <= 8 ; byte_size ++) {
+			FLAC__MD5Context ctx64;
+			FLAC__byte digest64[16];
+
+			FLAC__MD5Init(&ctx64);
+			FLAC__MD5Accumulate_int64(&ctx64, (const FLAC__int64 * const *)pointer64, chan, MD5_SAMPLE_COUNT, byte_size);
+			FLAC__MD5Final(digest64, &ctx64);
+
+#if FLAC__HAS_INT128
+			{
+				FLAC__MD5Context ctx128;
+				FLAC__byte digest128[16];
+
+				FLAC__MD5Init(&ctx128);
+				FLAC__MD5Accumulate_int128(&ctx128, (const FLAC__int128 * const *)pointer128, chan, MD5_SAMPLE_COUNT, byte_size);
+				FLAC__MD5Final(digest128, &ctx128);
+
+				if (memcmp(digest64, digest128, 16) != 0) {
+					printf("FAILED: FLAC__MD5Accumulate_int128 digest mismatch with FLAC__MD5Accumulate_int64\n");
+					return false;
+				}
+			}
+#endif
+		}
+	}
+
+#if FLAC__HAS_INT128
+	/* Test 9..16 bytes per sample with 128 */
+	for (chan = 1 ; chan <= MAX_CHANNEL_COUNT ; chan ++) {
+		for (byte_size = 9 ; byte_size <= 16 ; byte_size ++) {
+			FLAC__MD5Context ctx128;
+			FLAC__byte digest128[16];
+
+			FLAC__MD5Init(&ctx128);
+			if (!FLAC__MD5Accumulate_int128(&ctx128, (const FLAC__int128 * const *)pointer128, chan, MD5_SAMPLE_COUNT, byte_size)) {
+				printf("FAILED: FLAC__MD5Accumulate_int128 returned false\n");
+				return false;
+			}
+			FLAC__MD5Final(digest128, &ctx128);
+		}
+	}
+#endif
+
+	printf("testing FLAC__MD5Accumulate_int64 and FLAC__MD5Accumulate_int128 ... OK\n");
 	return true;
 }
 

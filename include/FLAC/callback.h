@@ -181,7 +181,7 @@ typedef struct {
 	FLAC__IOCallback_Close close; /**< See FLAC__IOCallbacks */
 } FLAC__IOCallbacks;
 
-/* \} */
+/** \} */
 
 #ifdef __cplusplus
 }

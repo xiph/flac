@@ -33,6 +33,10 @@
 #ifndef FLACPP__DECODER_H
 #define FLACPP__DECODER_H
 
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "export.h"
 
 #include <string>
@@ -139,6 +143,11 @@ namespace FLAC {
 			virtual FLAC__uint64 get_total_samples() const;                   ///< See FLAC__stream_decoder_get_total_samples()
 			virtual FLAC__uint64 find_total_samples();			  ///< See FLAC__stream_decoder_find_total_samples()
 			virtual uint32_t get_channels() const;                            ///< See FLAC__stream_decoder_get_channels()
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			virtual FLAC__SampleType get_sample_type() const;                       ///< See FLAC__stream_decoder_get_is_float_samples()
+			virtual uint32_t get_channel_mask() const;                              ///< See FLAC__stream_decoder_get_channel_mask()
+			virtual FLAC__float64 get_sample_rate_extension() const;                ///< See FLAC__stream_decoder_get_sample_rate_extension()
+#endif
 			virtual ::FLAC__ChannelAssignment get_channel_assignment() const; ///< See FLAC__stream_decoder_get_channel_assignment()
 			virtual uint32_t get_bits_per_sample() const;                     ///< See FLAC__stream_decoder_get_bits_per_sample()
 			virtual uint32_t get_sample_rate() const;                         ///< See FLAC__stream_decoder_get_sample_rate()

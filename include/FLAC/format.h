@@ -33,6 +33,10 @@
 #ifndef FLAC__FORMAT_H
 #define FLAC__FORMAT_H
 
+#ifdef HAVE_CONFIG_H
+#  include <config.h>
+#endif
+
 #include "export.h"
 #include "ordinals.h"
 
@@ -103,13 +107,32 @@ extern "C" {
 #define FLAC__SUBSET_MAX_BLOCK_SIZE_48000HZ (4608u)
 
 /** The maximum number of channels permitted by the format. */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+#define FLAC__MAX_CHANNELS (256u)
+/** The maximum number of subframes permitted by the format. */
+#define FLAC__MAX_SUBFRAMES (512u)
+#else
 #define FLAC__MAX_CHANNELS (8u)
+/** The maximum number of subframes permitted by the format. */
+#define FLAC__MAX_SUBFRAMES (8u)
+#endif
 
 /** The minimum sample resolution permitted by the format. */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+#define FLAC__MIN_BITS_PER_SAMPLE (1u)
+#else
 #define FLAC__MIN_BITS_PER_SAMPLE (4u)
+#endif
 
 /** The maximum sample resolution permitted by the format. */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+#define FLAC__MAX_BITS_PER_SAMPLE (128u)
+#else
 #define FLAC__MAX_BITS_PER_SAMPLE (32u)
+#endif
+
+/** The minimum sample resolution permitted by the reference codec libFLAC. */
+#define FLAC__REFERENCE_CODEC_MIN_BITS_PER_SAMPLE (4u)
 
 /** The maximum sample resolution permitted by libFLAC.
  *
@@ -117,7 +140,11 @@ extern "C" {
  * the reference encoder/decoder used to be limited to 24 bits. This
  * value was used to signal that limit.
  */
-#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (32u)
+#if FLAC__HAS_INT128
+#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (107u)
+#else
+#define FLAC__REFERENCE_CODEC_MAX_BITS_PER_SAMPLE (43u)
+#endif
 
 /** The maximum sample rate permitted by the format.  The value is
  *  ((2 ^ 20) - 1)
@@ -178,6 +205,19 @@ extern FLAC_API const uint32_t FLAC__STREAM_SYNC_LEN; /* = 32 bits */
 /** The length of the FLAC signature in bytes. */
 #define FLAC__STREAM_SYNC_LENGTH (4u)
 
+/** An enumeration of the available sample data types. */
+typedef enum {
+	FLAC__SAMPLE_TYPE_NOT_SPECIFIED = -1, /**< Sample type is not specified */
+	FLAC__SAMPLE_TYPE_INT = 0,            /**< Integer PCM samples */
+	FLAC__SAMPLE_TYPE_FLOAT = 1           /**< 32-bit IEEE 754 floating-point samples */
+} FLAC__SampleType; // TODO: merge with endian & unsigned
+
+/** An enumeration of the float coding modes. */
+typedef enum {
+	FLAC__FLOAT_MODE_UNKNOWN = -1,
+	FLAC__FLOAT_MODE_FALLBACK = 0,
+	FLAC__FLOAT_MODE_DPA = 1
+} FLAC__FloatMode;
 
 /*****************************************************************************
  *
@@ -193,9 +233,13 @@ typedef enum {
 	/**< Residual is coded by partitioning into contexts, each with it's own
 	 * 4-bit Rice parameter. */
 
-	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1
+	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 = 1,
 	/**< Residual is coded by partitioning into contexts, each with it's own
 	 * 5-bit Rice parameter. */
+
+	FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 = 2
+	/**< Residual is coded by partitioning into contexts, each with it's own
+	 * 7-bit Rice parameter. */
 } FLAC__EntropyCodingMethodType;
 
 /** Maps a FLAC__EntropyCodingMethodType to a C string.
@@ -240,12 +284,16 @@ typedef struct {
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN; /**< == 4 (bits) */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN; /**< == 4 (bits) */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN; /**< == 5 (bits) */
+extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN; /**< == 7 (bits) */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN; /**< == 5 (bits) */
+extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_RAW_LEN; /**< == 7 (bits) */
 
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN)-1 */
 extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER;
 /**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN)-1 */
+extern FLAC_API const uint32_t FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER;
+/**< == (1<<FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN)-1 */
 
 /** Header for the entropy coding method.  (c.f. <A HREF="https://xiph.org/flac/format.html#residual">format specification</A>)
  */
@@ -265,7 +313,10 @@ typedef enum {
 	FLAC__SUBFRAME_TYPE_CONSTANT = 0, /**< constant signal */
 	FLAC__SUBFRAME_TYPE_VERBATIM = 1, /**< uncompressed signal */
 	FLAC__SUBFRAME_TYPE_FIXED = 2, /**< fixed polynomial prediction */
-	FLAC__SUBFRAME_TYPE_LPC = 3 /**< linear prediction */
+	FLAC__SUBFRAME_TYPE_LPC = 3, /**< linear prediction */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SUBFRAME_TYPE_PACKED = 4 /**< variable-width bit-packed subframe (type 0b000010) */
+#endif
 } FLAC__SubframeType;
 
 /** Maps a FLAC__SubframeType to a C string.
@@ -280,12 +331,18 @@ extern FLAC_API const char * const FLAC__SubframeTypeString[];
  */
 typedef struct {
 	FLAC__int64 value; /**< The constant signal value. */
+#if FLAC__HAS_INT128
+	FLAC__int128 value128;
+#endif
 } FLAC__Subframe_Constant;
 
 /** An enumeration of the possible verbatim subframe data types. */
 typedef enum {
 	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32, /**< verbatim subframe has 32-bit int */
-	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64 /**< verbatim subframe has 64-bit int */
+	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64, /**< verbatim subframe has 64-bit int */
+#if FLAC__HAS_INT128
+	FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT128
+#endif
 } FLAC__VerbatimSubframeDataType;
 
 
@@ -295,13 +352,45 @@ typedef struct {
 	union {
 		const FLAC__int32 *int32; /**< A FLAC__int32 pointer to verbatim signal. */
 		const FLAC__int64 *int64; /**< A FLAC__int64 pointer to verbatim signal. */
+#if FLAC__HAS_INT128
+		const FLAC__int128 *int128;
+#endif
 	} data;
 	FLAC__VerbatimSubframeDataType data_type;
 } FLAC__Subframe_Verbatim;
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** PACKED subframe for DPA float sample coding.
+ */
+typedef struct {
+	uint32_t lower_bits;
+	/**< Number of lower bits per sample stored in the packed subframe. */
+	FLAC__byte exponent_zero_offset;
+	/**< Exponent zero-offset value for exponent reconstruction. */
+	FLAC__bool empty_subframe;
+	/**< Whether this packed subframe is empty. */
+	FLAC__bool upper_is_64;
+	/**< True if upper signal samples are 64-bit integers. */
+	const void *upper_signal;
+	/**< Pointer to the upper signal buffer. */
+	FLAC__bool lower_is_64;
+	/**< True if lower signal samples are 64-bit integers. */
+	const void *lower_signal;
+	/**< Pointer to the lower signal buffer. */
+} FLAC__Subframe_Packed;
+#endif
+
 
 /** FIXED subframe.  (c.f. <A HREF="https://xiph.org/flac/format.html#subframe_fixed">format specification</A>)
  */
+typedef enum {
+	FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT32 = 0, /**< residual has 32-bit int */
+	FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64 = 1, /**< residual has 64-bit int */
+#if FLAC__HAS_INT128
+	FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT128 = 2 /**< residual has 128-bit int */
+#endif
+} FLAC__SubframeResidualDataType;
+
 typedef struct {
 	FLAC__EntropyCodingMethod entropy_coding_method;
 	/**< The residual coding method. */
@@ -311,9 +400,25 @@ typedef struct {
 
 	FLAC__int64 warmup[FLAC__MAX_FIXED_ORDER];
 	/**< Warmup samples to prime the predictor, length == order. */
+#if FLAC__HAS_INT128
+	FLAC__int128 warmup128[FLAC__MAX_FIXED_ORDER];
+	/**< 128-bit warmup samples when bps > 64. */
+#endif
 
 	const FLAC__int32 *residual;
-	/**< The residual signal, length == (blocksize minus order) samples. */
+	/**< The 32-bit residual signal (for backward compatibility). */
+
+	FLAC__SubframeResidualDataType residual_type;
+	/**< The data type of the residual signal. */
+
+	union {
+		const FLAC__int32 *int32;
+		const FLAC__int64 *int64;
+#if FLAC__HAS_INT128
+		const FLAC__int128 *int128;
+#endif
+	} residual_data;
+	/**< Pointer to residual signal buffer. */
 } FLAC__Subframe_Fixed;
 
 
@@ -337,9 +442,25 @@ typedef struct {
 
 	FLAC__int64 warmup[FLAC__MAX_LPC_ORDER];
 	/**< Warmup samples to prime the predictor, length == order. */
+#if FLAC__HAS_INT128
+	FLAC__int128 warmup128[FLAC__MAX_LPC_ORDER];
+	/**< 128-bit warmup samples when bps > 64. */
+#endif
 
 	const FLAC__int32 *residual;
-	/**< The residual signal, length == (blocksize minus order) samples. */
+	/**< The 32-bit residual signal (for backward compatibility). */
+
+	FLAC__SubframeResidualDataType residual_type;
+	/**< The data type of the residual signal. */
+
+	union {
+		const FLAC__int32 *int32;
+		const FLAC__int64 *int64;
+#if FLAC__HAS_INT128
+		const FLAC__int128 *int128;
+#endif
+	} residual_data;
+	/**< Pointer to residual signal buffer. */
 } FLAC__Subframe_LPC;
 
 extern FLAC_API const uint32_t FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN; /**< == 4 (bits) */
@@ -355,6 +476,9 @@ typedef struct {
 		FLAC__Subframe_Fixed fixed;
 		FLAC__Subframe_LPC lpc;
 		FLAC__Subframe_Verbatim verbatim;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLAC__Subframe_Packed packed;
+#endif
 	} data;
 	uint32_t wasted_bits;
 } FLAC__Subframe;
@@ -372,6 +496,9 @@ extern FLAC_API const uint32_t FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN; /**< == 1 (b
 
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK; /**< = 0x00 */
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK; /**< = 0x02 */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_PACKED_BYTE_ALIGNED_MASK; /**< = 0x04 (type 0b000010) */
+#endif
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_FIXED_BYTE_ALIGNED_MASK; /**< = 0x10 */
 extern FLAC_API const uint32_t FLAC__SUBFRAME_TYPE_LPC_BYTE_ALIGNED_MASK; /**< = 0x40 */
 
@@ -413,6 +540,15 @@ typedef enum {
 extern FLAC_API const char * const FLAC__FrameNumberTypeString[];
 
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** An enumeration of the frame header extension modes. */
+typedef enum {
+	FLAC__FRAME_HEADER_EXTENSION_MODE_COMPACT = 0, /**< Compact mode (8-bit payload) */
+	FLAC__FRAME_HEADER_EXTENSION_MODE_FULL = 1 /**< Full mode (128-bit payload) */
+} FLAC__FrameHeaderExtensionMode;
+#endif
+
+
 /** FLAC frame header structure.  (c.f. <A HREF="https://xiph.org/flac/format.html#frame_header">format specification</A>)
  */
 typedef struct {
@@ -423,7 +559,7 @@ typedef struct {
 	/**< The sample rate in Hz. */
 
 	uint32_t channels;
-	/**< The number of channels (== number of subframes). */
+	/**< The number of channels. */
 
 	FLAC__ChannelAssignment channel_assignment;
 	/**< The channel assignment for the frame. */
@@ -448,6 +584,24 @@ typedef struct {
 	 * of the raw frame header bytes, meaning everything before the CRC byte
 	 * including the sync code.
 	 */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__bool has_extension;
+	/**< Whether the frame header extension is present. */
+	FLAC__FrameHeaderExtensionMode extension_mode;
+	/**< Extension mode: Compact or Full mode. */
+	FLAC__float64 sample_rate_extension;
+	/**< Sample rate in Hz (IEEE 754 float64). */
+	uint32_t channel_mask;
+	/**< WAVEFORMATEXTENSIBLE channel mask. */
+	FLAC__SampleType sample_type;
+	/**< The sample format enum (PCM integer or PCM float). */
+	FLAC__byte exponent_zero_offsets[FLAC__MAX_CHANNELS];
+	/**< Highest exponent per channel for float samples (decoded from PACKED subframe in DPA mode). */
+	FLAC__byte lower_bits[FLAC__MAX_CHANNELS];
+	/**< Lower bits per channel for 2-way DPA float samples (decoded from PACKED subframe in DPA mode). */
+	FLAC__FloatMode float_mode;
+	/**< Float coding mode: FLAC__FLOAT_MODE_DPA (2-subframe DPA mode: Upper Rice + Lower PACKED) or FLAC__FLOAT_MODE_FALLBACK (2-subframe fallback mode: 8-bit exp + 24-bit mantissa). */
+#endif
 } FLAC__FrameHeader;
 
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_SYNC; /**< == 0x3ffe; the frame header sync code */
@@ -460,6 +614,27 @@ extern FLAC_API const uint32_t FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN; /**< =
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN; /**< == 3 (bits) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_ZERO_PAD_LEN; /**< == 1 (bit) */
 extern FLAC_API const uint32_t FLAC__FRAME_HEADER_CRC_LEN; /**< == 8 (bits) */
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_DECORRELATION_LEN; /**< == 3 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_FLOAT_FALLBACK_MODE_LEN; /**< == 1 (bit) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_COMPACT_RESERVED_LEN; /**< == 4 (bits) */
+/** The total length of the compact frame header extension in bytes. */
+#define FLAC__FRAME_HEADER_EXTENSION_COMPACT_LENGTH (1u)
+
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SAMPLE_RATE_LEN; /**< == 64 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_CHANNELS_LEN; /**< == 8 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_CHANNEL_MASK_LEN; /**< == 32 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SPECIAL_MASK_LEN; /**< == 3 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_IGNORE_MASK_LEN; /**< == 2 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_DECORRELATION_LEN; /**< == 3 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_BITS_PER_SAMPLE_LEN; /**< == 7 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_FLOAT_FALLBACK_MODE_LEN; /**< == 1 (bit) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_RESERVED_LEN; /**< == 4 (bits) */
+extern FLAC_API const uint32_t FLAC__FRAME_HEADER_EXTENSION_FULL_SAMPLE_FORMAT_LEN; /**< == 4 (bits) */
+/** The total length of the full frame header extension in bytes. */
+#define FLAC__FRAME_HEADER_EXTENSION_FULL_LENGTH (16u)
+#endif
 
 
 /** FLAC frame footer structure.  (c.f. <A HREF="https://xiph.org/flac/format.html#frame_footer">format specification</A>)
@@ -479,7 +654,7 @@ extern FLAC_API const uint32_t FLAC__FRAME_FOOTER_CRC_LEN; /**< == 16 (bits) */
  */
 typedef struct {
 	FLAC__FrameHeader header;
-	FLAC__Subframe subframes[FLAC__MAX_CHANNELS];
+	FLAC__Subframe subframes[FLAC__MAX_SUBFRAMES];
 	FLAC__FrameFooter footer;
 } FLAC__Frame;
 
@@ -516,8 +691,16 @@ typedef enum {
 	FLAC__METADATA_TYPE_PICTURE = 6,
 	/**< <A HREF="https://xiph.org/flac/format.html#metadata_block_picture">PICTURE</A> block */
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__METADATA_TYPE_STREAMINFO_EXTENSION = 7,
+	/** Experimental. See https://github.com/xiph/flac/pull/842 */
+
+	FLAC__METADATA_TYPE_UNDEFINED = 8,
+	/**< marker to denote beginning of undefined type range; this number will increase as new metadata types are added */
+#else
 	FLAC__METADATA_TYPE_UNDEFINED = 7,
 	/**< marker to denote beginning of undefined type range; this number will increase as new metadata types are added */
+#endif
 
 	FLAC__MAX_METADATA_TYPE = FLAC__MAX_METADATA_TYPE_CODE,
 	/**< No type will ever be greater than this. There is not enough room in the protocol block. */
@@ -555,6 +738,35 @@ extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_MD5SUM_LEN; /**<
 
 /** The total stream length of the STREAMINFO block in bytes. */
 #define FLAC__STREAM_METADATA_STREAMINFO_LENGTH (34u)
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** FLAC STREAMINFO_EXTENSION structure.  See https://github.com/xiph/flac/pull/842
+ */
+typedef struct {
+	FLAC__float64 sample_rate;
+	/**< Sample rate in Hz (supports non-integer and double precision rates). */
+	uint32_t channels;
+	/**< Number of channels (supports up to 256 channels). */
+	uint32_t channel_mask;
+	/**< WAVEFORMATEXTENSIBLE channel mask. */
+	uint32_t bits_per_sample;
+	/**< Bits per sample (sample resolution). */
+	FLAC__SampleType sample_type;
+	/**< Sample type (integer or IEEE 754 float). */
+} FLAC__StreamMetadata_StreamInfo_Extension;
+
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SAMPLE_RATE_LEN; /**< == 64 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNELS_LEN; /**< == 8 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNEL_MASK_LEN; /**< == 32 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SPECIAL_MASK_LEN; /**< == 3 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_IGNORE_MASK_LEN; /**< == 2 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SAMPLE_FORMAT_LEN; /**< == 4 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_BITS_PER_SAMPLE_LEN; /**< == 7 (bits) */
+extern FLAC_API const uint32_t FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_RESERVED_LEN; /**< == 8 (bits) */
+
+/** The total stream length of the STREAMINFO block in bytes. */
+#define FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_LENGTH (16u)
+#endif
 
 /** FLAC PADDING structure.  (c.f. <A HREF="https://xiph.org/flac/format.html#metadata_block_padding">format specification</A>)
  */
@@ -858,6 +1070,9 @@ typedef struct FLAC__StreamMetadata {
 		FLAC__StreamMetadata_VorbisComment vorbis_comment;
 		FLAC__StreamMetadata_CueSheet cue_sheet;
 		FLAC__StreamMetadata_Picture picture;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLAC__StreamMetadata_StreamInfo_Extension stream_info_extension;
+#endif
 		FLAC__StreamMetadata_Unknown unknown;
 	} data;
 	/**< Polymorphic block data; use the \a type value to determine which
@@ -880,7 +1095,7 @@ extern FLAC_API const uint32_t FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *
  *****************************************************************************/
 
-/** Tests that a sample rate is valid for FLAC.
+/** Tests that a sample rate is valid for FLAC (not extension).
  *
  * \param sample_rate  The sample rate to test for compliance.
  * \retval FLAC__bool
@@ -888,6 +1103,35 @@ extern FLAC_API const uint32_t FLAC__STREAM_METADATA_LENGTH_LEN; /**< == 24 (bit
  *    \c false.
  */
 FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid(uint32_t sample_rate);
+
+/** Tests that a sample rate is valid for FLAC (extension).
+ *
+ * \param sample_rate  The sample rate to test for compliance.
+ * \retval FLAC__bool
+ *    \c true if the given sample rate conforms to the specification, else
+ *    \c false.
+ */
+FLAC_API FLAC__bool FLAC__format_sample_rate_is_valid_extension(FLAC__float64 sample_rate);
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+/** Returns the corresponding string to the sample type.
+ *
+ * \param sample_type    The sample type.
+ * \retval const char*
+ *    \c "float" if the given sample_type is FLAC__SAMPLE_TYPE_FLOAT, \c "int"
+ *    if it's FLAC__SAMPLE_TYPE_INT, else \c "not_specified".
+ */
+FLAC_API const char* FLAC__get_sample_type_string(FLAC__SampleType sample_type);
+
+/** Returns the corresponding string to the float mode.
+ *
+ * \param float_mode     The float mode.
+ * \retval const char*
+ *    \c "fallback" if FLAC__FLOAT_MODE_FALLBACK, \c "dpa" if
+ *    \c FLAC__FLOAT_MODE_DPA, else \c "unknown".
+ */
+FLAC_API const char* FLAC__get_float_mode_string(FLAC__FloatMode float_mode);
+#endif
 
 /** Tests that a blocksize at the given sample rate is valid for the FLAC
  *  subset.
@@ -953,7 +1197,7 @@ FLAC_API FLAC__bool FLAC__format_vorbiscomment_entry_value_is_legal(const FLAC__
  * \param entry      An entry to be checked.
  * \param length     The length of \a entry in bytes.
  * \assert
- *    \code value != NULL \endcode
+ *    \code entry != NULL \endcode
  * \retval FLAC__bool
  *    \c false if entry name is illegal, else \c true.
  */
@@ -1023,7 +1267,7 @@ FLAC_API FLAC__bool FLAC__format_cuesheet_is_legal(const FLAC__StreamMetadata_Cu
  */
 FLAC_API FLAC__bool FLAC__format_picture_is_legal(const FLAC__StreamMetadata_Picture *picture, const char **violation);
 
-/* \} */
+/** \} */
 
 #ifdef __cplusplus
 }

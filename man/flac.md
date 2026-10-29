@@ -24,8 +24,9 @@ analyzing FLAC streams.
 **flac** supports as input RIFF WAVE, Wave64, RF64, AIFF, FLAC or Ogg
 FLAC format, or raw interleaved samples. The decoder currently can output
 to RIFF WAVE, Wave64, RF64, or AIFF format, or raw interleaved samples.
-flac only supports linear PCM samples (in other words, no A-LAW, uLAW,
-etc.), and the input must be between 4 and 32 bits per sample.
+flac supports linear integer PCM and 32-bit floating-point samples (in
+other words, no A-LAW, uLAW, etc.), and the input must be between 4 and 32
+bits per sample.
 
 flac assumes that files ending in ".wav" or that have the RIFF WAVE
 header present are WAVE files, files ending in ".w64" or have the Wave64
@@ -558,6 +559,21 @@ Encoding will default to -5, -A "tukey(5e-1)" and one CPU thread.
 	of having to rewrite the entire file. Note that a block header 
 	of 4 bytes will come on top of the length specified.
 
+**\--force-dpa-mode-which-is-not-lossless**
+:	(Float encoding only) Force encoding float frames using DPA
+	mode. WARNING: This mode is NOT guaranteed to be lossless if samples
+	exceed the dynamic window or contain special float values (such as
+	subnormals, NaN, or infinity).
+
+**\--force-fallback-mode**
+:	(Float encoding only) Force encoding float frames using 2-subframe
+	fallback mode (splitting exponent/sign and mantissa) for all frames.
+
+**\--force-empty-packed-subframe-which-is-not-lossless**
+:	(Float encoding only) Force PACKED subframes to store total_width=0
+	and omit sample contents, keeping only the 2-byte metadata.
+	WARNING: This mode is NOT lossless.
+
 
 ## FORMAT OPTIONS
 
@@ -598,8 +614,10 @@ found by \--keep-foreign-metadata-if-present or \--keep-foreign-metadata
 
 **\--force-aiff-c-none-format**  
 **\--force-aiff-c-sowt-format**
-:	Instruct the decoder to output an AIFF-C file with format NONE and
-	sowt respectively.
+**\--force-aiff-c-fl32-format**  
+**\--force-aiff-c-FL32-format**
+:	Instruct the decoder to output an AIFF-C file with format NONE,
+	sowt, fl32 or FL32 respectively.
 
 **\--force-raw-format**
 :	Force input (when encoding) or output (when decoding) to be treated
@@ -615,16 +633,25 @@ When encoding from or decoding to raw PCM, format must be specified.
 **\--endian**={big\|little}
 :	Specify the byte order for samples
 
+**\--sample-type**={int\|float}
+:	Specify the sample types.
+
 **\--channels**=\#
 :	(Input only) specify number of channels. The channels must be 
 	interleaved, and in the order of the FLAC format (see the format
 	specification); the encoder (/decoder) cannot re-order channels.
+
+**\--channel-mask**=\#
+:	Specify the channel mask.
 
 **\--bps**=\#
 :	(Input only) specify bits per sample (per channel: 16 for CDDA.)
 
 **\--sample-rate**=\#
 :	(Input only) specify sample rate (in Hz. Only integers supported.)
+
+**\--sample-rate-extension**=\#
+:	(Input only) specify sample rate extension (in Hz. floating points are also supported.)
 
 **\--input-size**=\#
 :	(Input only) specify the size of the raw input in bytes. This option

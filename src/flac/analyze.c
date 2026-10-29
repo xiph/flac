@@ -67,27 +67,50 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 	const uint32_t channels = frame->header.channels;
 	char outfilename[1024];
 	subframe_stats_t stats;
-	uint32_t i, channel, partitions;
+	uint32_t i, channel, partitions, num_subframes;
 
 	/* do the human-readable part first */
 	if(decode_position_valid)
 		fprintf(fout, "frame=%u\toffset=%" PRIu64 "\tbits=%" PRIu64 "\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame_offset, frame_bytes*8, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
 	else
 		fprintf(fout, "frame=%u\toffset=?\tbits=?\tblocksize=%u\tsample_rate=%u\tchannels=%u\tchannel_assignment=%s\n", frame_number, frame->header.blocksize, frame->header.sample_rate, channels, FLAC__ChannelAssignmentString[frame->header.channel_assignment]);
-	for(channel = 0; channel < channels; channel++) {
+	num_subframes = channels;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(frame->header.sample_type == FLAC__SAMPLE_TYPE_FLOAT)
+		num_subframes = channels * 2;
+#endif
+	for(channel = 0; channel < num_subframes; channel++) {
 		const FLAC__Subframe *subframe = frame->subframes+channel;
-		const FLAC__bool is_rice2 = subframe->data.fixed.entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2;
-		const uint32_t pesc = is_rice2? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+		const FLAC__EntropyCodingMethodType ec_type = (subframe->type == FLAC__SUBFRAME_TYPE_FIXED) ? subframe->data.fixed.entropy_coding_method.type : ((subframe->type == FLAC__SUBFRAME_TYPE_LPC) ? subframe->data.lpc.entropy_coding_method.type : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE);
+		const char *res_type_str = ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 ? "RICE3" : (ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 ? "RICE2" : "RICE");
+		const uint32_t pesc = ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3 ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER : (ec_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2 ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
 		fprintf(fout, "\tsubframe=%u\twasted_bits=%u\ttype=%s", channel, subframe->wasted_bits, FLAC__SubframeTypeString[subframe->type]);
 		switch(subframe->type) {
 			case FLAC__SUBFRAME_TYPE_CONSTANT:
+#if FLAC__HAS_INT128
+				if(frame->header.bits_per_sample > 64) {
+					FLAC__uint64 hi = (FLAC__uint64)(subframe->data.constant.value128 >> 64);
+					FLAC__uint64 lo = (FLAC__uint64)subframe->data.constant.value128;
+					fprintf(fout, "\tvalue=0x%" PRIx64 "%016" PRIx64 "\n", hi, lo);
+				}
+				else
+#endif
 				fprintf(fout, "\tvalue=%" PRId64 "\n", subframe->data.constant.value);
 				break;
 			case FLAC__SUBFRAME_TYPE_FIXED:
-				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2);
-				fprintf(fout, "\torder=%u\tresidual_type=%s\tpartition_order=%u\n", subframe->data.fixed.order, is_rice2? "RICE2":"RICE", subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
-				for(i = 0; i < subframe->data.fixed.order; i++)
+				FLAC__ASSERT(subframe->data.fixed.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3);
+				fprintf(fout, "\torder=%u\tresidual_type=%s\tpartition_order=%u\n", subframe->data.fixed.order, res_type_str, subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
+				for(i = 0; i < subframe->data.fixed.order; i++) {
+#if FLAC__HAS_INT128
+					if(frame->header.bits_per_sample > 64) {
+						FLAC__uint64 hi = (FLAC__uint64)(subframe->data.fixed.warmup128[i] >> 64);
+						FLAC__uint64 lo = (FLAC__uint64)subframe->data.fixed.warmup128[i];
+						fprintf(fout, "\t\twarmup[%u]=0x%" PRIx64 "%016" PRIx64 "\n", i, hi, lo);
+					}
+					else
+#endif
 					fprintf(fout, "\t\twarmup[%u]=%" PRId64 "\n", i, subframe->data.fixed.warmup[i]);
+				}
 				partitions = (1u << subframe->data.fixed.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < partitions; i++) {
 					uint32_t parameter = subframe->data.fixed.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
@@ -97,17 +120,40 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 						fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
 				}
 				if(aopts.do_residual_text) {
-					for(i = 0; i < frame->header.blocksize-subframe->data.fixed.order; i++)
-						fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.fixed.residual[i]);
+					for(i = 0; i < frame->header.blocksize-subframe->data.fixed.order; i++) {
+#if FLAC__HAS_INT128
+						if(subframe->data.fixed.residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT128 && subframe->data.fixed.residual_data.int128) {
+							FLAC__uint64 hi = (FLAC__uint64)(subframe->data.fixed.residual_data.int128[i] >> 64);
+							FLAC__uint64 lo = (FLAC__uint64)subframe->data.fixed.residual_data.int128[i];
+							fprintf(fout, "\t\tresidual[%u]=0x%" PRIx64 "%016" PRIx64 "\n", i, hi, lo);
+						}
+						else
+#endif
+						if(subframe->data.fixed.residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64 && subframe->data.fixed.residual_data.int64)
+							fprintf(fout, "\t\tresidual[%u]=%" PRId64 "\n", i, subframe->data.fixed.residual_data.int64[i]);
+						else if(subframe->data.fixed.residual_data.int32)
+							fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.fixed.residual_data.int32[i]);
+						else if(subframe->data.fixed.residual)
+							fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.fixed.residual[i]);
+					}
 				}
 				break;
 			case FLAC__SUBFRAME_TYPE_LPC:
-				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2);
-				fprintf(fout, "\torder=%u\tqlp_coeff_precision=%u\tquantization_level=%d\tresidual_type=%s\tpartition_order=%u\n", subframe->data.lpc.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level, is_rice2? "RICE2":"RICE", subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
+				FLAC__ASSERT(subframe->data.lpc.entropy_coding_method.type <= FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3);
+				fprintf(fout, "\torder=%u\tqlp_coeff_precision=%u\tquantization_level=%d\tresidual_type=%s\tpartition_order=%u\n", subframe->data.lpc.order, subframe->data.lpc.qlp_coeff_precision, subframe->data.lpc.quantization_level, res_type_str, subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < subframe->data.lpc.order; i++)
 					fprintf(fout, "\t\tqlp_coeff[%u]=%d\n", i, subframe->data.lpc.qlp_coeff[i]);
-				for(i = 0; i < subframe->data.lpc.order; i++)
+				for(i = 0; i < subframe->data.lpc.order; i++) {
+#if FLAC__HAS_INT128
+					if(frame->header.bits_per_sample > 64) {
+						FLAC__uint64 hi = (FLAC__uint64)(subframe->data.lpc.warmup128[i] >> 64);
+						FLAC__uint64 lo = (FLAC__uint64)subframe->data.lpc.warmup128[i];
+						fprintf(fout, "\t\twarmup[%u]=0x%" PRIx64 "%016" PRIx64 "\n", i, hi, lo);
+					}
+					else
+#endif
 					fprintf(fout, "\t\twarmup[%u]=%" PRId64 "\n", i, subframe->data.lpc.warmup[i]);
+				}
 				partitions = (1u << subframe->data.lpc.entropy_coding_method.data.partitioned_rice.order);
 				for(i = 0; i < partitions; i++) {
 					uint32_t parameter = subframe->data.lpc.entropy_coding_method.data.partitioned_rice.contents->parameters[i];
@@ -117,11 +163,28 @@ void flac__analyze_frame(const FLAC__Frame *frame, uint32_t frame_number, FLAC__
 						fprintf(fout, "\t\tparameter[%u]=%u\n", i, parameter);
 				}
 				if(aopts.do_residual_text) {
-					for(i = 0; i < frame->header.blocksize-subframe->data.lpc.order; i++)
-						fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.lpc.residual[i]);
+					for(i = 0; i < frame->header.blocksize-subframe->data.lpc.order; i++) {
+#if FLAC__HAS_INT128
+						if(subframe->data.lpc.residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT128 && subframe->data.lpc.residual_data.int128) {
+							FLAC__uint64 hi = (FLAC__uint64)(subframe->data.lpc.residual_data.int128[i] >> 64);
+							FLAC__uint64 lo = (FLAC__uint64)subframe->data.lpc.residual_data.int128[i];
+							fprintf(fout, "\t\tresidual[%u]=0x%" PRIx64 "%016" PRIx64 "\n", i, hi, lo);
+						}
+						else
+#endif
+						if(subframe->data.lpc.residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64 && subframe->data.lpc.residual_data.int64)
+							fprintf(fout, "\t\tresidual[%u]=%" PRId64 "\n", i, subframe->data.lpc.residual_data.int64[i]);
+						else if(subframe->data.lpc.residual_data.int32)
+							fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.lpc.residual_data.int32[i]);
+						else if(subframe->data.lpc.residual)
+							fprintf(fout, "\t\tresidual[%u]=%d\n", i, subframe->data.lpc.residual[i]);
+					}
 				}
 				break;
 			case FLAC__SUBFRAME_TYPE_VERBATIM:
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			case FLAC__SUBFRAME_TYPE_PACKED:
+#endif
 				fprintf(fout, "\n");
 				break;
 		}

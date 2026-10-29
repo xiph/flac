@@ -98,13 +98,19 @@ modification time is set to the current time):
 :	Show the maximum frame size from the STREAMINFO block.
 
 **\--show-sample-rate**  
-:	Show the sample rate from the STREAMINFO block.
+:	Show the sample rate from the STREAMINFO (or STREAMINFO_EXTENSION) block.
 
 **\--show-channels**  
-:	Show the number of channels from the STREAMINFO block.
+:	Show the number of channels from the STREAMINFO (or STREAMINFO_EXTENSION) block.
+
+**\--show-channel-mask**  
+:	Show the WAVEFORMATEXTENSIBLE channel mask from the STREAMINFO_EXTENSION block.
+
+**\--show-sample-type**  
+:	Show if the audio samples are integer or floating-point from the STREAMINFO_EXTENSION block.
 
 **\--show-bps**  
-:	Show the \# of bits per sample from the STREAMINFO block.
+:	Show the \# of bits per sample from the STREAMINFO (or STREAMINFO_EXTENSION) block.
 
 **\--show-total-samples**  
 :	Show the total \# of samples from the STREAMINFO block.
@@ -250,7 +256,7 @@ modification time is set to the current time):
 **\--except-block-type=type\[,type\[...\]\]**
 :	An optional comma-separated list of block types to be included or
 	ignored with this option. Use only one of \--block-type or
-	\--except-block-type. The valid block types are: STREAMINFO, PADDING,
+	\--except-block-type. The valid block types are: STREAMINFO, STREAMINFO_EXTENSION, PADDING,
 	APPLICATION, SEEKTABLE, VORBIS_COMMENT, PICTURE. You may narrow down
 	the types of APPLICATION blocks selected by appending APPLICATION 
 	with a colon and the ID of the APPLICATION block in either ASCII

@@ -570,3 +570,45 @@ check_flac
 metaflac_test_nofilter case67 "-o --append --block-number=0" "--list"
 
 rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta metaflac-test-files/out.flac
+
+############################################################################
+# test float / streaminfo extension operations (if enabled)
+############################################################################
+
+echo "Checking for float sample coding in metaflac..."
+if metaflac${EXE} --show-sample-type --no-filename "$flacfile" 1>/dev/null 2>&1 ; then
+	has_metaflac_float=yes
+	echo "metaflac float operations supported"
+else
+	has_metaflac_float=no
+	echo "metaflac float operations not supported"
+fi
+
+if [ "$has_metaflac_float" = "yes" ] ; then
+	echo "Testing metaflac float operations..."
+
+	# 1. Create a float test FLAC from test stream if available, or generate via flac raw float
+	head -c 4000 /dev/zero | run_flac -f --force-raw-format --sample-type=float --channels=2 --sample-rate=44100 -o float_meta.flac - || die "ERROR creating float_meta.flac"
+
+	# 2. Show sample type
+	echo $ECHO_N "Testing metaflac --show-sample-type... " $ECHO_C
+	st=$(metaflac${EXE} --show-sample-type --no-filename float_meta.flac)
+	[ "$st" = "LPCM floating point (IEEE 754 binary32)" ] || die "ERROR: expected float, got $st"
+	echo "OK"
+
+	# 3. Show / set channel mask
+	echo $ECHO_N "Testing metaflac --show-channel-mask / --set-channel-mask... " $ECHO_C
+	metaflac${EXE} --set-channel-mask=63 float_meta.flac || die "ERROR setting channel mask"
+	mask=$(metaflac${EXE} --show-channel-mask --no-filename float_meta.flac)
+	[ "$mask" = "0x0000003f" ] || [ "$mask" = "0x0000003F" ] || [ "$mask" = "63" ] || die "ERROR: channel mask mismatch: $mask"
+	echo "OK"
+
+	# 4. ReplayGain calculation on float file
+	echo $ECHO_N "Testing metaflac --add-replay-gain on float FLAC... " $ECHO_C
+	metaflac${EXE} --add-replay-gain float_meta.flac || die "ERROR calculating replaygain on float flac"
+	rg_gain=$(metaflac${EXE} --show-tag=REPLAYGAIN_TRACK_GAIN --no-filename float_meta.flac)
+	[ -n "$rg_gain" ] || die "ERROR: missing REPLAYGAIN_TRACK_GAIN tag on float file"
+	echo "OK"
+
+	rm -f float_meta.flac
+fi

@@ -30,6 +30,7 @@
  * SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
  */
 
+#include "FLAC/ordinals.h"
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
 #endif
@@ -509,7 +510,7 @@ FLAC__bool FLAC__bitreader_read_raw_int32(FLAC__BitReader *br, FLAC__int32 *val,
 {
 	FLAC__uint32 uval, mask;
 	/* OPT: inline raw uint32 code here, or make into a macro if possible in the .h file */
-	if (bits < 1 || ! FLAC__bitreader_read_raw_uint32(br, &uval, bits))
+	if (bits < 1 || bits > 32 || ! FLAC__bitreader_read_raw_uint32(br, &uval, bits))
 		return false;
 	/* sign-extend *val assuming it is currently bits wide. */
 	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
@@ -543,7 +544,7 @@ FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val,
 {
 	FLAC__uint64 uval, mask;
 	/* OPT: inline raw uint64 code here, or make into a macro if possible in the .h file */
-	if (bits < 1 || ! FLAC__bitreader_read_raw_uint64(br, &uval, bits))
+	if (bits < 1 || bits > 64 || ! FLAC__bitreader_read_raw_uint64(br, &uval, bits))
 		return false;
 	/* sign-extend *val assuming it is currently bits wide. */
 	/* From: https://graphics.stanford.edu/~seander/bithacks.html#FixedSignExtend */
@@ -551,6 +552,39 @@ FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val,
 	*val = (uval ^ mask) - mask;
 	return true;
 }
+
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__bitreader_read_raw_uint128(FLAC__BitReader *br, FLAC__uint128 *val, uint32_t bits)
+{
+	FLAC__uint64 hi, lo;
+
+	if(bits > 64) {
+		if(!FLAC__bitreader_read_raw_uint64(br, &hi, bits-64))
+			return false;
+		if(!FLAC__bitreader_read_raw_uint64(br, &lo, 64))
+			return false;
+		*val = (((FLAC__uint128)hi) << 64) | lo;
+	}
+	else {
+		if(!FLAC__bitreader_read_raw_uint64(br, &lo, bits))
+			return false;
+		*val = (FLAC__uint128)lo;
+	}
+	return true;
+}
+
+FLAC__bool FLAC__bitreader_read_raw_int128(FLAC__BitReader *br, FLAC__int128 *val, uint32_t bits)
+{
+	FLAC__uint128 uval, mask;
+	if (bits < 1 || ! FLAC__bitreader_read_raw_uint128(br, &uval, bits))
+		return false;
+	mask = bits >= 128 ? (FLAC__uint128)0 : ((FLAC__uint128)1) << (bits - 1);
+	*val = (FLAC__int128)((uval ^ mask) - mask);
+	return true;
+}
+#endif
+
+
 
 FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val)
 {
@@ -576,6 +610,25 @@ FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__
 	*val = x32;
 	return true;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__bool FLAC__bitreader_read_raw_float64(FLAC__BitReader *br, FLAC__float64 *val)
+{
+    FLAC__uint64 temp;
+    union {
+        FLAC__uint64 i;
+        FLAC__float64 f;
+    } u;
+
+    if (!FLAC__bitreader_read_raw_uint64(br, &temp, 64))
+        return false;
+
+    u.i = temp;
+    *val = u.f;
+
+    return true;
+}
+#endif
 
 FLAC__bool FLAC__bitreader_skip_bits_no_crc(FLAC__BitReader *br, uint32_t bits)
 {
@@ -1037,3 +1090,53 @@ FLAC__bool FLAC__bitreader_read_utf8_uint64(FLAC__BitReader *br, FLAC__uint64 *v
 	*val = v;
 	return true;
 }
+
+FLAC__bool FLAC__bitreader_read_rice_signed_block_64(FLAC__BitReader *br, FLAC__int64 vals[], uint32_t nvals, uint32_t parameter)
+{
+	uint32_t msbs;
+	FLAC__int64 *val = vals, *end = vals + nvals;
+
+	FLAC__ASSERT(0 != br);
+	FLAC__ASSERT(0 != br->buffer);
+	FLAC__ASSERT(parameter < 64);
+
+	while(val < end) {
+		FLAC__uint64 lsbs64 = 0;
+		FLAC__uint64 x64;
+		if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
+			return false;
+		if(parameter > 0) {
+			if(!FLAC__bitreader_read_raw_uint64(br, &lsbs64, parameter))
+				return false;
+		}
+		x64 = (((FLAC__uint64)msbs) << parameter) | lsbs64;
+		*val++ = (FLAC__int64)((x64 >> 1) ^ -(FLAC__int64)(x64 & 1));
+	}
+	return true;
+}
+
+#if FLAC__HAS_INT128
+FLAC__bool FLAC__bitreader_read_rice_signed_block_128(FLAC__BitReader *br, FLAC__int128 vals[], uint32_t nvals, uint32_t parameter)
+{
+	uint32_t msbs;
+	FLAC__int128 *val = vals, *end = vals + nvals;
+
+	FLAC__ASSERT(0 != br);
+	FLAC__ASSERT(0 != br->buffer);
+	FLAC__ASSERT(parameter < 127);
+
+	while(val < end) {
+		FLAC__uint128 lsbs128 = 0;
+		FLAC__uint128 x128;
+		if(!FLAC__bitreader_read_unary_unsigned(br, &msbs))
+			return false;
+		if(parameter > 0) {
+			if(!FLAC__bitreader_read_raw_uint128(br, &lsbs128, parameter))
+				return false;
+		}
+		x128 = (((FLAC__uint128)msbs) << parameter) | lsbs128;
+		*val++ = (FLAC__int128)((x128 >> 1) ^ -(FLAC__int128)(x128 & 1));
+	}
+	return true;
+}
+#endif

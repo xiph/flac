@@ -25,6 +25,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <limits.h>
+#include <math.h>
 #include "FLAC/assert.h"
 #include "share/compat.h"
 #include "share/grabbag.h"
@@ -204,7 +205,7 @@ static FLAC__int64 local__parse_ms_(const char *s, uint32_t sample_rate)
 	if(x < 0.0 || x >= 60.0)
 		return -1;
 
-	ret += (FLAC__int64)(x * sample_rate);
+	ret += (FLAC__int64)rint(x * sample_rate);
 
 	return ret;
 }

@@ -33,6 +33,7 @@
 #ifndef FLAC__PROTECTED__STREAM_DECODER_H
 #define FLAC__PROTECTED__STREAM_DECODER_H
 
+#include "FLAC/ordinals.h"
 #include "FLAC/stream_decoder.h"
 #if FLAC__HAS_OGG
 #include "private/ogg_decoder_aspect.h"
@@ -47,6 +48,11 @@ typedef struct FLAC__StreamDecoderProtected {
 	uint32_t sample_rate; /* in Hz */
 	uint32_t blocksize; /* in samples (per channel) */
 	FLAC__bool md5_checking; /* if true, generate MD5 signature of decoded data and compare against signature in the STREAMINFO metadata block */
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SampleType sample_type;
+	FLAC__float64 sample_rate_extension; /* in Hz */
+	uint32_t channel_mask; /* WAVEFORMATEXTENSIBLE */
+#endif
 #if FLAC__HAS_OGG
 	FLAC__OggDecoderAspect ogg_decoder_aspect;
 #endif

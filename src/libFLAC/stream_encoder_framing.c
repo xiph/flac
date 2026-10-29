@@ -38,11 +38,12 @@
 #include <string.h> /* for strlen() */
 #include "private/stream_encoder_framing.h"
 #include "private/crc.h"
+#include "private/bitmath.h"
 #include "FLAC/assert.h"
 #include "share/compat.h"
 
 static FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method);
-static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__bool is_extended);
+static FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__EntropyCodingMethodType method_type);
 
 FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__BitWriter *bw, FLAC__bool update_vendor_string)
 {
@@ -109,6 +110,28 @@ FLAC__bool FLAC__add_metadata_block(const FLAC__StreamMetadata *metadata, FLAC__
 			if(!FLAC__bitwriter_write_byte_block(bw, metadata->data.stream_info.md5sum, 16))
 				return false;
 			break;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		case FLAC__METADATA_TYPE_STREAMINFO_EXTENSION:
+			FLAC__ASSERT(FLAC__format_sample_rate_is_valid_extension(metadata->data.stream_info_extension.sample_rate));
+			if(!FLAC__bitwriter_write_raw_float64(bw, metadata->data.stream_info_extension.sample_rate))
+				return false;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info_extension.channels - 1, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNELS_LEN))
+				return false;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info_extension.channel_mask, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNEL_MASK_LEN))
+				return false;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SPECIAL_MASK_LEN))
+				return false; // reserved for the time being
+			if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_IGNORE_MASK_LEN))
+				return false; // reserved for the time being
+			FLAC__ASSERT(metadata->data.stream_info_extension.sample_type == FLAC__SAMPLE_TYPE_INT || metadata->data.stream_info_extension.sample_type == FLAC__SAMPLE_TYPE_FLOAT);
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info_extension.sample_type, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_SAMPLE_FORMAT_LEN))
+				return false; // only 1 of 4 bits is used for the time being
+			if(!FLAC__bitwriter_write_raw_uint32(bw, metadata->data.stream_info_extension.bits_per_sample - 1, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_BITS_PER_SAMPLE_LEN))
+				return false;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_RESERVED_LEN))
+				return false; // reserved for the time being
+			break;
+#endif
 		case FLAC__METADATA_TYPE_PADDING:
 			if(!FLAC__bitwriter_write_zeroes(bw, metadata->length * 8))
 				return false;
@@ -286,6 +309,21 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_BLOCK_SIZE_LEN))
 		return false;
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(header->has_extension) {
+		sample_rate_hint = 0;
+		/* Sample rate = 0b1111 (15), Channel assignment = 0b1111 (15), BPS = 0b011 (3), Zero pad = extension mode */
+		if(!FLAC__bitwriter_write_raw_uint32(bw, 15, FLAC__FRAME_HEADER_SAMPLE_RATE_LEN))
+			return false;
+		if(!FLAC__bitwriter_write_raw_uint32(bw, 15, FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN))
+			return false;
+		if(!FLAC__bitwriter_write_raw_uint32(bw, 3, FLAC__FRAME_HEADER_BITS_PER_SAMPLE_LEN))
+			return false;
+		if(!FLAC__bitwriter_write_raw_uint32(bw, header->extension_mode & 1, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
+			return false;
+	}
+	else {
+#endif
 	FLAC__ASSERT(FLAC__format_sample_rate_is_valid(header->sample_rate));
 	sample_rate_hint = 0;
 	switch(header->sample_rate) {
@@ -314,7 +352,12 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_SAMPLE_RATE_LEN))
 		return false;
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__ASSERT(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_EXTENSION_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
+#else
 	FLAC__ASSERT(header->channels > 0 && header->channels <= (1u << FLAC__STREAM_METADATA_STREAMINFO_CHANNELS_LEN) && header->channels <= FLAC__MAX_CHANNELS);
+#endif
+
 	switch(header->channel_assignment) {
 		case FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT:
 			u = header->channels - 1;
@@ -337,7 +380,7 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 	if(!FLAC__bitwriter_write_raw_uint32(bw, u, FLAC__FRAME_HEADER_CHANNEL_ASSIGNMENT_LEN))
 		return false;
 
-	FLAC__ASSERT(header->bits_per_sample > 0 && header->bits_per_sample <= (1u << FLAC__STREAM_METADATA_STREAMINFO_BITS_PER_SAMPLE_LEN));
+	FLAC__ASSERT(header->bits_per_sample > 0 && header->bits_per_sample <= FLAC__MAX_BITS_PER_SAMPLE);
 	switch(header->bits_per_sample) {
 		case 8 : u = 1; break;
 		case 12: u = 2; break;
@@ -352,6 +395,9 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 
 	if(!FLAC__bitwriter_write_raw_uint32(bw, 0, FLAC__FRAME_HEADER_ZERO_PAD_LEN))
 		return false;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	}
+#endif
 
 	if(header->number_type == FLAC__FRAME_NUMBER_TYPE_FRAME_NUMBER) {
 		if(!FLAC__bitwriter_write_utf8_uint32(bw, header->number.frame_number))
@@ -381,6 +427,42 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 			break;
 	}
 
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(header->has_extension) {
+		uint32_t fallback_bit = (header->float_mode == FLAC__FLOAT_MODE_FALLBACK) ? 1 : 0;
+		if(header->extension_mode == FLAC__FRAME_HEADER_EXTENSION_MODE_COMPACT) {
+			/* Compact Mode: 8 bits (3 bits decorrelation ID + 1 bit fallback + 4 bits reserved 0) */
+			uint32_t decorr = (uint32_t)header->channel_assignment & 0x07;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, (decorr << 5) | (fallback_bit << 4), 8))
+				return false;
+		} else {
+			/* Full Mode: 128 bits */
+			FLAC__float64 sr = FLAC__format_sample_rate_is_valid_extension(header->sample_rate_extension) ? header->sample_rate_extension : (FLAC__float64)header->sample_rate;
+			uint32_t decorr = (uint32_t)header->channel_assignment & 0x07;
+			uint32_t sample_format = (uint32_t)header->sample_type & 0x0f;
+
+			/* 1. 64-bit IEEE 754 float64 sample rate */
+			if(!FLAC__bitwriter_write_raw_float64(bw, sr))
+				return false;
+			/* 2. 8-bit (channels - 1) */
+			if(!FLAC__bitwriter_write_raw_uint32(bw, header->channels - 1, 8))
+				return false;
+			/* 3. 32-bit channel mask */
+			if(!FLAC__bitwriter_write_raw_uint32(bw, header->channel_mask, 32))
+				return false;
+			/* 4. 3 bits special mask (0) + 5. 2 bits ignore mask (0) + 6. 3 bits decorrelation ID */
+			if(!FLAC__bitwriter_write_raw_uint32(bw, decorr, 8))
+				return false;
+			/* 7. 7-bit (bits_per_sample - 1) + 8. 1 bit MSB of reserved: fallback flag */
+			if(!FLAC__bitwriter_write_raw_uint32(bw, ((header->bits_per_sample - 1) << 1) | fallback_bit, 8))
+				return false;
+			/* 8. 4 bits remaining reserved (0) + 9. 4-bit sample format */
+			if(!FLAC__bitwriter_write_raw_uint32(bw, sample_format, 8))
+				return false;
+		}
+	}
+#endif
+
 	/* write the CRC */
 	if(!FLAC__bitwriter_get_write_crc8(bw, &crc))
 		return false;
@@ -392,16 +474,23 @@ FLAC__bool FLAC__frame_add_header(const FLAC__FrameHeader *header, FLAC__BitWrit
 
 FLAC__bool FLAC__subframe_add_constant(const FLAC__Subframe_Constant *subframe, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw)
 {
-	FLAC__bool ok;
-
-	ok =
-		FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN) &&
-		(wasted_bits? FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1) : true) &&
-		FLAC__bitwriter_write_raw_int64(bw, subframe->value, subframe_bps)
-	;
-
-	return ok;
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_CONSTANT_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+		return false;
+	if(wasted_bits)
+		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
+			return false;
+#if FLAC__HAS_INT128
+	if(subframe_bps > 64)
+		return FLAC__bitwriter_write_raw_int128(bw, subframe->value128, subframe_bps);
+	else
+#endif
+		return FLAC__bitwriter_write_raw_int64(bw, subframe->value, subframe_bps);
 }
+
+FLAC__bool add_residual_partitioned_rice_64_(FLAC__BitWriter *bw, const FLAC__int64 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__EntropyCodingMethodType method_type);
+#if FLAC__HAS_INT128
+FLAC__bool add_residual_partitioned_rice_128_(FLAC__BitWriter *bw, const FLAC__int128 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__EntropyCodingMethodType method_type);
+#endif
 
 FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, uint32_t residual_samples, uint32_t subframe_bps, uint32_t wasted_bits, FLAC__BitWriter *bw)
 {
@@ -413,26 +502,68 @@ FLAC__bool FLAC__subframe_add_fixed(const FLAC__Subframe_Fixed *subframe, uint32
 		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
 			return false;
 
-	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitwriter_write_raw_int64(bw, subframe->warmup[i], subframe_bps))
-			return false;
+	for(i = 0; i < subframe->order; i++) {
+#if FLAC__HAS_INT128
+		if(subframe_bps > 64) {
+			if(!FLAC__bitwriter_write_raw_int128(bw, subframe->warmup128[i], subframe_bps))
+				return false;
+		}
+		else
+#endif
+		{
+			if(!FLAC__bitwriter_write_raw_int64(bw, subframe->warmup[i], subframe_bps))
+				return false;
+		}
+	}
 
 	if(!add_entropy_coding_method_(bw, &subframe->entropy_coding_method))
 		return false;
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2:
-			if(!add_residual_partitioned_rice_(
-				bw,
-				subframe->residual,
-				residual_samples,
-				subframe->order,
-				subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
-				subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
-				subframe->entropy_coding_method.data.partitioned_rice.order,
-				/*is_extended=*/subframe->entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2
-			))
-				return false;
+		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3:
+			if(subframe->residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64) {
+				if(!add_residual_partitioned_rice_64_(
+					bw,
+					subframe->residual_data.int64,
+					residual_samples,
+					subframe->order,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
+					subframe->entropy_coding_method.data.partitioned_rice.order,
+					subframe->entropy_coding_method.type
+				))
+					return false;
+			}
+#if FLAC__HAS_INT128
+			else if(subframe->residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT128) {
+				if(!add_residual_partitioned_rice_128_(
+					bw,
+					subframe->residual_data.int128,
+					residual_samples,
+					subframe->order,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
+					subframe->entropy_coding_method.data.partitioned_rice.order,
+					subframe->entropy_coding_method.type
+				))
+					return false;
+			}
+#endif
+			else {
+				const FLAC__int32 *res = subframe->residual_data.int32 ? subframe->residual_data.int32 : subframe->residual;
+				if(!add_residual_partitioned_rice_(
+					bw,
+					res,
+					residual_samples,
+					subframe->order,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
+					subframe->entropy_coding_method.data.partitioned_rice.order,
+					subframe->entropy_coding_method.type
+				))
+					return false;
+			}
 			break;
 		default:
 			FLAC__ASSERT(0);
@@ -451,9 +582,19 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, uint32_t r
 		if(!FLAC__bitwriter_write_unary_unsigned(bw, wasted_bits-1))
 			return false;
 
-	for(i = 0; i < subframe->order; i++)
-		if(!FLAC__bitwriter_write_raw_int64(bw, subframe->warmup[i], subframe_bps))
-			return false;
+	for(i = 0; i < subframe->order; i++) {
+#if FLAC__HAS_INT128
+		if(subframe_bps > 64) {
+			if(!FLAC__bitwriter_write_raw_int128(bw, subframe->warmup128[i], subframe_bps))
+				return false;
+		}
+		else
+#endif
+		{
+			if(!FLAC__bitwriter_write_raw_int64(bw, subframe->warmup[i], subframe_bps))
+				return false;
+		}
+	}
 
 	if(!FLAC__bitwriter_write_raw_uint32(bw, subframe->qlp_coeff_precision-1, FLAC__SUBFRAME_LPC_QLP_COEFF_PRECISION_LEN))
 		return false;
@@ -468,17 +609,49 @@ FLAC__bool FLAC__subframe_add_lpc(const FLAC__Subframe_LPC *subframe, uint32_t r
 	switch(subframe->entropy_coding_method.type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2:
-			if(!add_residual_partitioned_rice_(
-				bw,
-				subframe->residual,
-				residual_samples,
-				subframe->order,
-				subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
-				subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
-				subframe->entropy_coding_method.data.partitioned_rice.order,
-				/*is_extended=*/subframe->entropy_coding_method.type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2
-			))
-				return false;
+		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3:
+			if(subframe->residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT64) {
+				if(!add_residual_partitioned_rice_64_(
+					bw,
+					subframe->residual_data.int64,
+					residual_samples,
+					subframe->order,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
+					subframe->entropy_coding_method.data.partitioned_rice.order,
+					subframe->entropy_coding_method.type
+				))
+					return false;
+			}
+#if FLAC__HAS_INT128
+			else if(subframe->residual_type == FLAC__SUBFRAME_RESIDUAL_DATA_TYPE_INT128) {
+				if(!add_residual_partitioned_rice_128_(
+					bw,
+					subframe->residual_data.int128,
+					residual_samples,
+					subframe->order,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
+					subframe->entropy_coding_method.data.partitioned_rice.order,
+					subframe->entropy_coding_method.type
+				))
+					return false;
+			}
+#endif
+			else {
+				const FLAC__int32 *res = subframe->residual_data.int32 ? subframe->residual_data.int32 : subframe->residual;
+				if(!add_residual_partitioned_rice_(
+					bw,
+					res,
+					residual_samples,
+					subframe->order,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->parameters,
+					subframe->entropy_coding_method.data.partitioned_rice.contents->raw_bits,
+					subframe->entropy_coding_method.data.partitioned_rice.order,
+					subframe->entropy_coding_method.type
+				))
+					return false;
+			}
 			break;
 		default:
 			FLAC__ASSERT(0);
@@ -491,6 +664,7 @@ FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, 
 {
 	uint32_t i;
 
+
 	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_VERBATIM_BYTE_ALIGNED_MASK | (wasted_bits? 1:0), FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
 		return false;
 	if(wasted_bits)
@@ -500,24 +674,103 @@ FLAC__bool FLAC__subframe_add_verbatim(const FLAC__Subframe_Verbatim *subframe, 
 	if(subframe->data_type == FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT32) {
 		const FLAC__int32 *signal = subframe->data.int32;
 
-		FLAC__ASSERT(subframe_bps < 33);
+		FLAC__ASSERT(subframe_bps <= 32);
 
 		for(i = 0; i < samples; i++)
 			if(!FLAC__bitwriter_write_raw_int32(bw, signal[i], subframe_bps))
 				return false;
 	}
-	else {
+	else if(subframe->data_type == FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT64) {
 		const FLAC__int64 *signal = subframe->data.int64;
 
-		FLAC__ASSERT(subframe_bps == 33);
+		FLAC__ASSERT(subframe_bps <= 64);
 
 		for(i = 0; i < samples; i++)
-			if(!FLAC__bitwriter_write_raw_int64(bw, (FLAC__int64)signal[i], subframe_bps))
+			if(!FLAC__bitwriter_write_raw_int64(bw, signal[i], subframe_bps))
 				return false;
+	}
+#if FLAC__HAS_INT128
+	else if(subframe->data_type == FLAC__VERBATIM_SUBFRAME_DATA_TYPE_INT128) {
+		const FLAC__int128 *signal = subframe->data.int128;
+
+		FLAC__ASSERT(subframe_bps <= 128);
+
+		for(i = 0; i < samples; i++)
+			if(!FLAC__bitwriter_write_raw_int128(bw, signal[i], subframe_bps))
+				return false;
+	}
+#endif
+	else {
+		FLAC__ASSERT(0);
+		return false;
 	}
 
 	return true;
 }
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+FLAC__bool FLAC__subframe_add_packed(const FLAC__Subframe_Packed *subframe, uint32_t samples, uint32_t wasted_bits, FLAC__BitWriter *bw)
+{
+	uint32_t i;
+	uint32_t stored_lower_bits;
+	const FLAC__int32 *upper32 = subframe->upper_is_64 ? NULL : (const FLAC__int32 *)subframe->upper_signal;
+	const FLAC__int64 *upper64 = subframe->upper_is_64 ? (const FLAC__int64 *)subframe->upper_signal : NULL;
+	const FLAC__int32 *low32 = subframe->lower_is_64 ? NULL : (const FLAC__int32 *)subframe->lower_signal;
+	const FLAC__int64 *low64 = subframe->lower_is_64 ? (const FLAC__int64 *)subframe->lower_signal : NULL;
+	uint32_t lower_bits = subframe->lower_bits;
+
+	(void)wasted_bits;
+
+	/* Subframe header: PACKED (0b000010), 0 wasted bits */
+	if(!FLAC__bitwriter_write_raw_uint32(bw, FLAC__SUBFRAME_TYPE_PACKED_BYTE_ALIGNED_MASK, FLAC__SUBFRAME_ZERO_PAD_LEN + FLAC__SUBFRAME_TYPE_LEN + FLAC__SUBFRAME_WASTED_BITS_FLAG_LEN))
+		return false;
+
+	/* 1. 8 bits exponent zero offset */
+	if(!FLAC__bitwriter_write_raw_uint32(bw, subframe->exponent_zero_offset, 8))
+		return false;
+
+	/* 2. 5 bits lower_bits (0..31) + 3 bits reserved (000) */
+	stored_lower_bits = subframe->empty_subframe ? 0 : lower_bits;
+	if(!FLAC__bitwriter_write_raw_uint32(bw, (stored_lower_bits << 3), 8))
+		return false;
+
+	if(!subframe->empty_subframe && samples > 0) {
+		for(i = 0; i < samples; i++) {
+			FLAC__int64 up = subframe->upper_is_64 ? upper64[i] : (FLAC__int64)upper32[i];
+			uint32_t d;
+			uint32_t width;
+			if(up == 0) {
+				uint32_t val32 = subframe->lower_is_64 ? (uint32_t)low64[i] : (uint32_t)low32[i];
+				if(!FLAC__bitwriter_write_raw_uint32(bw, val32, 32))
+					return false;
+			} else if(lower_bits > 0) {
+				if(up == -1) {
+					d = 0;
+				} else if(up > 0) {
+					uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)up);
+					uint32_t lead_full = lead_u + lower_bits;
+					d = (lead_full > 23) ? (lead_full - 23) : 0;
+				} else {
+					uint32_t lead_u = FLAC__bitmath_ilog2_wide((FLAC__uint64)(~up));
+					uint32_t lead_full = lead_u + lower_bits;
+					d = (lead_full > 23) ? (lead_full - 23) : 0;
+				}
+				width = (lower_bits > d) ? (lower_bits - d) : 0;
+				if(width > 0) {
+					uint64_t val64 = subframe->lower_is_64 ? (uint64_t)low64[i] : (uint64_t)(uint32_t)low32[i];
+					uint64_t val = (val64 >> d);
+					if(width < 64)
+						val &= (((uint64_t)1 << width) - 1);
+					if(!FLAC__bitwriter_write_raw_uint64(bw, val, width))
+						return false;
+				}
+			}
+		}
+	}
+
+	return true;
+}
+#endif
 
 FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCodingMethod *method)
 {
@@ -526,6 +779,7 @@ FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCo
 	switch(method->type) {
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE:
 		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2:
+		case FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3:
 			if(!FLAC__bitwriter_write_raw_uint32(bw, method->data.partitioned_rice.order, FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ORDER_LEN))
 				return false;
 			break;
@@ -535,10 +789,11 @@ FLAC__bool add_entropy_coding_method_(FLAC__BitWriter *bw, const FLAC__EntropyCo
 	return true;
 }
 
-FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__bool is_extended)
+FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__EntropyCodingMethodType method_type)
 {
-	const uint32_t plen = is_extended? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN;
-	const uint32_t pesc = is_extended? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER;
+	const uint32_t plen = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN : ((method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN);
+	const uint32_t pesc = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER : ((method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
+	const uint32_t raw_len = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_RAW_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN;
 
 	if(partition_order == 0) {
 		uint32_t i;
@@ -553,11 +808,23 @@ FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32
 			FLAC__ASSERT(rice_parameters[0] == 0);
 			if(!FLAC__bitwriter_write_raw_uint32(bw, pesc, plen))
 				return false;
-			if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[0], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
+			if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[0], raw_len))
 				return false;
 			for(i = 0; i < residual_samples; i++) {
-				if(!FLAC__bitwriter_write_raw_int32(bw, residual[i], raw_bits[0]))
-					return false;
+				if(raw_bits[0] <= 32) {
+					if(!FLAC__bitwriter_write_raw_int32(bw, residual[i], raw_bits[0]))
+						return false;
+				}
+				else if(raw_bits[0] <= 64) {
+					if(!FLAC__bitwriter_write_raw_int64(bw, (FLAC__int64)residual[i], raw_bits[0]))
+						return false;
+				}
+#if FLAC__HAS_INT128
+				else {
+					if(!FLAC__bitwriter_write_raw_int128(bw, (FLAC__int128)residual[i], raw_bits[0]))
+						return false;
+				}
+#endif
 			}
 		}
 		return true;
@@ -580,10 +847,81 @@ FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32
 			else {
 				if(!FLAC__bitwriter_write_raw_uint32(bw, pesc, plen))
 					return false;
-				if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[i], FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN))
+				if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[i], raw_len))
 					return false;
 				for(j = k_last; j < k; j++) {
-					if(!FLAC__bitwriter_write_raw_int32(bw, residual[j], raw_bits[i]))
+					if(raw_bits[i] <= 32) {
+						if(!FLAC__bitwriter_write_raw_int32(bw, residual[j], raw_bits[i]))
+							return false;
+					}
+					else if(raw_bits[i] <= 64) {
+						if(!FLAC__bitwriter_write_raw_int64(bw, (FLAC__int64)residual[j], raw_bits[i]))
+							return false;
+					}
+#if FLAC__HAS_INT128
+					else {
+						if(!FLAC__bitwriter_write_raw_int128(bw, (FLAC__int128)residual[j], raw_bits[i]))
+							return false;
+					}
+#endif
+				}
+			}
+			k_last = k;
+		}
+		return true;
+	}
+}
+
+FLAC__bool add_residual_partitioned_rice_64_(FLAC__BitWriter *bw, const FLAC__int64 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__EntropyCodingMethodType method_type)
+{
+	const uint32_t plen = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN : ((method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN);
+	const uint32_t pesc = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER : ((method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
+	const uint32_t raw_len = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_RAW_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN;
+
+	if(partition_order == 0) {
+		uint32_t i;
+
+		if(raw_bits[0] == 0) {
+			if(!FLAC__bitwriter_write_raw_uint32(bw, rice_parameters[0], plen))
+				return false;
+			if(!FLAC__bitwriter_write_rice_signed_block_64(bw, residual, residual_samples, rice_parameters[0]))
+				return false;
+		}
+		else {
+			FLAC__ASSERT(rice_parameters[0] == 0);
+			if(!FLAC__bitwriter_write_raw_uint32(bw, pesc, plen))
+				return false;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[0], raw_len))
+				return false;
+			for(i = 0; i < residual_samples; i++) {
+				if(!FLAC__bitwriter_write_raw_int64(bw, residual[i], raw_bits[0]))
+					return false;
+			}
+		}
+		return true;
+	}
+	else {
+		uint32_t i, j, k = 0, k_last = 0;
+		uint32_t partition_samples;
+		const uint32_t default_partition_samples = (residual_samples+predictor_order) >> partition_order;
+		for(i = 0; i < (1u<<partition_order); i++) {
+			partition_samples = default_partition_samples;
+			if(i == 0)
+				partition_samples -= predictor_order;
+			k += partition_samples;
+			if(raw_bits[i] == 0) {
+				if(!FLAC__bitwriter_write_raw_uint32(bw, rice_parameters[i], plen))
+					return false;
+				if(!FLAC__bitwriter_write_rice_signed_block_64(bw, residual+k_last, k-k_last, rice_parameters[i]))
+					return false;
+			}
+			else {
+				if(!FLAC__bitwriter_write_raw_uint32(bw, pesc, plen))
+					return false;
+				if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[i], raw_len))
+					return false;
+				for(j = k_last; j < k; j++) {
+					if(!FLAC__bitwriter_write_raw_int64(bw, residual[j], raw_bits[i]))
 						return false;
 				}
 			}
@@ -592,3 +930,64 @@ FLAC__bool add_residual_partitioned_rice_(FLAC__BitWriter *bw, const FLAC__int32
 		return true;
 	}
 }
+
+#if FLAC__HAS_INT128
+FLAC__bool add_residual_partitioned_rice_128_(FLAC__BitWriter *bw, const FLAC__int128 residual[], const uint32_t residual_samples, const uint32_t predictor_order, const uint32_t rice_parameters[], const uint32_t raw_bits[], const uint32_t partition_order, const FLAC__EntropyCodingMethodType method_type)
+{
+	const uint32_t plen = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_PARAMETER_LEN : ((method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_PARAMETER_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_PARAMETER_LEN);
+	const uint32_t pesc = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_ESCAPE_PARAMETER : ((method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE2_ESCAPE_PARAMETER : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_ESCAPE_PARAMETER);
+	const uint32_t raw_len = (method_type == FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3) ? FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE3_RAW_LEN : FLAC__ENTROPY_CODING_METHOD_PARTITIONED_RICE_RAW_LEN;
+
+	if(partition_order == 0) {
+		uint32_t i;
+
+		if(raw_bits[0] == 0) {
+			if(!FLAC__bitwriter_write_raw_uint32(bw, rice_parameters[0], plen))
+				return false;
+			if(!FLAC__bitwriter_write_rice_signed_block_128(bw, residual, residual_samples, rice_parameters[0]))
+				return false;
+		}
+		else {
+			FLAC__ASSERT(rice_parameters[0] == 0);
+			if(!FLAC__bitwriter_write_raw_uint32(bw, pesc, plen))
+				return false;
+			if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[0], raw_len))
+				return false;
+			for(i = 0; i < residual_samples; i++) {
+				if(!FLAC__bitwriter_write_raw_int128(bw, residual[i], raw_bits[0]))
+					return false;
+			}
+		}
+		return true;
+	}
+	else {
+		uint32_t i, j, k = 0, k_last = 0;
+		uint32_t partition_samples;
+		const uint32_t default_partition_samples = (residual_samples+predictor_order) >> partition_order;
+		for(i = 0; i < (1u<<partition_order); i++) {
+			partition_samples = default_partition_samples;
+			if(i == 0)
+				partition_samples -= predictor_order;
+			k += partition_samples;
+			if(raw_bits[i] == 0) {
+				if(!FLAC__bitwriter_write_raw_uint32(bw, rice_parameters[i], plen))
+					return false;
+				if(!FLAC__bitwriter_write_rice_signed_block_128(bw, residual+k_last, k-k_last, rice_parameters[i]))
+					return false;
+			}
+			else {
+				if(!FLAC__bitwriter_write_raw_uint32(bw, pesc, plen))
+					return false;
+				if(!FLAC__bitwriter_write_raw_uint32(bw, raw_bits[i], raw_len))
+					return false;
+				for(j = k_last; j < k; j++) {
+					if(!FLAC__bitwriter_write_raw_int128(bw, residual[j], raw_bits[i]))
+						return false;
+				}
+			}
+			k_last = k;
+		}
+		return true;
+	}
+}
+#endif

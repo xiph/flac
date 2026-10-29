@@ -19,7 +19,7 @@
 
 /*
  * This example shows how to use libFLAC to encode a WAVE file to a FLAC
- * file.  It only supports 16-bit stereo files in canonical WAVE format.
+ * file.  It supports 16-bit stereo integer files and 32-bit stereo float files in canonical WAVE format.
  *
  * Complete API documentation can be found at:
  *   http://xiph.org/flac/api/
@@ -41,7 +41,7 @@ static void progress_callback(const FLAC__StreamEncoder *encoder, FLAC__uint64 b
 #define READSIZE 1024
 
 static unsigned total_samples = 0; /* can use a 32-bit number due to WAVE size limitations */
-static FLAC__byte buffer[READSIZE/*samples*/ * 2/*bytes_per_sample*/ * 2/*channels*/]; /* we read the WAVE data into here */
+static FLAC__byte buffer[READSIZE/*samples*/ * 4/*max bytes_per_sample*/ * 2/*channels*/]; /* we read the WAVE data into here */
 static FLAC__int32 pcm[READSIZE/*samples*/ * 2/*channels*/];
 
 int main(int argc, char *argv[])
@@ -52,9 +52,13 @@ int main(int argc, char *argv[])
 	FLAC__StreamMetadata *metadata[2];
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	FILE *fin;
+	unsigned format_tag = 0;
 	unsigned sample_rate = 0;
 	unsigned channels = 0;
 	unsigned bps = 0;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	FLAC__SampleType sample_type = FLAC__SAMPLE_TYPE_INT;
+#endif
 
 	if(argc != 3) {
 		fprintf(stderr, "usage: %s infile.wav outfile.flac\n", argv[0]);
@@ -70,17 +74,44 @@ int main(int argc, char *argv[])
 	if(
 		fread(buffer, 1, 44, fin) != 44 ||
 		memcmp(buffer, "RIFF", 4) ||
-		memcmp(buffer+8, "WAVEfmt \020\000\000\000\001\000\002\000", 16) ||
-		memcmp(buffer+32, "\004\000\020\000data", 8)
+		memcmp(buffer+8, "WAVEfmt \020\000\000\000", 12) ||
+		memcmp(buffer+36, "data", 4)
 	) {
+		fprintf(stderr, "ERROR: invalid/unsupported WAVE file, header not recognized\n");
+		fclose(fin);
+		return 1;
+	}
+
+	format_tag = (unsigned)buffer[20] | ((unsigned)buffer[21] << 8);
+	channels = (unsigned)buffer[22] | ((unsigned)buffer[23] << 8);
+	sample_rate = ((((((unsigned)buffer[27] << 8) | buffer[26]) << 8) | buffer[25]) << 8) | buffer[24];
+	bps = (unsigned)buffer[34] | ((unsigned)buffer[35] << 8);
+
+	if(channels != 2) {
+		fprintf(stderr, "ERROR: invalid/unsupported WAVE file, only stereo WAVE files allowed\n");
+		fclose(fin);
+		return 1;
+	}
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	if(format_tag == 1 && bps == 16) {
+		sample_type = FLAC__SAMPLE_TYPE_INT;
+	} else if(format_tag == 3 && bps == 32) {
+		sample_type = FLAC__SAMPLE_TYPE_FLOAT;
+	} else {
+		fprintf(stderr, "ERROR: invalid/unsupported WAVE file, only 16bps stereo integer or 32bps stereo float WAVE in canonical form allowed\n");
+		fclose(fin);
+		return 1;
+	}
+#else
+	if(format_tag != 1 || bps != 16) {
 		fprintf(stderr, "ERROR: invalid/unsupported WAVE file, only 16bps stereo WAVE in canonical form allowed\n");
 		fclose(fin);
 		return 1;
 	}
-	sample_rate = ((((((unsigned)buffer[27] << 8) | buffer[26]) << 8) | buffer[25]) << 8) | buffer[24];
-	channels = 2;
-	bps = 16;
-	total_samples = (((((((unsigned)buffer[43] << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / 4;
+#endif
+
+	total_samples = (((((((unsigned)buffer[43] << 8) | buffer[42]) << 8) | buffer[41]) << 8) | buffer[40]) / (channels * (bps/8));
 
 	/* allocate the encoder */
 	if((encoder = FLAC__stream_encoder_new()) == NULL) {
@@ -93,6 +124,9 @@ int main(int argc, char *argv[])
 	ok &= FLAC__stream_encoder_set_compression_level(encoder, 5);
 	ok &= FLAC__stream_encoder_set_channels(encoder, channels);
 	ok &= FLAC__stream_encoder_set_bits_per_sample(encoder, bps);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+	ok &= FLAC__stream_encoder_set_sample_type(encoder, sample_type);
+#endif
 	ok &= FLAC__stream_encoder_set_sample_rate(encoder, sample_rate);
 	ok &= FLAC__stream_encoder_set_total_samples_estimate(encoder, total_samples);
 
@@ -115,7 +149,7 @@ int main(int argc, char *argv[])
 
 			ok = FLAC__stream_encoder_set_metadata(encoder, metadata, 2);
 
-                }
+		}
 	}
 
 	/* initialize encoder */
@@ -130,18 +164,33 @@ int main(int argc, char *argv[])
 	/* read blocks of samples from WAVE file and feed to encoder */
 	if(ok) {
 		size_t left = (size_t)total_samples;
+		const unsigned bytes_per_sample = bps / 8;
 		while(ok && left) {
 			size_t need = (left>READSIZE? (size_t)READSIZE : (size_t)left);
-			if(fread(buffer, channels*(bps/8), need, fin) != need) {
+			if(fread(buffer, channels * bytes_per_sample, need, fin) != need) {
 				fprintf(stderr, "ERROR: reading from WAVE file\n");
 				ok = false;
 			}
 			else {
-				/* convert the packed little-endian 16-bit PCM samples from WAVE into an interleaved FLAC__int32 buffer for libFLAC */
 				size_t i;
-				for(i = 0; i < need*channels; i++) {
-					/* inefficient but simple and works on big- or little-endian machines */
-					pcm[i] = (FLAC__int32)(((FLAC__int16)(FLAC__int8)buffer[2*i+1] << 8) | (FLAC__int16)buffer[2*i]);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+				if(sample_type == FLAC__SAMPLE_TYPE_FLOAT) {
+					/* convert packed little-endian 32-bit float samples into interleaved FLAC__int32 buffer */
+					for(i = 0; i < need*channels; i++) {
+						pcm[i] = (FLAC__int32)(
+							((FLAC__uint32)buffer[4*i]) |
+							(((FLAC__uint32)buffer[4*i+1]) << 8) |
+							(((FLAC__uint32)buffer[4*i+2]) << 16) |
+							(((FLAC__uint32)buffer[4*i+3]) << 24)
+						);
+					}
+				} else
+#endif
+				{
+					/* convert the packed little-endian 16-bit PCM samples from WAVE into an interleaved FLAC__int32 buffer for libFLAC */
+					for(i = 0; i < need*channels; i++) {
+						pcm[i] = (FLAC__int32)(((FLAC__int16)(FLAC__int8)buffer[2*i+1] << 8) | (FLAC__int16)buffer[2*i]);
+					}
 				}
 				/* feed samples to encoder */
 				ok = FLAC__stream_encoder_process_interleaved(encoder, pcm, need);

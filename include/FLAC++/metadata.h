@@ -33,6 +33,7 @@
 #ifndef FLACPP__METADATA_H
 #define FLACPP__METADATA_H
 
+#include "FLAC/ordinals.h"
 #include "export.h"
 
 #include "FLAC/metadata.h"
@@ -330,6 +331,9 @@ namespace FLAC {
 			uint32_t get_max_framesize() const;
 			uint32_t get_sample_rate() const;
 			uint32_t get_channels() const;
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			FLAC__SampleType get_sample_type() const;
+#endif
 			uint32_t get_bits_per_sample() const;
 			FLAC__uint64 get_total_samples() const;
 			const FLAC__byte *get_md5sum() const;
@@ -340,11 +344,80 @@ namespace FLAC {
 			void set_max_framesize(uint32_t value);
 			void set_sample_rate(uint32_t value);
 			void set_channels(uint32_t value);
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+			void set_sample_type(FLAC__SampleType value);
+#endif
 			void set_bits_per_sample(uint32_t value);
 			void set_total_samples(FLAC__uint64 value);
 			void set_md5sum(const FLAC__byte value[16]);
 			//@}
 		};
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		/** STREAMINFO_EXTENSION metadata block.
+		 *  See https://github.com/xiph/flac/pull/842
+		 */
+		class FLACPP_API StreamInfoExtension : public Prototype {
+		public:
+			StreamInfoExtension();
+
+			//@{
+			/** Constructs a copy of the given object.  This form
+			 *  always performs a deep copy.
+			 */
+			inline StreamInfoExtension(const StreamInfoExtension &object): Prototype(object) { }
+			inline StreamInfoExtension(const ::FLAC__StreamMetadata &object): Prototype(object) { }
+			inline StreamInfoExtension(const ::FLAC__StreamMetadata *object): Prototype(object) { }
+			//@}
+
+			/** Constructs an object with copy control.  See
+			 *  Prototype(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline StreamInfoExtension(::FLAC__StreamMetadata *object, bool copy): Prototype(object, copy) { }
+
+			~StreamInfoExtension();
+
+			//@{
+			/** Assign from another object.  Always performs a deep copy. */
+			inline StreamInfoExtension &operator=(const StreamInfoExtension &object) { Prototype::operator=(object); return *this; }
+			inline StreamInfoExtension &operator=(const ::FLAC__StreamMetadata &object) { Prototype::operator=(object); return *this; }
+			inline StreamInfoExtension &operator=(const ::FLAC__StreamMetadata *object) { Prototype::operator=(object); return *this; }
+			//@}
+
+			/** Assigns an object with copy control.  See
+			 *  Prototype::assign_object(::FLAC__StreamMetadata *object, bool copy).
+			 */
+			inline StreamInfoExtension &assign(::FLAC__StreamMetadata *object, bool copy) { Prototype::assign_object(object, copy); return *this; }
+
+			//@{
+			/** Check for equality, performing a deep compare by following pointers. */
+			inline bool operator==(const StreamInfoExtension &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata &object) const { return Prototype::operator==(object); }
+			inline bool operator==(const ::FLAC__StreamMetadata *object) const { return Prototype::operator==(object); }
+			//@}
+
+			//@{
+			/** Check for inequality, performing a deep compare by following pointers. */
+			inline bool operator!=(const StreamInfoExtension &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata &object) const { return Prototype::operator!=(object); }
+			inline bool operator!=(const ::FLAC__StreamMetadata *object) const { return Prototype::operator!=(object); }
+			//@}
+
+			//@{
+			FLAC__float64 get_sample_rate() const;
+			uint32_t get_channels() const;
+			uint32_t get_channel_mask() const;
+			FLAC__SampleType get_sample_type() const;
+			uint32_t get_bits_per_sample() const;
+
+			void set_sample_rate(FLAC__float64 value);
+			void set_channels(uint32_t value);
+			void set_channel_mask(uint32_t value);
+			void set_sample_type(FLAC__SampleType value);
+			void set_bits_per_sample(uint32_t value);
+			//@}
+		};
+#endif
 
 		/** PADDING metadata block.
 		 *  See the \link flacpp_metadata_object overview \endlink for more,
@@ -1012,6 +1085,10 @@ namespace FLAC {
 		 */
 
 		FLACPP_API bool get_streaminfo(const char *filename, StreamInfo &streaminfo); ///< See FLAC__metadata_get_streaminfo().
+
+#if ENABLE_EXPERIMENTAL_FLOAT_SAMPLE_CODING
+		FLACPP_API bool get_streaminfo_extension(const char *filename, StreamInfoExtension &streaminfo_extension); ///< See FLAC__metadata_get_streaminfo().
+#endif
 
 		FLACPP_API bool get_tags(const char *filename, VorbisComment *&tags); ///< See FLAC__metadata_get_tags().
 		FLACPP_API bool get_tags(const char *filename, VorbisComment &tags); ///< See FLAC__metadata_get_tags().
