@@ -1802,6 +1802,15 @@ FLAC__bool test_metadata_object(void)
 		return false;
 	printf("OK\n");
 
+	printf("testing FLAC__metadata_object_cuesheet_track_resize_indices(count too large for 8-bit field)...");
+	if(FLAC__metadata_object_cuesheet_track_resize_indices(block, 0, 1u << FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN)) {
+		printf("FAILED, returned true\n");
+		return false;
+	}
+	if(!mutils__compare_block(cuesheet, block))
+		return false;
+	printf("OK\n");
+
 	indx.offset = 0;
 	indx.number = 1;
 	printf("testing FLAC__metadata_object_cuesheet_track_insert_index() on empty array...");

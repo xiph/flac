@@ -1520,6 +1520,11 @@ FLAC_API FLAC__bool FLAC__metadata_object_cuesheet_track_resize_indices(FLAC__St
 
 	track = &object->data.cue_sheet.tracks[track_num];
 
+	/* num_indices is stored in an 8-bit field, so a larger value would be
+	 * truncated, leaving track->num_indices out of sync with the allocation */
+	if (new_num_indices > (1u << FLAC__STREAM_METADATA_CUESHEET_TRACK_NUM_INDICES_LEN) - 1)
+		return false;
+
 	if (track->indices == NULL) {
 		FLAC__ASSERT(track->num_indices == 0);
 		if (new_num_indices == 0)
