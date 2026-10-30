@@ -67,7 +67,8 @@ typedef struct {
 	const FLAC__byte *lookahead;
 	uint32_t lookahead_length;
 	size_t num_metadata_blocks;
-	FLAC__StreamMetadata *metadata_blocks[1024]; /*@@@ BAD MAGIC number */
+	size_t metadata_blocks_capacity;
+	FLAC__StreamMetadata **metadata_blocks;
 	FLAC__uint64 samples_left_to_process;
 	FLAC__bool fatal_error;
 } FLACDecoderData;
@@ -825,7 +826,7 @@ static FLAC__bool get_sample_info_flac(EncoderSession *e, FLAC__bool do_check_md
 
 	if (!FLAC__stream_decoder_process_until_end_of_metadata(e->fmt.flac.decoder) || e->fmt.flac.client_data.fatal_error) {
 		if (e->fmt.flac.client_data.fatal_error)
-			flac__utils_printf(stderr, 1, "%s: ERROR: out of memory or too many metadata blocks while reading metadata in FLAC input\n", e->inbasefilename);
+			flac__utils_printf(stderr, 1, "%s: ERROR: reading metadata in FLAC input\n", e->inbasefilename);
 		else
 			flac__utils_printf(stderr, 1, "%s: ERROR: reading metadata in FLAC input, state = %s\n", e->inbasefilename, FLAC__stream_decoder_get_resolved_state_string(e->fmt.flac.decoder));
 		return false;
@@ -1458,6 +1459,8 @@ FLAC__bool EncoderSession_construct(EncoderSession *e, encode_options_t options,
 			e->fmt.flac.client_data.lookahead = lookahead;
 			e->fmt.flac.client_data.lookahead_length = lookahead_length;
 			e->fmt.flac.client_data.num_metadata_blocks = 0;
+			e->fmt.flac.client_data.metadata_blocks_capacity = 0;
+			e->fmt.flac.client_data.metadata_blocks = 0;
 			e->fmt.flac.client_data.samples_left_to_process = 0;
 			e->fmt.flac.client_data.fatal_error = false;
 			break;
@@ -1498,6 +1501,9 @@ void EncoderSession_destroy(EncoderSession *e)
 		e->fmt.flac.decoder = 0;
 		for(i = 0; i < e->fmt.flac.client_data.num_metadata_blocks; i++)
 			FLAC__metadata_object_delete(e->fmt.flac.client_data.metadata_blocks[i]);
+		free(e->fmt.flac.client_data.metadata_blocks);
+		e->fmt.flac.client_data.metadata_blocks = 0;
+		e->fmt.flac.client_data.metadata_blocks_capacity = 0;
 		e->fmt.flac.client_data.num_metadata_blocks = 0;
 	}
 
@@ -1659,6 +1665,25 @@ static FLAC__bool static_metadata_append(static_metadata_t *m, FLAC__StreamMetad
 	return true;
 }
 
+static FLAC__bool flac_decoder_data_insert_metadata(FLACDecoderData *data, size_t index, FLAC__StreamMetadata *block)
+{
+	size_t i;
+	FLAC__ASSERT(index <= data->num_metadata_blocks);
+	if(data->num_metadata_blocks == data->metadata_blocks_capacity) {
+		size_t capacity = data->metadata_blocks_capacity? data->metadata_blocks_capacity * 2 : 16;
+		void *x;
+		if(0 == (x = safe_realloc_nofree_mul_2op_(data->metadata_blocks, sizeof(*data->metadata_blocks), capacity)))
+			return false;
+		data->metadata_blocks = (FLAC__StreamMetadata**)x;
+		data->metadata_blocks_capacity = capacity;
+	}
+	for(i = data->num_metadata_blocks; i > index; i--)
+		data->metadata_blocks[i] = data->metadata_blocks[i-1];
+	data->metadata_blocks[index] = block;
+	data->num_metadata_blocks++;
+	return true;
+}
+
 FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t options)
 {
 	const uint32_t channels = e->info.channels;
@@ -1721,12 +1746,13 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 			 */
 			for(i = 0; i < options.num_pictures; i++) {
 				FLAC__StreamMetadata *pic = FLAC__metadata_object_clone(options.pictures[i]);
-				if(0 == pic) {
+				if(0 == pic || !flac_decoder_data_insert_metadata(flac_decoder_data, flac_decoder_data->num_metadata_blocks, pic)) {
 					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PICTURE block\n", e->inbasefilename);
+					if(pic)
+						FLAC__metadata_object_delete(pic);
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
-				flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks++] = pic;
 			}
 		}
 		{
@@ -1757,18 +1783,16 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					flac_decoder_data->metadata_blocks[j++] = flac_decoder_data->metadata_blocks[i];
 			}
 			flac_decoder_data->num_metadata_blocks = j;
-			if((!vc_found || options.vorbis_comment->data.vorbis_comment.num_comments > 0) && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
+			if(!vc_found || options.vorbis_comment->data.vorbis_comment.num_comments > 0) {
 				/* prepend ours */
 				FLAC__StreamMetadata *vc = FLAC__metadata_object_clone(options.vorbis_comment);
-				if(0 == vc || (e->info.channel_mask && !flac__utils_set_channel_mask_tag(vc, e->info.channel_mask))) {
+				if(0 == vc || (e->info.channel_mask && !flac__utils_set_channel_mask_tag(vc, e->info.channel_mask)) || !flac_decoder_data_insert_metadata(flac_decoder_data, 1, vc)) {
 					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for VORBIS_COMMENT block\n", e->inbasefilename);
+					if(vc)
+						FLAC__metadata_object_delete(vc);
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
-				for(i = flac_decoder_data->num_metadata_blocks; i > 1; i--)
-					flac_decoder_data->metadata_blocks[i] = flac_decoder_data->metadata_blocks[i-1];
-				flac_decoder_data->metadata_blocks[1] = vc;
-				flac_decoder_data->num_metadata_blocks++;
 			}
 		}
 		{
@@ -1815,18 +1839,16 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					flac_decoder_data->metadata_blocks[j++] = flac_decoder_data->metadata_blocks[i];
 			}
 			flac_decoder_data->num_metadata_blocks = j;
-			if(0 != static_metadata.cuesheet && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
+			if(0 != static_metadata.cuesheet) {
 				/* prepend ours */
 				FLAC__StreamMetadata *cs = FLAC__metadata_object_clone(static_metadata.cuesheet);
-				if(0 == cs) {
+				if(0 == cs || !flac_decoder_data_insert_metadata(flac_decoder_data, 1, cs)) {
 					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for CUESHEET block\n", e->inbasefilename);
+					if(cs)
+						FLAC__metadata_object_delete(cs);
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
-				for(i = flac_decoder_data->num_metadata_blocks; i > 1; i--)
-					flac_decoder_data->metadata_blocks[i] = flac_decoder_data->metadata_blocks[i-1];
-				flac_decoder_data->metadata_blocks[1] = cs;
-				flac_decoder_data->num_metadata_blocks++;
 			}
 		}
 		{
@@ -1872,18 +1894,16 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 					flac_decoder_data->metadata_blocks[j++] = flac_decoder_data->metadata_blocks[i];
 			}
 			flac_decoder_data->num_metadata_blocks = j;
-			if((options.num_requested_seek_points > 0 || (options.num_requested_seek_points < 0 && !existing_seektable)) && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
+			if(options.num_requested_seek_points > 0 || (options.num_requested_seek_points < 0 && !existing_seektable)) {
 				/* prepend ours */
 				FLAC__StreamMetadata *st = FLAC__metadata_object_clone(e->seek_table_template);
-				if(0 == st) {
+				if(0 == st || !flac_decoder_data_insert_metadata(flac_decoder_data, 1, st)) {
 					flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for SEEKTABLE block\n", e->inbasefilename);
+					if(st)
+						FLAC__metadata_object_delete(st);
 					static_metadata_clear(&static_metadata);
 					return false;
 				}
-				for(i = flac_decoder_data->num_metadata_blocks; i > 1; i--)
-					flac_decoder_data->metadata_blocks[i] = flac_decoder_data->metadata_blocks[i-1];
-				flac_decoder_data->metadata_blocks[1] = st;
-				flac_decoder_data->num_metadata_blocks++;
 			}
 		}
 		{
@@ -1921,16 +1941,17 @@ FLAC__bool EncoderSession_init_encoder(EncoderSession *e, encode_options_t optio
 				p += (e->replay_gain ? GRABBAG__REPLAYGAIN_MAX_TAG_SPACE_REQUIRED : 0);
 			p = min(p, (int)((1u << FLAC__STREAM_METADATA_LENGTH_LEN) - 1));
 			if(options.padding != 0) {
-				if(p > 0 && flac_decoder_data->num_metadata_blocks < sizeof(flac_decoder_data->metadata_blocks)/sizeof(flac_decoder_data->metadata_blocks[0])) {
-					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks] = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
-					if(0 == flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]) {
+				if(p > 0) {
+					FLAC__StreamMetadata *pad = FLAC__metadata_object_new(FLAC__METADATA_TYPE_PADDING);
+					if(0 == pad || !flac_decoder_data_insert_metadata(flac_decoder_data, flac_decoder_data->num_metadata_blocks, pad)) {
 						flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for PADDING block\n", e->inbasefilename);
+						if(pad)
+							FLAC__metadata_object_delete(pad);
 						static_metadata_clear(&static_metadata);
 						return false;
 					}
-					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]->is_last = false; /* the encoder will set this for us */
-					flac_decoder_data->metadata_blocks[flac_decoder_data->num_metadata_blocks]->length = p;
-					flac_decoder_data->num_metadata_blocks++;
+					pad->is_last = false; /* the encoder will set this for us */
+					pad->length = p;
 				}
 			}
 		}
@@ -2653,18 +2674,18 @@ void flac_decoder_metadata_callback(const FLAC__StreamDecoder *decoder, const FL
 {
 	EncoderSession *e = (EncoderSession*)client_data;
 	FLACDecoderData *data = &e->fmt.flac.client_data;
+	FLAC__StreamMetadata *block;
 	(void)decoder;
 
 	if (data->fatal_error)
 		return;
 
-	if (
-		data->num_metadata_blocks == sizeof(data->metadata_blocks)/sizeof(data->metadata_blocks[0]) ||
-		0 == (data->metadata_blocks[data->num_metadata_blocks] = FLAC__metadata_object_clone(metadata))
-	)
+	if (0 == (block = FLAC__metadata_object_clone(metadata)) || !flac_decoder_data_insert_metadata(data, data->num_metadata_blocks, block)) {
+		flac__utils_printf(stderr, 1, "%s: ERROR allocating memory for metadata block\n", e->inbasefilename);
+		if (block)
+			FLAC__metadata_object_delete(block);
 		data->fatal_error = true;
-	else
-		data->num_metadata_blocks++;
+	}
 }
 
 void flac_decoder_error_callback(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
