@@ -221,7 +221,7 @@ static char *posixly_correct;
 /* Avoid depending on library functions or files
    whose names are inconsistent.  */
 
-#ifndef getenv
+#if !defined(getenv) && !(defined(__clang__) && defined(_MSC_VER))
 extern char *getenv (const char * name);
 #endif
 
