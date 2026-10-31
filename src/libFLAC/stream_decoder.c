@@ -2230,7 +2230,7 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read MIME type */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_MIME_TYPE_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
-	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < x){
+	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < (FLAC__uint64)x * 8){
 		FLAC__bitreader_limit_invalidate(decoder->private_->input);
 		return false;
 	}
@@ -2247,7 +2247,7 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read description */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &x, FLAC__STREAM_METADATA_PICTURE_DESCRIPTION_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
-	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < x){
+	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < (FLAC__uint64)x * 8){
 		FLAC__bitreader_limit_invalidate(decoder->private_->input);
 		return false;
 	}
@@ -2280,7 +2280,7 @@ FLAC__bool read_metadata_picture_(FLAC__StreamDecoder *decoder, FLAC__StreamMeta
 	/* read data */
 	if(!FLAC__bitreader_read_raw_uint32(decoder->private_->input, &(obj->data_length), FLAC__STREAM_METADATA_PICTURE_DATA_LENGTH_LEN))
 		return false; /* read_callback_ sets the state for us */
-	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < obj->data_length){
+	if(FLAC__bitreader_limit_remaining(decoder->private_->input) < (FLAC__uint64)obj->data_length * 8){
 		FLAC__bitreader_limit_invalidate(decoder->private_->input);
 		return false;
 	}
