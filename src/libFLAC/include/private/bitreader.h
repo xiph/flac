@@ -84,6 +84,7 @@ FLAC__bool FLAC__bitreader_read_raw_int64(FLAC__BitReader *br, FLAC__int64 *val,
 FLAC__bool FLAC__bitreader_read_uint32_little_endian(FLAC__BitReader *br, FLAC__uint32 *val); /*only for bits=32*/
 FLAC__bool FLAC__bitreader_skip_bits_no_crc(FLAC__BitReader *br, uint32_t bits); /* WATCHOUT: does not CRC the skipped data! */ /*@@@@ add to unit tests */
 FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, uint32_t nvals); /* WATCHOUT: does not CRC the read data! */
+FLAC__bool FLAC__bitreader_skip_until_byte_ff(FLAC__BitReader *br); /* skips bytes until the next unread byte is 0xff; may skip nothing if a read limit is set */
 FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, FLAC__byte *val, uint32_t nvals); /* WATCHOUT: does not CRC the read data! */
 FLAC__bool FLAC__bitreader_read_unary_unsigned(FLAC__BitReader *br, uint32_t *val);
 FLAC__bool FLAC__bitreader_read_rice_signed(FLAC__BitReader *br, int *val, uint32_t parameter);

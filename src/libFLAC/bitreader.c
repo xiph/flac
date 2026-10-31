@@ -657,6 +657,45 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 	return true;
 }
 
+FLAC__bool FLAC__bitreader_skip_until_byte_ff(FLAC__BitReader *br)
+{
+	/* the byte 0x01 repeated in every byte of a word, used to test all bytes of a word at once */
+	const brword ones = FLAC__WORD_ALL_ONES / 0xff;
+
+	FLAC__ASSERT(0 != br);
+	FLAC__ASSERT(0 != br->buffer);
+	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
+
+	/* keep the read limit accounting simple, the caller reads byte by byte instead */
+	if(br->read_limit_set)
+		return true;
+
+	while(1) {
+		while(br->consumed_words < br->words) {
+			const brword word = br->buffer[br->consumed_words];
+			/* skip whole words without any 0xff byte; this is the classic
+			 * "word has a zero byte" test applied to the inverted word */
+			if(br->consumed_bits == 0 && (((~word - ones) & word & (ones << 7)) == 0)) {
+				br->consumed_words++;
+				continue;
+			}
+			for( ; br->consumed_bits < FLAC__BITS_PER_WORD; br->consumed_bits += 8) {
+				if(((word >> (FLAC__BITS_PER_WORD - 8 - br->consumed_bits)) & 0xff) == 0xff)
+					return true;
+			}
+			br->consumed_words++;
+			br->consumed_bits = 0;
+		}
+		/* check the bytes in the incomplete tail word, if any */
+		for( ; br->consumed_bits < br->bytes * 8; br->consumed_bits += 8) {
+			if(((br->buffer[br->consumed_words] >> (FLAC__BITS_PER_WORD - 8 - br->consumed_bits)) & 0xff) == 0xff)
+				return true;
+		}
+		if(!bitreader_read_from_client_(br))
+			return false;
+	}
+}
+
 FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, FLAC__byte *val, uint32_t nvals)
 {
 	FLAC__uint32 x;

@@ -9,6 +9,9 @@ if(NOT UNIX)
         add_test(NAME libFLAC
           COMMAND $<TARGET_FILE:test_libFLAC>
           WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
+        add_test(NAME seeking_large
+          COMMAND $<TARGET_FILE:test_seeking_large>
+          WORKING_DIRECTORY ${CMAKE_BINARY_DIR})
         if(BUILD_CXXLIBS)
             add_test(NAME libFLAC++
               COMMAND $<TARGET_FILE:test_libFLAC++>
@@ -40,10 +43,13 @@ endif()
 
 configure_file(common.sh.in common.sh @ONLY)
 
-set(ALL_TESTS libFLAC grabbag)
+set(ALL_TESTS libFLAC grabbag seeking_large)
 
 add_test(NAME libFLAC
     COMMAND ${BUSYBOX_EXE} ${BUSYBOX_CMD} "${CMAKE_CURRENT_SOURCE_DIR}/test_libFLAC.sh"
+    WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
+add_test(NAME seeking_large
+    COMMAND $<TARGET_FILE:test_seeking_large>
     WORKING_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}")
 if(BUILD_CXXLIBS)
     add_test(NAME libFLAC++

@@ -32,6 +32,7 @@ SUBDIRS = \
 	test_libs_common \
 	test_libFLAC \
 	test_seeking \
+	test_seeking_large \
 	test_streams \
 	utils \
 	$(CPPLIBS_DIRS)

@@ -330,6 +330,34 @@ FLAC__bool test_bitreader(void)
 	printf("OK\n");
 	FLAC__bitreader_dump(br, stdout);
 
+	/* the read callback repeats data[], in which only the last byte is 0xff */
+	printf("testing skip until byte 0xff... ");
+	FLAC__bitreader_clear(br);
+	for(i = 0; i < 3; i++) {
+		/* start word aligned the first time, then unaligned, then right at a 0xff byte */
+		ok =
+			(i != 1 || FLAC__bitreader_read_raw_uint32(br, &val_uint32, 24)) &&
+			FLAC__bitreader_skip_until_byte_ff(br) &&
+			(i != 2 || FLAC__bitreader_skip_until_byte_ff(br)) &&
+			FLAC__bitreader_read_raw_uint32(br, &val_uint32, 8) && val_uint32 == 0xff &&
+			FLAC__bitreader_read_raw_uint32(br, &val_uint32, 8) && val_uint32 == data[0]
+		;
+		if(!ok) {
+			printf("FAILED\n");
+			FLAC__bitreader_dump(br, stdout);
+			return false;
+		}
+		if(i == 1) {
+			/* move right in front of the next 0xff byte */
+			if(!FLAC__bitreader_skip_byte_block_aligned_no_crc(br, 30)) {
+				printf("FAILED\n");
+				FLAC__bitreader_dump(br, stdout);
+				return false;
+			}
+		}
+	}
+	printf("OK\n");
+
 	printf("testing free... ");
 	FLAC__bitreader_free(br);
 	printf("OK\n");
