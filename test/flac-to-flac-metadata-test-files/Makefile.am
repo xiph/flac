@@ -34,6 +34,7 @@ EXTRA_DIST = \
 	case04c-expect.meta \
 	case04d-expect.meta \
 	case04e-expect.meta \
+	id3v2.bin \
 	input-SCPAP.flac \
 	input-SCVA.flac \
 	input-SCVAUP.flac \
