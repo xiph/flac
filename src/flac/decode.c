@@ -276,19 +276,6 @@ FLAC__bool DecoderSession_construct(DecoderSession *d, FLAC__bool is_ogg, FLAC__
 
 	FLAC__ASSERT(!(d->test_only && d->analysis_mode));
 
-	if(!d->test_only) {
-		if(0 == strcmp(outfilename, "-")) {
-			d->fout = grabbag__file_get_binary_stdout();
-		}
-		else {
-			if(0 == (d->fout = flac_fopen(outfilename, "wb"))) {
-				flac__utils_printf(stderr, 1, "%s: ERROR: can't open output file %s: %s\n", d->inbasefilename, outfilename, strerror(errno));
-				DecoderSession_destroy(d, /*error_occurred=*/true);
-				return false;
-			}
-		}
-	}
-
 	if(analysis_mode)
 		flac__analyze_init(aopts);
 
@@ -422,6 +409,19 @@ FLAC__bool DecoderSession_process(DecoderSession *d)
 
 	if(d->abort_flag)
 		return false;
+
+	if(!d->test_only && d->fout == 0) {
+		if(0 == strcmp(d->outfilename, "-")) {
+			d->fout = grabbag__file_get_binary_stdout();
+		}
+		else {
+			if(0 == (d->fout = flac_fopen(d->outfilename, "wb"))) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: can't open output file %s: %s\n", d->inbasefilename, d->outfilename, strerror(errno));
+				d->abort_flag = true;
+				return false;
+			}
+		}
+	}
 
 	/* set channel mapping */
 	/* currently FLAC order matches SMPTE/WAVEFORMATEXTENSIBLE order, so no reordering is necessary; see encode.c */
