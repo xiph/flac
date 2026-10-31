@@ -286,6 +286,9 @@ void FLAC__ogg_decoder_aspect_set_seek_parameters(FLAC__OggDecoderAspect *aspect
 {
 	if(target_link == 0) {
 		aspect->is_seeking = false;
+		/* The end of the link may have been read while seeking. */
+		if(aspect->end_of_link)
+			aspect->need_serial_number = true;
 	}
 	else {
 		aspect->need_serial_number = false;
@@ -337,8 +340,8 @@ FLAC__OggDecoderAspectReadStatus FLAC__ogg_decoder_aspect_read_callback_wrapper(
 	 */
 	*bytes = 0;
 	while (*bytes < bytes_requested && !aspect->end_of_stream) {
-		if (aspect->end_of_link && aspect->have_working_page) {
-			/* we've now consumed all packets of this link and have checked that a new page follows it */
+		if (aspect->end_of_link && (aspect->have_working_page || aspect->is_seeking)) {
+			/* Stop at the end of the link while seeking, otherwise check that a new page follows it. */
 			if(*bytes > 0)
 				return FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK;
 			else
