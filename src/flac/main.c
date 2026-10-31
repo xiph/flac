@@ -1500,6 +1500,8 @@ int encode_file(const char *infilename, FLAC__bool is_first_file, FLAC__bool is_
 			input_format = FORMAT_AIFF;
 		else if(infilename_length >= 5 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-5), ".aiff"))
 			input_format = FORMAT_AIFF;
+		else if(infilename_length >= 5 && 0 == FLAC__STRCASECMP(infilename + (infilename_length - 5), ".aifc"))
+			input_format = FORMAT_AIFF_C;
 		else if(infilename_length >= 5 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-5), ".flac"))
 			input_format = FORMAT_FLAC;
 		else if(infilename_length >= 4 && 0 == FLAC__STRCASECMP(infilename+(infilename_length-4), ".oga"))
@@ -1877,6 +1879,13 @@ int decode_file(const char *infilename)
 		(strlen(outfilename) >= 5 && 0 == FLAC__STRCASECMP(outfilename+(strlen(outfilename)-5), ".aiff"))
 	)
 		output_format = FORMAT_AIFF;
+	else if(
+		option_values.force_aiff_c_none_format ||
+		option_values.force_aiff_c_sowt_format ||
+		(strlen(outfilename) >= 5 && 0 == FLAC__STRCASECMP(outfilename + (strlen(outfilename) - 5), ".aifc"))) {
+		output_format = FORMAT_AIFF_C;
+		output_subformat = SUBFORMAT_AIFF_C_NONE;
+	}
 	else if(
 		option_values.force_rf64_format ||
 		(strlen(outfilename) >= 5 && 0 == FLAC__STRCASECMP(outfilename+(strlen(outfilename)-5), ".rf64"))
