@@ -36,14 +36,17 @@
 /* we need this since some compilers (like MSVC) leave assert()s on release code (and we don't want to use their ASSERT) */
 #ifdef FUZZING_BUILD_MODE_UNSAFE_FOR_PRODUCTION
 #define FLAC__ASSERT(x) if(!(x)) __builtin_abort();
+#define FLAC__ASSERT_IF_NOT_FUZZING(x)
 #define FLAC__ASSERT_DECLARATION(x) x
 #else
 #ifndef NDEBUG
 #include <assert.h>
 #define FLAC__ASSERT(x) assert(x)
+#define FLAC__ASSERT_IF_NOT_FUZZING(x) assert(x)
 #define FLAC__ASSERT_DECLARATION(x) x
 #else
 #define FLAC__ASSERT(x)
+#define FLAC__ASSERT_IF_NOT_FUZZING(x)
 #define FLAC__ASSERT_DECLARATION(x)
 #endif
 #endif

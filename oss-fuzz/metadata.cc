@@ -40,6 +40,12 @@
 
 #define min(x,y) (x<y?x:y)
 
+#define THROW_AWAY_TRANSFER     \
+{                               \
+delete metadata_block_transfer; \
+metadata_block_transfer = 0;    \
+}
+
 static void run_tests_with_level_0_interface(char filename[]);
 static void run_tests_with_level_1_interface(char filename[], bool readonly, bool preservestats, const uint8_t *data, size_t size);
 static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use_padding, const uint8_t *data, size_t size);
@@ -61,7 +67,7 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 
 	command_length = data[0] >> 4;
 
-	if(0)//data[1] < 128) /* Use MSB as on/off */
+	if(data[1] < 128) /* Use MSB as on/off */
 		alloc_check_threshold = data[1];
 	else
 		alloc_check_threshold = INT32_MAX;
@@ -83,7 +89,9 @@ extern "C" int LLVMFuzzerTestOneInput(const uint8_t *data, size_t size)
 	}
 
 	run_tests_with_level_0_interface(filename);
+	alloc_check_counter = 0;
 	run_tests_with_level_1_interface(filename, init_bools[1], init_bools[2], data+CONFIG_LENGTH, command_length/2);
+	alloc_check_counter = 0;
 
 	/* Dump input to file, to start fresh for level 2 */
 	if(!init_bools[1]){
@@ -177,7 +185,7 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 	FLAC::Metadata::Prototype *metadata_block_transfer = nullptr;
 	FLAC::Metadata::Prototype *metadata_block_put = nullptr;
 
-	if(!chain.is_valid())
+	if(!chain.is_valid() || !iterator.is_valid())
 		return;
 
 	if(!chain.read(filename, ogg))
@@ -207,10 +215,14 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 							delete metadata_block_transfer;
 							metadata_block_transfer = nullptr;
 							metadata_block_transfer = FLAC::Metadata::clone(metadata_block_get);
+							if(!metadata_block_transfer->is_valid())
+								THROW_AWAY_TRANSFER
 						}
 					}
 					else {
 						metadata_block_transfer = FLAC::Metadata::clone(metadata_block_get);
+						if(!metadata_block_transfer->is_valid())
+							THROW_AWAY_TRANSFER
 					}
 				}
 				delete metadata_block_get;
@@ -293,14 +305,16 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 							num_tracks = cuesheet->get_num_tracks();
 							if(num_tracks > 0) {
 								FLAC::Metadata::CueSheet::Track track = cuesheet->get_track(min(data[i]>>4,num_tracks-1));
-								track.get_offset();
-								track.get_number();
-								track.get_isrc();
-								track.get_pre_emphasis();
-								num_indices = track.get_num_indices();
-								if(num_indices > 0) {
-									FLAC__StreamMetadata_CueSheet_Index index = track.get_index(min(data[i]>>4,num_indices-1));
-									(void)index;
+								if(track.is_valid()) {
+									track.get_offset();
+									track.get_number();
+									track.get_isrc();
+									track.get_pre_emphasis();
+									num_indices = track.get_num_indices();
+									if(num_indices > 0) {
+										FLAC__StreamMetadata_CueSheet_Index index = track.get_index(min(data[i]>>4,num_indices-1));
+										(void)index;
+									}
 								}
 							}
 						}
@@ -442,9 +456,11 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 							num_tracks = cuesheet->get_num_tracks();
 							if(num_tracks > 0) {
 								FLAC::Metadata::CueSheet::Track track = cuesheet->get_track(min(data[i]>>4,num_tracks-1));
-								if(track.get_num_indices() > 0)
-									cuesheet->delete_index(min(data[i]>>4,num_tracks-1),0);
-								cuesheet->delete_track(0);
+								if(track.is_valid()) {
+									if(track.get_num_indices() > 0)
+										cuesheet->delete_index(min(data[i]>>4,num_tracks-1),0);
+									cuesheet->delete_track(0);
+								}
 							}
 						}
 						break;
@@ -478,7 +494,8 @@ static void run_tests_with_level_2_interface(char filename[], bool ogg, bool use
 							FLAC::Metadata::VorbisComment * vorbiscomment = dynamic_cast<FLAC::Metadata::VorbisComment *>(metadata_block_transfer);
 							if(vorbiscomment == 0)
 								break;
-							vorbiscomment->resize_comments(data[i]>>4);
+							if(!vorbiscomment->resize_comments(data[i]>>4))
+								THROW_AWAY_TRANSFER
 						}
 						break;
 						case FLAC__METADATA_TYPE_CUESHEET:
