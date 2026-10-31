@@ -564,6 +564,7 @@ AC_CONFIG_FILES([ \
 	src/test_libFLAC/Makefile \
 	src/test_libFLAC++/Makefile \
 	src/test_seeking/Makefile \
+	src/test_seeking_large/Makefile \
 	src/test_streams/Makefile \
 	src/utils/Makefile \
 	src/utils/flacdiff/Makefile \

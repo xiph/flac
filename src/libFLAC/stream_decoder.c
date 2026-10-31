@@ -88,6 +88,7 @@ static FLAC__bool skip_id3v2_tag_(FLAC__StreamDecoder *decoder);
 static FLAC__bool frame_sync_(FLAC__StreamDecoder *decoder);
 static FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FLAC__bool do_full_decode);
 static FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder);
+static FLAC__bool read_frame_body_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FLAC__bool do_full_decode);
 static FLAC__bool read_subframe_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, FLAC__bool do_full_decode);
 static FLAC__bool read_subframe_constant_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, FLAC__bool do_full_decode);
 static FLAC__bool read_subframe_fixed_(FLAC__StreamDecoder *decoder, uint32_t channel, uint32_t bps, const uint32_t order, FLAC__bool do_full_decode);
@@ -104,6 +105,9 @@ static FLAC__OggDecoderAspectReadStatus read_callback_proxy_(const void *void_de
 static FLAC__StreamDecoderWriteStatus write_audio_frame_to_client_(FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[]);
 static void send_error_to_client_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status);
 static FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 stream_length, FLAC__uint64 target_sample);
+static FLAC__bool seek_to_absolute_sample_bisect_(FLAC__StreamDecoder *decoder, FLAC__uint64 stream_length, FLAC__uint64 target_sample, FLAC__bool headers_only);
+static FLAC__bool seek_frame_header_is_plausible_(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header);
+static FLAC__bool seek_read_frame_header_(FLAC__StreamDecoder *decoder, FLAC__FrameHeader *header, FLAC__uint64 *header_offset);
 #if FLAC__HAS_OGG
 static FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint64 stream_length, FLAC__uint64 target_sample);
 #endif
@@ -2365,12 +2369,27 @@ FLAC__bool frame_sync_(FLAC__StreamDecoder *decoder)
 			send_error_to_client_(decoder, FLAC__STREAM_DECODER_ERROR_STATUS_LOST_SYNC);
 			first = false;
 		}
+		/* quickly skip ahead to the next byte that could start a sync code */
+		if(!decoder->private_->cached && !FLAC__bitreader_skip_until_byte_ff(decoder->private_->input))
+			return false; /* read_callback_ sets the state for us */
 	}
 
 	return true;
 }
 
 FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FLAC__bool do_full_decode)
+{
+	*got_a_frame = false;
+
+	if(!read_frame_header_(decoder))
+		return false;
+	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means we didn't sync on a valid header */
+		return true;
+	return read_frame_body_(decoder, got_a_frame, do_full_decode);
+}
+
+/* reads the rest of a frame after read_frame_header_() returned a valid header */
+FLAC__bool read_frame_body_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FLAC__bool do_full_decode)
 {
 	uint32_t channel;
 	uint32_t i;
@@ -2380,16 +2399,6 @@ FLAC__bool read_frame_(FLAC__StreamDecoder *decoder, FLAC__bool *got_a_frame, FL
 	*got_a_frame = false;
 	decoder->private_->side_subframe_in_use = false;
 
-	/* init the CRC */
-	frame_crc = 0;
-	frame_crc = FLAC__CRC16_UPDATE(decoder->private_->header_warmup[0], frame_crc);
-	frame_crc = FLAC__CRC16_UPDATE(decoder->private_->header_warmup[1], frame_crc);
-	FLAC__bitreader_reset_read_crc16(decoder->private_->input, (FLAC__uint16)frame_crc);
-
-	if(!read_frame_header_(decoder))
-		return false;
-	if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means we didn't sync on a valid header */
-		return true;
 	if(!allocate_output_(decoder, decoder->private_->frame.header.blocksize, decoder->private_->frame.header.channels, decoder->private_->frame.header.bits_per_sample))
 		return false;
 	for(channel = 0; channel < decoder->private_->frame.header.channels; channel++) {
@@ -2628,9 +2637,16 @@ FLAC__bool read_frame_header_(FLAC__StreamDecoder *decoder)
 	uint32_t i, blocksize_hint = 0, sample_rate_hint = 0;
 	FLAC__byte crc8, raw_header[16]; /* MAGIC NUMBER based on the maximum frame header size, including CRC */
 	uint32_t raw_header_len;
+	uint32_t frame_crc;
 	FLAC__bool is_unparseable = false;
 
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(decoder->private_->input));
+
+	/* init the frame CRC, which covers the header too */
+	frame_crc = 0;
+	frame_crc = FLAC__CRC16_UPDATE(decoder->private_->header_warmup[0], frame_crc);
+	frame_crc = FLAC__CRC16_UPDATE(decoder->private_->header_warmup[1], frame_crc);
+	FLAC__bitreader_reset_read_crc16(decoder->private_->input, (FLAC__uint16)frame_crc);
 
 	/* init the raw header with the saved bits from synchronization */
 	raw_header[0] = decoder->private_->header_warmup[0];
@@ -3646,11 +3662,166 @@ void send_error_to_client_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecod
 
 FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 stream_length, FLAC__uint64 target_sample)
 {
+	/* First search for the target frame by reading frame headers only, which
+	 * is a lot faster than decoding every frame visited.  If that does not
+	 * work out (e.g. for corrupt streams, or audio data that happens to
+	 * contain sequences of valid looking frame headers), start over and
+	 * decode every frame visited, which uses the frame CRCs to make sure
+	 * only valid frames are considered.
+	 */
+	if(seek_to_absolute_sample_bisect_(decoder, stream_length, target_sample, /*headers_only=*/true))
+		return true;
+	if(decoder->protected_->state != FLAC__STREAM_DECODER_SEEK_ERROR)
+		return false;
+	if(!FLAC__stream_decoder_flush(decoder)) {
+		/* above call sets the state for us */
+		return false;
+	}
+	return seek_to_absolute_sample_bisect_(decoder, stream_length, target_sample, /*headers_only=*/false);
+}
+
+/* Checks a frame header found while seeking against the STREAMINFO block.
+ * Valid frames always pass, so this cheaply rejects most bogus headers that
+ * occur in audio data.  Rejecting a valid frame would not lead to wrong
+ * results, it would only make seeking fall back to decoding frames.
+ */
+FLAC__bool seek_frame_header_is_plausible_(const FLAC__StreamDecoder *decoder, const FLAC__FrameHeader *header)
+{
+	const FLAC__StreamMetadata_StreamInfo *stream_info = &decoder->private_->stream_info.data.stream_info;
+	const FLAC__uint64 end_sample = header->number.sample_number + header->blocksize;
+
+	FLAC__ASSERT(header->number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
+
+	if(!decoder->private_->has_stream_info)
+		return true;
+	if(header->channels != stream_info->channels ||
+	   header->bits_per_sample != stream_info->bits_per_sample ||
+	   header->sample_rate != stream_info->sample_rate)
+		return false;
+	if(header->blocksize > stream_info->max_blocksize)
+		return false;
+	if(stream_info->total_samples > 0) {
+		if(end_sample > stream_info->total_samples)
+			return false;
+		/* only the last frame may be shorter than min_blocksize */
+		if(header->blocksize < stream_info->min_blocksize && end_sample != stream_info->total_samples)
+			return false;
+	}
+	return true;
+}
+
+/* Reads frame headers from the current position on without decoding the
+ * frames, until it finds a frame header that can be trusted.
+ *
+ * A frame header has an 8-bit CRC only, so random audio data looks like a
+ * valid frame header far too often to rely on that alone.  Without decoding
+ * the frame, its 16-bit CRC cannot be checked either.  Instead, a frame
+ * header is trusted if the next frame header found in the stream starts
+ * exactly where it ends, i.e. two consecutive frame headers agree.
+ *
+ * A frame header claiming to contain the target sample is not trusted this
+ * way, the frame is decoded right away instead: decoding checks the frame
+ * CRC, and it delivers the target sample to the client.  If the target is
+ * close ahead of a trusted frame, this walks on to it through the headers.
+ *
+ * Returns false if no frame header could be found.  Otherwise, either the
+ * target frame was decoded (decoder->private_->is_seeking is false then),
+ * or header and header_offset describe a frame to narrow the search with.
+ */
+FLAC__bool seek_read_frame_header_(FLAC__StreamDecoder *decoder, FLAC__FrameHeader *header, FLAC__uint64 *header_offset)
+{
+	/* Walking through frame headers is cheap, so walk to the target instead
+	 * of seeking once a trusted frame is less than this many of its blocks
+	 * away from it.  Short frames (e.g. silence) throw off the estimates of
+	 * the search, so also keep walking for a minimum number of bytes. */
+	static const uint32_t LINEAR_SEARCH_WITHIN_FRAMES = 4;
+	static const FLAC__uint64 LINEAR_SEARCH_MIN_BYTES = 65536;
+
+	const FLAC__FrameHeader *this_header = &decoder->private_->frame.header;
+	const FLAC__uint64 target_sample = decoder->private_->target_sample;
+	const FLAC__uint64 total_samples = FLAC__stream_decoder_get_total_samples(decoder);
+	FLAC__uint64 first_offset = 0;
+	FLAC__bool got_candidate = false, got_first_offset = false, got_a_frame;
+
+	while(1) {
+		FLAC__uint64 this_offset;
+
+		/* bogus frame headers must not make the read callback abort the search */
+		decoder->private_->unparseable_frame_count = 0;
+
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC && !frame_sync_(decoder))
+			break; /* above function sets the state for us */
+		if(!read_frame_header_(decoder))
+			break; /* above function sets the state for us */
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC) /* means we didn't sync on a valid header */
+			continue;
+
+		/* last_seen_framesync is the position right after the two sync code bytes */
+		if(decoder->private_->last_seen_framesync < 2)
+			return false;
+		this_offset = decoder->private_->last_seen_framesync - 2;
+		if(!got_first_offset) {
+			first_offset = this_offset;
+			got_first_offset = true;
+		}
+
+		if(!seek_frame_header_is_plausible_(decoder, this_header)) {
+			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+			continue;
+		}
+
+		if(this_header->number.sample_number <= target_sample && target_sample < this_header->number.sample_number + this_header->blocksize) {
+			/* this should be the target frame, decode it to make sure */
+			if(!read_frame_body_(decoder, &got_a_frame, /*do_full_decode=*/true))
+				return false; /* above function sets the state for us */
+			if(got_a_frame)
+				return true;
+			/* not a valid frame after all; the decoder rewound to just
+			 * after its sync code, so search on from there */
+			got_candidate = false;
+			continue;
+		}
+		decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_FRAME_SYNC;
+
+		if(got_candidate && this_header->number.sample_number == header->number.sample_number + header->blocksize) {
+			/* two consecutive frame headers agree, so both are valid */
+			if(target_sample < header->number.sample_number)
+				return true;
+			/* the target is past this frame too, see whether it is close enough to walk there */
+			*header = *this_header;
+			*header_offset = this_offset;
+			if(target_sample - this_header->number.sample_number >= (FLAC__uint64)LINEAR_SEARCH_WITHIN_FRAMES * this_header->blocksize &&
+			   this_offset - first_offset >= LINEAR_SEARCH_MIN_BYTES)
+				return true;
+			continue;
+		}
+
+		*header = *this_header;
+		*header_offset = this_offset;
+		got_candidate = true;
+	}
+
+	/* Hit the end of the stream.  The last frame has no next frame header to
+	 * agree with, so accept the last candidate if it ends exactly where the
+	 * stream does, or if the stream length is unknown; the search needs a
+	 * frame near the end then to replace its estimated upper bound.  If the
+	 * candidate is bogus anyway, the search fails and falls back to decoding
+	 * frames. */
+	return
+		decoder->protected_->state == FLAC__STREAM_DECODER_END_OF_STREAM &&
+		got_candidate &&
+		(total_samples == 0 || header->number.sample_number + header->blocksize == total_samples);
+}
+
+FLAC__bool seek_to_absolute_sample_bisect_(FLAC__StreamDecoder *decoder, FLAC__uint64 stream_length, FLAC__uint64 target_sample, FLAC__bool headers_only)
+{
 	FLAC__uint64 first_frame_offset = decoder->private_->first_frame_offset, lower_bound, upper_bound, lower_bound_sample, upper_bound_sample, this_frame_sample;
 	FLAC__int64 pos = -1;
 	int i;
 	uint32_t approx_bytes_per_frame;
-	FLAC__bool first_seek = true, seek_from_lower_bound = false;
+	FLAC__bool first_seek = true, seek_from_lower_bound = false, got_frame;
+	FLAC__FrameHeader header;
+	FLAC__uint64 header_offset = 0;
 	const FLAC__uint64 total_samples = FLAC__stream_decoder_get_total_samples(decoder);
 	const uint32_t min_blocksize = decoder->private_->stream_info.data.stream_info.min_blocksize;
 	const uint32_t max_blocksize = decoder->private_->stream_info.data.stream_info.max_blocksize;
@@ -3832,7 +4003,14 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		 * FLAC__stream_decoder_process_single() to return false.
 		 */
 		decoder->private_->unparseable_frame_count = 0;
-		if(!FLAC__stream_decoder_process_single(decoder) || decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED || 0 == decoder->private_->samples_decoded) {
+		if(headers_only) {
+			/* flushing does not clear a byte cached before the seek */
+			decoder->private_->cached = false;
+			got_frame = seek_read_frame_header_(decoder, &header, &header_offset);
+		}
+		else
+			got_frame = FLAC__stream_decoder_process_single(decoder) && 0 != decoder->private_->samples_decoded;
+		if(!got_frame || decoder->protected_->state == FLAC__STREAM_DECODER_ABORTED) {
 			/* No frame could be decoded */
 			if(decoder->protected_->state != FLAC__STREAM_DECODER_ABORTED && decoder->private_->eof_callback(decoder, decoder->private_->client_data) && !seek_from_lower_bound){
 				/* decoder has hit end of stream while processing corrupt
@@ -3854,6 +4032,58 @@ FLAC__bool seek_to_absolute_sample_(FLAC__StreamDecoder *decoder, FLAC__uint64 s
 		/* actually, we could have got_a_frame if our decoder is at FLAC__STREAM_DECODER_END_OF_STREAM so we need to check for that also */
 		if(!decoder->private_->is_seeking)
 			break;
+
+		if(headers_only) {
+			/* Unlike after decoding a frame, the bounds are set to the
+			 * start of the frame found.  For a frame before the target,
+			 * seek_read_frame_header_() returns the later frame of a pair
+			 * of agreeing frame headers, so the lower bound still moves. */
+			this_frame_sample = header.number.sample_number;
+
+			/* Not finding anything before the upper bound means moving back
+			 * further, also on the first seek: the first_seek exception below
+			 * is about estimated upper bound samples, the upper bound itself
+			 * (if not the stream length) is always a known frame start.  This
+			 * also keeps the bounds getting closer, so the search ends. */
+			if(header_offset >= upper_bound || (this_frame_sample >= upper_bound_sample && !first_seek)) {
+				if (pos == (FLAC__int64)lower_bound) {
+					/* can't move back any more than the first frame, something is fatally wrong */
+					decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+					return false;
+				}
+				/* our last move backwards wasn't big enough, try again */
+				approx_bytes_per_frame = approx_bytes_per_frame? approx_bytes_per_frame * 2 : 16;
+				continue;
+			}
+			/* allow one seek over upper bound, so we can get a correct upper_bound_sample for streams with unknown total_samples */
+			first_seek = false;
+
+			/* make sure we are not seeking in corrupted stream */
+			if (this_frame_sample < lower_bound_sample || header_offset < (FLAC__uint64)pos) {
+				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+				return false;
+			}
+
+			/* we need to narrow the search */
+			if(target_sample < this_frame_sample) {
+				upper_bound_sample = this_frame_sample;
+				upper_bound = header_offset;
+				approx_bytes_per_frame = (uint32_t)(2 * (upper_bound - pos) / 3 + 16);
+			}
+			else {
+				/* a frame before the target is always past the lower bound,
+				 * except for the last frame when seeking past the end of a
+				 * stream of unknown length; the search must end then */
+				if(header_offset <= lower_bound) {
+					decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
+					return false;
+				}
+				lower_bound_sample = this_frame_sample;
+				lower_bound = header_offset;
+				approx_bytes_per_frame = (uint32_t)(2 * (lower_bound - pos) / 3 + 16);
+			}
+			continue;
+		}
 
 		FLAC__ASSERT(decoder->private_->last_frame.header.number_type == FLAC__FRAME_NUMBER_TYPE_SAMPLE_NUMBER);
 		this_frame_sample = decoder->private_->last_frame.header.number.sample_number;
