@@ -1755,7 +1755,16 @@ FLAC_API FLAC__bool FLAC__stream_decoder_skip_single_link(FLAC__StreamDecoder *d
 
 /** Flush the input and seek to an absolute sample.
  *  Decoding will resume at the given sample.  Note that because of
- *  this, the next write callback may contain a partial block.  The
+ *  this, the next write callback may contain a partial block.  That
+ *  write callback happens while this function is still running: the
+ *  block containing \a sample is decoded during the seek, and the
+ *  samples from \a sample to the end of that block are handed to the
+ *  write callback before this function returns.  Decoding then
+ *  continues with the block after it, so when \a sample lies in the
+ *  last block of the stream there is nothing left to decode and the
+ *  next call to FLAC__stream_decoder_process_single() returns \c true
+ *  without another write callback, with the decoder state set to
+ *  \c FLAC__STREAM_DECODER_END_OF_STREAM.  The
  *  client must support seeking the input or this function will fail
  *  and return \c false.  Furthermore, if the decoder state is
  *  \c FLAC__STREAM_DECODER_SEEK_ERROR, then the decoder must be flushed
