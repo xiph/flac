@@ -154,6 +154,7 @@ static struct share__option long_options_[] = {
 	{ "force-extensible-wave-format",share__no_argument,0, 0 },
 	{ "force-aiff-c-none-format"  , share__no_argument, 0, 0 },
 	{ "force-aiff-c-sowt-format"  , share__no_argument, 0, 0 },
+	{ "force-aiff-c-format"       , share__required_argument, 0, 0 },
 	{ "lax"                       , share__no_argument, 0, 0 },
 	{ "replay-gain"               , share__no_argument, 0, 0 },
 	{ "ignore-chunk-sizes"        , share__no_argument, 0, 0 },
@@ -257,6 +258,7 @@ static struct {
 	FLAC__bool force_extensible_wave_format;
 	FLAC__bool force_aiff_c_none_format;
 	FLAC__bool force_aiff_c_sowt_format;
+	FileSubFormat force_aiff_c_format;
 	FLAC__bool delete_input;
 	FLAC__bool preserve_modtime;
 	FLAC__bool keep_foreign_metadata;
@@ -443,15 +445,16 @@ int do_it(void)
 			if(!FLAC__format_sample_rate_is_valid(option_values.format_sample_rate))
 				return usage_error("ERROR: invalid sample rate '%u', must be > 0 and <= %u\n", option_values.format_sample_rate, FLAC__MAX_SAMPLE_RATE);
 		}
-		if((option_values.force_raw_format?1:0) +
-		   (option_values.force_aiff_format?1:0) +
-		   (option_values.force_rf64_format?1:0) +
-		   (option_values.force_wave64_format?1:0) +
-		   (option_values.force_legacy_wave_format?1:0) +
-		   (option_values.force_extensible_wave_format?1:0) +
-		   (option_values.force_aiff_c_none_format?1:0) +
-		   (option_values.force_aiff_c_sowt_format?1:0)
-		    > 1)
+		if((option_values.force_raw_format ? 1 : 0) +
+			   (option_values.force_aiff_format ? 1 : 0) +
+			   (option_values.force_rf64_format ? 1 : 0) +
+			   (option_values.force_wave64_format ? 1 : 0) +
+			   (option_values.force_legacy_wave_format ? 1 : 0) +
+			   (option_values.force_extensible_wave_format ? 1 : 0) +
+			   (option_values.force_aiff_c_none_format ? 1 : 0) +
+			   (option_values.force_aiff_c_sowt_format ? 1 : 0) +
+			   ((option_values.force_aiff_c_format != SUBFORMAT_UNSPECIFIED) ? 1 : 0) >
+		   1)
 			return usage_error("ERROR: only one of force format options allowed\n");
 		if(option_values.mode_decode) {
 			if(!option_values.force_raw_format) {
@@ -623,6 +626,7 @@ FLAC__bool init_options(void)
 	option_values.force_extensible_wave_format = false;
 	option_values.force_aiff_c_none_format = false;
 	option_values.force_aiff_c_sowt_format = false;
+	option_values.force_aiff_c_format = SUBFORMAT_UNSPECIFIED;
 	option_values.delete_input = false;
 	option_values.preserve_modtime = true;
 	option_values.keep_foreign_metadata = false;
@@ -838,6 +842,36 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "force-aiff-c-sowt-format")) {
 			option_values.force_aiff_c_sowt_format = true;
+		}
+		else if(0 == strcmp(long_option, "force-aiff-c-format")) {
+			FLAC__ASSERT(0 != option_argument);
+			if(0 == strcmp(option_argument, "none")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_NONE;
+			}
+			else if(0 == strcmp(option_argument, "raw")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_RAW;
+			}
+			else if(0 == strcmp(option_argument, "sowt")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_SOWT;
+			}
+			else if(0 == strcmp(option_argument, "twos")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_TWOS;
+			}
+			else if(0 == strcmp(option_argument, "in24")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_IN24;
+			}
+			else if(0 == strcmp(option_argument, "in32")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_IN32;
+			}
+			else if(0 == strcmp(option_argument, "42ni")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_42NI;
+			}
+			else if(0 == strcmp(option_argument, "23ni")) {
+				option_values.force_aiff_c_format = SUBFORMAT_AIFF_C_23NI;
+			}
+			else {
+				return usage_error("ERROR: argument to --force-aiff-c-format must be \"none\", \"raw\", \"sowt\", \"twos\", \"in24\", \"42ni\", \"in32\", or \"23ni\"\n");
+			}
 		}
 		else if(0 == strcmp(long_option, "lax")) {
 			option_values.lax = true;
@@ -1409,6 +1443,7 @@ void show_help(void)
 	printf("      --force-extensible-wave-format Decode to extensible wave format\n");
 	printf("      --force-aiff-c-none-format     Decode to AIFF-C NONE format\n");
 	printf("      --force-aiff-c-sowt-format     Decode to AIFF-C sowt format\n");
+	printf("      --force-aiff-c-format=FORMAT   Decode to AIFF-C format (none,raw,sowt,twos,in24,42ni,in32,23ni)\n");
 	printf("      --force-raw-format             Treat input or output as raw samples\n");
 	printf("raw format options:\n");
 	printf("      --sign={signed|unsigned}       Sign of samples (input/output) \n");
@@ -1922,16 +1957,43 @@ int decode_file(const char *infilename)
 		output_format = FORMAT_AIFF_C;
 		output_subformat = SUBFORMAT_AIFF_C_SOWT;
 	}
+	else if(option_values.force_aiff_c_format != SUBFORMAT_UNSPECIFIED) {
+		output_format = FORMAT_AIFF_C;
+		output_subformat = option_values.force_aiff_c_format;
+	}
 	else if(foreign_metadata != NULL) {
 		if(foreign_metadata->is_wavefmtex)
 			output_subformat = SUBFORMAT_WAVE_EXTENSIBLE;
 		else if(output_format == FORMAT_WAVE)
 			output_subformat = SUBFORMAT_WAVE_PCM;
 		else if(foreign_metadata->is_aifc) {
-			if(foreign_metadata->is_sowt)
-				output_subformat = SUBFORMAT_AIFF_C_SOWT;
-			else
+			if(memcmp(foreign_metadata->aifc_comm_compression_type, "NONE", 4) == 0) {
 				output_subformat = SUBFORMAT_AIFF_C_NONE;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "raw ", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_RAW;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "sowt", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_SOWT;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "twos", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_TWOS;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "in24", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_IN24;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "in32", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_IN32;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "42ni", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_42NI;
+			}
+			else if(memcmp(foreign_metadata->aifc_comm_compression_type, "23ni", 4) == 0) {
+				output_subformat = SUBFORMAT_AIFF_C_23NI;
+			}
+			else {
+				output_subformat = SUBFORMAT_AIFF_C_NONE;
+			}
 		}
 	}
 

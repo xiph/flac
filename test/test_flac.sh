@@ -266,7 +266,7 @@ rt_test_aiff ()
 	rm -f rt.flac rt.aiff
 }
 
-rt_test_aifc ()
+rt_test_aifc_none ()
 {
 	f="$1"
 	extra="$2"
@@ -280,7 +280,7 @@ rt_test_aifc ()
 	rm -f rt.flac rt.aifc
 }
 
-rt_test_aifc_le ()
+rt_test_aifc_sowt ()
 {
 	f="$1"
 	extra="$2"
@@ -288,6 +288,21 @@ rt_test_aifc_le ()
 	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
 	echo $ECHO_N "decode... " $ECHO_C
 	run_flac --force --decode --channel-map=none -o rt.aifc --force-aiff-c-sowt-format $extra rt.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f rt.aifc || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f rt.flac rt.aifc
+}
+
+rt_test_aifc_format ()
+{
+	f="$1"
+	subformat="$2"
+	extra="$3"
+	echo $ECHO_N "round-trip test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o rt.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none -o rt.aifc --force-aiff-c-format=$subformat $extra rt.flac || die "ERROR"
 	echo $ECHO_N "compare... " $ECHO_C
 	cmp $f rt.aifc || die "ERROR: file mismatch"
 	echo "OK"
@@ -357,12 +372,33 @@ done
 for f in rt-*.aiff ; do
 	rt_test_aiff $f
 done
-for f in rt-*[0-9].aifc ; do
-	rt_test_aifc $f
+for f in rt-*-none.aifc ; do
+	rt_test_aifc_none $f
+	rt_test_aifc_format $f "none"
 done
-for f in rt-*le.aifc ; do
-	rt_test_aifc_le $f
+for f in rt-*-raw.aifc ; do
+	rt_test_aifc_format $f "raw"
 done
+for f in rt-*-sowt.aifc ; do
+	rt_test_aifc_sowt $f
+	rt_test_aifc_format $f "sowt"
+done
+for f in rt-*-twos.aifc ; do
+	rt_test_aifc_format $f "twos"
+done
+for f in rt-*-in24.aifc ; do
+	rt_test_aifc_format $f "in24"
+done
+for f in rt-*-in32.aifc ; do
+	rt_test_aifc_format $f "in32"
+done
+for f in rt-*-42ni.aifc ; do
+	rt_test_aifc_format $f "42ni"
+done
+for f in rt-*-23ni.aifc ; do
+	rt_test_aifc_format $f "23ni"
+done
+
 for f in rt-*.wav ; do
 	rt_test_flac $f
 done

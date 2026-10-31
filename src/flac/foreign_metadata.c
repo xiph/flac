@@ -551,7 +551,7 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 			/* Initialize bools */
 			fm->is_wavefmtex = 0;
 			fm->is_aifc = 0;
-			fm->is_sowt = 0;
+			memset(fm->aifc_comm_compression_type, 0, sizeof(fm->aifc_comm_compression_type));
 			fm->is_rf64 = 0 == memcmp(buffer, "RF64", 4);
 
 			if(fm->type == FOREIGN_BLOCK_TYPE__RIFF && (0 == memcmp(buffer, "RIFF", 4) || fm->is_rf64))
@@ -653,7 +653,7 @@ static FLAC__bool read_from_flac_(foreign_metadata_t *fm, FILE *f, FLAC__Metadat
 						if(error) *error = "read error (020)";
 						return false;
 					}
-					fm->is_sowt = 0 == memcmp(buffer+26, "sowt", 2);
+					memcpy(fm->aifc_comm_compression_type, buffer + 26, sizeof(fm->aifc_comm_compression_type));
 					fm->aifc_comm_length = length;
 				}
 			}
