@@ -129,7 +129,8 @@ int get_utf8_argv(int *argc, char ***argv)
 	wenv = _wenviron;
 #else // !FLAC_WINDOWS_APP
 	if ((handle = LoadLibraryW(L"msvcrt.dll")) == NULL) return 1;
-	if ((wgetmainargs = (wgetmainargs_t)GetProcAddress(handle, "__wgetmainargs")) == NULL) {
+	/* GetProcAddress is marked FARPROC, will yield warning unless casted via void * */
+	if ((wgetmainargs = (wgetmainargs_t)(void *)GetProcAddress(handle, "__wgetmainargs")) == NULL) {
 		FreeLibrary(handle);
 		return 1;
 	}
