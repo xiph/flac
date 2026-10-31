@@ -342,6 +342,52 @@ rt_test_ogg_flac ()
 	rm -f rt.wav rt.oga rt2.oga
 }
 
+bps_test ()
+{
+	f="$1"
+	ext="$2"
+	extra="$3"
+	echo $ECHO_N "bps test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o bps.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --force --decode --channel-map=none -o "bps$ext" $extra bps.flac || die "ERROR"
+	# Note: Comparison of decoded files doesn't work since they will likely differ due to WAVE_FORMAT_EXTENSIBLE,
+	# only with foreign metadata can they be decoded back identically.
+	# Instead we encode again to .flac and compare the encoded files.
+	echo $ECHO_N "encode again... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o bps2.flac $extra "bps$ext"|| die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp bps.flac bps2.flac || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f bps.flac bps2.flac "bps$ext"
+}
+
+bps_keep_foreign_metadata_test ()
+{
+	f="$1"
+	ext="$2"
+	extra="$3"
+	echo $ECHO_N "bps keep foreign metadata test ($f) encode... " $ECHO_C
+	run_flac --keep-foreign-metadata --force --verify --channel-map=none --no-padding --lax -o bps.flac $extra $f || die "ERROR"
+	echo $ECHO_N "decode... " $ECHO_C
+	run_flac --keep-foreign-metadata --force --decode --channel-map=none -o "bps$ext" $extra bps.flac || die "ERROR"
+	echo $ECHO_N "compare... " $ECHO_C
+	cmp $f "bps$ext" || die "ERROR: file mismatch"
+	echo "OK"
+	rm -f bps.flac "bps$ext"
+}
+
+bps_expected_fail_test ()
+{
+	f="$1"
+	ext="$2"
+	extra="$3"
+	echo $ECHO_N "bps expected fail test ($f) encode... " $ECHO_C
+	run_flac --force --verify --channel-map=none --no-padding --lax -o bps.flac $extra $f && die "ERROR: expected to fail but didn't"
+	echo "OK"
+	rm -f bps.flac "bps$ext"
+}
+
 for f in rt-*.raw ; do
 	rt_test_raw $f
 done
@@ -371,6 +417,33 @@ if [ $has_ogg = yes ] ; then
 		rt_test_ogg_flac $f
 	done
 fi
+
+# Test with non-standard bits per sample
+for f in bps-*.wav ; do
+	bps_test $f ".wav"
+	bps_keep_foreign_metadata_test $f ".wav"
+done
+for f in bps-*.w64 ; do
+	bps_test $f ".w64"
+	# WAVE64 differs from WAV how it handles WAVE_FORMAT_EXTENSIBLE
+	#bps_keep_foreign_metadata_test $f ".w64"
+done
+for f in bps-*.rf64 ; do
+	bps_test $f ".rf64"
+	# RF64 differs from WAV how it handles WAVE_FORMAT_EXTENSIBLE
+	#bps_keep_foreign_metadata_test $f ".rf64"
+done
+
+# Test with unsupported bits per sample
+for f in bpsfail-*.wav ; do
+	bps_expected_fail_test $f ".wav"
+done
+for f in bpsfail-*.w64 ; do
+	bps_expected_fail_test $f ".w64"
+done
+for f in bpsfail-*.rf64 ; do
+	bps_expected_fail_test $f ".rf64"
+done
 
 ############################################################################
 # test --skip and --until

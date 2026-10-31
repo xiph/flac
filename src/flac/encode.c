@@ -370,6 +370,11 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 				return false;
 			bps = (uint32_t)x;
 
+			if((bps == 0) || (bps > 32)) {
+				flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVE file bits-per-sample=%u\n", e->inbasefilename, bps);
+				return false;
+			}
+
 			e->info.is_unsigned_samples = (bps <= 8);
 
 			if(wFormatTag == 1) {
@@ -409,9 +414,20 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with cbSize %u\n", e->inbasefilename, (uint32_t)x);
 					return false;
 				}
+				/* bps is supposed to be in whole number of bytes, while valid-bps provides the real value */
+				if((bps % 8) != 0) {
+					flac__utils_printf(stderr, 1, "%s: WARNING: WAVE file bits-per-sample=%u, expected %u\n", e->inbasefilename, bps, ((bps + 7) / 8) * 8);
+					if(e->treat_warnings_as_errors) {
+						return false;
+					}
+				}
 				/* valid bps */
 				if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
 					return false;
+				if(x == 0) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with wValidBitsPerSample (%u)\n", e->inbasefilename, (uint32_t)x, bps);
+					return false;
+				}
 				if((uint32_t)x > bps) {
 					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with wValidBitsPerSample (%u) > wBitsPerSample (%u)\n", e->inbasefilename, (uint32_t)x, bps);
 					return false;
@@ -426,17 +442,49 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 					if(e->treat_warnings_as_errors)
 						return false;
 				}
-				/* first part of GUID */
-				if(!read_uint16(e->fin, /*big_endian=*/false, &x, e->inbasefilename))
-					return false;
-				if(x != 1) {
-					flac__utils_printf(stderr, 1, "%s: ERROR: unsupported WAVEFORMATEXTENSIBLE chunk with non-PCM format %u\n", e->inbasefilename, (uint32_t)x);
-					return false;
+
+				{
+					/* read entire GUID */
+					uint32_t guid_part1 = 0;
+					uint16_t guid_part2 = 0;
+					uint16_t guid_part3 = 0;
+					uint8_t guid_part4[8] = { 0, 0, 0, 0, 0, 0, 0, 0 };
+					if(!read_uint32(e->fin, /*big_endian=*/false, &guid_part1, e->inbasefilename)) {
+						return false;
+					}
+					if(!read_uint16(e->fin, /*big_endian=*/false, &guid_part2, e->inbasefilename)) {
+						return false;
+					}
+					if(!read_uint16(e->fin, /*big_endian=*/false, &guid_part3, e->inbasefilename)) {
+						return false;
+					}
+					if(!read_bytes(e->fin, &guid_part4[0], sizeof(guid_part4), /*eof_ok=*/false, e->inbasefilename)) {
+						return false;
+					}
+					//  { 0x1, 0x0, 0x10, {0x80,0x00,0x00,0xaa,0x00,0x38,0x9b,0x71} }
+					if((guid_part1 != 0x1) || (guid_part2 != 0x0) || (guid_part3 != 0x10) ||
+					   (memcmp(&guid_part4[0], "\x80\x00\x00\xaa\x00\x38\x9b\x71", 8) != 0)) {
+						flac__utils_printf(stderr, 1, "%s: ERROR: unsupported WAVEFORMATEXTENSIBLE chunk with GUID {%.8x-%.4x-%.4x-%.2x%.2x-%.2x%.2x%.2x%.2x%.2x%.2x}\n",
+										   e->inbasefilename,
+										   guid_part1,
+										   guid_part2,
+										   guid_part3,
+										   guid_part4[0],
+										   guid_part4[1],
+										   guid_part4[2],
+										   guid_part4[3],
+										   guid_part4[4],
+										   guid_part4[5],
+										   guid_part4[6],
+										   guid_part4[7]);
+						return false;
+					}
 				}
-				data_bytes -= 26;
+
+				data_bytes -= 40;
 			}
 
-			e->info.bytes_per_wide_sample = channels * (bps / 8);
+			e->info.bytes_per_wide_sample = channels * ((bps + 7) / 8);
 
 			/* skip any extra data in the fmt chunk */
 			if(!fskip_ahead(e->fin, data_bytes)) {
@@ -953,16 +1001,28 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 
 		switch(options.format) {
 			case FORMAT_RAW:
-				if(infilesize < 0)
+				if(infilesize < 0) {
 					total_samples_in_input = 0;
-				else
+				}
+				else {
+					if(encoder_session.info.bytes_per_wide_sample == 0) {
+						flac__utils_printf(stderr, 1, "%s: ERROR: unsupported bytes-per-wide-sample %u\n", encoder_session.inbasefilename, encoder_session.info.bytes_per_wide_sample);
+						return EncoderSession_finish_error(&encoder_session);
+					}
 					total_samples_in_input = (FLAC__uint64)infilesize / encoder_session.info.bytes_per_wide_sample;
+				}
 				break;
+
 			case FORMAT_WAVE:
 			case FORMAT_WAVE64:
 			case FORMAT_RF64:
 			case FORMAT_AIFF:
 			case FORMAT_AIFF_C:
+				if(encoder_session.info.bytes_per_wide_sample == 0) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: unsupported bytes-per-wide-sample %u\n", encoder_session.inbasefilename, encoder_session.info.bytes_per_wide_sample);
+					return EncoderSession_finish_error(&encoder_session);
+				}
+
 				/* truncation in the division removes any padding byte that was counted in encoder_session.fmt.iff.data_bytes */
 				total_samples_in_input = encoder_session.fmt.iff.data_bytes / encoder_session.info.bytes_per_wide_sample;
 
@@ -985,10 +1045,12 @@ int flac__encode_file(FILE *infile, FLAC__off_t infilesize, const char *infilena
 					}
 				}
 				break;
+
 			case FORMAT_FLAC:
 			case FORMAT_OGGFLAC:
 				total_samples_in_input = encoder_session.fmt.flac.client_data.metadata_blocks[0]->data.stream_info.total_samples;
 				break;
+
 			default:
 				FLAC__ASSERT(0);
 				/* double protection */
