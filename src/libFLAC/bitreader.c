@@ -621,7 +621,8 @@ FLAC__bool FLAC__bitreader_skip_byte_block_aligned_no_crc(FLAC__BitReader *br, u
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
 
 	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
-		if(br->read_limit < nvals*8){
+		if(nvals > UINT32_MAX / 8 ||
+		   br->read_limit < nvals*8){
 			br->read_limit = -1;
 			return false;
 		}
@@ -666,7 +667,8 @@ FLAC__bool FLAC__bitreader_read_byte_block_aligned_no_crc(FLAC__BitReader *br, F
 	FLAC__ASSERT(FLAC__bitreader_is_consumed_byte_aligned(br));
 
 	if(br->read_limit_set && br->read_limit < (uint32_t)-1){
-		if(br->read_limit < nvals*8){
+		if(nvals > UINT32_MAX / 8 ||
+		   br->read_limit < nvals*8){
 			br->read_limit = -1;
 			return false;
 		}
