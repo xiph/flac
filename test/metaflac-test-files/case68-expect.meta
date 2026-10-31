@@ -1,0 +1,92 @@
+METADATA block #0
+  type: 0 (STREAMINFO)
+  is last: false
+  length: XXX
+  sample_rate: 44100 Hz
+  channels: 1
+  bits-per-sample: 8
+  total samples: 1
+  MD5 signature: 8d39dd7eef115ea6975446ef4082951f
+METADATA block #1
+  type: 126 (UNKNOWN)
+  is last: false
+  length: XXX
+  data contents:
+METADATA block #2
+  type: 5 (CUESHEET)
+  is last: false
+  length: XXX
+  media catalog number: 
+  lead-in: 88200
+  is CD: true
+  number of tracks: 2
+    track[0]
+      offset: 0
+      number: 1
+      ISRC: 
+      type: AUDIO
+      pre-emphasis: false
+      number of index points: 1
+        index[0]
+          offset: 0
+          number: 1
+    track[1]
+      offset: 1
+      number: 170 (LEAD-OUT)
+METADATA block #3
+  type: 2 (APPLICATION)
+  is last: false
+  length: XXX
+  application ID: 61626364
+  data contents:
+calfflacMETADATA block #4
+  type: 3 (SEEKTABLE)
+  is last: false
+  length: XXX
+  seek points: 1
+    point 0: sample_number=0
+METADATA block #5
+  type: 4 (VORBIS_COMMENT)
+  is last: false
+  length: XXX
+  comments: 2
+    comment[0]: ARTIST=Line1
+Line\2Line3
+    comment[1]: TITLE=Line1
+Line\2Line3
+METADATA block #6
+  type: 126 (UNKNOWN)
+  is last: false
+  length: XXX
+  data contents:
+METADATA block #7
+  type: 5 (CUESHEET)
+  is last: false
+  length: XXX
+  media catalog number: 
+  lead-in: 88200
+  is CD: true
+  number of tracks: 2
+    track[0]
+      offset: 0
+      number: 1
+      ISRC: 
+      type: AUDIO
+      pre-emphasis: false
+      number of index points: 1
+        index[0]
+          offset: 0
+          number: 1
+    track[1]
+      offset: 1
+      number: 170 (LEAD-OUT)
+METADATA block #8
+  type: 2 (APPLICATION)
+  is last: false
+  length: XXX
+  application ID: 61626364
+  data contents:
+calfflacMETADATA block #9
+  type: 1 (PADDING)
+  is last: true
+  length: XXX

@@ -75,6 +75,11 @@ modification time is set to the current time):
 	is useful for scripts, and setting tags in situations where the
 	locale is wrong.
 
+**\--escapes**
+:	Use \\n-style escapes to allow multiline comments. Supported escapes
+	are c-style "\\n", "\\r" and "\\\\". A backslash followed by anything
+	else is an error. This option must appear *before* any tag options!
+
 **\--dont-use-padding**  
 :	By default metaflac tries to use padding where possible to avoid
 	rewriting the entire file if the metadata size changes. Use this
@@ -146,14 +151,14 @@ modification time is set to the current time):
 
 **\--import-tags-from=file**  
 :	Import tags from a file. Use '-' for stdin. Each line should be of
-	the form NAME=VALUE. Multi-line comments are currently not supported.
+	the form NAME=VALUE. Multi-line comments are supported with \--escapes.
 	Specify \--remove-all-tags and/or \--no-utf8-convert before
 	\--import-tags-from if necessary. If FILE is '-' (stdin), only one
 	FLAC file may be specified.
 
 **\--export-tags-to=file**  
 :	Export tags to a file. Use '-' for stdout. Each line will be of the
-	form NAME=VALUE. Specify \--no-utf8-convert if necessary.
+	form NAME=VALUE. Specify \--escapes and/or \--no-utf8-convert if necessary.
 
 **\--import-cuesheet-from=file**  
 :	Import a cuesheet from a file. Use '-' for stdin. Only one FLAC file

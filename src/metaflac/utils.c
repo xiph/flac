@@ -32,6 +32,7 @@
 #include "share/safe_str.h"
 #include "share/utf8.h"
 #include "share/compat.h"
+#include "share/grabbag.h"
 
 void die(const char *message)
 {
@@ -233,11 +234,29 @@ FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field, char 
 	return true;
 }
 
-void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, FILE *f)
+void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComment_Entry *entry, FLAC__bool raw, const FLAC__bool escapes, FILE *f)
 {
-	if(0 != entry->entry) {
-		if(filename)
+	if(NULL != entry->entry) {
+		const char *entry_str = (const char *)entry->entry;
+		size_t entry_length = entry->length;
+		char *allocated_str = NULL;
+
+		if(filename) {
 			flac_fprintf(f, "%s:", filename);
+		}
+
+		if(escapes) {
+			if(grabbag__escape_string_needed(entry_str, entry_length)) {
+				allocated_str = grabbag__create_escaped_string(entry_str, entry_length);
+				if(allocated_str != NULL) {
+					entry_str = allocated_str;
+					entry_length = strlen(allocated_str);
+				}
+				else {
+					/* error is ignored, the original value will be used */
+				}
+			}
+		}
 
 		if(!raw) {
 			/*
@@ -245,21 +264,26 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 			 * be truncated by utf_decode().
 			 */
 #ifdef _WIN32
-			flac_fprintf(f, "%s", entry->entry);
+			flac_fprintf(f, "%s", entry_str);
 #else
 			char *converted;
 
-			if(utf8_decode((const char *)entry->entry, &converted) >= 0) {
+			if(utf8_decode(entry_str, &converted) >= 0) {
 				(void) local_fwrite(converted, 1, strlen(converted), f);
 				free(converted);
 			}
 			else {
-				(void) local_fwrite(entry->entry, 1, entry->length, f);
+				(void)local_fwrite(entry_str, 1, entry_length, f);
 			}
 #endif
 		}
 		else {
-			(void) local_fwrite(entry->entry, 1, entry->length, f);
+			(void)local_fwrite(entry_str, 1, entry_length, f);
+		}
+
+		if(allocated_str) {
+			free(allocated_str);
+			allocated_str = NULL;
 		}
 	}
 #ifdef _WIN32
@@ -269,13 +293,13 @@ void write_vc_field(const char *filename, const FLAC__StreamMetadata_VorbisComme
 #endif
 }
 
-void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, FILE *f)
+void write_vc_fields(const char *filename, const char *field_name, const FLAC__StreamMetadata_VorbisComment_Entry entry[], unsigned num_entries, FLAC__bool raw, const FLAC__bool escapes, FILE *f)
 {
 	unsigned i;
 	const unsigned field_name_length = (0 != field_name)? strlen(field_name) : 0;
 
 	for(i = 0; i < num_entries; i++) {
 		if(0 == field_name || FLAC__metadata_object_vorbiscomment_entry_matches(entry[i], field_name, field_name_length))
-			write_vc_field(filename, entry + i, raw, f);
+			write_vc_field(filename, entry + i, raw, escapes, f);
 	}
 }

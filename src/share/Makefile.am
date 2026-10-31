@@ -54,6 +54,7 @@ getopt_libgetopt_la_SOURCES = getopt/getopt.c getopt/getopt1.c
 grabbag_libgrabbag_la_SOURCES = \
 	grabbag/alloc.c \
 	grabbag/cuesheet.c \
+	grabbag/escapes.c \
 	grabbag/file.c \
 	grabbag/picture.c \
 	grabbag/replaygain.c \

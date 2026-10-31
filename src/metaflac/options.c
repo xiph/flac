@@ -44,6 +44,7 @@ struct share__option long_options_[] = {
 	{ "with-filename", 0, 0, 0 },
 	{ "no-filename", 0, 0, 0 },
 	{ "no-utf8-convert", 0, 0, 0 },
+	{ "escapes", 0, 0, 0 },
 	{ "dont-use-padding", 0, 0, 0 },
 	{ "no-cued-seekpoints", 0, 0, 0 },
 	/* shorthand operations */
@@ -136,6 +137,7 @@ void init_options(CommandLineOptions *options)
 	options->prefix_with_filename = 2;
 
 	options->utf8_convert = true;
+	options->escapes = false;
 	options->use_padding = true;
 	options->cued_seekpoints = true;
 	options->show_long_help = false;
@@ -397,6 +399,9 @@ FLAC__bool parse_option(int option_index, const char *option_argument, CommandLi
 	}
 	else if(0 == strcmp(opt, "no-utf8-convert")) {
 		options->utf8_convert = false;
+	}
+	else if(0 == strcmp(opt, "escapes")) {
+		options->escapes = true;
 	}
 	else if(0 == strcmp(opt, "dont-use-padding")) {
 		options->use_padding = false;

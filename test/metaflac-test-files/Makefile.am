@@ -84,7 +84,8 @@ EXTRA_DIST = \
 	case64-expect.meta \
 	case65-expect.meta \
 	case66-expect.meta \
-	case67-expect.meta
+	case67-expect.meta \
+	case68-expect.meta
 
 clean-local:
 	-rm -f out.*

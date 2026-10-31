@@ -182,6 +182,7 @@ static struct share__option long_options_[] = {
 	{ "input-size"                , share__required_argument, 0, 0 },
 	{ "error-on-compression-fail" , share__no_argument, 0, 0 },
 	{ "limit-min-bitrate"         , share__no_argument, 0, 0 },
+	{ "escapes"                   , share__no_argument, 0, 0 },
 
 	/*
 	 * analysis options
@@ -264,6 +265,7 @@ static struct {
 	FLAC__bool replay_gain;
 	FLAC__bool ignore_chunk_sizes;
 	FLAC__bool utf8_convert; /* true by default, to convert tag strings from locale to utf-8, false if --no-utf8-convert used */
+	FLAC__bool escapes; /* Use \n-style escapes to allow multiline comments. */
 	const char *cmdline_forced_outfilename;
 	const char *output_prefix;
 	analysis_options aopts;
@@ -630,6 +632,7 @@ FLAC__bool init_options(void)
 	option_values.replay_gain = false;
 	option_values.ignore_chunk_sizes = false;
 	option_values.utf8_convert = true;
+	option_values.escapes = false;
 	option_values.cmdline_forced_outfilename = 0;
 	option_values.output_prefix = 0;
 	option_values.aopts.do_residual_text = false;
@@ -809,7 +812,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "tag-from-file")) {
 			FLAC__ASSERT(0 != option_argument);
-			if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/true, /*raw=*/!option_values.utf8_convert, &violation))
+			if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/true, /*raw=*/!option_values.utf8_convert, option_values.escapes, &violation))
 				return usage_error("ERROR: (--tag-from-file) %s\n", violation);
 		}
 		else if(0 == strcmp(long_option, "no-cued-seekpoints")) {
@@ -898,6 +901,9 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 		}
 		else if(0 == strcmp(long_option, "limit-min-bitrate")) {
 			option_values.limit_min_bitrate = true;
+		}
+		else if(0 == strcmp(long_option, "escapes")) {
+			option_values.escapes = true;
 		}
 		/*
 		 * negatives
@@ -1031,7 +1037,7 @@ int parse_option(int short_option, const char *long_option, const char *option_a
 				break;
 			case 'T':
 				FLAC__ASSERT(0 != option_argument);
-				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/false, /*raw=*/!option_values.utf8_convert, &violation))
+				if(!flac__vorbiscomment_add(option_values.vorbis_comment, option_argument, /*value_from_file=*/false, /*raw=*/!option_values.utf8_convert, option_values.escapes, &violation))
 					return usage_error("ERROR: (-T/--tag) %s\n", violation);
 				break;
 			case '0':
@@ -1346,6 +1352,7 @@ void show_help(void)
 	printf("      --skip={#|mm:ss.ss}      Skip the given initial samples for each input\n");
 	printf("      --until={#|[+|-]mm:ss.ss}     Stop at the given sample for each input file\n");
 	printf("      --no-utf8-convert        Do not convert tags from local charset to UTF-8\n");
+	printf("      --escapes                Use \\n-style escapes to allow multiline comments.\n");
 	printf("  -s, --silent                 Do not write runtime encode/decode statistics\n");
 	printf("      --totally-silent         Do not print anything, including errors\n");
 	printf("  -w, --warnings-as-errors     Treat all warnings as errors\n");

@@ -101,7 +101,7 @@ static FLAC__bool parse_vorbis_comment_field(const char *field_ref, char **field
 }
 
 /* slight modification: no 'filename' arg, and errors are passed back in 'violation' instead of printed to stderr */
-static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw, const char **violation)
+static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcField *field, FLAC__bool *needs_write, FLAC__bool raw, const FLAC__bool escapes, const char **violation)
 {
 	FLAC__StreamMetadata_VorbisComment_Entry entry;
 	char *converted = NULL;
@@ -154,6 +154,22 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 			return false;
 		}
 
+		if(escapes) {
+			const size_t converted_size = strlen(converted);
+			if(grabbag__unescape_string_needed(converted, converted_size)) {
+				char *unescaped = grabbag__create_unescaped_string(converted, converted_size);
+				if(unescaped != NULL) {
+					free(converted);
+					converted = unescaped;
+				}
+				else {
+					free(converted);
+					*violation = "error unescaping tag value";
+					return false;
+				}
+			}
+		}
+
 		/* create and entry and append it */
 		if(!FLAC__metadata_object_vorbiscomment_entry_from_name_value_pair(&entry, field->field_name, converted)) {
 			free(converted);
@@ -187,6 +203,24 @@ static FLAC__bool set_vc_field(FLAC__StreamMetadata *block, const Argument_VcFie
 			return false;
 		}
 #endif
+
+		if(escapes) {
+			const char *entry_str = (const char *)entry.entry;
+			const size_t entry_size = strlen(entry_str);
+			if(grabbag__unescape_string_needed(entry_str, entry_size)) {
+				char *unescaped = grabbag__create_unescaped_string(entry_str, entry_size);
+				if(unescaped != NULL) {
+					entry.entry = (FLAC__byte *)unescaped;
+					converted = unescaped;
+					needs_free = true;
+				}
+				else {
+					*violation = "error unescaping tag value";
+					return false;
+				}
+			}
+		}
+
 		entry.length = strlen((const char *)entry.entry);
 		if(!FLAC__format_vorbiscomment_entry_is_legal(entry.entry, entry.length)) {
 			if(needs_free)
@@ -227,7 +261,7 @@ static void free_field(Argument_VcField *obj)
 		free(obj->field_value);
 }
 
-FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comment, FLAC__bool value_from_file, FLAC__bool raw, const char **violation)
+FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comment, FLAC__bool value_from_file, FLAC__bool raw, const FLAC__bool escapes, const char **violation)
 {
 	Argument_VcField parsed;
 	FLAC__bool dummy;
@@ -244,7 +278,7 @@ FLAC__bool flac__vorbiscomment_add(FLAC__StreamMetadata *block, const char *comm
 		return false;
 	}
 
-	if(parsed.field_value_length > 0 && !set_vc_field(block, &parsed, &dummy, raw, violation)) {
+	if(parsed.field_value_length > 0 && !set_vc_field(block, &parsed, &dummy, raw, escapes, violation)) {
 		free_field(&parsed);
 		return false;
 	}

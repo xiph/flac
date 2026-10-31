@@ -1281,6 +1281,33 @@ flac2flac input-SCPAP.flac case02a ""
 flac2flac input-SCPAP.flac case02b "--tag=artist=0"
 # case 02c: on file with VORBIS_COMMENT block and --tag, replace existing VORBIS_COMMENT with new tags
 flac2flac input-SCVAUP.flac case02c "--tag=artist=0"
+# case 02d: on file with VORBIS_COMMENT block and --escapes --tag, replace existing VORBIS_COMMENT with new tags
+flac2flac input-SCVAUP.flac case02d "--escapes --tag=artist=Line1\\nLine\\\\2\\rLine3"
+# case 02d: on file with VORBIS_COMMENT block and --escapes --tag-from-file, replace existing VORBIS_COMMENT with new tags
+printf 'Line1\\nLine\\\\2\\rLine3' >vc_escapes.txt
+flac2flac input-SCVAUP.flac case02d "--escapes --tag-from-file=artist=vc_escapes.txt"
+rm vc_escapes.txt
+# case 02d: on file with VORBIS_COMMENT block and --tag-from-file, replace existing VORBIS_COMMENT with new tags
+printf 'Line1\nLine\\2\rLine3' >vc_no_escapes.txt
+flac2flac input-SCVAUP.flac case02d "--tag-from-file=artist=vc_no_escapes.txt"
+rm vc_no_escapes.txt
+
+# test with unsupported escapes, --tag
+if run_flac -f -o out.flac --escapes --tag="ARTIST=\\t\\123\\x12\\u1234" input-SCVAUP.flac ; then
+        die "ERROR: flac --escapes --tag with unsupported escapes should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+
+# test with unsupported escapes, --tag-from-file
+printf 'ARTIST=\\t\\123\\x12\\u1234\n' >vc_escapes_unsupported.txt
+if run_flac -f -o out.flac --escapes --tag-from-file=ARTIST=vc_escapes_unsupported.txt input-SCVAUP.flac ; then
+        die "ERROR: flac --escapes --tag-from-file with unsupported escapes should have failed but didn't"
+else
+        echo "OK, it failed as it should"
+fi
+rm vc_escapes_unsupported.txt
+
 # case 03a: on file with no CUESHEET block and --cuesheet specified, add it
 flac2flac input-SVAUP.flac case03a "--cuesheet=$testdatadir/input0.cue"
 # case 03b: on file with CUESHEET block and --cuesheet specified, overwrite existing CUESHEET

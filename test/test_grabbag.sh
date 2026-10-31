@@ -22,10 +22,12 @@
 
 PATH=../src/test_grabbag/cuesheet:$PATH
 PATH=../src/test_grabbag/picture:$PATH
+PATH=../src/test_grabbag/escapes:$PATH
 PATH=../objs/$BUILD/bin:$PATH
 
 test_cuesheet -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_cuesheet executable"
 test_picture -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_picture executable"
+test_escapes -h 1>/dev/null 2>/dev/null || die "ERROR can't find test_escapes executable"
 
 run_test_cuesheet ()
 {
@@ -44,6 +46,16 @@ run_test_picture ()
 		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_picture${EXE} $* 4>>test_grabbag.valgrind.log
 	else
 		test_picture${EXE} $*
+	fi
+}
+
+run_test_escapes ()
+{
+	if [ "$FLAC__TEST_WITH_VALGRIND" = yes ] ; then
+		echo "valgrind --leak-check=yes --show-reachable=yes --num-callers=50 test_escapes $*" >>test_grabbag.valgrind.log
+		valgrind --leak-check=yes --show-reachable=yes --num-callers=50 --log-fd=4 test_escapes${EXE} $* 4>>test_grabbag.valgrind.log
+	else
+		test_escapes${EXE} $*
 	fi
 }
 
@@ -123,6 +135,30 @@ if [ $is_win = yes ] ; then
 	diff -w ${top_srcdir}/test/cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
 else
 	diff ${top_srcdir}/test/cuesheet.ok $log > cuesheet.diff || die "Error: .log file does not match .ok file, see cuesheet.diff"
+fi
+
+echo "PASSED (results are in $log)"
+
+
+########################################################################
+#
+# test_escapes
+#
+########################################################################
+
+log=escapes.log
+escapes_dir=${top_srcdir}/test/escapes
+
+echo "Running test_escapes..."
+
+rm -f $log
+
+run_test_escapes $escapes_dir >> $log 2>&1
+
+if [ $is_win = yes ] ; then
+	diff -w ${top_srcdir}/test/escapes.ok $log > escapes.diff || die "Error: .log file does not match .ok file, see escapes.diff"
+else
+	diff ${top_srcdir}/test/escapes.ok $log > escapes.diff || die "Error: .log file does not match .ok file, see escapes.diff"
 fi
 
 echo "PASSED (results are in $log)"
