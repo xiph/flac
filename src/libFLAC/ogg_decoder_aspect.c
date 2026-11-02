@@ -91,7 +91,7 @@ static FLAC__OggDecoderAspectReadStatus process_page_(FLAC__OggDecoderAspect *as
 		 * of a FLAC 'header' possibly contained in that page */
 		if(aspect->working_page.body_len > (long)(1 + FLAC__OGG_MAPPING_MAGIC_LENGTH) &&
 		   aspect->working_page.body[0] == FLAC__OGG_MAPPING_FIRST_HEADER_PACKET_TYPE &&
-		   memcmp((&aspect->working_page.body) + 1, FLAC__OGG_MAPPING_MAGIC, FLAC__OGG_MAPPING_MAGIC_LENGTH)) {
+		   memcmp(aspect->working_page.body + 1, FLAC__OGG_MAPPING_MAGIC, FLAC__OGG_MAPPING_MAGIC_LENGTH) == 0) {
 			aspect->bos_flag_seen = true;
 			aspect->serial_number = ogg_page_serialno(&aspect->working_page);
 			ogg_stream_reset_serialno(&aspect->stream_state, aspect->serial_number);
