@@ -1435,6 +1435,148 @@ static FLAC__bool test_stream_decoder(Layer layer, FLAC__bool is_ogg, FLAC__bool
 	return true;
 }
 
+typedef struct {
+	FLAC__uint64 samples;
+	FLAC__bool error_occurred;
+} ForeignBosClientData;
+
+static uint32_t ogg_page_crc_(const FLAC__byte *data, size_t len)
+{
+	uint32_t crc = 0;
+	size_t i;
+	uint32_t j;
+
+	for(i = 0; i < len; i++) {
+		crc ^= (uint32_t)data[i] << 24;
+		for(j = 0; j < 8; j++)
+			crc = (crc & 0x80000000u)? (crc << 1) ^ 0x04c11db7u : crc << 1;
+	}
+
+	return crc;
+}
+
+static FLAC__StreamDecoderWriteStatus foreign_bos_write_callback_(const FLAC__StreamDecoder *decoder, const FLAC__Frame *frame, const FLAC__int32 * const buffer[], void *client_data)
+{
+	ForeignBosClientData *dcd = (ForeignBosClientData*)client_data;
+
+	(void)decoder, (void)buffer;
+
+	dcd->samples += frame->header.blocksize;
+
+	return FLAC__STREAM_DECODER_WRITE_STATUS_CONTINUE;
+}
+
+static void foreign_bos_metadata_callback_(const FLAC__StreamDecoder *decoder, const FLAC__StreamMetadata *metadata, void *client_data)
+{
+	(void)decoder, (void)metadata, (void)client_data;
+}
+
+static void foreign_bos_error_callback_(const FLAC__StreamDecoder *decoder, FLAC__StreamDecoderErrorStatus status, void *client_data)
+{
+	ForeignBosClientData *dcd = (ForeignBosClientData*)client_data;
+
+	(void)decoder, (void)status;
+
+	dcd->error_occurred = true;
+}
+
+static FLAC__bool test_ogg_foreign_bos_page(void)
+{
+	const char *filename = "metadata_foreign_bos.oga";
+	FLAC__byte page[41];
+	FLAC__byte buffer[4096];
+	FILE *infile, *outfile;
+	size_t bytes;
+	uint32_t serial_number, crc;
+	FLAC__StreamDecoder *decoder;
+	FLAC__StreamDecoderInitStatus init_status;
+	ForeignBosClientData client_data;
+	FLAC__bool write_ok, ok = false;
+
+	printf("testing Ogg FLAC with a non-FLAC BOS page in front... ");
+	fflush(stdout);
+
+	/* BOS page of another stream whose first packet starts with 0x7F but is not FLAC */
+	memset(page, 0, sizeof(page));
+	memcpy(page, "OggS", 4);
+	page[5] = 0x02; /* header type: BOS */
+	serial_number = (uint32_t)file_utils__ogg_serial_number + 1000;
+	page[14] = (FLAC__byte)(serial_number & 0xff);
+	page[15] = (FLAC__byte)((serial_number >> 8) & 0xff);
+	page[16] = (FLAC__byte)((serial_number >> 16) & 0xff);
+	page[17] = (FLAC__byte)((serial_number >> 24) & 0xff);
+	page[26] = 1; /* number of segments */
+	page[27] = 13; /* segment length */
+	page[28] = 0x7f;
+	memcpy(page + 29, "NOTF", 4);
+
+	crc = ogg_page_crc_(page, sizeof(page));
+	page[22] = (FLAC__byte)(crc & 0xff);
+	page[23] = (FLAC__byte)((crc >> 8) & 0xff);
+	page[24] = (FLAC__byte)((crc >> 16) & 0xff);
+	page[25] = (FLAC__byte)((crc >> 24) & 0xff);
+
+	if(0 == (infile = flac_fopen(flacfilename(true, false), "rb"))) {
+		printf("ERROR (%s)\n", strerror(errno));
+		return false;
+	}
+	if(0 == (outfile = flac_fopen(filename, "wb"))) {
+		printf("ERROR (%s)\n", strerror(errno));
+		fclose(infile);
+		return false;
+	}
+
+	write_ok = fwrite(page, 1, sizeof(page), outfile) == sizeof(page);
+	while(write_ok && (bytes = fread(buffer, 1, sizeof(buffer), infile)) > 0)
+		write_ok = fwrite(buffer, 1, bytes, outfile) == bytes;
+	fclose(infile);
+	if(fclose(outfile) != 0)
+		write_ok = false;
+	if(!write_ok) {
+		(void)die_("writing the test file");
+		(void)grabbag__file_remove_file(filename);
+		return false;
+	}
+
+	client_data.samples = 0;
+	client_data.error_occurred = false;
+
+	decoder = FLAC__stream_decoder_new();
+	if(0 == decoder) {
+		printf("FAILED, returned NULL\n");
+		(void)grabbag__file_remove_file(filename);
+		return false;
+	}
+
+	init_status = FLAC__stream_decoder_init_ogg_file(decoder, filename, foreign_bos_write_callback_, foreign_bos_metadata_callback_, foreign_bos_error_callback_, &client_data);
+	if(init_status != FLAC__STREAM_DECODER_INIT_STATUS_OK) {
+		(void)die_s_(0, decoder);
+	}
+	else if(!FLAC__stream_decoder_process_until_end_of_stream(decoder)) {
+		(void)die_s_("returned false", decoder);
+	}
+	else if(client_data.error_occurred) {
+		(void)die_("got error callback");
+	}
+	else if(client_data.samples != (FLAC__uint64)samples_) {
+		(void)die_("wrong number of samples decoded");
+	}
+	else if(!FLAC__stream_decoder_finish(decoder)) {
+		(void)die_s_("at FLAC__stream_decoder_finish(), returned false", decoder);
+	}
+	else {
+		ok = true;
+	}
+
+	FLAC__stream_decoder_delete(decoder);
+	(void)grabbag__file_remove_file(filename);
+
+	if(ok)
+		printf("OK\n");
+
+	return ok;
+}
+
 FLAC__bool test_decoders(void)
 {
 	FLAC__bool is_ogg = false;
@@ -1458,6 +1600,11 @@ FLAC__bool test_decoders(void)
 
 		if(!test_stream_decoder(LAYER_FILENAME, is_ogg, is_chained_ogg))
 			return false;
+
+		if(is_ogg && !is_chained_ogg) {
+			if(!test_ogg_foreign_bos_page())
+				return false;
+		}
 
 		(void) grabbag__file_remove_file(flacfilename(is_ogg, is_chained_ogg));
 
