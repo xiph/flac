@@ -891,10 +891,12 @@ FLAC__bool parse_md5(const char *src, FLAC__byte dest[16])
 
 FLAC__bool parse_uint32(const char *src, FLAC__uint32 *dest)
 {
+	FLAC__uint64 x;
 	FLAC__ASSERT(0 != src);
-	if(strlen(src) == 0 || strspn(src, "0123456789") != strlen(src))
+	/* strtoul() returns a 64-bit value on LP64 platforms, so parse as 64-bit and reject what does not fit */
+	if(!parse_uint64(src, &x) || x > 0xffffffffu)
 		return false;
-	*dest = strtoul(src, 0, 10);
+	*dest = (FLAC__uint32)x;
 	return true;
 }
 
@@ -1010,16 +1012,21 @@ FLAC__bool parse_add_seekpoint(const char *in, char **out, const char **violatio
 
 FLAC__bool parse_add_padding(const char *in, unsigned *out)
 {
+	unsigned long x;
 	FLAC__ASSERT(0 != in);
 	FLAC__ASSERT(0 != out);
-	*out = (unsigned)strtoul(in, 0, 10);
-	return *out < (1u << FLAC__STREAM_METADATA_LENGTH_LEN);
+	x = strtoul(in, 0, 10);
+	/* check before narrowing: unsigned long is 64 bits on LP64 platforms */
+	if(x >= (1ul << FLAC__STREAM_METADATA_LENGTH_LEN))
+		return false;
+	*out = (unsigned)x;
+	return true;
 }
 
 FLAC__bool parse_block_number(const char *in, Argument_BlockNumber *out)
 {
-	char *p, *q, *s, *end;
-	long i;
+	char *p, *q, *s;
+	FLAC__uint32 i;
 	unsigned entry;
 
 	if(*in == '\0')
@@ -1043,11 +1050,11 @@ FLAC__bool parse_block_number(const char *in, Argument_BlockNumber *out)
 		FLAC__ASSERT(entry < out->num_entries);
 		if(0 != (p = strchr(q, ',')))
 			*p++ = '\0';
-		if(!isdigit((int)(*q)) || (i = strtol(q, &end, 10)) < 0 || *end) {
+		if(!parse_uint32(q, &i)) {
 			free(s);
 			return false;
 		}
-		out->entries[entry++] = (unsigned)i;
+		out->entries[entry++] = i;
 		q = p;
 	}
 	FLAC__ASSERT(entry == out->num_entries);

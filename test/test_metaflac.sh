@@ -569,4 +569,37 @@ mv $flacfile_secondary $flacfile
 check_flac
 metaflac_test_nofilter case67 "-o --append --block-number=0" "--list"
 
+# Numeric arguments that do not fit in 32 bits must be rejected, not truncated
+# (on LP64 platforms 4294967297 used to wrap to 1, 4294967304 to 8 and so on)
+flacfile=metaflac5.flac
+cp -p ${top_srcdir}/test/metaflac.flac.in $flacfile
+cp -p $flacfile metaflac5.orig
+for opt in \
+	--set-sample-rate=4294967297 \
+	--set-bps=4294967304 \
+	--set-channels=4294967298 \
+	--set-min-blocksize=4294967312 \
+	--set-max-blocksize=4294967312 \
+	--set-min-framesize=4294967297 \
+	--set-max-framesize=4294967297 \
+	--add-padding=4294967312 \
+	"--list --block-number=4294967296" \
+; do
+	echo $ECHO_N "Testing that $opt is rejected... " $ECHO_C
+	if run_metaflac_silent $opt $flacfile ; then
+		die "ERROR: it should have failed but didn't"
+	else
+		echo "OK, it failed as it should"
+	fi
+	cmp $flacfile metaflac5.orig || die "ERROR: $flacfile was modified"
+done
+
+echo $ECHO_N "Testing that in-range numeric arguments are still accepted... " $ECHO_C
+run_metaflac_silent --set-sample-rate=48000 --set-bps=16 --set-channels=2 --set-min-blocksize=4096 --set-max-blocksize=4096 $flacfile || die "ERROR: in-range --set-* values were rejected"
+test "$(run_metaflac --show-sample-rate --show-bps --show-channels --show-min-blocksize $flacfile | tr '\n' ' ')" = "48000 16 2 4096 " || die "ERROR: --set-* values were not stored"
+run_metaflac_silent --add-padding=4321 $flacfile || die "ERROR: in-range --add-padding was rejected"
+run_metaflac_silent --list --block-number=4294967295 $flacfile || die "ERROR: in-range --block-number was rejected"
+echo OK
+rm -f metaflac5.flac metaflac5.orig
+
 rm -f metaflac-test-files/out.meta  metaflac-test-files/out1.meta metaflac-test-files/out.flac
