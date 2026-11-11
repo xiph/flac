@@ -2776,7 +2776,11 @@ void free_(FLAC__StreamEncoder *encoder)
 		}
 		for(i = 0; i < 2; i++)
 			FLAC__format_entropy_coding_method_partitioned_rice_contents_clear(&encoder->private_->threadtask[t]->partitioned_rice_contents_extra[i]);
-		if(t > 0) {
+		if(t == 0) {
+			/* The main task's frame is kept for reuse; free its buffer so the next init does not leak it */
+			FLAC__bitwriter_free(encoder->private_->threadtask[t]->frame);
+		}
+		else {
 #ifdef FLAC__USE_THREADS
 			FLAC__bitwriter_delete(encoder->private_->threadtask[t]->frame);
 			FLAC__mtx_destroy(&encoder->private_->threadtask[t]->mutex_this_task);

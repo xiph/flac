@@ -498,6 +498,108 @@ static FLAC__bool test_stream_encoder(Layer layer, FLAC__bool is_ogg)
 	return true;
 }
 
+static FLAC__StreamEncoderWriteStatus discard_write_callback_(const FLAC__StreamEncoder *encoder, const FLAC__byte buffer[], size_t bytes, uint32_t samples, uint32_t current_frame, void *client_data)
+{
+	(void)encoder, (void)buffer, (void)bytes, (void)samples, (void)current_frame, (void)client_data;
+	return FLAC__STREAM_ENCODER_WRITE_STATUS_OK;
+}
+
+/* Reuse one encoder for several streams (init, process, finish, init again, ...).
+ * Every cycle must release what the previous init allocated; run under valgrind
+ * or LeakSanitizer to check for leaks. With num_threads > 1, the cycles alternate
+ * between num_threads and 1 thread, so extra thread tasks are created and destroyed
+ * between inits. */
+static FLAC__bool test_stream_encoder_reuse(uint32_t num_threads, FLAC__bool is_ogg)
+{
+	FLAC__StreamEncoder *encoder;
+	FLAC__StreamEncoderInitStatus init_status;
+	FLAC__StreamEncoderState state;
+	FLAC__int32 samples[2048];
+	uint32_t i, cycle;
+
+	printf("\n+++ libFLAC unit test: FLAC__StreamEncoder reuse (threads: %u, format: %s)\n\n", num_threads, is_ogg ? "Ogg FLAC" : "FLAC");
+
+	for(i = 0; i < sizeof(samples) / sizeof(FLAC__int32); i++)
+		samples[i] = (FLAC__int32)((i * 37) % 2000) - 1000;
+
+	printf("testing FLAC__stream_encoder_new()... ");
+	encoder = FLAC__stream_encoder_new();
+	if(0 == encoder) {
+		printf("FAILED, returned NULL\n");
+		return false;
+	}
+	printf("OK\n");
+
+	for(cycle = 0; cycle < 3; cycle++) {
+		if(num_threads > 1) {
+			const uint32_t cycle_threads = (cycle % 2 == 0) ? num_threads : 1;
+			uint32_t ret;
+			printf("cycle %u: testing FLAC__stream_encoder_set_num_threads(%u)... ", cycle, cycle_threads);
+			ret = FLAC__stream_encoder_set_num_threads(encoder, cycle_threads);
+			if(ret == FLAC__STREAM_ENCODER_SET_NUM_THREADS_NOT_COMPILED_WITH_MULTITHREADING_ENABLED) {
+				printf("SKIPPED, not compiled with multithreading\n");
+				FLAC__stream_encoder_delete(encoder);
+				return true;
+			}
+			if(ret != FLAC__STREAM_ENCODER_SET_NUM_THREADS_OK)
+				return die_s_("returned an error", encoder);
+			printf("OK\n");
+		}
+
+		printf("cycle %u: setting options... ", cycle);
+		if(
+			!FLAC__stream_encoder_set_verify(encoder, true) ||
+			!FLAC__stream_encoder_set_channels(encoder, 2) ||
+			!FLAC__stream_encoder_set_bits_per_sample(encoder, 16) ||
+			!FLAC__stream_encoder_set_sample_rate(encoder, 44100) ||
+			!FLAC__stream_encoder_set_compression_level(encoder, 5) ||
+			!FLAC__stream_encoder_set_blocksize(encoder, 256))
+			return die_s_("returned false", encoder);
+		printf("OK\n");
+
+		if(is_ogg) {
+			printf("cycle %u: testing FLAC__stream_encoder_set_ogg_serial_number()... ", cycle);
+			if(!FLAC__stream_encoder_set_ogg_serial_number(encoder, file_utils__ogg_serial_number))
+				return die_s_("returned false", encoder);
+			printf("OK\n");
+		}
+
+		printf("cycle %u: testing FLAC__stream_encoder_init_%sstream()... ", cycle, is_ogg ? "ogg_" : "");
+		init_status = is_ogg?
+			FLAC__stream_encoder_init_ogg_stream(encoder, /*read_callback=*/0, discard_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*metadata_callback=*/0, /*client_data=*/0) :
+			FLAC__stream_encoder_init_stream(encoder, discard_write_callback_, /*seek_callback=*/0, /*tell_callback=*/0, /*metadata_callback=*/0, /*client_data=*/0);
+		if(init_status != FLAC__STREAM_ENCODER_INIT_STATUS_OK)
+			return die_s_(0, encoder);
+		printf("OK\n");
+
+		printf("cycle %u: testing FLAC__stream_encoder_process_interleaved()... ", cycle);
+		if(!FLAC__stream_encoder_process_interleaved(encoder, samples, sizeof(samples) / sizeof(FLAC__int32) / 2))
+			return die_s_("returned false", encoder);
+		printf("OK\n");
+
+		printf("cycle %u: testing FLAC__stream_encoder_finish()... ", cycle);
+		if(!FLAC__stream_encoder_finish(encoder))
+			return die_s_("returned false", encoder);
+		printf("OK\n");
+
+		printf("cycle %u: testing FLAC__stream_encoder_get_state()... ", cycle);
+		state = FLAC__stream_encoder_get_state(encoder);
+		if(state != FLAC__STREAM_ENCODER_UNINITIALIZED) {
+			printf("FAILED, expected FLAC__STREAM_ENCODER_UNINITIALIZED, got %s\n", FLAC__StreamEncoderStateString[state]);
+			return false;
+		}
+		printf("OK\n");
+	}
+
+	printf("testing FLAC__stream_encoder_delete()... ");
+	FLAC__stream_encoder_delete(encoder);
+	printf("OK\n");
+
+	printf("\nPASSED!\n");
+
+	return true;
+}
+
 FLAC__bool test_encoders(void)
 {
 	FLAC__bool is_ogg = false;
@@ -524,6 +626,20 @@ FLAC__bool test_encoders(void)
 		if(!FLAC_API_SUPPORTS_OGG_FLAC || is_ogg)
 			break;
 		is_ogg = true;
+	}
+
+	if(!test_stream_encoder_reuse(1, /*is_ogg=*/false))
+		return false;
+
+	if(!test_stream_encoder_reuse(4, /*is_ogg=*/false))
+		return false;
+
+	if(FLAC_API_SUPPORTS_OGG_FLAC) {
+		if(!test_stream_encoder_reuse(1, /*is_ogg=*/true))
+			return false;
+
+		if(!test_stream_encoder_reuse(4, /*is_ogg=*/true))
+			return false;
 	}
 
 	return true;
