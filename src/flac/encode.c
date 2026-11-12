@@ -416,6 +416,12 @@ static FLAC__bool get_sample_info_wave(EncoderSession *e, encode_options_t optio
 					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with wValidBitsPerSample (%u) > wBitsPerSample (%u)\n", e->inbasefilename, (uint32_t)x, bps);
 					return false;
 				}
+				/* Container width must be a non-zero multiple of 8 or
+				 * bytes_per_wide_sample becomes 0 and later divides crash. */
+				if(bps < 8 || (bps % 8) != 0) {
+					flac__utils_printf(stderr, 1, "%s: ERROR: invalid WAVEFORMATEXTENSIBLE chunk with wBitsPerSample (%u) not a multiple of 8\n", e->inbasefilename, bps);
+					return false;
+				}
 				shift = bps - (uint32_t)x;
 				/* channel mask */
 				if(!read_uint32(e->fin, /*big_endian=*/false, &channel_mask, e->inbasefilename))
