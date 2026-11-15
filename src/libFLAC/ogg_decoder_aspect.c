@@ -264,7 +264,7 @@ FLAC__OggDecoderAspect_TargetLink * FLAC__ogg_decoder_aspect_get_target_link(FLA
 	 * indexed */
 
 	uint32_t current_link = 0;
-	uint32_t total_samples = 0;
+	FLAC__uint64 total_samples = 0;
 
 	while(current_link < aspect->number_of_links_indexed) {
 		total_samples += aspect->linkdetails[current_link].samples;
