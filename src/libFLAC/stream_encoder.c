@@ -1769,7 +1769,13 @@ FLAC_API FLAC__bool FLAC__stream_encoder_finish(FLAC__StreamEncoder *encoder)
 #endif
 
 	free_(encoder);
-	set_defaults_(encoder);
+	{
+		/* set_defaults_() ends with FLAC__stream_encoder_set_compression_level(), which only acts in the uninitialized state */
+		const FLAC__StreamEncoderState state = encoder->protected_->state;
+		encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
+		set_defaults_(encoder);
+		encoder->protected_->state = state;
+	}
 
 	if(!error)
 		encoder->protected_->state = FLAC__STREAM_ENCODER_UNINITIALIZED;
