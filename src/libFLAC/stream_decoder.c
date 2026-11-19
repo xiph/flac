@@ -667,7 +667,8 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish(FLAC__StreamDecoder *decoder)
 		decoder->private_->file = 0;
 	}
 
-	if(decoder->private_->do_md5_checking) {
+	/* only compare when a STREAMINFO block has been read since init, reset or the start of this link */
+	if(decoder->private_->do_md5_checking && decoder->private_->has_stream_info) {
 		if(memcmp(decoder->private_->stream_info.data.stream_info.md5sum, decoder->private_->computed_md5sum, 16))
 			md5_failed = true;
 	}
@@ -963,6 +964,13 @@ void reset_decoder_internal_(FLAC__StreamDecoder* decoder) {
 	decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
 
 	decoder->private_->has_stream_info = false;
+	/* forget the values of the stream decoded before: the STREAMINFO block and what the last frame told us */
+	memset(&decoder->private_->stream_info.data.stream_info, 0, sizeof(decoder->private_->stream_info.data.stream_info));
+	decoder->protected_->channels = 0;
+	decoder->protected_->channel_assignment = FLAC__CHANNEL_ASSIGNMENT_INDEPENDENT;
+	decoder->protected_->bits_per_sample = 0;
+	decoder->protected_->sample_rate = 0;
+	decoder->protected_->blocksize = 0;
 
 	free(decoder->private_->seek_table.data.seek_table.points);
 	decoder->private_->seek_table.data.seek_table.points = 0;
@@ -1146,7 +1154,8 @@ FLAC_API FLAC__bool FLAC__stream_decoder_finish_link(FLAC__StreamDecoder *decode
 
 	FLAC__MD5Final(decoder->private_->computed_md5sum, &decoder->private_->md5context);
 
-	if(decoder->private_->do_md5_checking) {
+	/* only compare when a STREAMINFO block has been read since init, reset or the start of this link */
+	if(decoder->private_->do_md5_checking && decoder->private_->has_stream_info) {
 		if(memcmp(decoder->private_->stream_info.data.stream_info.md5sum, decoder->private_->computed_md5sum, 16))
 			md5_failed = true;
 	}
