@@ -518,6 +518,7 @@ FLAC_API FLAC__bool FLAC__metadata_simple_iterator_init(FLAC__Metadata_SimpleIte
 	FLAC__ASSERT(0 != filename);
 
 	simple_iterator_free_guts_(iterator);
+	iterator->has_stats = false;
 
 	if(!read_only && preserve_file_stats)
 		iterator->has_stats = get_file_stats_(filename, &iterator->stats);
