@@ -1341,12 +1341,25 @@ FLAC_API FLAC__bool FLAC__stream_decoder_seek_absolute(FLAC__StreamDecoder *deco
 #endif
 			seek_to_absolute_sample_(decoder, length, sample)
 		;
+#if FLAC__HAS_OGG
+		if(!ok && decoder->private_->is_ogg)
+			FLAC__ogg_decoder_aspect_set_seek_parameters(&decoder->protected_->ogg_decoder_aspect, 0);
+#endif
 		decoder->private_->is_seeking = false;
 		return ok;
 	}
 }
 
+static FLAC__uint64 find_total_samples_(FLAC__StreamDecoder *decoder);
+
 FLAC_API FLAC__uint64 FLAC__stream_decoder_find_total_samples(FLAC__StreamDecoder *decoder)
+{
+	const FLAC__uint64 total_samples = find_total_samples_(decoder);
+	decoder->private_->is_seeking = false;
+	return total_samples;
+}
+
+static FLAC__uint64 find_total_samples_(FLAC__StreamDecoder *decoder)
 {
 	if(
 		decoder->protected_->state != FLAC__STREAM_DECODER_SEARCH_FOR_METADATA &&
@@ -1384,6 +1397,7 @@ FLAC_API FLAC__uint64 FLAC__stream_decoder_find_total_samples(FLAC__StreamDecode
 			if(status == FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM)
 				break;
 			else if(status != FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK) {
+				decoder->private_->is_indexing = false;
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return 0;
 			}
@@ -3943,6 +3957,7 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 			if(status == FLAC__OGG_DECODER_ASPECT_READ_STATUS_END_OF_STREAM)
 				decoder->protected_->state = FLAC__STREAM_DECODER_END_OF_STREAM;
 			else if(status != FLAC__OGG_DECODER_ASPECT_READ_STATUS_OK) {
+				decoder->private_->is_indexing = false;
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
 				return false;
 			}
