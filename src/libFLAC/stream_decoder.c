@@ -1003,28 +1003,31 @@ FLAC_API FLAC__bool FLAC__stream_decoder_reset(FLAC__StreamDecoder *decoder)
 	FLAC__ASSERT(0 != decoder->private_);
 	FLAC__ASSERT(0 != decoder->protected_);
 
+	/* Rewind if necessary.  If FLAC__stream_decoder_init() is calling us,
+	 * (internal_reset_hack) don't try to rewind since we are already at
+	 * the beginning of the stream and don't want to fail if the input is
+	 * not seekable.  This is done before anything else is touched, so that
+	 * the decoder is unchanged if the rewind fails.
+	 */
+	if(!decoder->private_->internal_reset_hack) {
+		if(decoder->protected_->state == FLAC__STREAM_DECODER_UNINITIALIZED ||
+		   decoder->protected_->state == FLAC__STREAM_DECODER_MEMORY_ALLOCATION_ERROR)
+			return false;
+		if(decoder->private_->file == stdin)
+			return false; /* can't rewind stdin, reset fails */
+		if(decoder->private_->seek_callback && decoder->private_->seek_callback(decoder, 0, decoder->private_->client_data) == FLAC__STREAM_DECODER_SEEK_STATUS_ERROR)
+			return false; /* seekable and seek fails, reset fails */
+	}
+
 	if(!FLAC__stream_decoder_flush(decoder)) {
 		/* above call sets the state for us */
 		return false;
 	}
 
 #if FLAC__HAS_OGG
-	/*@@@ could go in !internal_reset_hack block below */
 	if(decoder->private_->is_ogg)
 		FLAC__ogg_decoder_aspect_reset(&decoder->protected_->ogg_decoder_aspect);
 #endif
-
-	/* Rewind if necessary.  If FLAC__stream_decoder_init() is calling us,
-	 * (internal_reset_hack) don't try to rewind since we are already at
-	 * the beginning of the stream and don't want to fail if the input is
-	 * not seekable.
-	 */
-	if(!decoder->private_->internal_reset_hack) {
-		if(decoder->private_->file == stdin)
-			return false; /* can't rewind stdin, reset fails */
-		if(decoder->private_->seek_callback && decoder->private_->seek_callback(decoder, 0, decoder->private_->client_data) == FLAC__STREAM_DECODER_SEEK_STATUS_ERROR)
-			return false; /* seekable and seek fails, reset fails */
-	}
 
 	reset_decoder_internal_(decoder);
 
