@@ -803,6 +803,20 @@ done
 rm noise.flac z.wav
 
 ############################################################################
+# test --analyze --residual-gnuplot with more distinct residual values than
+# the fixed-size bucket array can hold
+
+echo $ECHO_N "testing --analyze --residual-gnuplot with many distinct residuals... " $ECHO_C
+LC_ALL=C awk 'BEGIN { srand(1); for (i = 0; i < 80000; i++) { v = int(rand() * 1048576) + 7864320; printf "%c%c%c", int(v / 65536) % 256, int(v / 256) % 256, v % 256 } }' > analyze24.raw || die "ERROR generating analyze24.raw"
+run_flac --force --force-raw-format --endian=big --sign=unsigned --sample-rate=44100 --bps=24 --channels=1 -0 -o analyze24.flac analyze24.raw || die "ERROR generating FLAC file analyze24.flac"
+run_flac --analyze --residual-gnuplot -f analyze24.flac > /dev/null || die "ERROR in --analyze --residual-gnuplot of analyze24.flac"
+# every sample must be counted in the overall distribution, which is the first block of file "all"
+n="$(awk 'NR > 1 { if ($1 == "e") exit; s += $2 } END { print s }' all)"
+[ "$n" = 80000 ] || die "ERROR: overall residual distribution counts $n samples instead of 80000"
+echo OK
+rm -f analyze24.raw analyze24.flac analyze24.ana all f??????.s?.gp
+
+############################################################################
 # test --input-size
 ############################################################################
 
