@@ -41,6 +41,7 @@ typedef struct {
 	pair_t buckets[FLAC__MAX_BLOCK_SIZE];
 	int peak_index;
 	uint32_t nbuckets;
+	uint32_t shift; /* low bits of the residual that are ignored when picking a bucket */
 	uint32_t nsamples;
 	double sum, sos;
 	double variance;
@@ -52,6 +53,7 @@ static subframe_stats_t all_;
 
 static void init_stats(subframe_stats_t *stats);
 static void update_stats(subframe_stats_t *stats, FLAC__int32 residual, uint32_t incr);
+static void coarsen_buckets(subframe_stats_t *stats);
 static void compute_stats(subframe_stats_t *stats);
 static FLAC__bool dump_stats(const subframe_stats_t *stats, const char *filename);
 
@@ -178,29 +180,67 @@ void init_stats(subframe_stats_t *stats)
 {
 	stats->peak_index = -1;
 	stats->nbuckets = 0;
+	stats->shift = 0;
 	stats->nsamples = 0;
 	stats->sum = 0.0;
 	stats->sos = 0.0;
+}
+
+static int compare_pairs(const void *a, const void *b)
+{
+	const FLAC__int32 x = ((const pair_t *)a)->residual, y = ((const pair_t *)b)->residual;
+	return (x > y) - (x < y);
+}
+
+/* The bucket array has a fixed size, so when it is full, make the buckets twice as wide and merge the ones that now overlap. */
+void coarsen_buckets(subframe_stats_t *stats)
+{
+	uint32_t i, n = 0;
+
+	stats->shift++;
+	for(i = 0; i < stats->nbuckets; i++)
+		stats->buckets[i].residual = (FLAC__int32)((FLAC__uint32)stats->buckets[i].residual & (~(FLAC__uint32)0 << stats->shift));
+	qsort(stats->buckets, stats->nbuckets, sizeof(pair_t), compare_pairs);
+	for(i = 0; i < stats->nbuckets; i++) {
+		if(n > 0 && stats->buckets[n-1].residual == stats->buckets[i].residual)
+			stats->buckets[n-1].count += stats->buckets[i].count;
+		else
+			stats->buckets[n++] = stats->buckets[i];
+	}
+	stats->nbuckets = n;
+
+	stats->peak_index = -1;
+	for(i = 0; i < n; i++) {
+		if(stats->peak_index < 0 || stats->buckets[i].count > stats->buckets[stats->peak_index].count)
+			stats->peak_index = i;
+	}
 }
 
 void update_stats(subframe_stats_t *stats, FLAC__int32 residual, uint32_t incr)
 {
 	uint32_t i;
 	const double r = (double)residual, a = r*incr;
+	FLAC__int32 bucket;
 
 	stats->nsamples += incr;
 	stats->sum += a;
 	stats->sos += (a*r);
 
-	for(i = 0; i < stats->nbuckets; i++) {
-		if(stats->buckets[i].residual == residual) {
-			stats->buckets[i].count += incr;
-			goto find_peak;
+	for(;;) {
+		bucket = (FLAC__int32)((FLAC__uint32)residual & (~(FLAC__uint32)0 << stats->shift));
+		for(i = 0; i < stats->nbuckets; i++) {
+			if(stats->buckets[i].residual == bucket) {
+				stats->buckets[i].count += incr;
+				goto find_peak;
+			}
 		}
+		if(stats->nbuckets < FLAC__MAX_BLOCK_SIZE)
+			break;
+		coarsen_buckets(stats);
 	}
 	/* not found, make a new bucket */
 	i = stats->nbuckets;
-	stats->buckets[i].residual = residual;
+	stats->buckets[i].residual = bucket;
 	stats->buckets[i].count = incr;
 	stats->nbuckets++;
 find_peak:
