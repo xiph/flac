@@ -1327,7 +1327,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_seek_absolute(FLAC__StreamDecoder *deco
 			return false;
 		}
 		/* check this again in case we didn't know total_samples the first time */
-		if(FLAC__stream_decoder_get_total_samples(decoder) > 0 && sample >= FLAC__stream_decoder_get_total_samples(decoder)) {
+		if(!FLAC__stream_decoder_get_decode_chained_stream(decoder) && FLAC__stream_decoder_get_total_samples(decoder) > 0 && sample >= FLAC__stream_decoder_get_total_samples(decoder)) {
 			decoder->private_->is_seeking = false;
 			return false;
 		}
@@ -3960,6 +3960,8 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 				return false;
 			}
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
+			/* the links can have different (fixed) block sizes */
+			decoder->private_->fixed_block_size = decoder->private_->next_fixed_block_size = 0;
 			decoder->private_->is_seeking = false;
 			if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder)) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
