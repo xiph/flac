@@ -3960,6 +3960,8 @@ FLAC__bool seek_to_absolute_sample_ogg_(FLAC__StreamDecoder *decoder, FLAC__uint
 				return false;
 			}
 			decoder->protected_->state = FLAC__STREAM_DECODER_SEARCH_FOR_METADATA;
+			/* the links can have different (fixed) block sizes */
+			decoder->private_->fixed_block_size = decoder->private_->next_fixed_block_size = 0;
 			decoder->private_->is_seeking = false;
 			if(!FLAC__stream_decoder_process_until_end_of_metadata(decoder)) {
 				decoder->protected_->state = FLAC__STREAM_DECODER_SEEK_ERROR;
