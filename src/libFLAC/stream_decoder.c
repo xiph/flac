@@ -1327,7 +1327,7 @@ FLAC_API FLAC__bool FLAC__stream_decoder_seek_absolute(FLAC__StreamDecoder *deco
 			return false;
 		}
 		/* check this again in case we didn't know total_samples the first time */
-		if(FLAC__stream_decoder_get_total_samples(decoder) > 0 && sample >= FLAC__stream_decoder_get_total_samples(decoder)) {
+		if(!FLAC__stream_decoder_get_decode_chained_stream(decoder) && FLAC__stream_decoder_get_total_samples(decoder) > 0 && sample >= FLAC__stream_decoder_get_total_samples(decoder)) {
 			decoder->private_->is_seeking = false;
 			return false;
 		}
