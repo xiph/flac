@@ -17,6 +17,7 @@ jobs:
       - uses: actions/checkout@v7
         with:
           repository: ietf-wg-cellar/flac-test-files
+          ref: aa7b0c6cf32994c106ae517a08134c28a96ff5b2
           path: ./test-files
 
       - name: Install Linux dependencies
